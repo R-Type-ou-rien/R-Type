@@ -3,7 +3,7 @@ name: 'General Checks'
 on:
   push:
     branches:
-      - '**'      # On écoute TOUTES les branches pour pouvoir bloquer main/dev
+      - '**'
   pull_request:
     branches:
       - main
