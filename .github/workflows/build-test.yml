@@ -1,0 +1,108 @@
+name: 'Build, Test'
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "**" ]
+
+  workflow_run:
+    workflows: ["General Checks"]
+    types:
+      - completed
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  check-prerequisites:
+    name: Check General Checks
+    runs-on: ubuntu-latest
+    outputs:
+      can_proceed: ${{ steps.check.outputs.result }}
+    steps:
+      - name: Check status of general checks
+        id: check
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            if [ "${{ github.event.workflow_run.conclusion }}" = "success" ]; then
+              echo "result=true" >> $GITHUB_OUTPUT
+            else
+              echo "General Checks fails stop this workflow"
+              echo "result=false" >> $GITHUB_OUTPUT
+              exit 1
+            fi
+          else
+            # If it's pull request or push on main branch, we can proceed
+            echo "result=true" >> $GITHUB_OUTPUT
+          fi
+
+  build-and-test:
+    name: Build & Test on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    needs: check-prerequisites
+    if: needs.check-prerequisites.outputs.can_proceed == 'true'
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dépendances (Linux)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake g++ make python3-pip
+          sudo pip3 install gcovr
+
+      - name: Install dependances (Windows)
+        if: runner.os == 'Windows'
+        run: choco install -y cmake
+
+      - name: Config CMake
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+
+      - name: Compiler
+        run: cmake --build build --config Debug
+
+      - name: Launch Script Test
+        shell: bash
+        run: |
+          CURRENT_BRANCH="${{ github.ref_name }}"          
+          echo "Contexte: $CURRENT_BRANCH (Event: ${{ github.event_name }})"
+          CTEST_BASE="ctest --test-dir build --output-on-failure -C Debug"
+          if [ "$CURRENT_BRANCH" = "main" ]; then
+            echo "Branch main: Launch all tests."
+            $CTEST_BASE
+          elif [ "$CURRENT_BRANCH" = "dev" ]; then
+            echo "Branch dev: Launch tests for dev."
+            $CTEST_BASE -L dev
+          else
+            echo "Issue branch ($CURRENT_BRANCH) : Check issue launch."
+            $CTEST_BASE -L dev
+          fi
+
+  push_to_mirror:
+    if: ${{ github.event_name == 'push'}}
+    runs-on: ubuntu-latest
+    name: push_to_mirror
+    steps:
+      - name: push_to_mirror
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pixta-dev/repository-mirroring-action@v1
+        with:
+          target_repo_url:
+            "git@github.com:EpitechPGE3-2025/G-CPP-500-PAR-5-2-rtype-17.git"
+          ssh_private_key:
+            ${{ secrets.GIT_SSH_PRIVATE_KEY }}

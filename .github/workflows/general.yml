@@ -1,0 +1,89 @@
+name: 'General Checks'
+
+on:
+  push:
+    branches-ignore:
+      - main
+      - dev
+
+  pull_request:
+    branches:
+      - main
+      - dev
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  commit-and-style:
+    name: Commit Message, C++ Style & Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install tools (clang-format, cpplint, jq)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-format python3-pip
+          pip3 install --user cpplint
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Check Commit Message
+        if: github.event_name == 'push'
+        run: |
+          msgs=$(git log --format=%s ${{ github.event.before }}..${{ github.event.after }})
+          # Filter msg who dont correspond to (feat, fix, docs or merge)
+          bad_commits=$(echo "$msgs" | grep -vE '^(feat|fix|docs): |^Merge ' || true)
+          
+          if [ -n "$bad_commits" ]; then
+            echo "Bad commit message :"
+            echo "$bad_commits"
+            exit 1
+          fi
+          echo "Commit message correct"
+
+      - name: Check C++ Code Style (clang-format)
+        run: |
+          echo "Check the coding style with clang-format"
+          # Search all cpp files without cmake files & Execute clang-format
+          find . -type f \( -name "*.cpp" -o -name "*.hpp" \) \
+            ! -path "*/build/*" ! -path "*/cmake-build-*/*" \
+            -exec clang-format --dry-run --Werror {} +
+
+      - name: Lint C++ Code (cpplint)
+        run: |
+          echo "Analyzing code with cpplint..."            
+          cpplint_filter="-legal/copyright,-build/header_guard,-readability/casting,-readability/check,-whitespace/indent"
+          find . -type f \( -name "*.cpp" -o -name "*.hpp" \) \
+            ! -path "*/build/*" \
+            ! -path "*/cmake-build-debug/*" \
+            ! -path "*/tests/*" \
+            ! -path "*/.git/*" \
+            -exec cpplint --filter="$cpplint_filter" --linelength=120 {} +
+
+
+      - name: Check Naming Conventions
+        run: |
+            echo "Checking naming conventions"
+            files=$(find . -type f \( -name "*.cpp" -o -name "*.h" -o -name "*.hpp" \) ! -path "*/build/*" ! -path "*/cmake-build-*/*")
+            if [ -z "$files" ]; then echo "No C++ files found."; exit 0; fi    
+            errors=0
+            # Check if class not start with a lowercase letter
+            if echo "$files" | xargs grep -nE "^\s*class\s+[a-z]"; then
+              echo "Error: Classes must allow PascalCase (e.g., class MyClass)"
+              errors=1
+            fi
+            # Check if const start with UPERCASE
+            if echo "$files" | xargs grep -nE "^\s*const\s+\w+\s+[a-z][a-zA-Z]*\s*="; then
+              echo "Error: Constants must be UPPER_CASE (e.g., const int MAX_SIZE = ...)"
+              errors=1
+            fi
+    
+            if [ "$errors" -eq 1 ]; then
+              exit 1
+            fi
+            echo "All naming conventions respected."
