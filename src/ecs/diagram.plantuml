@@ -1,0 +1,50 @@
+@startuml ECS
+
+entity Entity
+
+struct Component
+
+class Sparse_set {
+    - std::vector<size_t> _sparse
+    - std::vector<T> components
+    - std::vector<Entity> _reverse_dense
+    + void addEntity(Entity id, T data)
+    + void removeEntity(Entity id)
+    + bool has(entity id)
+    + T& getComponentFromEntity(Entity id)
+    + std::vector<T> getComponents()
+    + std::vector<Entity> getEntities()
+}
+
+class Registry {
+    - std::size_t nextId
+    - std::map<T, ComponentPool> _pools
+    + Entity createEntity()
+    + void destroyEntity()
+    + (template<T>) ComponentPool<T> getPool()
+    + (template<T>) addComponent(Entity id, T component)
+    + (template<T>) getComponent(Entity id)
+    +  getComponents(Entity id)
+    + (template<T>) getEntities()
+}
+
+interface ISystem {
+    + ~ISystem() = default
+    + virtual void init(Registry &reg)
+    + virtual void update(Registry &reg)
+}
+
+class SystemManager {
+    - std::vector<ISystem> _systems
+    - Registry& registry
+    + SystemManager(Registry& registry)
+    + void addSystem(Isystem system)
+    + void updateAll()
+}
+
+class ECS {
+    - Regitry& reg
+    - SystemManager systems
+    + ECC()
+}
+@enduml
