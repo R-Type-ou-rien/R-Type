@@ -32,7 +32,7 @@
             std::vector<id_type> _reverse_dense;
 
             /** Index for the _dense and _reverse_dense vectors */
-            std::size_t _index;
+            std::size_t _index = 0;
 
         public:
             /**

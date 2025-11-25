@@ -5,8 +5,7 @@
 #include <ostream>
 #include <typeindex>
 #include <vector>
-#include "../../utils/sparse_set/sparser_set.hpp"
-
+#include "../../utils/SparseSet/SparserSet.hpp"
 
 #pragma once
 

@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "../Registry/registry.hpp"
+#include "../Registry/Registry.hpp"
 
 class ISystem {
     public:
