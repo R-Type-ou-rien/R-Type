@@ -5,6 +5,8 @@
 
 #ifndef SPARSE_HPP
 
+    using IdType = std::uint32_t;
+
     class ISparseSet {
     public:
         virtual ~ISparseSet() = default;
@@ -12,7 +14,7 @@
         virtual bool has(int entityId) const = 0;
     };
 
-    template<typename data_type, typename id_type = int>
+    template<typename data_type>
     class SparseSet {
         private:
 
@@ -29,7 +31,7 @@
                 A vector containing id at their data index positions.
                 The id are stored contigously
             */
-            std::vector<id_type> _reverse_dense;
+            std::vector<IdType> _reverse_dense;
 
             /** Index for the _dense and _reverse_dense vectors */
             std::size_t _index = 0;
@@ -37,9 +39,9 @@
         public:
             /**
                 A function to add a new data to the given id
-                @param id_type id
+                @param IdType id
             */
-            void addID(id_type id, data_type data)
+            void addID(IdType id, const data_type& data)
             {
                 if (id >= _sparse.size()) {
                     _sparse.resize(id + 1, -1);
@@ -53,9 +55,9 @@
 
             /**
                 A function to remove a data from the given id
-                @param id_type id
+                @param IdType id
             */
-            void removeId(id_type id) override
+            void removeId(IdType id)
             {
                 if (!has(id)) {
                     std::cerr << "Error: removeId: " << id 
@@ -80,7 +82,7 @@
             /**
                 A function to check if an id has a data
             */
-            bool has(id_type id) const override
+            bool has(IdType id) const
             {
                 if (_sparse[id] > -1 && id < _sparse.size())
                     return true;
@@ -89,10 +91,10 @@
 
             /**
                 A function to get the data of a given id
-                @param id_type id
+                @param IdType id
                 @return The function returns reference to the corresponding data
             */
-            data_type& getDataFromId(id_type id) const
+            data_type& getDataFromId(IdType id) const
             {
                 return _dense[_sparse[id]];
             }
@@ -102,7 +104,7 @@
                 @param data_type data
                 @return The function returns the corresponding id 
             */
-            id_type getIdFromData(data_type data) const
+            IdType getIdFromData(data_type data) const
             {
                 return _reverse_dense[data];
             }
@@ -120,7 +122,7 @@
                 A function to get the id's list stored
                 @return The function returns the _reverse_dense vector
             */
-            std::vector<id_type> getIdList() const
+            std::vector<IdType> getIdList() const
             {
                 return _reverse_dense;
             }

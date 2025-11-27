@@ -8,7 +8,7 @@
 #pragma once
 
 #include "../ISystem.hpp"
-#include "../../Components/Components.hpp"
+#include "../Components/Components.hpp"
 
 class MoveSystem : public ISystem {
     public:

@@ -10,23 +10,15 @@
 #include <vector>
 #include <memory>
 #include "../ISystem.hpp"
-#include "../../Registry/Registry.hpp"
 
 class SystemManager {
     public:
         SystemManager(Registry& registry) : _registry(registry) {}
 
         template <typename T, typename... Args>
-        void addSystem(Args&&... args) {
-            _systems.push_back(std::make_unique<T>(std::forward<Args>(args)...));
-            _systems.back()->init(_registry);
-        }
+        void addSystem(Args&&... args);
 
-        void updateAll(float dt) {
-            for (auto& system : _systems) {
-                system->update(_registry, dt);
-            }
-        }
+        void updateAll(float dt);
 
     private:
         Registry& _registry;

@@ -9,7 +9,7 @@
 
 #include <SFML/Window/Keyboard.hpp>
 #include "../ISystem.hpp"
-#include "../../Components/Components.hpp"
+#include "../Components/Components.hpp"
 
 class InputSystem : public ISystem {
     public:
