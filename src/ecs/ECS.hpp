@@ -13,9 +13,9 @@
 
 class ECS {
     public:
-        ECS() : systems(registry) {}
+        ECS() : systems(registry) {};
 
-        ECS(unsigned int width = 800, unsigned int height = 600, const std::string& title = "R-Type")
+        ECS(unsigned int width, unsigned int height, const std::string& title = "R-Type")
         : _window(sf::VideoMode(width, height), title), 
         systems(registry) 
         {

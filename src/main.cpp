@@ -12,7 +12,7 @@
 #include "ecs/System/InputSystem/InputSystem.hpp"
 
 int main() {
-    ECS ecs(800, 600, "R-Type - ECS Engine");
+    ECS ecs(1920, 1080, "R-Type");
 
     ecs.systems.addSystem<InputSystem>();
     ecs.systems.addSystem<MoveSystem>();
@@ -29,7 +29,7 @@ int main() {
     });
     ecs.registry.addComponent(player, Sprite2D{"content/sprites/r-typesheet42.gif", 0, 0, 32, 16, 3.0f});
 
-    auto& window = ecs.getWindow();
+    sf::RenderWindow& window = ecs.getWindow();
 
     sf::Clock clock;
     while (window.isOpen()) {
