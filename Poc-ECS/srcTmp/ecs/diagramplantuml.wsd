@@ -1,8 +1,5 @@
 @startuml ECS
 
-entity Entity
-
-struct Component
 
 class Sparse_set {
     - std::vector<size_t> _sparse
