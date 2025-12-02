@@ -1,11 +1,21 @@
-#include "Registry/registry.hpp"
-#include "System/SystemManager.hpp"
+/*
+** EPITECH PROJECT, 2025
+** R-Type
+** File description:
+** ECS.hpp
+*/
+
+#pragma once
+
+#include <SFML/Graphics.hpp>
+#include "Registry/Registry.hpp"
+#include "System/SystemManager/SystemManager.hpp"
 
 class ECS {
     public:
-        ECS() : systems(registry) {}
+        ECS() : systems(registry) {};
 
-        ECS(unsigned int width = 800, unsigned int height = 600, const std::string& title = "R-Type")
+        ECS(unsigned int width, unsigned int height, const std::string& title = "R-Type")
         : _window(sf::VideoMode(width, height), title), 
         systems(registry) 
         {
@@ -35,7 +45,8 @@ class ECS {
             return _window;
         }
 
-        Registry& registry;
+    public:
+        Registry registry;
         SystemManager systems;
 
     private:
