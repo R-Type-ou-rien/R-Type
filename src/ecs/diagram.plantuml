@@ -10,8 +10,8 @@ package "sparse set" {
 
     interface ISparseSet {
         + virtual ~ISparseSet() = default;
-        + {abstract} remove(EntityID entity)
-        + {abstract} has(EntityID entity) : bool
+        + {abstract} remove(Entity entity)
+        + {abstract} has(Entity entity) : bool
     }
 
     class Sparse_set {

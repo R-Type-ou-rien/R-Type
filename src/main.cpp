@@ -40,7 +40,7 @@ int main() {
     ecs.systems.addSystem<RenderSystem>(ecs.getWindow());
     ecs.systems.addSystem<CooldownSystem>(ecs.getWindow());
 
-    EntityID player = ecs.registry.createEntity();
+    Entity player = ecs.registry.createEntity();
 
     ecs.registry.addComponent(player, Position2D{100.f, 300.f});
     ecs.registry.addComponent(player, Velocity2D{0.f, 0.f});

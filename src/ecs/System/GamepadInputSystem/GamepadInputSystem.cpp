@@ -13,7 +13,7 @@ void GamepadInputSystem::update(Registry& registry, float dt) {
     auto& controls = registry.getView<GamepadControl>();
 
     for (std::size_t i = 0; i < entities.size(); ++i) {
-        EntityID entity = entities[i];
+        Entity entity = entities[i];
         auto& ctrl = controls[i];
 
         if (!registry.hasComponent<Velocity2D>(entity))

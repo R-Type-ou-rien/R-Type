@@ -12,7 +12,7 @@ void InputSystem::update(Registry& registry, float dt) {
     auto& inputs = registry.getView<InputControl>();
 
     for (size_t i = 0; i < entities.size(); ++i) {
-        EntityID entity = entities[i];
+        Entity entity = entities[i];
 
         if (registry.hasComponent<Velocity2D>(entity)) {
             auto& vel = registry.getComponent<Velocity2D>(entity);

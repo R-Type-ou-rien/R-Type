@@ -12,10 +12,10 @@ void ProjectileSystem::update(Registry& registry, float dt)
     auto& projectiles = registry.getView<Projectile>();
     const auto& entities = registry.getEntities<Projectile>();
 
-    std::vector<EntityID> toDestroy;
+    std::vector<Entity> toDestroy;
 
     for (std::size_t i = 0; i < entities.size(); ++i) {
-        EntityID entity = entities[i];
+        Entity entity = entities[i];
         auto& proj = projectiles[i];
 
         proj.lifetime -= dt;
@@ -25,7 +25,7 @@ void ProjectileSystem::update(Registry& registry, float dt)
     }
 
     // On détruit à part pour éviter de casser les vecteurs pendant la boucle
-    for (EntityID e : toDestroy) {
+    for (Entity e : toDestroy) {
         registry.destroyEntity(e);
     }
 }

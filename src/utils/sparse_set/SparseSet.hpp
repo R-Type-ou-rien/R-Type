@@ -8,8 +8,8 @@
     class ISparseSet {
     public:
         virtual ~ISparseSet() = default;
-        virtual void removeId(std::size_t entityId) = 0;
-        virtual bool has(std::size_t entityId) const = 0;
+        virtual void removeId(std::size_t Entity) = 0;
+        virtual bool has(std::size_t Entity) const = 0;
     };
 
     template<typename data_type>

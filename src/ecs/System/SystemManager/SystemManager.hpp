@@ -10,7 +10,7 @@
 #include <vector>
 #include <memory>
 #include "../ISystem.hpp"
-#include "../../Registry/Registry.hpp"
+#include "../../Registry/registry.hpp"
 
 class SystemManager {
     public:

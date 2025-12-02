@@ -16,7 +16,7 @@ void RenderSystem::update(Registry& registry, float dt) {
     const auto& entityIds = registry.getEntities<Sprite2D>();
 
     for (size_t i = 0; i < entityIds.size(); ++i) {
-        EntityID id = entityIds[i];
+        Entity id = entityIds[i];
 
         if (registry.hasComponent<Position2D>(id)) {
             auto& pos = registry.getComponent<Position2D>(id);

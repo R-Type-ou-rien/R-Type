@@ -13,7 +13,7 @@ void ShootSystem::update(Registry& registry, float dt)
     const auto& shooterEntities = registry.getEntities<Shooter>();
 
     for (std::size_t i = 0; i < shooterEntities.size(); ++i) {
-        EntityID entity = shooterEntities[i];
+        Entity entity = shooterEntities[i];
         auto& shooter = shooters[i];
 
         // Maj du cooldown
@@ -54,7 +54,7 @@ void ShootSystem::update(Registry& registry, float dt)
         auto& shooterPos = registry.getComponent<Position2D>(entity);
 
         // Création du projectile
-        EntityID proj = registry.createEntity();
+        Entity proj = registry.createEntity();
 
         Position2D projPos{
             shooterPos.x + 50.f,   // petit offset devant le joueur

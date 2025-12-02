@@ -19,7 +19,7 @@ void CooldownSystem::update(Registry &registry, float /*dt*/)
     const float yOffset   = 30.f; // hauteur au-dessus du centre du joueur
 
     for (std::size_t i = 0; i < entities.size(); ++i) {
-        EntityID entity = entities[i];
+        Entity entity = entities[i];
         auto &shooter = shooters[i];
 
         if (!registry.hasComponent<Position2D>(entity))

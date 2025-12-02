@@ -13,7 +13,7 @@ void MoveSystem::update(Registry& registry, float dt) {
     const auto& entities = registry.getEntities<Velocity2D>();
 
     for (size_t i = 0; i < entities.size(); ++i) {
-        EntityID entity = entities[i];
+        Entity entity = entities[i];
 
         if (registry.hasComponent<Position2D>(entity)) {
             auto& pos = registry.getComponent<Position2D>(entity);
