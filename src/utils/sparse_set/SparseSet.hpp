@@ -112,7 +112,7 @@
                 A function to get the data's list stored
                 @return The function returns the dense vector
             */
-            std::vector<data_type>& getDataList() const
+            std::vector<data_type>& getDataList()
             {
                 return _dense;
             }
@@ -121,7 +121,7 @@
                 A function to get the id's list stored
                 @return The function returns the _reverse_dense vector
             */
-            std::vector<std::size_t> getIdList() const
+            std::vector<std::size_t>& getIdList()
             {
                 return _reverse_dense;
             }

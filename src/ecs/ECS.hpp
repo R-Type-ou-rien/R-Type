@@ -8,7 +8,7 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
-#include "../Registry/registry.hpp"
+#include "Registry/registry.hpp"
 #include "System/SystemManager/SystemManager.hpp"
 
 class ECS {
