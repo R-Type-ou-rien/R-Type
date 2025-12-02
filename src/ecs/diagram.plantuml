@@ -1,0 +1,140 @@
+@startuml Server ECS Architecture
+
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam packageStyle rectangle
+
+entity Entity
+
+package "sparse set" {
+
+    interface ISparseSet {
+        + virtual ~ISparseSet() = default;
+        + {abstract} remove(Entity entity)
+        + {abstract} has(Entity entity) : bool
+    }
+
+    class Sparse_set {
+        - std::vector<size_t> _sparse
+        - std::vector<T> _dense
+        - std::vector<size_t> _reverse_dense
+        + void addId(size_t id, T data)
+        + void removeId(size_t id)
+        + bool has(size_t id)
+        + T& getComponentFromId(size_t id)
+        + std::vector<T> getDataFromId()
+        + std::size_t getIdFromData(data_type data) const
+        + std::vector<data_type>& getDataList() const
+        + std::vector<std::size_t> getIdList() const
+    }
+
+    Sparse_set .up.|> ISparseSet : inherits
+}
+
+package "registry" {
+    class Registry {
+        - std::size_t nextId = 0
+        - std::unordered_map<std::type_index, std::unique_ptr<ISparseSet>> _pools
+        - std::vector<Entity> _deadEntities
+        + Registry() = default;
+        + ~Registry() = default;
+        + Entity createEntity()
+        + void destroyEntity(Entity id)
+        + (template<T>) SparseSet<Component>& getPool()
+        + (template<T>) void addComponent(Entity id, Component component)
+        + (template<T>) void removeComponent(Entity entity)
+        + (template<T>) Component& getComponent(Entity id)
+        + (template<T>) bool hasComponent(Entity id)
+        + (template<T>) std::vector<Component>& getView()
+        + (template<T>) std::tuple<SparseSet<Components>&...> view()
+        + (template<T>) std::vector<Entity>& getEntities()
+    }
+    Registry -up-|> ISparseSet : contains
+}
+
+package "System" {
+    interface ISystem {
+        + ~ISystem() = default
+        + virtual void init(Registry &reg)
+        + virtual void update(Registry &reg)
+    }
+
+    class SystemManager {
+        - std::vector<ISystem> _systems
+        - Registry& _registry
+        + SystemManager(Registry& registry)
+        + void addSystem(Args&&... args)
+        + void updateAll(float dt);
+    }
+    SystemManager -up-|> ISystem : contains
+}
+
+package "World" {
+    class ECS {
+        - Regstry& reg
+        - SystemManager systems
+        + ECC()
+    }
+    ECS -up-|> SystemManager : contains
+    ECS -up-|> Registry : contains
+}
+
+struct TransformComponent {
+    float pos_x
+    float pos_y
+    float rotation
+}
+
+package "collision" {
+    class CollisionSystem {
+        + update/checkCollision
+    }
+
+    struct CollisionComponent {
+        std::list<Entity> collision
+        std::list<std::string> tagToCollideWith
+        std::string currentTag
+    }
+    CollisionSystem -down-|> CollisionComponent : uses
+    CollisionSystem -down-|> TransformComponent : uses
+    CollisionSystem .up.|> ISystem : inherits
+}
+
+package "mouvement" {
+    class MovementSystem {
+        + update/updatePosition
+    }
+
+    struct VelocityComponent {
+        float x
+        float y
+    }
+    MovementSystem -down-|> VelocityComponent : uses
+    MovementSystem -down-|> TransformComponent : uses
+    MovementSystem .up.|> ISystem : inherits
+}
+
+package "action" {
+    class ActionSystem {
+        + update/FillInputComponent
+    }
+
+    struct ActionComponent {
+        map<ActionId, ActionState> actions
+        vec2 leftJoystick
+        vec2 rightJoystick
+        pair<float, float> mouse_position
+    }
+
+    struct ActionState {
+        bool isPressed
+        bool justPressed
+        bool justReleased
+        float value
+    }
+    ActionComponent -down-|> ActionState : uses
+    ActionSystem -up-|> ActionComponent : uses
+}
+
+
+@enduml
