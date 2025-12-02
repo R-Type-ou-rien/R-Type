@@ -4,7 +4,7 @@
 #include <typeindex>
 #include <unordered_map>
 #include <vector>
-#include "../../utils/sparse_set/sparser_set.hpp"
+#include "../../utils/sparse_set/SparseSet.hpp"
 
 
 #pragma once
@@ -72,24 +72,24 @@ class Registry {
 
         /**
             A function to get the component of an entity
-            @param Entity id
+            @param Entity entity
             @return The function returns a reference to a component
         */
         template<typename Component>
-        Component& getComponent(Entity id)
+        Component& getComponent(Entity entity)
         {
-            return getPool<Component>().getDataFromId(id);
+            return getPool<Component>().getDataFromId(entity);
         }
 
         /**
             A function to know if an entity has a component
-            @param Entity id
+            @param Entity entity
             @return The function returns a boolean corresponding at the presence of a component in an entity
         */
         template<typename Component>
-        bool hasComponent(Entity id)
+        bool hasComponent(Entity entity)
         {
-            return getPool<Component>().has(id);
+            return getPool<Component>().has(entity);
         }
 
         /**
