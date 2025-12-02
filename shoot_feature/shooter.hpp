@@ -14,6 +14,10 @@ struct ShooterComponent {
     double last_shot;
 };
 
+struct ProjectileComponent {
+    int owner_id;
+};
+
 class ShooterSystem {
    public:
     ShooterSystem() = default;

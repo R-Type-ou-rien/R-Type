@@ -1,7 +1,6 @@
 #pragma one
 
 #include "shoot_feature/shooter.hpp"
-#include "shooter.hpp"
 
 namespace ECS {
 void ShooterSystem::update(Registry& registry) {}
