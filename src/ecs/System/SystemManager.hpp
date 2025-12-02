@@ -16,7 +16,8 @@ class SystemManager {
         SystemManager(Registry& registry) : _registry(registry) {}
 
         template <typename T, typename... Args>
-        void addSystem(Args&&... args) {
+        void addSystem(Args&&... args)
+        {
             _systems.push_back(std::make_unique<T>(std::forward<Args>(args)...));
             _systems.back()->init(_registry);
         }
