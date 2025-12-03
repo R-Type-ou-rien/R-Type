@@ -1,9 +1,10 @@
 #pragma once
 
-#include "ecs/Registry/registry.hpp"
-#include "team_component/team_component.hpp"
+#include "../ecs/Registry/registry.hpp"
+#include "../ecs/System/ISystem.hpp"
+// #include "team_component/team_component.hpp"
 
-namespace ECS {
+// namespace ECS {
 
 struct TransformComponent {
     double x;
@@ -26,12 +27,11 @@ struct ProjectileComponent {
     int owner_id;
 };
 
-class ShooterSystem {
+class ShooterSystem : public ISystem {
    public:
-    ShooterSystem() = default;
-    ~ShooterSystem() = default;
+    void init(Registry& reg) override {}
 
-    void update(Registry& registry, double time);
+    void update(Registry& registry, float time) override;
 
    private:
     VelocityComponent get_projectile_speed(ShooterComponent::Projectile type, TeamComponent::Team team);
@@ -39,4 +39,4 @@ class ShooterSystem {
                            TransformComponent pos, VelocityComponent velocity);
 };
 
-}  // namespace ECS
+// }  // namespace ECS

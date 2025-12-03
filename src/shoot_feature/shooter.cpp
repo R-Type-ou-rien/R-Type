@@ -1,10 +1,8 @@
-#pragma one
-
-#include "shoot_feature/shooter.hpp"
-
 #include "shooter.hpp"
+#include <iostream>
+#include <ostream>
 
-namespace ECS {
+// namespace ECS {
 
 VelocityComponent ShooterSystem::get_projectile_speed(ShooterComponent::Projectile type, TeamComponent::Team team) {
     VelocityComponent vel = {0, 0};
@@ -57,9 +55,9 @@ void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::Proj
     std::cout << "Projectile create ID: " << id << "Type: " << type << std::endl;
 }
 
-void ShooterSystem::update(Registry& registry, double current_time) {
+void ShooterSystem::update(Registry& registry, float current_time) {
     auto& shootersIds = registry.getEntities<ShooterComponent>();
-
+    std::cout << "ShooterSystem updated" << std::endl;
     for (auto id : shootersIds) {
         if (!registry.hasComponent<TransformComponent>(id)) {
             continue;
@@ -78,4 +76,4 @@ void ShooterSystem::update(Registry& registry, double current_time) {
         }
     }
 }
-}  // namespace ECS
+// }  // namespace ECS
