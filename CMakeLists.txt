@@ -35,6 +35,8 @@ find_package(asio CONFIG REQUIRED)
 
 find_package(OpenGL REQUIRED)
 
+# add_subdirectory(ecs) # -> lance le cmake a la root du directory ecs
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 add_executable(R-Type src/main.cpp)
