@@ -2,7 +2,7 @@
 
 #include "../ecs/Registry/registry.hpp"
 #include "../ecs/System/ISystem.hpp"
-// #include "team_component/team_component.hpp"
+#include "../team_component/team_component.hpp"
 
 // namespace ECS {
 
