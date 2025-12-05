@@ -1,10 +1,3 @@
-/*
-** EPITECH PROJECT, 2025
-** R-Type
-** File description:
-** main.cpp
-*/
-
 #include "ecs/ECS.hpp"
 #include "ecs/Components/Components.hpp"
 #include "ecs/System/MoveSystem/MoveSystem.hpp"
@@ -14,6 +7,7 @@
 #include "ecs/System/ProjectileSystem/ProjectileSystem.hpp"
 #include "ecs/System/CooldownSystem/CooldownSystem.hpp"
 #include "ecs/System/GamepadInputSystem/GamepadInputSystem.hpp"
+#include <iostream>
 
 #define XBOXA 0
 #define XBOXB 1
@@ -29,6 +23,8 @@
 #define XBOXJOYR 10
 
 
+#include <iostream>
+#include <ostream>
 int main() {
     ECS ecs(1920, 1080, "R-Type");
 
