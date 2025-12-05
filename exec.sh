@@ -6,13 +6,8 @@ if [ "$1" == "clean" ] && [ -d build ]; then
     exit 0
 fi
 
-if [ -d build ]; then
-    rm -rf build
+if [ ! -d build ]; then
+    cmake -B build -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug
 fi
 
-cmake -B build
-
-cmake build -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug
-
-
-cmake --build build
+cmake --build build -v
