@@ -22,7 +22,7 @@ class SystemManager {
             _systems.back()->init(_registry);
         }
 
-        void updateAll(float dt);
+        void updateAll(system_context context);
 
     private:
         Registry& _registry;
