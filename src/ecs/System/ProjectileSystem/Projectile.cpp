@@ -7,7 +7,7 @@
 
 #include "ProjectileSystem.hpp"
 
-void ProjectileSystem::update(Registry& registry, float dt)
+void ProjectileSystem::update(Registry& registry, system_context context)
 {
     auto& projectiles = registry.getView<Projectile>();
     const auto& entities = registry.getEntities<Projectile>();
@@ -18,7 +18,7 @@ void ProjectileSystem::update(Registry& registry, float dt)
         Entity entity = entities[i];
         auto& proj = projectiles[i];
 
-        proj.lifetime -= dt;
+        proj.lifetime -= context.dt;
         if (proj.lifetime <= 0.f) {
             toDestroy.push_back(entity);
         }

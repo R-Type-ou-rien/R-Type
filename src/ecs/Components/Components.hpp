@@ -7,13 +7,17 @@
 
 #pragma once
 
-#include <string>
+#include <SFML/Graphics/Rect.hpp>
+#include <SFML/Graphics/Texture.hpp>
 #include <SFML/Window/Keyboard.hpp>
 #include <SFML/Window/Joystick.hpp>
+#include "../../utils/slot_map/slot_map.hpp"
 
-struct Position2D {
+struct transform_component_s {
     float x;
     float y;
+    sf::Vector2f scale = {1.0, 1.0};
+    float rotation = 0;
 };
 
 struct Velocity2D {
@@ -21,13 +25,13 @@ struct Velocity2D {
     float vy;
 };
 
-struct Sprite2D {
-    std::string texturePath;
-    int rectLeft;
-    int rectTop;
-    int rectWidth;
-    int rectHeight;
-    float scale = 1.0f;
+struct sprite2D_component_s {
+    handle_t<sf::Texture> handle;
+    sf::IntRect dimension;
+    float animation_speed;
+    int current_animation_frame = 0;
+    float last_animation_update = 0;
+    int z_index = 0;
 };
 
 struct InputControl {
@@ -40,8 +44,8 @@ struct InputControl {
 
 struct GamepadControl {
     unsigned int joystickId = 0;              // id de la manette (0 par défaut)
-    sf::Joystick::Axis axisX = sf::Joystick::X;
-    sf::Joystick::Axis axisY = sf::Joystick::Y;
+    sf::Joystick::Axis axisX = sf::Joystick::Axis::X;
+    sf::Joystick::Axis axisY = sf::Joystick::Axis::Y;
     unsigned int buttonShoot = 0;             // pour plus tard (tir)
     float speed = 300.f;                      // vitesse max
     float deadZone = 15.f;                    // pour ignorer les petits mouvements

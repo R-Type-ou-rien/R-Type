@@ -10,7 +10,6 @@
 #include <vector>
 #include <memory>
 #include "../ISystem.hpp"
-#include "../../Registry/registry.hpp"
 
 class SystemManager {
     public:
@@ -23,11 +22,7 @@ class SystemManager {
             _systems.back()->init(_registry);
         }
 
-        void updateAll(float dt) {
-            for (auto& system : _systems) {
-                system->update(_registry, dt);
-            }
-        }
+        void updateAll(system_context context);
 
     private:
         Registry& _registry;
