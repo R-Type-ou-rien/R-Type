@@ -73,7 +73,7 @@ void ShootSystem::update(Registry& registry, system_context context)
         };
 
         // À adapter en fonction de ta spritesheet
-        handle_t<sf::Texture> handle = context.texture_manager.insert(sf::Texture("content/sprites/r-typesheet42.gif"));
+        handle_t<sf::Texture> handle = context.texture_manager.load_resource("content/sprites/r-typesheet42.gif", sf::Texture("content/sprites/r-typesheet42.gif"));
         sprite2D_component_s projSprite;
         projSprite.handle = handle;
         projSprite.animation_speed = 0.5f;

@@ -94,7 +94,7 @@ class SlotMap {
 
         void remove(handle_t<data_type> handle)
         {
-            if (!getData(handle).has_value())
+            if (!get_data(handle).has_value())
                 return;
 
             slot_t& slotToRemove = _sparse[handle.id];
