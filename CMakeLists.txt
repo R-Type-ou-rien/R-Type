@@ -26,6 +26,8 @@ set(CMAKE_TOOLCHAIN_FILE "${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE 
 
 project(R-Type VERSION 1.0.0 LANGUAGES CXX)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -37,9 +39,15 @@ find_package(OpenGL REQUIRED)
 
 # add_subdirectory(ecs) # -> lance le cmake a la root du directory ecs
 
+include_directories(src)
+
+# Liste explicitement les sources (clair et propre)
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS src/*.cpp)
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
 
-add_executable(R-Type src/main.cpp)
+add_executable(R-Type ${SOURCES})
+# add_executable(R-Type src/main.cpp)
 
 target_link_libraries(R-Type PRIVATE
         SFML::Graphics

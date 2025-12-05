@@ -9,7 +9,6 @@
 
 #include <SFML/Graphics.hpp>
 #include "../ISystem.hpp"
-#include "../../Components/Components.hpp"
 
 class CooldownSystem : public ISystem {
     public:
@@ -18,7 +17,7 @@ class CooldownSystem : public ISystem {
 
         void init(Registry &registry) override {}
 
-        void update(Registry &registry, float dt) override;
+        void update(Registry &registry, system_context context) override;
 
     private:
         sf::RenderWindow &_window;

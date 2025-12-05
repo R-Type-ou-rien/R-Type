@@ -8,7 +8,7 @@
 #include "GamepadInputSystem.hpp"
 #include <cmath> // std::abs
 
-void GamepadInputSystem::update(Registry& registry, float dt) {
+void GamepadInputSystem::update(Registry& registry, system_context context) {
     const auto& entities = registry.getEntities<GamepadControl>();
     auto& controls = registry.getView<GamepadControl>();
 

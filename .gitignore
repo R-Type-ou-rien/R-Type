@@ -40,6 +40,8 @@
 # debug information files
 *.dwo
 
+.cache
+
 build
 .vscode
 r-type
