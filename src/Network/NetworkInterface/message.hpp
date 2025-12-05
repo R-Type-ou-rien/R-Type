@@ -16,7 +16,6 @@ template <typename T>
 struct message_header {
     uint32_t magic_value = MAGIC_VALUE;
     uint32_t user_id = 0;
-    uint32_t sequence_id = 0;
     uint32_t payload_lenght = 0;
     T id{};
     uint32_t size = 0;
