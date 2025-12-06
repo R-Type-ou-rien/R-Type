@@ -6,23 +6,23 @@
 */
 
 #include "RenderSystem.hpp"
+#include <SFML/Graphics/Texture.hpp>
 
 // Public //
 
-void RenderSystem::update(Registry& registry, float dt) {
+void RenderSystem::update(Registry& registry, system_context context) {
     _window.clear(sf::Color::Black);
-    auto& positions = registry.getView<Position2D>();
-    auto& sprites = registry.getView<Sprite2D>();
-    const auto& entityIds = registry.getEntities<Sprite2D>();
+    auto& positions = registry.getView<transform_component_s>();
+    auto& sprites = registry.getView<sprite2D_component_s>();
+    const auto& entityIds = registry.getEntities<sprite2D_component_s>();
 
-    for (size_t i = 0; i < entityIds.size(); ++i) {
-        Entity id = entityIds[i];
-
-        if (registry.hasComponent<Position2D>(id)) {
-            auto& pos = registry.getComponent<Position2D>(id);
-            auto& spriteData = sprites[i];
-
-            drawEntity(pos, spriteData);
+    for (Entity entity : entityIds) {
+        if (registry.hasComponent<transform_component_s>(entity)) {
+            if (!registry.hasComponent<sprite2D_component_s>(entity))
+                continue;
+            transform_component_s& transform = registry.getComponent<transform_component_s>(entity);
+            sprite2D_component_s& spriteData = registry.getComponent<sprite2D_component_s>(entity);
+            drawEntity(transform, spriteData, context);
         }
     }
     _window.display();
@@ -41,22 +41,22 @@ sf::Texture& RenderSystem::getTexture(const std::string& path) {
     return _textureCache[path];
 }
 
-void RenderSystem::drawEntity(const Position2D& pos, const Sprite2D& spriteData) {
-    sf::Sprite sprite;
+void RenderSystem::drawEntity(const transform_component_s& transform, const sprite2D_component_s& spriteData, const system_context& context) {
+
+    if (!context.texture_manager.has(spriteData.handle))
+        return;
+
+    sf::Texture texture = context.texture_manager.get_data(spriteData.handle).value();
+    sf::Sprite sprite(texture);
     
-    sprite.setTexture(getTexture(spriteData.texturePath));
+    if (spriteData.dimension.size.x > 0 && spriteData.dimension.size.y > 0)
+        sprite.setTextureRect(spriteData.dimension);
 
-    if (spriteData.rectWidth > 0 && spriteData.rectHeight > 0) {
-        sprite.setTextureRect(sf::IntRect(
-            spriteData.rectLeft, spriteData.rectTop, 
-            spriteData.rectWidth, spriteData.rectHeight
-        ));
-    }
-
-    sprite.setPosition(pos.x, pos.y);
-    sprite.setScale(spriteData.scale, spriteData.scale);
+    sprite.setPosition({transform.x, transform.y});
+    sprite.setScale(transform.scale);
 
     _window.draw(sprite);
+    return;
 }
 
 // Private //

@@ -69,7 +69,7 @@
 
                     _dense[indexToRemove] = lastData;
                     _reverse_dense[indexToRemove] = lastEntity;
-                    _sparse[lastIndex] = indexToRemove;
+                    _sparse[lastEntity] = indexToRemove;
                 }
                 _sparse[id] = -1;
                 _dense.pop_back();
@@ -98,15 +98,15 @@
                 return _dense[_sparse[id]];
             }
 
-            /**
-                A function to get the id of a given data
-                @param data_type data
-                @return The function returns the corresponding id 
-            */
-            std::size_t getIdFromData(data_type data) const
-            {
-                return _reverse_dense[data];
-            }
+            // /**
+            //     A function to get the id of a given data
+            //     @param data_type data
+            //     @return The function returns the corresponding id 
+            // */
+            // std::size_t getIdFromData(data_type data) const
+            // {
+            //     return _reverse_dense[data];
+            // }
 
             /**
                 A function to get the data's list stored

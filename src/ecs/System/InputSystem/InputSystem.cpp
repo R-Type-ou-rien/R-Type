@@ -7,7 +7,7 @@
 
 #include "InputSystem.hpp"
 
-void InputSystem::update(Registry& registry, float dt) {
+void InputSystem::update(Registry& registry, system_context context) {
     const auto& entities = registry.getEntities<InputControl>();
     auto& inputs = registry.getView<InputControl>();
 

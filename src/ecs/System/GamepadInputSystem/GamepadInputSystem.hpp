@@ -16,5 +16,5 @@ class GamepadInputSystem : public ISystem {
         void init(Registry& registry) override {
         }
 
-        void update(Registry& registry, float dt) override;
+        void update(Registry& registry, system_context context) override;
 };
