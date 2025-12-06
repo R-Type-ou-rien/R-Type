@@ -6,11 +6,6 @@
 
 // namespace ECS {
 
-struct TransformComponent {
-    double x;
-    double y;
-};
-
 struct VelocityComponent {
     double vx;
     double vy;
@@ -31,7 +26,7 @@ class ShooterSystem : public ISystem {
    public:
     void init(Registry& reg) override {}
 
-    void update(Registry& registry, float time) override;
+    void update(Registry& registry, float time);
 
    private:
     VelocityComponent get_projectile_speed(ShooterComponent::Projectile type, TeamComponent::Team team);
