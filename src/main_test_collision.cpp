@@ -8,6 +8,7 @@
 
 // Assure-toi que ces chemins sont bons
 #include "ecs/Registry/registry.hpp"
+#include "ecs/Components/Components.hpp"
 #include "transform_component/transform.hpp"
 #include "team_component/team_component.hpp"
 #include "health_feature/health.hpp"
@@ -41,6 +42,7 @@ int main() {
     registry.addComponent(player, TeamComponent{TeamComponent::ALLY});
     registry.addComponent(player, HealthComponent{100, 100});
     registry.addComponent(player, BoxCollisionComponent{}); 
+    registry.addComponent(player, sprite2D_component_s{{}, sf::IntRect(0, 0, 50, 50)});
 
     // 2. Création de l'ASTEROIDE (Attaquant)
     Entity asteroid = registry.createEntity();
@@ -48,6 +50,7 @@ int main() {
     registry.addComponent(asteroid, TeamComponent{TeamComponent::ENEMY});
     registry.addComponent(asteroid, DamageOnColision{50}); // Utilise DamageOnCollision (attention à l'orthographe Collision vs Colision selon ton fichier)
     registry.addComponent(asteroid, BoxCollisionComponent{});
+    registry.addComponent(asteroid, sprite2D_component_s{{}, sf::IntRect(0, 0, 50, 50)});
 
     print_status(registry, player, "Player Avant");
 
