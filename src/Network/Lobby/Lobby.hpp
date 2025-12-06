@@ -32,4 +32,5 @@ class Lobby {
    private:
     unsigned int _LobbyID;
     std::unordered_map<unsigned int, network::Connection<T>> _mapPlayers;
+    network::Connection<T> _owner;
 };

@@ -1,5 +1,8 @@
 #pragma once
+#include <functional>
+#include <map>
 #include <memory>
+#include <queue>
 #include <vector>
 
 #include "../Lobby/Lobby.hpp"
@@ -19,16 +22,46 @@ class ServerRType : public network::ServerInterface<RTypeEvents> {
     virtual void OnMessage(std::shared_ptr<network::Connection<RTypeEvents>> client,
                            network::message<RTypeEvents>& msg);
 
-    template <typename T>
-    coming_message<T> ReadIncomingMessage() {
-        // il faut coder ici
-    };
+    coming_message ReadIncomingMessage();
 
     template <typename T>
-    void AddMessageToServer(RTypeEvents event, uint32_t id, const T& data) {
-        // il faut coder ici
+    void AddMessageToPlayer(RTypeEvents event, uint32_t id, const T& data) {
+        for (std::shared_ptr<network::Connection<RTypeEvents>>& client : _deqConnections) {
+            if (client->GetID() == id) {
+                network::message<RTypeEvents> msg;
+                msg.body << data;
+                msg.header.id = event;
+                msg.header.size = msg.size();
+                if (std::find(_tcpEvents.begin(), _tcpEvents.end(), event) != _tcpEvents.end()) {
+                    MessageClient(client, msg);
+                } else if (std::find(_udpEvents.begin(), _udpEvents.end(), event) != _udpEvents.end()) {
+                    MessageClientUDP(client, msg);
+                }
+                break;
+            }
+        }
+    }
+
+    template <typename T>
+    void AddMessageToLobby(RTypeEvents event, uint32_t id_lobby, const T& data) {
+        for (Lobby<RTypeEvents>& lobby : _lobbys) {
+            if (lobby.GetID() == id_lobby) {
+                lobby.BroadcastMessage([&]() {
+                    network::message<RTypeEvents> msg;
+                    msg.body << data;
+                    msg.header.id = event;
+                    msg.header.size = msg.size();
+                    return msg;
+                }());
+                break;
+            }
+        }
     }
 
    private:
-    std::vector<Lobby<RTypeEvents>> clientIDs;
+    std::vector<Lobby<RTypeEvents>> _lobbys;
+    std::vector<RTypeEvents> _udpEvents;
+    std::vector<RTypeEvents> _tcpEvents;
+
+    std::queue<coming_message> _toGameMessages;
 };

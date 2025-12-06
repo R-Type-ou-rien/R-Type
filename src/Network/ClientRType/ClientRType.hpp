@@ -2,6 +2,8 @@
 
 #include <sys/types.h>
 
+#include <cstdint>
+
 #include "../Network.hpp"
 #include "../NetworkInterface/ClientInterface.hpp"
 
@@ -9,15 +11,18 @@ class ClientRType : public network::ClientInterface<RTypeEvents> {
    public:
     void PingServer();
 
-    void MessageAll();
-
-    template <typename T>
-    coming_message<T> ReadIncomingMessage() {
-        // il faut coder ici
-    };
+    coming_message ReadIncomingMessage();
 
     template <typename T>
     void AddMessageToServer(RTypeEvents event, uint32_t id, const T& data) {
-        // il faut coder ici
+        network::message<RTypeEvents> msg;
+        msg.body << data;
+        msg.header.id = event;
+        msg.header.user_id = _id;
+        msg.header.size = msg.size();
+        Send(msg);
     }
+
+   private:
+    uint32_t _id;
 };

@@ -4,8 +4,6 @@
 #include <deque>
 #include <mutex>
 
-#include "NetworkCommon.hpp"
-
 namespace network {
 template <typename T>
 class MsgQueue {

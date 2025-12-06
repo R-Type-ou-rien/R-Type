@@ -197,7 +197,7 @@ class ServerInterface {
     }
 
    protected:
-    virtual bool OnClientConnect(std::shared_ptr<Connection<T>> client) { return false; }
+    virtual bool OnClientConnect(std::shared_ptr<Connection<T>> client);
 
     virtual void OnClientDisconnect(std::shared_ptr<Connection<T>> client) {}
 

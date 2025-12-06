@@ -1,6 +1,7 @@
 #pragma once
 
 #include "MsgQueue.hpp"
+#include "NetworkCommon.hpp"
 #include "message.hpp"
 
 namespace network {

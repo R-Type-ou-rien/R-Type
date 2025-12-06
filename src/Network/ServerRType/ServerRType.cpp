@@ -35,3 +35,11 @@ bool ServerRType::OnClientConnect(std::shared_ptr<network::Connection<RTypeEvent
     client->Send(msg);
     return true;
 }
+coming_message ServerRType::ReadIncomingMessage() {
+    if (_toGameMessages.empty())
+        return coming_message{};
+
+    coming_message message = _toGameMessages.front();
+    _toGameMessages.pop();
+    return message;
+}

@@ -1,5 +1,8 @@
 #pragma once
 #include <cstdint>
+#include <vector>
+
+#include "NetworkInterface/message.hpp"
 
 enum class RTypeEvents : uint32_t {
     ServerAccept,
@@ -9,8 +12,7 @@ enum class RTypeEvents : uint32_t {
     ServerMessage,
 };
 
-template <typename T>
 struct coming_message {
     RTypeEvents id;
-    T msg;
+    network::message<RTypeEvents> msg;
 };
