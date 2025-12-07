@@ -5,14 +5,15 @@
 
 ClientGameEngine::ClientGameEngine(std::string window_name) : _window_manager(WINDOW_W, WINDOW_H, window_name)
 {
-
-    initLoop();
 }
 
-int ClientGameEngine::initLoop()
+int ClientGameEngine::init()
 {
     _ecs.systems.addSystem<RenderSystem>();
     _ecs.systems.addSystem<InputSystem>();
+    if(_init_function)
+        _init_function(_ecs);
+
     // iwf mode local
     _ecs.systems.addSystem<MoveSystem>();
     return 0;
@@ -21,6 +22,12 @@ int ClientGameEngine::initLoop()
 void ClientGameEngine::setUserFunction(std::function<void(ECS& ecs)> user_function)
 {
     _function = user_function;
+    return;
+}
+
+void ClientGameEngine::setInitFunction(std::function<void(ECS& ecs)> user_function)
+{
+    _init_function = user_function;
     return;
 }
 
@@ -33,7 +40,7 @@ int ClientGameEngine::run()
         _ecs._textureManager,
         _window_manager.getWindow()
     };
-    
+    this->init();
     while (_window_manager.isOpen()) {
         _window_manager.handleEvent(event);
         _window_manager.clear();
