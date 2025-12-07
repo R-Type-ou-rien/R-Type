@@ -83,7 +83,7 @@
             */
             bool has(std::size_t id) const override
             {
-                if (id < _sparse.size() && _sparse[id] != -1)
+                if (id < _sparse.size() && _sparse[id] > -1)
                     return true;
                 return false;
             }

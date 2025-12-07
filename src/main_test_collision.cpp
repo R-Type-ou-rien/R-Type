@@ -9,6 +9,7 @@
 #include "ecs/Components/Components.hpp"
 #include "ecs/ECS.hpp"
 #include "ecs/Registry/registry.hpp"
+#include "ecs/Components/Components.hpp"
 #include "transform_component/transform.hpp"
 #include "team_component/team_component.hpp"
 #include "health_feature/health.hpp"
