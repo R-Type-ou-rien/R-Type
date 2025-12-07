@@ -1,6 +1,7 @@
 #include "shooter.hpp"
 #include <iostream>
 #include <ostream>
+#include "ecs/Components/Components.hpp"
 
 // namespace ECS {
 
@@ -31,11 +32,11 @@ VelocityComponent ShooterSystem::get_projectile_speed(ShooterComponent::Projecti
 }
 
 void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::Projectile type, TeamComponent::Team team,
-                                      TransformComponent pos, VelocityComponent speed) {
+                                      transform_component_s pos, VelocityComponent speed) {
     int id = registry.createEntity();
     ProjectileComponent projectile;
     TeamComponent team_component;
-    TransformComponent transform;
+    transform_component_s transform;
     VelocityComponent velocity;
 
     projectile.owner_id = -1;
@@ -59,7 +60,7 @@ void ShooterSystem::update(Registry& registry, float current_time) {
     auto& shootersIds = registry.getEntities<ShooterComponent>();
     std::cout << "ShooterSystem updated" << std::endl;
     for (auto id : shootersIds) {
-        if (!registry.hasComponent<TransformComponent>(id)) {
+        if (!registry.hasComponent<transform_component_s>(id)) {
             continue;
         }
         if (!registry.hasComponent<TeamComponent>(id)) {
@@ -67,7 +68,7 @@ void ShooterSystem::update(Registry& registry, float current_time) {
         }
 
         ShooterComponent& shooter = registry.getComponent<ShooterComponent>(id);
-        TransformComponent& pos = registry.getComponent<TransformComponent>(id);
+        transform_component_s& pos = registry.getComponent<transform_component_s>(id);
         TeamComponent& team = registry.getComponent<TeamComponent>(id);
 
         if (current_time - shooter.last_shot > shooter.fire_rate) {

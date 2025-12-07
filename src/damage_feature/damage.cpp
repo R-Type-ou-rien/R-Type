@@ -1,7 +1,7 @@
 #include "box_collision/box_collision.hpp"
 #include "damage_feature/damage.hpp"
 
-void Damage::update(Registry& registry, double time_now) {
+void Damage::update(Registry& registry, system_context context) {
     auto& attackers = registry.getEntities<DamageOnColision>();
 
     for (auto attacker : attackers) {
@@ -30,7 +30,7 @@ void Damage::update(Registry& registry, double time_now) {
                       << std::endl;
             if (registry.hasComponent<ProjectileComponent>(attacker)) {
                 registry.destroyEntity(attacker);
-                break;;
+                break;
             }
         }
     }

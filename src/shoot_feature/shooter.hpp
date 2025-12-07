@@ -3,6 +3,7 @@
 #include "../ecs/Registry/registry.hpp"
 #include "../ecs/System/ISystem.hpp"
 #include "../team_component/team_component.hpp"
+#include "../ecs/Components/Components.hpp"
 
 // namespace ECS {
 
@@ -31,7 +32,7 @@ class ShooterSystem : public ISystem {
    private:
     VelocityComponent get_projectile_speed(ShooterComponent::Projectile type, TeamComponent::Team team);
     void create_projectile(Registry& registry, ShooterComponent::Projectile type, TeamComponent::Team team,
-                           TransformComponent pos, VelocityComponent velocity);
+                           transform_component_s pos, VelocityComponent velocity);
 };
 
 // }  // namespace ECS

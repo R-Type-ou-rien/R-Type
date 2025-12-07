@@ -31,7 +31,7 @@ struct sprite2D_component_s {
     float animation_speed;
     int current_animation_frame = 0;
     float last_animation_update = 0;
-    int z_index = 0;
+    int z_index = 0;   
 };
 
 struct InputControl {

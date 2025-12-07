@@ -1,8 +1,7 @@
 #include "health_feature/health.hpp"
-
 #include "transform_component/transform.hpp"
 
-void HealthSystem::update(Registry& registry, double time_now) {
+void HealthSystem::update(Registry& registry, system_context context) {
     auto& entities = registry.getEntities<HealthComponent>();
 
     for (auto entity : entities) {

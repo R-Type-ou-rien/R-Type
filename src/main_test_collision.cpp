@@ -3,10 +3,11 @@
 */
 
 #include <iostream>
-#include <vector>
 #include <string>
 
 // Assure-toi que ces chemins sont bons
+#include "ecs/Components/Components.hpp"
+#include "ecs/ECS.hpp"
 #include "ecs/Registry/registry.hpp"
 #include "transform_component/transform.hpp"
 #include "team_component/team_component.hpp"
@@ -26,37 +27,49 @@ void print_status(Registry& reg, Entity e, std::string name) {
 }
 
 int main() {
-    Registry registry;
+    ECS ecs;
+    SlotMap<sf::Texture> texture_manager;
+    system_context context = {0, texture_manager};
     
     // Instanciation des Systèmes
-    BoxCollision boxSys;
-    Damage damageSys; // Assure-toi que ta classe s'appelle bien DamageSystem dans damage.hpp
-    HealthSystem healthSys;
 
     std::cout << "=== DEMARRAGE TEST COLLISION & DEGATS ===" << std::endl;
 
+    ecs.systems.addSystem<BoxCollision>();
+    ecs.systems.addSystem<Damage>();
+    ecs.systems.addSystem<HealthSystem>();
+
     // 1. Création du JOUEUR (Victime)
-    Entity player = registry.createEntity();
-    registry.addComponent(player, TransformComponent{100.0f, 100.0f});
-    registry.addComponent(player, TeamComponent{TeamComponent::ALLY});
-    registry.addComponent(player, HealthComponent{100, 100});
-    registry.addComponent(player, BoxCollisionComponent{}); 
+    Entity player = ecs.registry.createEntity();
+    handle_t<sf::Texture> handle = texture_manager.insert(sf::Texture("content/sprites/r-typesheet42.gif"));
+    sprite2D_component_s sprite_info;
+    sprite_info.handle = handle;
+    sprite_info.animation_speed = 0.5f;
+    sprite_info.current_animation_frame = 0;
+    sprite_info.dimension.position = {0, 0};
+    sprite_info.dimension.size =  {32, 16};
+    sprite_info.z_index = 1;
+    ecs.registry.addComponent(player, TransformComponent{100.0f, 100.0f});
+    ecs.registry.addComponent(player, TeamComponent{TeamComponent::ALLY});
+    ecs.registry.addComponent(player, HealthComponent{100, 100});
+    ecs.registry.addComponent(player, BoxCollisionComponent{});
+    ecs.registry.addComponent<sprite2D_component_s>(player, sprite_info);
 
     // 2. Création de l'ASTEROIDE (Attaquant)
-    Entity asteroid = registry.createEntity();
-    registry.addComponent(asteroid, TransformComponent{100.0f, 100.0f}); // DIRECTEMENT SUR LE JOUEUR
-    registry.addComponent(asteroid, TeamComponent{TeamComponent::ENEMY});
-    registry.addComponent(asteroid, DamageOnColision{50}); // Utilise DamageOnCollision (attention à l'orthographe Collision vs Colision selon ton fichier)
-    registry.addComponent(asteroid, BoxCollisionComponent{});
+    Entity asteroid = ecs.registry.createEntity();
+    ecs.registry.addComponent(asteroid, TransformComponent{100.0f, 100.0f}); // DIRECTEMENT SUR LE JOUEUR
+    ecs.registry.addComponent(asteroid, TeamComponent{TeamComponent::ENEMY});
+    ecs.registry.addComponent(asteroid, DamageOnColision{50}); // Utilise DamageOnCollision (attention à l'orthographe Collision vs Colision selon ton fichier)
+    ecs.registry.addComponent(asteroid, BoxCollisionComponent{});
+    ecs.registry.addComponent<sprite2D_component_s>(asteroid, sprite_info);
 
-    print_status(registry, player, "Player Avant");
+    print_status(ecs.registry, player, "Player Avant");
 
     // Simulation d'une frame
-    boxSys.update(registry, 0.0);
-    damageSys.update(registry, 0.0);
-    healthSys.update(registry, 0.0);
+    ecs.update(context);
+    print_status(ecs.registry, player, "Component update");
     
-    print_status(registry, player, "Player Apres");
+    print_status(ecs.registry, player, "Player Apres");
 
     return 0;
 }
