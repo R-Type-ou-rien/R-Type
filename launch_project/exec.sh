@@ -15,5 +15,3 @@ if [ ! -d build ]; then
 fi
 
 cmake --build build -v
-
-cpplint --recursive src

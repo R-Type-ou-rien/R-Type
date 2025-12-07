@@ -34,7 +34,6 @@ jobs:
               exit 1
             fi
           else
-            # If it's pull request or push on main branch, we can proceed
             echo "result=true" >> $GITHUB_OUTPUT
           fi
 
@@ -61,35 +60,24 @@ jobs:
         shell: bash
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake g++ make python3-pip
-          sudo pip3 install gcovr
+          sudo apt-get install -y cmake g++ make \
+            libx11-dev libxcursor-dev libxi-dev libxrandr-dev libxinerama-dev \
+            libgl1-mesa-dev libudev-dev libopenal-dev libflac-dev libvorbis-dev libfreetype6-dev
 
       - name: Install dependances (Windows)
         if: runner.os == 'Windows'
         run: choco install -y cmake
 
       - name: Config CMake
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON
 
       - name: Compiler
         run: cmake --build build --config Debug
 
-      - name: Launch Script Test
+      - name: Run Unit Tests
         shell: bash
         run: |
-          CURRENT_BRANCH="${{ github.ref_name }}"          
-          echo "Contexte: $CURRENT_BRANCH (Event: ${{ github.event_name }})"
-          CTEST_BASE="ctest --test-dir build --output-on-failure -C Debug"
-          if [ "$CURRENT_BRANCH" = "main" ]; then
-            echo "Branch main: Launch all tests."
-            $CTEST_BASE
-          elif [ "$CURRENT_BRANCH" = "dev" ]; then
-            echo "Branch dev: Launch tests for dev."
-            $CTEST_BASE -L dev
-          else
-            echo "Issue branch ($CURRENT_BRANCH) : Check issue launch."
-            $CTEST_BASE -L dev
-          fi
+          ctest --test-dir build --output-on-failure -C Debug
 
   push_to_mirror:
     name: push_to_mirror

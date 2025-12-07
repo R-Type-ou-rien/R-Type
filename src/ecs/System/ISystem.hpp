@@ -9,11 +9,11 @@
 
 #include <SFML/Graphics/Texture.hpp>
 #include "../Registry/registry.hpp"
-#include "../../utils/slot_map/slot_map.hpp"
+#include "ecs/ressource_manager/ressource_manager.hpp"
 
 struct system_context {
     float dt;
-    SlotMap<sf::Texture>& texture_manager;
+    ResourceManager<sf::Texture>& texture_manager;
 };
 
 class ISystem {

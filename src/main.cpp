@@ -8,11 +8,9 @@
 #include "ecs/System/ProjectileSystem/ProjectileSystem.hpp"
 #include "ecs/System/CooldownSystem/CooldownSystem.hpp"
 #include "ecs/System/GamepadInputSystem/GamepadInputSystem.hpp"
-#include "utils/slot_map/slot_map.hpp"
 #include <SFML/Graphics/Texture.hpp>
 #include <SFML/Window/Joystick.hpp>
 #include <SFML/Window/Keyboard.hpp>
-#include <optional>
 
 #define XBOXA 0
 #define XBOXB 1
@@ -32,8 +30,8 @@ int main() {
     /* Instance of ECS class */
     ECS ecs(1920, 1080, "R-Type");
 
-    /* An instance of a slot map (ressource manager) */
-    SlotMap<sf::Texture> texture_manager;
+    /* An instance of a ressource manager */
+    ResourceManager<sf::Texture> texture_manager;
 
     /* context instance, a struct containing what systems need  */
     system_context context = {0, texture_manager};
@@ -77,7 +75,7 @@ int main() {
         handle instance, a handle is a 'ticket' to ask to access to a ressource
         when inserting a ressource, the slot map returns a "ticket"
     */
-    handle_t<sf::Texture> handle = texture_manager.insert(sf::Texture("content/sprites/r-typesheet42.gif"));
+    handle_t<sf::Texture> handle = texture_manager.load_resource("content/sprites/r-typesheet42.gif", sf::Texture("content/sprites/r-typesheet42.gif"));
 
     /*
         instance of a 2D sprite component

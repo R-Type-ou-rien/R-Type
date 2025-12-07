@@ -43,10 +43,10 @@ sf::Texture& RenderSystem::getTexture(const std::string& path) {
 
 void RenderSystem::drawEntity(const transform_component_s& transform, const sprite2D_component_s& spriteData, const system_context& context) {
 
-    if (!context.texture_manager.has(spriteData.handle))
+    if (!context.texture_manager.has_resource(spriteData.handle))
         return;
 
-    sf::Texture texture = context.texture_manager.get_data(spriteData.handle).value();
+    sf::Texture texture = context.texture_manager.get_resource(spriteData.handle).value();
     sf::Sprite sprite(texture);
     
     if (spriteData.dimension.size.x > 0 && spriteData.dimension.size.y > 0)

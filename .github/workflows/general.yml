@@ -70,10 +70,5 @@ jobs:
       - name: Lint C++ Code (cpplint)
         run: |
           echo "Analyzing code with cpplint..."            
-          cpplint_filter="-legal/copyright,-build/header_guard,-readability/casting,-readability/check,-whitespace/indent"
-          find . -type f \( -name "*.cpp" -o -name "*.hpp" \) \
-            ! -path "*/build/*" \
-            ! -path "*/cmake-build-debug/*" \
-            ! -path "*/tests/*" \
-            ! -path "*/.git/*" \
-            -exec cpplint --filter="$cpplint_filter" --linelength=120 {} +
+          filters="-legal/copyright,-build/header_guard,-readability/casting,-readability/check,-whitespace/indent"
+          cpplint --recursive --filter="$filters" --linelength=120 src
