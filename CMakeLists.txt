@@ -58,3 +58,36 @@ target_link_libraries(R-Type PRIVATE
         asio::asio
         OpenGL::GL
 )
+
+
+# Unit tests
+enable_testing()
+include(GoogleTest)
+include(FetchContent)
+
+FetchContent_Declare(
+  googletest
+  URL https://github.com/google/googletest/archive/refs/heads/main.zip
+)
+
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
+
+# Utilisation : add_rtype_test(name of the test path to the file)
+macro(add_rtype_test TEST_NAME FILE_PATH)
+    add_executable(${TEST_NAME} ${FILE_PATH} ${ENGINE_SOURCES})
+    
+    target_link_libraries(${TEST_NAME} PRIVATE
+        GTest::gtest_main
+        SFML::Graphics SFML::Window SFML::System SFML::Audio SFML::Network
+        asio::asio OpenGL::GL
+    )
+    
+    gtest_discover_tests(${TEST_NAME})
+    
+    message(STATUS "Test ajouté : ${TEST_NAME} (${FILE_PATH})")
+endmacro()
+
+add_rtype_test(test_collision   tests/test_collision.cpp)
+add_rtype_test(test_health      tests/test_health.cpp)
+add_rtype_test(test_damage      tests/test_damage.cpp)
