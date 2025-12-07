@@ -47,12 +47,14 @@ endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
 
-add_executable(R-Type ${SOURCES})
+if (NOT BUILD_TESTS)
+    add_executable(R-Type ${SOURCES})
 
-target_link_libraries(R-Type PRIVATE
-        SFML::Graphics SFML::Window SFML::System SFML::Audio SFML::Network
-        asio::asio OpenGL::GL
-)
+    target_link_libraries(R-Type PRIVATE
+            SFML::Graphics SFML::Window SFML::System SFML::Audio SFML::Network
+            asio::asio OpenGL::GL
+    )
+endif()
 
 #-----UNIT TESTS CONFIG-----
 option(BUILD_TESTS "Build unit tests" OFF)
