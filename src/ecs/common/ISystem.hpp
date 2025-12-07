@@ -7,13 +7,15 @@
 
 #pragma once
 
+#include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/Texture.hpp>
-#include "../Registry/registry.hpp"
-#include "ecs/ressource_manager/ressource_manager.hpp"
+#include "Registry/registry.hpp"
+#include "ressource_manager/ressource_manager.hpp"
 
 struct system_context {
     float dt;
     ResourceManager<sf::Texture>& texture_manager;
+    sf::RenderWindow& window;
 };
 
 class ISystem {

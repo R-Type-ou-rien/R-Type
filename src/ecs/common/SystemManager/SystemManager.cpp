@@ -1,5 +1,5 @@
 #include "SystemManager.hpp"
-#include "ecs/System/ISystem.hpp"
+#include "../ISystem.hpp"
 
 void SystemManager::updateAll(system_context context)
 {

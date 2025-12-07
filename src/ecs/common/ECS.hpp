@@ -11,8 +11,8 @@
 #include <SFML/Graphics/Texture.hpp>
 #include <optional>
 #include "Registry/registry.hpp"
-#include "System/ISystem.hpp"
-#include "System/SystemManager/SystemManager.hpp"
+#include "ISystem.hpp"
+#include "SystemManager/SystemManager.hpp"
 
 class ECS {
     public:
@@ -27,22 +27,6 @@ class ECS {
 
         void update(system_context context) {
             systems.updateAll(context);
-        }
-
-        void run() {
-            sf::Clock clock;
-            ResourceManager<sf::Texture> texture_manager;
-            system_context context = {0, texture_manager};
-
-            while (_window.isOpen()) {
-                while (const std::optional event = _window.pollEvent()) {
-                    if (event->is<sf::Event::Closed>())
-                        _window.close();
-                }
-                sf::Time elapsed = clock.restart();
-                context.dt = elapsed.asSeconds();
-                systems.updateAll(context);
-            }
         }
 
         sf::RenderWindow& getWindow() {

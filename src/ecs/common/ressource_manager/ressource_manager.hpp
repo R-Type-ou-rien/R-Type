@@ -5,7 +5,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include "../../utils/slot_map/slot_map.hpp"
+#include "../../../utils/slot_map/slot_map.hpp"
 
 template<typename Resource>
 class ResourceManager {
