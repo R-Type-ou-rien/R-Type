@@ -3,7 +3,7 @@
 #include "ecs/Registry/registry.hpp"
 #include "ecs/System/ISystem.hpp"
 
-struct DamageOnColision {
+struct DamageOnCollision {
     int damage_value;
 };
 

@@ -60,7 +60,7 @@ int main() {
     Entity asteroid = ecs.registry.createEntity();
     ecs.registry.addComponent(asteroid, TransformComponent{100.0f, 100.0f}); // DIRECTEMENT SUR LE JOUEUR
     ecs.registry.addComponent(asteroid, TeamComponent{TeamComponent::ENEMY});
-    ecs.registry.addComponent(asteroid, DamageOnColision{50}); // Utilise DamageOnCollision (attention à l'orthographe Collision vs Colision selon ton fichier)
+    ecs.registry.addComponent(asteroid, DamageOnCollision{50}); // Utilise DamageOnCollision (attention à l'orthographe Collision vs Colision selon ton fichier)
     ecs.registry.addComponent(asteroid, BoxCollisionComponent{});
     ecs.registry.addComponent<sprite2D_component_s>(asteroid, sprite_info);
 

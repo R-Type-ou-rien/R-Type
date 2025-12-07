@@ -1,8 +1,11 @@
 #include "box_collision/box_collision.hpp"
 #include "damage_feature/damage.hpp"
+#include "health_feature/health.hpp"
+#include "team_component/team_component.hpp"
+#include "shoot_feature/shooter.hpp"
 
 void Damage::update(Registry& registry, system_context context) {
-    auto& attackers = registry.getEntities<DamageOnColision>();
+    auto& attackers = registry.getEntities<DamageOnCollision>();
 
     for (auto attacker : attackers) {
         if (!registry.hasComponent<BoxCollisionComponent>(attacker))
@@ -15,7 +18,7 @@ void Damage::update(Registry& registry, system_context context) {
 
         for (auto& hit : collider.collision.tags) {
             Entity hit_id = hit;
-            auto& dmg = registry.getComponent<DamageOnColision>(attacker);
+            auto& dmg = registry.getComponent<DamageOnCollision>(attacker);
             auto& health = registry.getComponent<HealthComponent>(hit_id);
             if (registry.hasComponent<TeamComponent>(attacker) && registry.hasComponent<TeamComponent>(hit_id)) {
                 auto& teamA = registry.getComponent<TeamComponent>(attacker);
