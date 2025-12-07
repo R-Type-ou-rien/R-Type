@@ -78,7 +78,9 @@ int main()
 {
     ClientGameEngine cl;
 
-    cl.setUserFunction(play);
+
+    // cl.setUserFunction(play); -> to rename, this function is called in the loop
+    cl.setInitFunction(play);
     cl.run();
     return 0;
 }
