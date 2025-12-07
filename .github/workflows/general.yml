@@ -50,7 +50,14 @@ jobs:
       - name: Check Commit Message
         if: github.event_name == 'push'
         run: |
-          msgs=$(git log --format=%s ${{ github.event.before }}..${{ github.event.after }})
+          # CORRECTION HERE: Gestion du premier push (hash 0000...)
+          if [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ]; then
+             echo "New branch detected, checking HEAD commit only"
+             msgs=$(git log -1 --format=%s)
+          else
+             msgs=$(git log --format=%s ${{ github.event.before }}..${{ github.event.after }})
+          fi
+
           bad_commits=$(echo "$msgs" | grep -vE '^(feat|fix|docs): |^Merge ' || true)
           
           if [ -n "$bad_commits" ]; then
@@ -65,10 +72,11 @@ jobs:
           echo "Check the coding style with clang-format"
           find . -type f \( -name "*.cpp" -o -name "*.hpp" \) \
             ! -path "*/build/*" ! -path "*/cmake-build-*/*" \
+            ! -path "*/vcpkg/*" \
             -exec clang-format --dry-run --Werror {} +
 
       - name: Lint C++ Code (cpplint)
         run: |
           echo "Analyzing code with cpplint..."            
           filters="-legal/copyright,-build/header_guard,-readability/casting,-readability/check,-whitespace/indent"
-          cpplint --recursive --filter="$filters" --linelength=120 src
+          cpplint --recursive --filter="$filters" --exclude=vcpkg --linelength=120 src
