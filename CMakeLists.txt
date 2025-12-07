@@ -47,6 +47,8 @@ endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
 
+option(BUILD_TESTS "Build unit tests" OFF)
+
 if (NOT BUILD_TESTS)
     add_executable(R-Type ${SOURCES})
 
@@ -57,8 +59,6 @@ if (NOT BUILD_TESTS)
 endif()
 
 #-----UNIT TESTS CONFIG-----
-option(BUILD_TESTS "Build unit tests" OFF)
-
 if (BUILD_TESTS)
     message(STATUS "Unit tests enabled.")
     
@@ -74,7 +74,7 @@ if (BUILD_TESTS)
     set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
     FetchContent_MakeAvailable(googletest)
 
-macro(add_rtype_test TEST_NAME FILE_PATH)
+    macro(add_rtype_test TEST_NAME FILE_PATH)
         add_executable(${TEST_NAME} 
             tests/main_tests.cpp
             ${FILE_PATH}
@@ -97,5 +97,5 @@ macro(add_rtype_test TEST_NAME FILE_PATH)
     add_rtype_test(test_damage      tests/test_damage.cpp)
 
 else()
-    message(STATUS "unit tests disabled.")
+    message(STATUS "Unit tests disabled (Game Build only).")
 endif()
