@@ -1,4 +1,6 @@
 #include "ServerRType.hpp"
+#include <string>
+#include <cstring>
 
 void ServerRType::OnMessage(std::shared_ptr<network::Connection<RTypeEvents>> client,
                             network::message<RTypeEvents>& msg) {
@@ -32,6 +34,11 @@ void ServerRType::OnClientDisconnect(std::shared_ptr<network::Connection<RTypeEv
 bool ServerRType::OnClientConnect(std::shared_ptr<network::Connection<RTypeEvents>> client) {
     network::message<RTypeEvents> msg;
     msg.header.id = RTypeEvents::ServerAccept;
+    msg.header.user_id = client->GetID();
+    char token[64] = {0};
+    std::string tokenStr = "SecretToken_" + std::to_string(client->GetID());
+    std::strncpy(token, tokenStr.c_str(), 63);
+    msg << token;
     client->Send(msg);
     return true;
 }

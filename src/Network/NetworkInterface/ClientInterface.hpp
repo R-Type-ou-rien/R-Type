@@ -19,7 +19,8 @@ class ClientInterface {
 
             _connection =
                 std::make_unique<Connection<T>>(Connection<T>::owner::client, _context, asio::ip::tcp::socket(_context),
-                                                _qMessagesIn, _serverUDPEndpoint);
+                                                _qMessagesIn, _socketUDP);
+            _connection->SetUDPEndpoint(_serverUDPEndpoint);
 
             _connection->ConnectToServer(endpoints);
 
