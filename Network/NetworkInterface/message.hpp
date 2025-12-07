@@ -64,11 +64,11 @@ struct message {
 };
 
 template <typename T>
-class connection;
+class Connection;
 
 template <typename T>
 struct owned_message {
-    std::shared_ptr<connection<T>> remote = nullptr;
+    std::shared_ptr<Connection<T>> remote = nullptr;
     message<T> msg;
 
     friend std::ostream& operator<<(std::ostream& os, const owned_message<T>& msg) {

@@ -10,7 +10,7 @@ template <typename T>
 class ServerInterface {
    public:
     ServerInterface(uint16_t port)
-        : asioAcceptor(_asioContext, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), port)), _port(port) {}
+        : asioAcceptor(_asioContext, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), port)), _socketUDP(_asioContext), _port(port) {}
 
     virtual ~ServerInterface() { Stop(); }
 
@@ -48,10 +48,10 @@ class ServerInterface {
                 std::shared_ptr<Connection<T>> newconn = std::make_shared<Connection<T>>(
                     Connection<T>::owner::server, _asioContext, std::move(socket), _MessagesIn, _socketUDP);
 
+                newconn->ConnectToClient(nIDCounter++);
+
                 if (OnClientConnect(newconn)) {
                     _deqConnections.push_back(std::move(newconn));
-
-                    _deqConnections.back()->ConnectToClient(nIDCounter++);
 
                     std::cout << "[" << _deqConnections.back()->GetID() << "] Connection Approved\n";
                 } else {
@@ -152,7 +152,7 @@ class ServerInterface {
                     network::message<T> msg;
 
                     if (len >= sizeof(network::message_header<T>)) {
-                        std::memcpy(&msg.header, _udpMsgTemporaryIn, sizeof(network::message_header<T>));
+                        std::memcpy(&msg.header, _udpMsgTemporaryIn.data(), sizeof(network::message_header<T>));
 
                         if (msg.header.size > 0) {
                             if (len >= sizeof(network::message_header<T>) + msg.header.size) {
@@ -167,16 +167,16 @@ class ServerInterface {
                             }
                         }
 
-                        std::shared_ptr<connection<T>> pClient = nullptr;
+                        std::shared_ptr<Connection<T>> pClient = nullptr;
                         bool bClientFound = false;
 
                         for (auto& client : _deqConnections) {
-                            if (client->IsConnected() && client->m_udpRemoteEndpoint == _udpEndpointTemporary) {
+                            if (client->IsConnected() && client->GetUDPEndpoint() == _udpEndpointTemporary) {
                                 pClient = client;
                                 bClientFound = true;
                                 break;
                             }
-                            if (client.id == msg.header.id) {
+                            if (client->GetID() == msg.header.user_id) {
                                 pClient = client;
                                 bClientFound = true;
                                 break;
@@ -197,7 +197,7 @@ class ServerInterface {
     }
 
    protected:
-    virtual bool OnClientConnect(std::shared_ptr<Connection<T>> client);
+    virtual bool OnClientConnect(std::shared_ptr<Connection<T>> client) { return false; }
 
     virtual void OnClientDisconnect(std::shared_ptr<Connection<T>> client) {}
 

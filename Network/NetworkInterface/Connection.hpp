@@ -12,8 +12,8 @@ class Connection : public std::enable_shared_from_this<Connection<T>> {
 
    public:
     Connection(owner parent, asio::io_context& asioContext, asio::ip::tcp::socket socket,
-               MsgQueue<owned_message<T>>& In, asio::ip::udp::socket udpSocket)
-        : _asioContext(asioContext), _socket(std::move(socket)), _qMessagesIn(In), _udpSocket(std::move(udpSocket)) {
+               MsgQueue<owned_message<T>>& In, asio::ip::udp::socket& udpSocket)
+        : _asioContext(asioContext), _socket(std::move(socket)), _qMessagesIn(In), _udpSocket(udpSocket) {
         _OwnerType = parent;
     }
 
@@ -157,19 +157,20 @@ class Connection : public std::enable_shared_from_this<Connection<T>> {
 
     void AddToIncomingMessageQueue() {
         if (_OwnerType == owner::server)
-            _qMessagesIn.push_back({this->shared_fro_this(), _msgTemporaryIn});
+            _qMessagesIn.push_back({this->shared_from_this(), _msgTemporaryIn});
         else
             _qMessagesIn.push_back({nullptr, _msgTemporaryIn});
 
         ReadHeader();
     }
 
+   public:
     void SetUDPEndpoint(asio::ip::udp::endpoint endpoint) { _udpRemoteEndpoint = endpoint; }
     asio::ip::udp::endpoint GetUDPEndpoint() const { return _udpRemoteEndpoint; }
 
    protected:
     asio::ip::udp::endpoint _udpRemoteEndpoint;
-    asio::ip::udp::socket _udpSocket;
+    asio::ip::udp::socket& _udpSocket;
 
     asio::ip::tcp::socket _socket;
 
