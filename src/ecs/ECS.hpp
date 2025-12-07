@@ -45,9 +45,9 @@ class ECS {
             }
         }
 
-        sf::RenderWindow& getWindow() {
-            return _window;
-        }
+        // sf::RenderWindow& getWindow() {
+        //     return _window;
+        // }
 
     public:
         Registry registry;
