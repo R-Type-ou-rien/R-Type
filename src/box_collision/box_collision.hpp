@@ -1,5 +1,8 @@
 #pragma once
 
+#include <string>
+#include <vector>
+
 #include "ecs/Registry/registry.hpp"
 #include "ecs/System/ISystem.hpp"
 #include "tag_component/tag_component.hpp"
@@ -18,5 +21,6 @@ class BoxCollision : public ISystem {
     void update(Registry& registry, system_context context) override;
 
    private:
-    bool checkSize(const TransformComponent& a, const TransformComponent& b, sf::Vector2<int> size, sf::Vector2<int> size_b);
+    bool checkSize(const TransformComponent& a, const TransformComponent& b, sf::Vector2<int> size,
+                   sf::Vector2<int> size_b);
 };

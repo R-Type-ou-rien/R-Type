@@ -1,8 +1,9 @@
-#include "box_collision/box_collision.hpp"
 #include "damage_feature/damage.hpp"
+
+#include "box_collision/box_collision.hpp"
 #include "health_feature/health.hpp"
-#include "team_component/team_component.hpp"
 #include "shoot_feature/shooter.hpp"
+#include "team_component/team_component.hpp"
 
 void Damage::update(Registry& registry, system_context context) {
     auto& attackers = registry.getEntities<DamageOnCollision>();
@@ -28,7 +29,7 @@ void Damage::update(Registry& registry, system_context context) {
             }
             if (!registry.hasComponent<HealthComponent>(hit_id))
                 continue;
-            if (health.current_hp - dmg.damage_value <= 0){
+            if (health.current_hp - dmg.damage_value <= 0) {
                 health.current_hp = 0;
             } else {
                 health.current_hp -= dmg.damage_value;

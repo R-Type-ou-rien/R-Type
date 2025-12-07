@@ -1,4 +1,5 @@
 #include "box_collision/box_collision.hpp"
+
 #include "../ecs/Components/Components.hpp"
 #include "ecs/System/ISystem.hpp"
 
@@ -6,17 +7,17 @@ void BoxCollision::update(Registry& registry, system_context context) {
     auto& entities = registry.getEntities<BoxCollisionComponent>();
 
     for (auto entity : entities) {
-        registry.getComponent<BoxCollisionComponent>(entity).collision.tags.clear();  // clear the previeous collisions
+        registry.getComponent<BoxCollisionComponent>(entity).collision.tags.clear();
     }
 
     for (auto entity_a : entities) {
-        if (!registry.hasComponent<TransformComponent>(entity_a))  // check if the entity has a transform
+        if (!registry.hasComponent<TransformComponent>(entity_a))
             continue;
         auto& transform_a = registry.getComponent<TransformComponent>(entity_a);
         for (auto entity_b : entities) {
-            if (entity_a == entity_b)  // check if its the same entity
+            if (entity_a == entity_b)
                 continue;
-            if (!registry.hasComponent<TransformComponent>(entity_b))  // check if the entity has a transform
+            if (!registry.hasComponent<TransformComponent>(entity_b))
                 continue;
             if (!registry.hasComponent<sprite2D_component_s>(entity_a))
                 continue;
@@ -33,7 +34,8 @@ void BoxCollision::update(Registry& registry, system_context context) {
     }
 }
 
-bool BoxCollision::checkSize(const TransformComponent& a, const TransformComponent& b, sf::Vector2<int> size_a, sf::Vector2<int> size_b) {
+bool BoxCollision::checkSize(const TransformComponent& a, const TransformComponent& b, sf::Vector2<int> size_a,
+                             sf::Vector2<int> size_b) {
     double width_a = size_a.x * a.scale.x;
     double height_a = size_a.y * a.scale.y;
     double width_b = size_b.x * b.scale.x;

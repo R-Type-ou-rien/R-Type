@@ -6,7 +6,8 @@
 */
 
 #include "GamepadInputSystem.hpp"
-#include <cmath> // std::abs
+
+#include <cmath>  // std::abs
 
 void GamepadInputSystem::update(Registry& registry, system_context context) {
     const auto& entities = registry.getEntities<GamepadControl>();
@@ -33,8 +34,10 @@ void GamepadInputSystem::update(Registry& registry, system_context context) {
         float y = sf::Joystick::getAxisPosition(ctrl.joystickId, ctrl.axisY);
 
         // Dead zone : évite que le perso bouge tout seul
-        if (std::abs(x) < ctrl.deadZone) x = 0.f;
-        if (std::abs(y) < ctrl.deadZone) y = 0.f;
+        if (std::abs(x) < ctrl.deadZone)
+            x = 0.f;
+        if (std::abs(y) < ctrl.deadZone)
+            y = 0.f;
 
         // Normalisation en [-1, 1]
         x /= 100.f;

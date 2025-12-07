@@ -5,10 +5,11 @@
 ** ProjectileSystem.cpp
 */
 
+#include <vector>
+
 #include "ProjectileSystem.hpp"
 
-void ProjectileSystem::update(Registry& registry, system_context context)
-{
+void ProjectileSystem::update(Registry& registry, system_context context) {
     auto& projectiles = registry.getView<Projectile>();
     const auto& entities = registry.getEntities<Projectile>();
 

@@ -1,16 +1,17 @@
-#include "ecs/ECS.hpp"
-#include "ecs/Components/Components.hpp"
-#include "ecs/System/ISystem.hpp"
-#include "ecs/System/MoveSystem/MoveSystem.hpp"
-#include "ecs/System/RenderSystem/RenderSystem.hpp"
-#include "ecs/System/InputSystem/InputSystem.hpp"
-#include "ecs/System/ShootSystem/ShootSystem.hpp"
-#include "ecs/System/ProjectileSystem/ProjectileSystem.hpp"
-#include "ecs/System/CooldownSystem/CooldownSystem.hpp"
-#include "ecs/System/GamepadInputSystem/GamepadInputSystem.hpp"
 #include <SFML/Graphics/Texture.hpp>
 #include <SFML/Window/Joystick.hpp>
 #include <SFML/Window/Keyboard.hpp>
+
+#include "ecs/Components/Components.hpp"
+#include "ecs/ECS.hpp"
+#include "ecs/System/CooldownSystem/CooldownSystem.hpp"
+#include "ecs/System/GamepadInputSystem/GamepadInputSystem.hpp"
+#include "ecs/System/ISystem.hpp"
+#include "ecs/System/InputSystem/InputSystem.hpp"
+#include "ecs/System/MoveSystem/MoveSystem.hpp"
+#include "ecs/System/ProjectileSystem/ProjectileSystem.hpp"
+#include "ecs/System/RenderSystem/RenderSystem.hpp"
+#include "ecs/System/ShootSystem/ShootSystem.hpp"
 
 #define XBOXA 0
 #define XBOXB 1
@@ -24,7 +25,6 @@
 #define XBOXMAIN 8
 #define XBOXJOYL 9
 #define XBOXJOYR 10
-
 
 int main() {
     /* Instance of ECS class */
@@ -54,28 +54,29 @@ int main() {
 
     // contrôle manette
     ecs.registry.addComponent<GamepadControl>(player, {
-        0,                      // joystickId (0 = première manette)
-        sf::Joystick::Axis::X,        // axe horizontal
-        sf::Joystick::Axis::Y,        // axe vertical
-        XBOXA,                      // buttonShoot (bouton 0 = A sur Xbox, par ex.)
-        300.f,                  // speed
-        15.f                    // deadZone
-    });
+                                                          0,                      // joystickId (0 = première manette)
+                                                          sf::Joystick::Axis::X,  // axe horizontal
+                                                          sf::Joystick::Axis::Y,  // axe vertical
+                                                          XBOXA,  // buttonShoot (bouton 0 = A sur Xbox, par ex.)
+                                                          300.f,  // speed
+                                                          15.f    // deadZone
+                                                      });
 
     // logique de tir
     ecs.registry.addComponent<Shooter>(player, {
-        sf::Keyboard::Key::J,  // shootKey (toujours dispo au clavier)
-        800.f,            // projectileSpeed
-        2.0f,             // projectileLifetime
-        3.0f,            // fireRate
-        // 100.f               // timeSinceLastShot
-    });
+                                                   sf::Keyboard::Key::J,  // shootKey (toujours dispo au clavier)
+                                                   800.f,                 // projectileSpeed
+                                                   2.0f,                  // projectileLifetime
+                                                   3.0f,                  // fireRate
+                                                   // 100.f               // timeSinceLastShot
+                                               });
 
-    /* 
+    /*
         handle instance, a handle is a 'ticket' to ask to access to a ressource
         when inserting a ressource, the slot map returns a "ticket"
     */
-    handle_t<sf::Texture> handle = texture_manager.load_resource("content/sprites/r-typesheet42.gif", sf::Texture("content/sprites/r-typesheet42.gif"));
+    handle_t<sf::Texture> handle = texture_manager.load_resource("content/sprites/r-typesheet42.gif",
+                                                                 sf::Texture("content/sprites/r-typesheet42.gif"));
 
     /*
         instance of a 2D sprite component
@@ -86,7 +87,7 @@ int main() {
     sprite_info.animation_speed = 0.5f;
     sprite_info.current_animation_frame = 0;
     sprite_info.dimension.position = {0, 0};
-    sprite_info.dimension.size =  {32, 16};
+    sprite_info.dimension.size = {32, 16};
     sprite_info.z_index = 1;
 
     /* the component is linked to the player entity */

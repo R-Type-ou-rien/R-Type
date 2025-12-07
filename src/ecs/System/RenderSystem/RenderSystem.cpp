@@ -6,6 +6,10 @@
 */
 
 #include "RenderSystem.hpp"
+
+#include <string>
+#include <iostream>
+
 #include <SFML/Graphics/Texture.hpp>
 
 // Public //
@@ -41,14 +45,14 @@ sf::Texture& RenderSystem::getTexture(const std::string& path) {
     return _textureCache[path];
 }
 
-void RenderSystem::drawEntity(const transform_component_s& transform, const sprite2D_component_s& spriteData, const system_context& context) {
-
+void RenderSystem::drawEntity(const transform_component_s& transform, const sprite2D_component_s& spriteData,
+                              const system_context& context) {
     if (!context.texture_manager.has_resource(spriteData.handle))
         return;
 
     sf::Texture texture = context.texture_manager.get_resource(spriteData.handle).value();
     sf::Sprite sprite(texture);
-    
+
     if (spriteData.dimension.size.x > 0 && spriteData.dimension.size.y > 0)
         sprite.setTextureRect(spriteData.dimension);
 
@@ -58,5 +62,3 @@ void RenderSystem::drawEntity(const transform_component_s& transform, const spri
     _window.draw(sprite);
     return;
 }
-
-// Private //

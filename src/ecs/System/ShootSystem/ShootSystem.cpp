@@ -6,10 +6,10 @@
 */
 
 #include "ShootSystem.hpp"
+
 #include "ecs/Components/Components.hpp"
 
-void ShootSystem::update(Registry& registry, system_context context)
-{
+void ShootSystem::update(Registry& registry, system_context context) {
     auto& shooters = registry.getView<Shooter>();
     const auto& shooterEntities = registry.getEntities<Shooter>();
 
@@ -57,29 +57,23 @@ void ShootSystem::update(Registry& registry, system_context context)
         // Création du projectile
         Entity proj = registry.createEntity();
 
-        transform_component_s projPos{
-            shooterPos.x + 50.f,   // petit offset devant le joueur
-            shooterPos.y,
-            {3.0f, 3.0f}
-        };
+        transform_component_s projPos{shooterPos.x + 50.f,  // petit offset devant le joueur
+                                      shooterPos.y,
+                                      {3.0f, 3.0f}};
 
-        Velocity2D projVel{
-            shooter.projectileSpeed,
-            0.f
-        };
+        Velocity2D projVel{shooter.projectileSpeed, 0.f};
 
-        Projectile projComp{
-            shooter.projectileLifetime
-        };
+        Projectile projComp{shooter.projectileLifetime};
 
         // À adapter en fonction de ta spritesheet
-        handle_t<sf::Texture> handle = context.texture_manager.load_resource("content/sprites/r-typesheet42.gif", sf::Texture("content/sprites/r-typesheet42.gif"));
+        handle_t<sf::Texture> handle = context.texture_manager.load_resource(
+            "content/sprites/r-typesheet42.gif", sf::Texture("content/sprites/r-typesheet42.gif"));
         sprite2D_component_s projSprite;
         projSprite.handle = handle;
         projSprite.animation_speed = 0.5f;
         projSprite.current_animation_frame = 0;
         projSprite.dimension.position = {0, 16};
-        projSprite.dimension.size =  {32, 16};
+        projSprite.dimension.size = {32, 16};
         projSprite.z_index = 1;
 
         registry.addComponent<transform_component_s>(proj, projPos);

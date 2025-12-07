@@ -1,5 +1,7 @@
 #include "health_feature/health.hpp"
 
+#include <vector>
+
 #include "transform_component/transform.hpp"
 
 void HealthSystem::update(Registry& registry, system_context context) {
