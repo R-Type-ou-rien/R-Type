@@ -8,7 +8,7 @@ struct DamageOnCollision {
 };
 
 class Damage : public ISystem {
-    public:
-        void update(Registry& registry, system_context context) override;
-        void init(Registry& registry) override {};
+   public:
+    void update(Registry& registry, system_context context) override;
+    void init(Registry& registry) override {};
 };

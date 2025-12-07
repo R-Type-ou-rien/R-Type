@@ -7,14 +7,15 @@
 
 #pragma once
 
-#include <SFML/Window/Keyboard.hpp>
 #include <SFML/Window/Joystick.hpp>
-#include "../ISystem.hpp"
+#include <SFML/Window/Keyboard.hpp>
+
 #include "../../Components/Components.hpp"
+#include "../ISystem.hpp"
 
 class ShootSystem : public ISystem {
-    public:
-        void init(Registry& registry) override {}
+   public:
+    void init(Registry& registry) override {}
 
-        void update(Registry& registry, system_context context) override;
+    void update(Registry& registry, system_context context) override;
 };

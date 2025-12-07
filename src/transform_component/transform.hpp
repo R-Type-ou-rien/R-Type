@@ -1,7 +1,8 @@
 #pragma once
 
-#include "ecs/Registry/registry.hpp"
 #include <SFML/System/Vector2.hpp>
+
+#include "ecs/Registry/registry.hpp"
 
 struct TransformComponent {
     float x;

@@ -7,10 +7,9 @@
 
 #include "RenderSystem.hpp"
 
-#include <string>
-#include <iostream>
-
 #include <SFML/Graphics/Texture.hpp>
+#include <iostream>
+#include <string>
 
 // Public //
 

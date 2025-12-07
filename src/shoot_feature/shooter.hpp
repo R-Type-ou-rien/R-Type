@@ -1,9 +1,9 @@
 #pragma once
 
+#include "../ecs/Components/Components.hpp"
 #include "../ecs/Registry/registry.hpp"
 #include "../ecs/System/ISystem.hpp"
 #include "../team_component/team_component.hpp"
-#include "../ecs/Components/Components.hpp"
 
 // namespace ECS {
 

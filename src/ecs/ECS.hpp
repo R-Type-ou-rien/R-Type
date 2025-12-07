@@ -1,10 +1,9 @@
 #pragma once
 
-#include <optional>
-#include <string>
-
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/Texture.hpp>
+#include <optional>
+#include <string>
 
 #include "Registry/registry.hpp"
 #include "System/ISystem.hpp"

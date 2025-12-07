@@ -8,6 +8,7 @@
 #pragma once
 
 #include <SFML/Graphics/Texture.hpp>
+
 #include "../Registry/registry.hpp"
 #include "ecs/ressource_manager/ressource_manager.hpp"
 
@@ -17,8 +18,8 @@ struct system_context {
 };
 
 class ISystem {
-    public:
-        virtual ~ISystem() = default;
-        virtual void init(Registry& registry) = 0;
-        virtual void update(Registry& registry, system_context context) = 0;
+   public:
+    virtual ~ISystem() = default;
+    virtual void init(Registry& registry) = 0;
+    virtual void update(Registry& registry, system_context context) = 0;
 };

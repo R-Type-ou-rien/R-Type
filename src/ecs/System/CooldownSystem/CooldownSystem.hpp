@@ -8,17 +8,17 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
+
 #include "../ISystem.hpp"
 
 class CooldownSystem : public ISystem {
-    public:
-        explicit CooldownSystem(sf::RenderWindow &window)
-            : _window(window) {}
+   public:
+    explicit CooldownSystem(sf::RenderWindow& window) : _window(window) {}
 
-        void init(Registry &registry) override {}
+    void init(Registry& registry) override {}
 
-        void update(Registry &registry, system_context context) override;
+    void update(Registry& registry, system_context context) override;
 
-    private:
-        sf::RenderWindow &_window;
+   private:
+    sf::RenderWindow& _window;
 };

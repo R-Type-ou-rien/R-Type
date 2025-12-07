@@ -1,6 +1,8 @@
 #include "shooter.hpp"
+
 #include <iostream>
 #include <ostream>
+
 #include "ecs/Components/Components.hpp"
 
 // namespace ECS {

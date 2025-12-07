@@ -1,8 +1,9 @@
 #include <gtest/gtest.h>
+
 #include <algorithm>
 
-#include "../src/ecs/Components/Components.hpp"
 #include "../src/box_collision/box_collision.hpp"
+#include "../src/ecs/Components/Components.hpp"
 #include "../src/ecs/Registry/registry.hpp"
 #include "../src/transform_component/transform.hpp"
 
@@ -22,8 +23,20 @@ class CollisionTest : public ::testing::Test {
         registry.addComponent(entityA, BoxCollisionComponent{});
         registry.addComponent(entityB, BoxCollisionComponent{});
 
-        registry.addComponent(entityA, sprite2D_component_s{{}, sf::IntRect({0, 0,}, {50, 50})});
-        registry.addComponent(entityB, sprite2D_component_s{{}, sf::IntRect({0, 0,}, {50, 50})});
+        registry.addComponent(entityA, sprite2D_component_s{{},
+                                                            sf::IntRect(
+                                                                {
+                                                                    0,
+                                                                    0,
+                                                                },
+                                                                {50, 50})});
+        registry.addComponent(entityB, sprite2D_component_s{{},
+                                                            sf::IntRect(
+                                                                {
+                                                                    0,
+                                                                    0,
+                                                                },
+                                                                {50, 50})});
     }
 };
 
@@ -85,7 +98,13 @@ TEST_F(CollisionTest, MultipleCollisionsDetected) {
 
     Entity entityC = registry.createEntity();
     registry.addComponent(entityC, BoxCollisionComponent{});
-    registry.addComponent(entityC, sprite2D_component_s{{}, sf::IntRect({0, 0,}, {50, 50})});
+    registry.addComponent(entityC, sprite2D_component_s{{},
+                                                        sf::IntRect(
+                                                            {
+                                                                0,
+                                                                0,
+                                                            },
+                                                            {50, 50})});
 
     registry.addComponent(entityA, TransformComponent{0.0f, 0.0f});
     registry.addComponent(entityB, TransformComponent{10.0f, 10.0f});
