@@ -62,3 +62,9 @@ struct Shooter {
 struct Projectile {
     float lifetime;
 };
+
+struct Scroll {
+    float scroll_speed_x;
+    float scroll_speed_y;
+    bool is_paused;
+};

@@ -13,7 +13,6 @@
 #include "Registry/registry.hpp"
 #include "System/ISystem.hpp"
 #include "System/SystemManager/SystemManager.hpp"
-#include "../utils/slot_map/slot_map.hpp"
 
 class ECS {
     public:
@@ -32,7 +31,7 @@ class ECS {
 
         void run() {
             sf::Clock clock;
-            SlotMap<sf::Texture> texture_manager;
+            ResourceManager<sf::Texture> texture_manager;
             system_context context = {0, texture_manager};
 
             while (_window.isOpen()) {
@@ -53,7 +52,7 @@ class ECS {
     public:
         Registry registry;
         SystemManager systems;
-        SlotMap<sf::Texture> _textureManager;
+        ResourceManager<sf::Texture> _textureManager;
 
     private:
         sf::RenderWindow _window;
