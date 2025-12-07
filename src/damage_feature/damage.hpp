@@ -2,8 +2,6 @@
 
 #include "ecs/Registry/registry.hpp"
 #include "ecs/System/ISystem.hpp"
-#include "shoot_feature/shooter.hpp"
-#include "../health_feature/health.hpp"
 
 struct DamageOnColision {
     int damage_value;

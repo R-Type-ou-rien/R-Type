@@ -1,7 +1,4 @@
 #include "box_collision/box_collision.hpp"
-#include <iostream>
-#include <ostream>
-
 #include "../ecs/Components/Components.hpp"
 #include "ecs/System/ISystem.hpp"
 

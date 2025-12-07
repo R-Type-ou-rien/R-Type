@@ -1,7 +1,5 @@
 #pragma once
 
-#include <list>
-
 #include "ecs/Registry/registry.hpp"
 #include "ecs/System/ISystem.hpp"
 #include "tag_component/tag_component.hpp"

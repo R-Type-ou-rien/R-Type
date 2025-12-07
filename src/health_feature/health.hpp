@@ -1,5 +1,4 @@
 #pragma once
-#include <iostream>
 
 #include "ecs/Registry/registry.hpp"
 #include "ecs/System/ISystem.hpp"
