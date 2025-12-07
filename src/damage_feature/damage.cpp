@@ -28,9 +28,11 @@ void Damage::update(Registry& registry, system_context context) {
             }
             if (!registry.hasComponent<HealthComponent>(hit_id))
                 continue;
-            health.current_hp -= dmg.damage_value;
-            std::cout << "Collision ! " << attacker << " a touche " << hit_id << " (-" << dmg.damage_value << " HP)"
-                      << std::endl;
+            if (health.current_hp - dmg.damage_value <= 0){
+                health.current_hp = 0;
+            } else {
+                health.current_hp -= dmg.damage_value;
+            }
             if (registry.hasComponent<ProjectileComponent>(attacker)) {
                 registry.destroyEntity(attacker);
                 break;

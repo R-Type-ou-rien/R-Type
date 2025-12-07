@@ -26,35 +26,16 @@ TEST_F(HealthTest, EntityDiesAtZeroHP) {
     EXPECT_FALSE(registry.hasComponent<HealthComponent>(entity));
 }
 
-TEST_F(HealthTest, PlayerRespawnsWithLives) {
+TEST_F(HealthTest, EntitySurvivesWithPositiveHP) {
     system_context context = {0, texture_manager};
 
-    registry.addComponent(entity, HealthComponent{100, 0});
-    registry.addComponent(entity, LifeComponent{3});
-    registry.addComponent(entity, TransformComponent{999, 999});
-    registry.addComponent(entity, TeamComponent{TeamComponent::ALLY});
+    registry.addComponent(entity, HealthComponent{50, 10});
+    registry.addComponent(entity, TeamComponent{TeamComponent::ENEMY});
 
     healthSys.update(registry, context);
-
-    auto& hp = registry.getComponent<HealthComponent>(entity);
-    auto& life = registry.getComponent<LifeComponent>(entity);
-    auto& pos = registry.getComponent<TransformComponent>(entity);
-
-    EXPECT_EQ(life.lives_remaining, 2) << "Il devrait rester 2 vies";
-    EXPECT_EQ(hp.current_hp, 100) << "HP reload";
-    EXPECT_EQ(pos.x, 100) << "Position X reset";
 
     EXPECT_TRUE(registry.hasComponent<HealthComponent>(entity));
-}
+    auto& health = registry.getComponent<HealthComponent>(entity);
+    EXPECT_EQ(health.current_hp, 10);
 
-TEST_F(HealthTest, PlayerDiesPermanentlyNoLives) {
-    system_context context = {0, texture_manager};
-
-    registry.addComponent(entity, HealthComponent{100, -10});
-    registry.addComponent(entity, LifeComponent{0});
-    registry.addComponent(entity, TeamComponent{TeamComponent::ALLY});
-
-    healthSys.update(registry, context);
-
-    EXPECT_FALSE(registry.hasComponent<HealthComponent>(entity)) << "Player should be dead permanently";
 }

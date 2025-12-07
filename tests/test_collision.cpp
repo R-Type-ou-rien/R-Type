@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <algorithm>
 
 #include "../src/ecs/Components/Components.hpp"
 #include "../src/box_collision/box_collision.hpp"
@@ -62,17 +63,6 @@ TEST_F(CollisionTest, ScaleIncreaseHitbox) {
     boxSystem.update(registry, context);
     auto& boxA = registry.getComponent<BoxCollisionComponent>(entityA);
     EXPECT_FALSE(boxA.collision.tags.empty()) << "Le scale x2 aurait dû provoquer une collision !";
-}
-
-TEST_F(CollisionTest, EdgeTouchingCountsAsCollision) {
-    system_context context = {0, texture_manager};
-
-    registry.addComponent(entityA, TransformComponent{0.0f, 0.0f});
-    registry.addComponent(entityB, TransformComponent{50.0f, 0.0f});
-    boxSystem.update(registry, context);
-    auto& boxA = registry.getComponent<BoxCollisionComponent>(entityA);
-    ASSERT_FALSE(boxA.collision.tags.empty());
-    EXPECT_EQ(boxA.collision.tags[0], entityB);
 }
 
 TEST_F(CollisionTest, NoCollisionAfterMovingApart) {

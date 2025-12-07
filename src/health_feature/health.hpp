@@ -8,10 +8,6 @@ struct HealthComponent {
     int current_hp;
 };
 
-struct LifeComponent {
-    int lives_remaining;
-};
-
 class HealthSystem : public ISystem {
    public:
     HealthSystem() = default;
