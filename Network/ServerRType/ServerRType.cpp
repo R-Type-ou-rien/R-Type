@@ -1,47 +1,60 @@
 #include "ServerRType.hpp"
-#include <string>
+
+#include <sys/socket.h>
+
+#include <cstddef>
+#include <cstdint>
 #include <cstring>
+#include <string>
 
 void ServerRType::OnMessage(std::shared_ptr<network::Connection<RTypeEvents>> client,
                             network::message<RTypeEvents>& msg) {
     switch (msg.header.id) {
-        case RTypeEvents::ServerPing: {
-            std::cout << "[" << client->GetID() << "]: Server Ping\n";
-
-            client->Send(msg);
-        } break;
-
-        case RTypeEvents::MessageAll: {
-            std::cout << "[" << client->GetID() << "]: Message All\n";
-
-            network::message<RTypeEvents> msg;
-            msg.header.id = RTypeEvents::ServerMessage;
-            msg << client->GetID();
-            MessageAllClients(msg, client);
-
-        } break;
-        case RTypeEvents::ServerAccept:
-        case RTypeEvents::ServerDeny:
-        case RTypeEvents::ServerMessage:
+        case RTypeEvents::C_REGISTER:
+            OnClientRegister(client, msg);
+            break;
+        case RTypeEvents::C_LOGIN:
+            OnClientLogin(client, msg);
+            break;
+        case RTypeEvents::C_LOGIN_TOKEN:
+            OnClientLoginToken(client, msg);
+            break;
+        case RTypeEvents::C_LIST_ROOMS:
+            OnClientListLobby(client, msg);
+            break;
+        case RTypeEvents::C_JOIN_ROOM:
+            OnClientJoinLobby(client, msg);
+            break;
+        case RTypeEvents::C_ROOM_LEAVE:
+            OnClientLeaveLobby(client, msg);
+            break;
+        case RTypeEvents::C_NEW_LOBBY:
+            OnClientNewLobby(client, msg);
+            break;
+        case RTypeEvents::C_CONFIRM_UDP:
+            if (_clientStates[client] == ClientState::WAITING_UDP_PING)
+                _clientStates[client] = ClientState::LOGGED_IN;
+            break;
+        default:
+            _toGameMessages.push({msg.header.id, msg.header.user_id, msg});
             break;
     }
 }
 
 void ServerRType::OnClientDisconnect(std::shared_ptr<network::Connection<RTypeEvents>> client) {
     std::cout << "Removing client [" << client->GetID() << "]\n";
+    network::message<RTypeEvents> msg;
+    msg << NULL;
+    _toGameMessages.push({RTypeEvents::C_DISCONNECT, client->GetID(), msg});
 }
 
 bool ServerRType::OnClientConnect(std::shared_ptr<network::Connection<RTypeEvents>> client) {
-    network::message<RTypeEvents> msg;
-    msg.header.id = RTypeEvents::ServerAccept;
-    msg.header.user_id = client->GetID();
-    char token[64] = {0};
-    std::string tokenStr = "SecretToken_" + std::to_string(client->GetID());
-    std::strncpy(token, tokenStr.c_str(), 63);
-    msg << token;
-    client->Send(msg);
+    if (_deqConnections.size() >= _maxConnections)
+        return false;
+    AddMessageToPlayer(RTypeEvents::C_PING_SERVER, client->GetID(), NULL);
     return true;
 }
+
 coming_message ServerRType::ReadIncomingMessage() {
     if (_toGameMessages.empty())
         return coming_message{};
@@ -49,4 +62,225 @@ coming_message ServerRType::ReadIncomingMessage() {
     coming_message message = _toGameMessages.front();
     _toGameMessages.pop();
     return message;
+}
+
+void ServerRType::OnClientRegister(std::shared_ptr<network::Connection<RTypeEvents>> client,
+                                   network::message<RTypeEvents> msg) {
+    connection_info info;
+    msg >> info;
+
+    // Sauvegarder le username et password dans une base de données (non implémenté encore)
+
+    connection_server_return returnInfo;
+    const std::string charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+    srand(time(nullptr) + client->GetID());
+    for (int i = 0; i < 10; i++) {
+        returnInfo.token += charset[rand() % charset.length()];
+    }
+    returnInfo.id = client->GetID();
+
+    _clientUsernames[client] = info.username;
+    _clientStates[client] = ClientState::WAITING_UDP_PING;
+    AddMessageToPlayer(RTypeEvents::S_REGISTER_OK, client->GetID(), returnInfo);
+}
+
+void ServerRType::OnClientLogin(std::shared_ptr<network::Connection<RTypeEvents>> client,
+                                network::message<RTypeEvents> msg) {
+    connection_info info;
+    msg >> info;
+
+    // Verifier username et password dans une base de données (non implémenté encore)
+    connection_server_return returnInfo;
+    // returnInfo.token = ; ---- Get le token de la database ---
+    returnInfo.id = client->GetID();
+
+    _clientUsernames[client] = info.username;
+    _clientStates[client] = ClientState::WAITING_UDP_PING;
+    AddMessageToPlayer(RTypeEvents::S_LOGIN_OK, client->GetID(), returnInfo);
+}
+
+void ServerRType::OnClientLoginToken(std::shared_ptr<network::Connection<RTypeEvents>> client,
+                                     network::message<RTypeEvents> msg) {
+    connection_info info;
+    msg >> info;
+
+    // Verifier le username et password dans une base de données (non implémenté encore)
+    // std::string username = ; ---- Get le username de la database --- (commencez pas a croire que ce commentaire aussi
+    // est du COPILOT HYN C MOI QUI L'AI FAIT)
+    connection_server_return returnInfo;
+    // returnInfo.token = ; ---- Get le token de la database (CELUI LA AUSSI AU PASSAGE)---
+    returnInfo.id = client->GetID();
+
+    //_clientUsernames[client] = username;
+    _clientStates[client] = ClientState::WAITING_UDP_PING;
+    AddMessageToPlayer(RTypeEvents::S_LOGIN_OK, client->GetID(), returnInfo);
+}
+
+void ServerRType::OnClientListLobby(std::shared_ptr<network::Connection<RTypeEvents>> client,
+                                    network::message<RTypeEvents> msg) {
+    if (_clientStates[client] != ClientState::LOGGED_IN)
+        return;
+    lobby_info info;
+    std::vector<lobby_info> lobbysInfo;
+    for (Lobby<RTypeEvents>& lobby : _lobbys) {
+        info.id = lobby.GetID();
+        info.name = lobby.GetName();
+        info.ncConnectedPlayers = lobby.GetNbPlayers();
+        info.maxPlayers = lobby.GetMaxPlayers();
+        lobbysInfo.push_back(info);
+    }
+    AddMessageToPlayer(RTypeEvents::S_ROOMS_LIST, client->GetID(), lobbysInfo);
+}
+
+void ServerRType::OnClientJoinLobby(std::shared_ptr<network::Connection<RTypeEvents>> client,
+                                    network::message<RTypeEvents> msg) {
+    if (_clientStates[client] != ClientState::LOGGED_IN)
+        return;
+    uint32_t lobbyID;
+    msg >> lobbyID;
+    bool lobbyFound = false;
+    for (Lobby<RTypeEvents>& lobby : _lobbys) {
+        if (lobby.GetID() == lobbyID) {
+            lobby.AddPlayer(client);
+            lobbyFound = true;
+
+            struct lobby_in_info info;
+            info.id = lobby.GetID();
+            info.name = lobby.GetName();
+            info.maxPlayers = lobby.GetMaxPlayers();
+            for (auto& [id, connection] : lobby.getLobbyPlayers()) {
+                player p;
+                p.id = id;
+                p.username = _clientUsernames[connection];
+                info.players.push_back(p);
+            }
+            AddMessageToPlayer(RTypeEvents::S_ROOM_JOINED, client->GetID(), info);
+
+            struct player p;
+            p.id = client->GetID();
+            p.username = _clientUsernames[client];
+            AddMessageToLobby(RTypeEvents::S_PLAYER_JOINED, lobbyID, p);
+            _toGameMessages.push({RTypeEvents::S_PLAYER_JOINED, client->GetID(), msg});
+
+            _clientStates[client] = ClientState::IN_LOBBY;
+            break;
+        }
+    }
+}
+void ServerRType::OnClientLeaveLobby(std::shared_ptr<network::Connection<RTypeEvents>> client,
+                                     network::message<RTypeEvents> msg) {
+    if (_clientStates[client] != ClientState::IN_LOBBY)
+        return;
+    uint32_t lobbyID;
+    msg >> lobbyID;
+    for (Lobby<RTypeEvents>& lobby : _lobbys) {
+        auto mapPlayers = lobby.getLobbyPlayers();
+        if (lobby.GetID() == lobbyID) {
+            _clientStates[client] = ClientState::LOGGED_IN;
+            if (mapPlayers[client->GetID()] == lobby.getOwner()) {
+                if (mapPlayers.size() > 1) {
+                    for (auto& [id, connection] : mapPlayers) {
+                        if (id != client->GetID()) {
+                            lobby.setOwner(connection);
+                            AddMessageToLobby(RTypeEvents::S_NEW_HOST, lobbyID, id);
+                            break;
+                        }
+                    }
+                } else {
+                    _lobbys.erase(
+                        std::remove_if(_lobbys.begin(), _lobbys.end(),
+                                       [lobbyID](const Lobby<RTypeEvents>& lobby) { return lobby.GetID() == lobbyID; }),
+                        _lobbys.end());
+                    return;
+                }
+            }
+            lobby.RemovePlayer(client->GetID());
+            struct player p;
+            p.id = client->GetID();
+            p.username = _clientUsernames[client];
+            AddMessageToLobby(RTypeEvents::S_PLAYER_LEAVE, lobbyID, p);
+
+            _toGameMessages.push({RTypeEvents::S_PLAYER_LEAVE, client->GetID(), msg});
+
+            break;
+        }
+    }
+}
+
+void ServerRType::OnClientNewLobby(std::shared_ptr<network::Connection<RTypeEvents>> client,
+                                   network::message<RTypeEvents> msg) {
+    if (_clientStates[client] != ClientState::LOGGED_IN)
+        return;
+    std::string lobbyName;
+    msg >> lobbyName;
+    uint32_t newLobbyID = 1;
+    if (!_lobbys.empty()) {
+        newLobbyID = _lobbys.back().GetID() + 1;
+    }
+    Lobby<RTypeEvents> newLobby(newLobbyID, lobbyName);
+
+    _lobbys.emplace_back(newLobby);
+    _lobbys.back().AddPlayer(client);
+    AddMessageToPlayer(RTypeEvents::S_CONFIRM_NEW_LOBBY, client->GetID(), newLobby.GetName());
+    _clientStates[client] = ClientState::IN_LOBBY;
+}
+
+void ServerRType::onClientStartGame(std::shared_ptr<network::Connection<RTypeEvents>> client,
+                                    network::message<RTypeEvents> msg) {
+    if (_clientStates[client] != ClientState::READY)
+        return;
+    uint32_t info;
+    msg >> info;
+    for (Lobby<RTypeEvents>& lobby : _lobbys) {
+        if (lobby.GetID() == info) {
+            if (lobby.getOwner() != client) {
+                return;
+            }
+            for (auto& [id, connection] : lobby.getLobbyPlayers()) {
+                if (_clientStates[connection] != ClientState::READY) {
+                    return;
+                }
+            }
+            _toGameMessages.push({RTypeEvents::S_GAME_START, client->GetID(), msg});
+            for (auto& [id, connection] : lobby.getLobbyPlayers())
+                _clientStates[client] = ClientState::IN_GAME;
+            AddMessageToLobby(RTypeEvents::S_GAME_START, lobby.GetID(), NULL);
+            break;
+        }
+    }
+}
+
+void ServerRType::onClientReadyUp(std::shared_ptr<network::Connection<RTypeEvents>> client,
+                                  network::message<RTypeEvents> msg) {
+    if (_clientStates[client] != ClientState::IN_LOBBY)
+        return;
+    uint32_t info;
+    msg >> info;
+    for (Lobby<RTypeEvents>& lobby : _lobbys) {
+        if (lobby.GetID() == info) {
+            _clientStates[client] = ClientState::READY;
+            struct player p;
+            p.id = client->GetID();
+            p.username = _clientUsernames[client];
+            AddMessageToLobby(RTypeEvents::S_READY_RETURN, lobby.GetID(), p);
+            break;
+        }
+    }
+}
+void ServerRType::onClientUnready(std::shared_ptr<network::Connection<RTypeEvents>> client,
+                                  network::message<RTypeEvents> msg) {
+    if (_clientStates[client] != ClientState::READY)
+        return;
+    uint32_t info;
+    msg >> info;
+    for (Lobby<RTypeEvents>& lobby : _lobbys) {
+        if (lobby.GetID() == info) {
+            _clientStates[client] = ClientState::IN_LOBBY;
+            struct player p;
+            p.id = client->GetID();
+            p.username = _clientUsernames[client];
+            AddMessageToLobby(RTypeEvents::S_CANCEL_READY_BROADCAST, lobby.GetID(), p);
+            break;
+        }
+    }
 }

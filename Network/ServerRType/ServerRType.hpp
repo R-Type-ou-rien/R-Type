@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <queue>
+#include <unordered_map>
 #include <vector>
 
 #include "../Lobby/Lobby.hpp"
@@ -8,17 +9,36 @@
 #include "../NetworkInterface/ServerInterface.hpp"
 #include "../NetworkRType.hpp"
 
+#define MAX_PLAYERS 20
+
 class ServerRType : public network::ServerInterface<RTypeEvents> {
+    enum class ClientState : uint32_t { CONNECTED, WAITING_UDP_PING, LOGGED_IN, IN_LOBBY, READY, IN_GAME };
+
    public:
     ServerRType(uint16_t nPort) : network::ServerInterface<RTypeEvents>(nPort) {}
 
    protected:
-    virtual bool OnClientConnect(std::shared_ptr<network::Connection<RTypeEvents>> client);
-
-    virtual void OnClientDisconnect(std::shared_ptr<network::Connection<RTypeEvents>> client);
-
     virtual void OnMessage(std::shared_ptr<network::Connection<RTypeEvents>> client,
                            network::message<RTypeEvents>& msg);
+
+    virtual bool OnClientConnect(std::shared_ptr<network::Connection<RTypeEvents>> client);
+    virtual void OnClientDisconnect(std::shared_ptr<network::Connection<RTypeEvents>> client);
+
+    // Connection and Lobby event handlers (croyez pas y'a que gemini qui sait faire des commentaires bandes de fous)
+    void OnClientRegister(std::shared_ptr<network::Connection<RTypeEvents>> client, network::message<RTypeEvents> msg);
+    void OnClientLogin(std::shared_ptr<network::Connection<RTypeEvents>> client, network::message<RTypeEvents> msg);
+    void OnClientLoginToken(std::shared_ptr<network::Connection<RTypeEvents>> client,
+                            network::message<RTypeEvents> msg);
+    void OnClientListLobby(std::shared_ptr<network::Connection<RTypeEvents>> client, network::message<RTypeEvents> msg);
+    void OnClientJoinLobby(std::shared_ptr<network::Connection<RTypeEvents>> client, network::message<RTypeEvents> msg);
+    void OnClientLeaveLobby(std::shared_ptr<network::Connection<RTypeEvents>> client,
+                            network::message<RTypeEvents> msg);
+    void OnClientNewLobby(std::shared_ptr<network::Connection<RTypeEvents>> client, network::message<RTypeEvents> msg);
+
+    // Pre-Game event handlers
+    void onClientStartGame(std::shared_ptr<network::Connection<RTypeEvents>> client, network::message<RTypeEvents> msg);
+    void onClientReadyUp(std::shared_ptr<network::Connection<RTypeEvents>> client, network::message<RTypeEvents> msg);
+    void onClientUnready(std::shared_ptr<network::Connection<RTypeEvents>> client, network::message<RTypeEvents> msg);
 
     coming_message ReadIncomingMessage();
 
@@ -57,7 +77,12 @@ class ServerRType : public network::ServerInterface<RTypeEvents> {
     }
 
    private:
+    int _maxConnections = MAX_PLAYERS;
+
     std::vector<Lobby<RTypeEvents>> _lobbys;
+    std::unordered_map<std::shared_ptr<network::Connection<RTypeEvents>>, ClientState> _clientStates;
+    std::unordered_map<std::shared_ptr<network::Connection<RTypeEvents>>, std::string> _clientUsernames;
+
     std::vector<RTypeEvents> _udpEvents;
     std::vector<RTypeEvents> _tcpEvents;
 

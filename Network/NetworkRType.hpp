@@ -1,17 +1,22 @@
 #pragma once
+#include <sys/types.h>
+
 #include <cstdint>
-#include <vector>
 
 #include "NetworkInterface/message.hpp"
 
 enum class RTypeEvents : uint32_t {
+    C_PING_SERVER,
+
     C_REGISTER,
     S_REGISTER_OK,
     S_REGISTER_KO,
     C_LOGIN,
+    C_LOGIN_TOKEN,
     S_LOGIN_OK,
     S_LOGIN_KO,
     C_DISCONNECT,
+    C_CONFIRM_UDP,
 
     // LOBBY EVENTS
     C_LIST_ROOMS,
@@ -55,5 +60,35 @@ enum class RTypeEvents : uint32_t {
 
 struct coming_message {
     RTypeEvents id;
+    uint32_t clientID;
     network::message<RTypeEvents> msg;
+};
+
+struct connection_info {
+    std::string username;
+    std::string password;
+};
+
+struct connection_server_return {
+    std::string token;
+    uint32_t id;
+};
+
+struct lobby_info {
+    uint32_t id;
+    std::string name;
+    uint32_t ncConnectedPlayers;
+    uint32_t maxPlayers;
+};
+
+struct player {
+    uint32_t id;
+    std::string username;
+};
+
+struct lobby_in_info {
+    uint32_t id;
+    std::string name;
+    std::vector<player> players;
+    uint32_t maxPlayers;
 };
