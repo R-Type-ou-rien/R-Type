@@ -5,9 +5,11 @@
 ** main_test_input.cpp
 */
 
-#include <SFML/Graphics.hpp>
+
 #include <iostream>
 #include <optional>
+
+#include <SFML/Graphics.hpp>
 
 #include "../src/ecs/Input/InputAction.hpp"
 #include "../src/ecs/Input/InputBinding.hpp"
