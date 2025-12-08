@@ -5,8 +5,6 @@
 #include "ecs/common/ISystem.hpp"
 #include "ecs/common/Registry/registry.hpp"
 
-// namespace ECS {
-
 struct VelocityComponent {
     double vx;
     double vy;
@@ -32,5 +30,3 @@ class ShooterSystem : public ISystem {
     void create_projectile(Registry& registry, ShooterComponent::Projectile type, TeamComponent::Team team,
                            transform_component_s pos, VelocityComponent velocity);
 };
-
-// }  // namespace ECS
