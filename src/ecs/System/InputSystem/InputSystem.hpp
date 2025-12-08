@@ -7,17 +7,15 @@
 
 #pragma once
 
-#include "../ISystem.hpp"
 #include "../../Input/InputManager.hpp"
+#include "../ISystem.hpp"
 
 class InputSystem : public ISystem {
-public:
+   public:
     InputSystem(InputManager& input) : _input(input) {}
 
-    void update(Registry& registry, float dt) {
-        _input.update(dt);
-    }
+    void update(Registry& registry, float dt) { _input.update(dt); }
 
-private:
+   private:
     InputManager& _input;
 };

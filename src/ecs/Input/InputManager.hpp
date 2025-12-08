@@ -9,12 +9,13 @@
 
 #include <unordered_map>
 #include <vector>
+
 #include "InputAction.hpp"
 #include "InputBinding.hpp"
 #include "InputState.hpp"
 
 class InputManager {
-public:
+   public:
     void bindAction(Action action, const InputBinding& binding);
 
     void update(float dt);
@@ -28,15 +29,13 @@ public:
     bool isLongPress(Action action, float threshold) const;
     const ActionState& getState(Action action) const;
 
-
-private:
+   private:
     bool isBindingActive(const InputBinding& binding) const;
 
     std::unordered_map<Action, std::vector<InputBinding>> _bindings;
     std::unordered_map<Action, ActionState> _states;
     bool _hasFocus = true;
 };
-
 
 /*
 

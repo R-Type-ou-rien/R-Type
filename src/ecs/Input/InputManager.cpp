@@ -7,13 +7,11 @@
 
 #include "InputManager.hpp"
 
-void InputManager::bindAction(Action action, const InputBinding& binding)
-{
+void InputManager::bindAction(Action action, const InputBinding& binding) {
     _bindings[action].push_back(binding);
 }
 
-bool InputManager::isBindingActive(const InputBinding& b) const
-{
+bool InputManager::isBindingActive(const InputBinding& b) const {
     switch (b.device) {
         case InputDeviceType::Keyboard:
             return sf::Keyboard::isKeyPressed(b.key);
@@ -42,8 +40,7 @@ bool InputManager::isBindingActive(const InputBinding& b) const
     return false;
 }
 
-void InputManager::update(float dt)
-{
+void InputManager::update(float dt) {
     if (!_hasFocus) {
         for (auto& [action, state] : _states) {
             state.pressed = false;
@@ -66,7 +63,7 @@ void InputManager::update(float dt)
         }
 
         bool wasPressed = st.pressed;
-        st.justPressed  = (!wasPressed && down);
+        st.justPressed = (!wasPressed && down);
         st.justReleased = (wasPressed && !down);
 
         if (down) {
@@ -82,26 +79,22 @@ void InputManager::update(float dt)
     }
 }
 
-bool InputManager::isPressed(Action action) const
-{
+bool InputManager::isPressed(Action action) const {
     auto it = _states.find(action);
     return it != _states.end() && it->second.pressed;
 }
 
-bool InputManager::isJustPressed(Action action) const
-{
+bool InputManager::isJustPressed(Action action) const {
     auto it = _states.find(action);
     return it != _states.end() && it->second.justPressed;
 }
 
-bool InputManager::isJustReleased(Action action) const
-{
+bool InputManager::isJustReleased(Action action) const {
     auto it = _states.find(action);
     return it != _states.end() && it->second.justReleased;
 }
 
-bool InputManager::isShortPress(Action action, float threshold) const
-{
+bool InputManager::isShortPress(Action action, float threshold) const {
     auto it = _states.find(action);
     if (it == _states.end())
         return false;
@@ -109,8 +102,7 @@ bool InputManager::isShortPress(Action action, float threshold) const
     return st.justReleased && st.lastReleaseHoldTime > 0.f && st.lastReleaseHoldTime < threshold;
 }
 
-bool InputManager::isLongPress(Action action, float threshold) const
-{
+bool InputManager::isLongPress(Action action, float threshold) const {
     auto it = _states.find(action);
     if (it == _states.end())
         return false;

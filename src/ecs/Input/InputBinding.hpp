@@ -7,9 +7,9 @@
 
 #pragma once
 
+#include <SFML/Window/Joystick.hpp>
 #include <SFML/Window/Keyboard.hpp>
 #include <SFML/Window/Mouse.hpp>
-#include <SFML/Window/Joystick.hpp>
 
 enum class InputDeviceType {
     Keyboard,
@@ -39,7 +39,7 @@ struct InputBinding {
 
 /*
 
-Exemple 
+Exemple
 
 // Tir au clavier : J
 InputBinding kbShoot{

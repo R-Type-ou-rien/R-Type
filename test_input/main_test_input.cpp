@@ -1,14 +1,20 @@
-#include <SFML/Graphics.hpp>
-#include <optional>
-#include <iostream>
+/*
+** EPITECH PROJECT, 2025
+** R-Type
+** File description:
+** main_test_input.cpp
+*/
 
-#include "../src/ecs/Input/InputManager.hpp"
+#include <SFML/Graphics.hpp>
+#include <iostream>
+#include <optional>
+
 #include "../src/ecs/Input/InputAction.hpp"
 #include "../src/ecs/Input/InputBinding.hpp"
+#include "../src/ecs/Input/InputManager.hpp"
 #include "../src/ecs/Input/InputState.hpp"
 
-int main()
-{
+int main() {
     sf::RenderWindow window(sf::VideoMode({800u, 600u}), "InputManager Test");
     window.setFramerateLimit(60);
 
@@ -19,73 +25,67 @@ int main()
 
     // ---- TEST BINDINGS ----
     // Clavier : espace = Action::Shoot
-    input.bindAction(Action::Shoot, InputBinding{
-        InputDeviceType::Keyboard,
-        sf::Keyboard::Key::Space
-    });
+    input.bindAction(Action::Shoot, InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Space});
 
     // Clavier : Z = MoveUp
-    input.bindAction(Action::MoveUp, InputBinding{
-        InputDeviceType::Keyboard,
-        sf::Keyboard::Key::Z
-    });
+    input.bindAction(Action::MoveUp, InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Z});
 
     // Manette : bouton A = Shoot
     InputBinding shootPad;
-    shootPad.device         = InputDeviceType::GamepadButton;
-    shootPad.joystickId     = 0;
+    shootPad.device = InputDeviceType::GamepadButton;
+    shootPad.joystickId = 0;
     shootPad.joystickButton = 0;
     input.bindAction(Action::Shoot, shootPad);
 
     // Gâchette droite (RT) = Shoot
     InputBinding rt;
-    rt.device         = InputDeviceType::GamepadAxis;
-    rt.joystickId     = 0;
-    rt.axis           = sf::Joystick::Axis::Z;
-    rt.axisThreshold  = 20.f;
-    rt.axisSign       = +1; // direction positive
+    rt.device = InputDeviceType::GamepadAxis;
+    rt.joystickId = 0;
+    rt.axis = sf::Joystick::Axis::Z;
+    rt.axisThreshold = 20.f;
+    rt.axisSign = +1;  // direction positive
     input.bindAction(Action::Shoot, rt);
 
     // D-PAD haut = MoveUp
     InputBinding dpadUp;
-    dpadUp.device        = InputDeviceType::GamepadAxis;
-    dpadUp.joystickId    = 0;
-    dpadUp.axis          = sf::Joystick::Axis::PovY;
+    dpadUp.device = InputDeviceType::GamepadAxis;
+    dpadUp.joystickId = 0;
+    dpadUp.axis = sf::Joystick::Axis::PovY;
     dpadUp.axisThreshold = 50.f;
-    dpadUp.axisSign      = +1;
+    dpadUp.axisSign = +1;
     input.bindAction(Action::MoveUp, dpadUp);
 
     // Stick gauche vers la gauche = MoveLeft
     InputBinding stickLeft;
-    stickLeft.device        = InputDeviceType::GamepadAxis;
-    stickLeft.joystickId    = 0;
-    stickLeft.axis          = sf::Joystick::Axis::X; // axe horizontal du stick gauche
-    stickLeft.axisThreshold = 20.f;                  // deadzone
-    stickLeft.axisSign      = -1;                    // négatif = gauche
+    stickLeft.device = InputDeviceType::GamepadAxis;
+    stickLeft.joystickId = 0;
+    stickLeft.axis = sf::Joystick::Axis::X;  // axe horizontal du stick gauche
+    stickLeft.axisThreshold = 20.f;          // deadzone
+    stickLeft.axisSign = -1;                 // négatif = gauche
     input.bindAction(Action::MoveLeft, stickLeft);
 
     // Stick gauche vers la droite = MoveRight
-    stickLeft.device        = InputDeviceType::GamepadAxis;
-    stickLeft.joystickId    = 0;
-    stickLeft.axis          = sf::Joystick::Axis::X; // axe horizontal du stick gauche
-    stickLeft.axisThreshold = 20.f;                  // deadzone
-    stickLeft.axisSign      = +1;                    // positif = droit
+    stickLeft.device = InputDeviceType::GamepadAxis;
+    stickLeft.joystickId = 0;
+    stickLeft.axis = sf::Joystick::Axis::X;  // axe horizontal du stick gauche
+    stickLeft.axisThreshold = 20.f;          // deadzone
+    stickLeft.axisSign = +1;                 // positif = droit
     input.bindAction(Action::MoveRight, stickLeft);
 
     // Stick gauche vers la bas = MoveDown
-    stickLeft.device        = InputDeviceType::GamepadAxis;
-    stickLeft.joystickId    = 0;
-    stickLeft.axis          = sf::Joystick::Axis::Y; // axe horizontal du stick gauche
-    stickLeft.axisThreshold = 20.f;                  // deadzone
-    stickLeft.axisSign      = +1;                    // positif = haut
+    stickLeft.device = InputDeviceType::GamepadAxis;
+    stickLeft.joystickId = 0;
+    stickLeft.axis = sf::Joystick::Axis::Y;  // axe horizontal du stick gauche
+    stickLeft.axisThreshold = 20.f;          // deadzone
+    stickLeft.axisSign = +1;                 // positif = haut
     input.bindAction(Action::MoveDown, stickLeft);
 
     // Stick gauche vers la haut = MoveUp
-    stickLeft.device        = InputDeviceType::GamepadAxis;
-    stickLeft.joystickId    = 0;
-    stickLeft.axis          = sf::Joystick::Axis::Y; // axe horizontal du stick gauche
-    stickLeft.axisThreshold = 20.f;                  // deadzone
-    stickLeft.axisSign      = -1;                    // négatif = bas
+    stickLeft.device = InputDeviceType::GamepadAxis;
+    stickLeft.joystickId = 0;
+    stickLeft.axis = sf::Joystick::Axis::Y;  // axe horizontal du stick gauche
+    stickLeft.axisThreshold = 20.f;          // deadzone
+    stickLeft.axisSign = -1;                 // négatif = bas
     input.bindAction(Action::MoveUp, stickLeft);
 
     sf::Clock clock;
@@ -123,8 +123,8 @@ int main()
             std::cout << "[Shoot] just pressed!\n";
 
         if (input.isJustReleased(Action::Shoot))
-            std::cout << "[Shoot] just released (hold time = "
-                      << input.getState(Action::Shoot).lastReleaseHoldTime << "s)\n";
+            std::cout << "[Shoot] just released (hold time = " << input.getState(Action::Shoot).lastReleaseHoldTime
+                      << "s)\n";
 
         if (input.isLongPress(Action::Shoot, 0.5f))
             std::cout << "[Shoot] LONG PRESS (>= 0.5s)\n";
