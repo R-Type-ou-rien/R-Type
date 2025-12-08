@@ -26,18 +26,18 @@ int main() {
     InputManager input;
 
     // ---- TEST BINDINGS ----
-    // Clavier : espace = Action::Shoot
-    input.bindAction(Action::Shoot, InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Space});
+    // Clavier : espace = "Shoot"
+    input.bindAction("Shoot", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Space});
 
     // Clavier : Z = MoveUp
-    input.bindAction(Action::MoveUp, InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Z});
+    input.bindAction("MoveUp", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Z});
 
     // Manette : bouton A = Shoot
     InputBinding shootPad;
     shootPad.device = InputDeviceType::GamepadButton;
     shootPad.joystickId = 0;
     shootPad.joystickButton = 0;
-    input.bindAction(Action::Shoot, shootPad);
+    input.bindAction("Shoot", shootPad);
 
     // Gâchette droite (RT) = Shoot
     InputBinding rt;
@@ -46,7 +46,7 @@ int main() {
     rt.axis = sf::Joystick::Axis::Z;
     rt.axisThreshold = 20.f;
     rt.axisSign = +1;  // direction positive
-    input.bindAction(Action::Shoot, rt);
+    input.bindAction("Shoot", rt);
 
     // D-PAD haut = MoveUp
     InputBinding dpadUp;
@@ -54,8 +54,8 @@ int main() {
     dpadUp.joystickId = 0;
     dpadUp.axis = sf::Joystick::Axis::PovY;
     dpadUp.axisThreshold = 50.f;
-    dpadUp.axisSign = +1;
-    input.bindAction(Action::MoveUp, dpadUp);
+    dpadUp.axisSign = -1;
+    input.bindAction("MoveUp", dpadUp);
 
     // Stick gauche vers la gauche = MoveLeft
     InputBinding stickLeft;
@@ -64,7 +64,7 @@ int main() {
     stickLeft.axis = sf::Joystick::Axis::X;  // axe horizontal du stick gauche
     stickLeft.axisThreshold = 20.f;          // deadzone
     stickLeft.axisSign = -1;                 // négatif = gauche
-    input.bindAction(Action::MoveLeft, stickLeft);
+    input.bindAction("MoveLeft", stickLeft);
 
     // Stick gauche vers la droite = MoveRight
     stickLeft.device = InputDeviceType::GamepadAxis;
@@ -72,7 +72,7 @@ int main() {
     stickLeft.axis = sf::Joystick::Axis::X;  // axe horizontal du stick gauche
     stickLeft.axisThreshold = 20.f;          // deadzone
     stickLeft.axisSign = +1;                 // positif = droit
-    input.bindAction(Action::MoveRight, stickLeft);
+    input.bindAction("MoveRight", stickLeft);
 
     // Stick gauche vers la bas = MoveDown
     stickLeft.device = InputDeviceType::GamepadAxis;
@@ -80,7 +80,7 @@ int main() {
     stickLeft.axis = sf::Joystick::Axis::Y;  // axe horizontal du stick gauche
     stickLeft.axisThreshold = 20.f;          // deadzone
     stickLeft.axisSign = +1;                 // positif = haut
-    input.bindAction(Action::MoveDown, stickLeft);
+    input.bindAction("MoveDown", stickLeft);
 
     // Stick gauche vers la haut = MoveUp
     stickLeft.device = InputDeviceType::GamepadAxis;
@@ -88,7 +88,7 @@ int main() {
     stickLeft.axis = sf::Joystick::Axis::Y;  // axe horizontal du stick gauche
     stickLeft.axisThreshold = 20.f;          // deadzone
     stickLeft.axisSign = -1;                 // négatif = bas
-    input.bindAction(Action::MoveUp, stickLeft);
+    input.bindAction("MoveUp", stickLeft);
 
     sf::Clock clock;
 
@@ -121,29 +121,29 @@ int main() {
         // -------------------------------
         // DEBUG PRINTS FOR ACTIONS
         // -------------------------------
-        if (input.isJustPressed(Action::Shoot))
+        if (input.isJustPressed("Shoot"))
             std::cout << "[Shoot] just pressed!\n";
 
-        if (input.isJustReleased(Action::Shoot))
-            std::cout << "[Shoot] just released (hold time = " << input.getState(Action::Shoot).lastReleaseHoldTime
+        if (input.isJustReleased("Shoot"))
+            std::cout << "[Shoot] just released (hold time = " << input.getState("Shoot").lastReleaseHoldTime
                       << "s)\n";
 
-        if (input.isLongPress(Action::Shoot, 0.5f))
+        if (input.isLongPress("Shoot", 0.5f))
             std::cout << "[Shoot] LONG PRESS (>= 0.5s)\n";
 
-        if (input.isShortPress(Action::Shoot, 0.2f))
+        if (input.isShortPress("Shoot", 0.2f))
             std::cout << "[Shoot] SHORT PRESS (< 0.2s)\n";
 
-        if (input.isPressed(Action::MoveLeft))
+        if (input.isPressed("MoveLeft"))
             std::cout << "[MoveLeft] pressed\n";
 
-        if (input.isPressed(Action::MoveRight))
+        if (input.isPressed("MoveRight"))
             std::cout << "[MoveRight] pressed\n";
 
-        if (input.isPressed(Action::MoveUp))
+        if (input.isPressed("MoveUp"))
             std::cout << "[MoveUp] pressed\n";
 
-        if (input.isPressed(Action::MoveDown))
+        if (input.isPressed("MoveDown"))
             std::cout << "[MoveDown] pressed\n";
 
         window.clear(sf::Color::Black);
