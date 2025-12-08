@@ -8,7 +8,9 @@
 #include "InputManager.hpp"
 
 void InputManager::bindAction(Action action, const InputBinding& binding) {
+    _actionRegistry.registerAction(action);
     _bindings[action].push_back(binding);
+    // _states.try_emplace(action, ActionState{});
 }
 
 bool InputManager::isBindingActive(const InputBinding& b) const {
