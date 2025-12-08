@@ -1,0 +1,167 @@
+@startuml R-Type ECS Architecture
+
+' Style configuration
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam packageStyle rectangle
+
+' --- UTILS ---
+package "src/utils" {
+    interface ISparseSet {
+        + {abstract} remove(EntityID entity)
+        + {abstract} has(EntityID entity) : bool
+    }
+
+    class "SparseSet<T>" as SparseSet {
+        - _components : vector<T>
+        - _denseToEntity : vector<EntityID>
+        - _sparse : vector<size_t>
+        + add(EntityID, T component)
+        + remove(EntityID)
+        + has(EntityID) : bool
+        + get(EntityID) : T&
+        + getData() : vector<T>&
+        + getEntities() : vector<EntityID>&
+    }
+
+    SparseSet .up.|> ISparseSet : implements
+}
+
+' --- COMPONENTS ---
+package "src/ecs/Components" {
+    struct Position2D {
+        + x : float
+        + y : float
+    }
+
+    struct Velocity2D {
+        + vx : float
+        + vy : float
+    }
+
+    struct Sprite2D {
+        + texturePath : string
+        + rectLeft : int
+        + rectTop : int
+        + rectWidth : int
+        + rectHeight : int
+        + scale : float
+    }
+
+    struct InputControl {
+        + up : Key
+        + down : Key
+        + left : Key
+        + right : Key
+        + speed : float
+    }
+}
+
+' --- REGISTRY ---
+package "src/ecs/Registry" {
+    class Registry {
+        - _nextId : EntityID
+        - _pools : unordered_map<type_index, unique_ptr<ISparseSet>>
+        + createEntity() : EntityID
+        + destroyEntity(EntityID)
+        + getPool<T>() : SparseSet<T>*
+        + addComponent<T>(EntityID, T)
+        + removeComponent<T>(EntityID)
+        + hasComponent<T>(EntityID) : bool
+        + getComponent<T>(EntityID) : T&
+        + getView<T>() : vector<T>&
+        + getEntities<T>() : vector<EntityID>&
+    }
+}
+
+' --- SYSTEMS ---
+package "src/ecs/System" {
+    
+    interface ISystem {
+        + {abstract} init(Registry registry)
+        + {abstract} update(Registry registry, float dt)
+    }
+
+    package "SystemManager" {
+        class SystemManager {
+            - _registry : Registry&
+            - _systems : vector<unique_ptr<ISystem>>
+            + addSystem<T>(Args...)
+            + updateAll(float dt)
+        }
+    }
+
+    package "InputSystem" {
+        class InputSystem {
+            + init(Registry)
+            + update(Registry, float dt)
+        }
+    }
+
+    package "MoveSystem" {
+        class MoveSystem {
+            + init(Registry)
+            + update(Registry, float dt)
+        }
+    }
+
+    package "RenderSystem" {
+        class RenderSystem {
+            - _window : sf::RenderWindow&
+            - _textureCache : map<string, Texture>
+            + init(Registry)
+            + update(Registry, float dt)
+            - getTexture(string path) : Texture&
+            - drawEntity(...)
+        }
+    }
+
+    InputSystem .up.|> ISystem
+    MoveSystem .up.|> ISystem
+    RenderSystem .up.|> ISystem
+}
+
+' --- CORE ECS ---
+package "src/ecs" {
+    class ECS {
+        + registry : Registry
+        + systems : SystemManager
+        - _window : sf::RenderWindow
+        --
+        + ECS()
+        + ECS(width, height, title)
+        + setWindow(width, height, title)
+        + update(float dt)
+        + run()
+        + getWindow() : sf::RenderWindow&
+    }
+}
+
+' --- RELATIONS ---
+
+' Registry owns SparseSets
+Registry "1" *-- "*" ISparseSet : contains >
+
+' ECS Composition
+ECS *-- Registry
+ECS *-- SystemManager
+
+' SystemManager uses Registry
+SystemManager o-- Registry : refers to >
+SystemManager o-- ISystem : manages >
+
+' Systems usage (Dependencies logic)
+MoveSystem ..> Position2D : modifies
+MoveSystem ..> Velocity2D : reads
+InputSystem ..> InputControl : reads
+InputSystem ..> Velocity2D : modifies
+RenderSystem ..> Position2D : reads
+RenderSystem ..> Sprite2D : reads
+
+' Generic relation between Registry and Components
+Registry ..> Position2D : manages
+Registry ..> Velocity2D : manages
+Registry ..> Sprite2D : manages
+Registry ..> InputControl : manages
+
+@enduml
