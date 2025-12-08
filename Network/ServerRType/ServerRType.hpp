@@ -46,7 +46,7 @@ class ServerRType : public network::ServerInterface<RTypeEvents> {
     void AddMessageToPlayer(RTypeEvents event, uint32_t id, const T& data) {
         for (std::shared_ptr<network::Connection<RTypeEvents>>& client : _deqConnections) {
             if (client->GetID() == id) {
-                if (event == RTypeEvents::S_GAME_OVER) {
+                if (event == RTypeEvents::S_RETURN_TO_LOBBY) {
                     _clientStates[client] = ClientState::IN_LOBBY;
                     return;
                 }
@@ -69,7 +69,7 @@ class ServerRType : public network::ServerInterface<RTypeEvents> {
     void AddMessageToLobby(RTypeEvents event, uint32_t id_lobby, const T& data) {
         for (Lobby<RTypeEvents>& lobby : _lobbys) {
             if (lobby.GetID() == id_lobby) {
-                if (event == RTypeEvents::S_GAME_OVER) {
+                if (event == RTypeEvents::S_RETURN_TO_LOBBY) {
                     for (auto& [id, client] : lobby.getLobbyPlayers()) {
                         _clientStates[client] = ClientState::IN_LOBBY;
                         return;
