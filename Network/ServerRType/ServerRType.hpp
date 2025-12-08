@@ -46,6 +46,10 @@ class ServerRType : public network::ServerInterface<RTypeEvents> {
     void AddMessageToPlayer(RTypeEvents event, uint32_t id, const T& data) {
         for (std::shared_ptr<network::Connection<RTypeEvents>>& client : _deqConnections) {
             if (client->GetID() == id) {
+                if (event == RTypeEvents::S_GAME_OVER) {
+                    _clientStates[client] = ClientState::IN_LOBBY;
+                    return;
+                }
                 network::message<RTypeEvents> msg;
                 msg.body << data;
                 msg.header.id = event;
@@ -55,6 +59,7 @@ class ServerRType : public network::ServerInterface<RTypeEvents> {
                 } else if (std::find(_udpEvents.begin(), _udpEvents.end(), event) != _udpEvents.end()) {
                     MessageClientUDP(client, msg);
                 }
+
                 break;
             }
         }
@@ -64,6 +69,12 @@ class ServerRType : public network::ServerInterface<RTypeEvents> {
     void AddMessageToLobby(RTypeEvents event, uint32_t id_lobby, const T& data) {
         for (Lobby<RTypeEvents>& lobby : _lobbys) {
             if (lobby.GetID() == id_lobby) {
+                if (event == RTypeEvents::S_GAME_OVER) {
+                    for (auto& [id, client] : lobby.getLobbyPlayers()) {
+                        _clientStates[client] = ClientState::IN_LOBBY;
+                        return;
+                    }
+                }
                 lobby.BroadcastMessage([&]() {
                     network::message<RTypeEvents> msg;
                     msg.body << data;
@@ -83,8 +94,54 @@ class ServerRType : public network::ServerInterface<RTypeEvents> {
     std::unordered_map<std::shared_ptr<network::Connection<RTypeEvents>>, ClientState> _clientStates;
     std::unordered_map<std::shared_ptr<network::Connection<RTypeEvents>>, std::string> _clientUsernames;
 
-    std::vector<RTypeEvents> _udpEvents;
-    std::vector<RTypeEvents> _tcpEvents;
+    std::vector<RTypeEvents> _tcpEvents = {
+        RTypeEvents::C_PING_SERVER,
+        RTypeEvents::C_REGISTER,
+        RTypeEvents::S_REGISTER_OK,
+        RTypeEvents::S_REGISTER_KO,
+        RTypeEvents::C_LOGIN,
+        RTypeEvents::C_LOGIN_TOKEN,
+        RTypeEvents::S_INVALID_TOKEN,
+        RTypeEvents::S_LOGIN_OK,
+        RTypeEvents::S_LOGIN_KO,
+        RTypeEvents::C_DISCONNECT,
+        RTypeEvents::C_CONFIRM_UDP,
+        RTypeEvents::C_LIST_ROOMS,
+        RTypeEvents::S_ROOMS_LIST,
+        RTypeEvents::C_JOIN_ROOM,
+        RTypeEvents::S_ROOM_JOINED,
+        RTypeEvents::S_PLAYER_JOINED,
+        RTypeEvents::S_ROOM_NOT_JOINED,
+        RTypeEvents::C_ROOM_LEAVE,
+        RTypeEvents::S_PLAYER_LEAVE,
+        RTypeEvents::S_PLAYER_KICKED,
+        RTypeEvents::S_NEW_HOST,
+        RTypeEvents::C_NEW_LOBBY,
+        RTypeEvents::S_CONFIRM_NEW_LOBBY,
+        RTypeEvents::C_READY,
+        RTypeEvents::S_READY_RETURN,
+        RTypeEvents::C_GAME_START,
+        RTypeEvents::S_GAME_START,
+        RTypeEvents::C_CANCEL_READY,
+        RTypeEvents::S_CANCEL_READY_BROADCAST,
+        RTypeEvents::C_QUIT_LOBBY,
+        RTypeEvents::S_QUIT_LOBBY_BROADCAST,
+        RTypeEvents::C_TEAM_CHAT,
+        RTypeEvents::S_TEAM_CHAT,
+        RTypeEvents::C_VOICE_PACKET,
+        RTypeEvents::S_VOICE_RELAY,
+        RTypeEvents::S_PLAYER_DEATH,
+        RTypeEvents::S_SCORE_UPDATE,
+        RTypeEvents::S_GAME_OVER,
+        RTypeEvents::S_RETURN_TO_LOBBY,
+
+    };
+
+    std::vector<RTypeEvents> _udpEvents = {
+        RTypeEvents::C_INPUT,
+        RTypeEvents::S_SNAPSHOT,
+
+    };
 
     std::queue<coming_message> _toGameMessages;
 };

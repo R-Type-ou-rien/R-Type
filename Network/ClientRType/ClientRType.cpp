@@ -39,16 +39,6 @@ coming_message ClientRType::ReadIncomingMessage() {
     coming_message c_message;
     if (!Incoming().empty()) {
         auto msg = Incoming().pop_front();
-        switch (msg.msg.header.id) {
-            case RTypeEvents::S_REGISTER_OK:
-            case RTypeEvents::S_REGISTER_KO:
-            case RTypeEvents::S_LOGIN_OK:
-            case RTypeEvents::S_LOGIN_KO:
-                msg.msg >> msg.msg.body;
-                break;
-            default:
-                break;
-        };
 
         if (msg.msg.header.id == RTypeEvents::S_REGISTER_OK || msg.msg.header.id == RTypeEvents::S_LOGIN_OK) {
             auto now = std::chrono::system_clock::now();

@@ -13,6 +13,7 @@ enum class RTypeEvents : uint32_t {
     S_REGISTER_KO,
     C_LOGIN,
     C_LOGIN_TOKEN,
+    S_INVALID_TOKEN,
     S_LOGIN_OK,
     S_LOGIN_KO,
     C_DISCONNECT,
@@ -55,7 +56,9 @@ enum class RTypeEvents : uint32_t {
     // GAME EVENTS
     S_PLAYER_DEATH,
     S_SCORE_UPDATE,
-    S_GAME_OVER
+    S_GAME_OVER,
+
+    S_RETURN_TO_LOBBY,
 };
 
 struct coming_message {

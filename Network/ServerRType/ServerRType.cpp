@@ -101,14 +101,18 @@ void ServerRType::OnClientLogin(std::shared_ptr<network::Connection<RTypeEvents>
 
 void ServerRType::OnClientLoginToken(std::shared_ptr<network::Connection<RTypeEvents>> client,
                                      network::message<RTypeEvents> msg) {
-    connection_info info;
-    msg >> info;
+    std::string token;
+    msg >> token;
 
     // Verifier le username et password dans une base de données (non implémenté encore)
     // std::string username = ; ---- Get le username de la database --- (commencez pas a croire que ce commentaire aussi
     // est du COPILOT HYN C MOI QUI L'AI FAIT)
     connection_server_return returnInfo;
     // returnInfo.token = ; ---- Get le token de la database (CELUI LA AUSSI AU PASSAGE)---
+    if (returnInfo.token != token) {
+        AddMessageToPlayer(RTypeEvents::S_INVALID_TOKEN, client->GetID(), returnInfo);
+    }
+
     returnInfo.id = client->GetID();
 
     //_clientUsernames[client] = username;
