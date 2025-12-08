@@ -79,7 +79,7 @@ package "World" {
     ECS -up-|> Registry : contains
 }
 
-struct TransformComponent {
+struct transform_component_s {
     float pos_x
     float pos_y
     float rotation
@@ -96,7 +96,7 @@ package "collision" {
         std::string currentTag
     }
     CollisionSystem -down-|> CollisionComponent : uses
-    CollisionSystem -down-|> TransformComponent : uses
+    CollisionSystem -down-|> transform_component_s : uses
     CollisionSystem .up.|> ISystem : inherits
 }
 
@@ -110,7 +110,7 @@ package "mouvement" {
         float y
     }
     MovementSystem -down-|> VelocityComponent : uses
-    MovementSystem -down-|> TransformComponent : uses
+    MovementSystem -down-|> transform_component_s : uses
     MovementSystem .up.|> ISystem : inherits
 }
 

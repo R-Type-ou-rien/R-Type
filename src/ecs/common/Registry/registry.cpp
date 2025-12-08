@@ -1,12 +1,10 @@
 #include "registry.hpp"
 
-Entity Registry::createEntity()
-{
+Entity Registry::createEntity() {
     return _nextId++;
 }
 
-void Registry::destroyEntity(Entity id)
-{
+void Registry::destroyEntity(Entity id) {
     for (auto& [type, pool] : _pools) {
         if (pool->has(id))
             pool->removeId(id);

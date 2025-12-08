@@ -1,5 +1,9 @@
 #!/bin/bash
 
+if [ -d vcpkg ]; then
+    git submodule update --init --recursive
+fi
+
 if [ "$1" == "clean" ] && [ -d build ]; then
     cmake --build build --target clean
     rm -rf build
@@ -11,3 +15,5 @@ if [ ! -d build ]; then
 fi
 
 cmake --build build -v
+
+cpplint --recursive src

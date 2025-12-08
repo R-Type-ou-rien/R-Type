@@ -7,12 +7,10 @@
 
 #pragma once
 
+#include "../../common/Components/Components.hpp"
 #include "../../common/ISystem.hpp"
-#include "../../Components/Components.hpp"
 
 class MoveSystem : public ISystem {
-    public:
-        void init(Registry& registry) override {}
-
-        void update(Registry& registry, system_context context) override;
+   public:
+    void update(Registry& registry, system_context context) override;
 };

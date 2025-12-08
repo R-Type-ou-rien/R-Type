@@ -6,15 +6,14 @@
 #include <SFML/Window/Window.hpp>
 
 class WindowManager {
-    private:
-        sf::RenderWindow _window;
-    
-    public:
-        WindowManager(unsigned int width, unsigned int height, const std::string& title);
-        sf::RenderWindow& getWindow();
-        bool isOpen();
-        void clear();
-        void display();
-        void handleEvent(std::optional<sf::Event>& event);
+   private:
+    sf::RenderWindow _window;
 
+   public:
+    WindowManager(unsigned int width, unsigned int height, const std::string& title);
+    sf::RenderWindow& getWindow();
+    bool isOpen();
+    void clear();
+    void display();
+    std::optional<sf::Event> pollEvent();
 };
