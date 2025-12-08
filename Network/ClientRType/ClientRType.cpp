@@ -2,12 +2,37 @@
 
 #include <chrono>
 #include <cstddef>
+#include <cstdio>
 #include <filesystem>
 #include <fstream>
 #include <string>
 
+#include "../NetworkRType.hpp"
+
 void ClientRType::PingServer() {
     AddMessageToServer(RTypeEvents::C_PING_SERVER, 0, NULL);
+}
+
+void ClientRType::LoginServerToken() {
+    std::ifstream file(TOKEN_FILENAME);
+    std::string token;
+    if (file.good()) {
+        std::getline(file, token);
+        file.close();
+        AddMessageToServer(RTypeEvents::C_LOGIN_TOKEN, 0, token);
+    }
+}
+
+void ClientRType::LoginServer(std::string username, std::string password) {
+    struct connection_info info = {username, password};
+
+    AddMessageToServer(RTypeEvents::C_LOGIN, 0, info);
+}
+
+void ClientRType::RegisterServer(std::string username, std::string password) {
+    struct connection_info info = {username, password};
+
+    AddMessageToServer(RTypeEvents::C_REGISTER, 0, info);
 }
 
 coming_message ClientRType::ReadIncomingMessage() {
@@ -34,13 +59,12 @@ coming_message ClientRType::ReadIncomingMessage() {
             auto tempMsg = msg.msg;
             tempMsg >> response;
 
-            std::string filename = ".secretoken";
-            std::ofstream file(filename);
+            std::ofstream file(TOKEN_FILENAME);
             if (file.is_open()) {
                 file << response.token;
                 file.close();
             }
-            std::ofstream expiration_file(filename + ".expire");
+            std::ofstream expiration_file(static_cast<std::string>(TOKEN_FILENAME) + ".expire");
             expiration_file << expiration_timestamp;
         } else {
             coming_message comingMsg;
