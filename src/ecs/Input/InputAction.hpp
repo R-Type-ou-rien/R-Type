@@ -7,10 +7,6 @@
 
 #pragma once
 
-enum class Action {
-    MoveUp,
-    MoveDown,
-    MoveLeft,
-    MoveRight,
-    Shoot,
-};
+#include <string>
+
+using Action = std::string;

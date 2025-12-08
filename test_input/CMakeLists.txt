@@ -15,6 +15,7 @@ find_package(SFML 3 REQUIRED COMPONENTS Graphics Window System)
 add_executable(test_input
     main_test_input.cpp
     ../src/ecs/Input/InputManager.cpp
+    ../src/ecs/Input/ActionRegistry.cpp
 )
 
 # Inclure le dossier où sont tes headers d'input

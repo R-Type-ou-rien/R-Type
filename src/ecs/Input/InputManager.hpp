@@ -13,6 +13,7 @@
 #include "InputAction.hpp"
 #include "InputBinding.hpp"
 #include "InputState.hpp"
+#include "ActionRegistry.hpp"
 
 class InputManager {
    public:
@@ -30,6 +31,8 @@ class InputManager {
     const ActionState& getState(Action action) const;
 
    private:
+    ActionRegistry _actionRegistry;
+
     bool isBindingActive(const InputBinding& binding) const;
 
     std::unordered_map<Action, std::vector<InputBinding>> _bindings;
