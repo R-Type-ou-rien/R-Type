@@ -8,7 +8,7 @@
 class HealthTest : public ::testing::Test {
    protected:
     Registry registry;
-    SlotMap<sf::Texture> texture_manager;
+    ResourceManager<sf::Texture> texture_manager;
     HealthSystem healthSys;
     Entity entity;
 

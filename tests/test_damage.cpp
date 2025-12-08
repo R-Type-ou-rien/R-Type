@@ -11,7 +11,7 @@ class DamageTest : public ::testing::Test {
    protected:
     Registry registry;
     Damage damageSys;
-    SlotMap<sf::Texture> texture_manager;
+    ResourceManager<sf::Texture> texture_manager;
 
     Entity attacker;
     Entity victim;

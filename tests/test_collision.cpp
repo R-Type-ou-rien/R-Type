@@ -11,7 +11,7 @@ class CollisionTest : public ::testing::Test {
    protected:
     Registry registry;
     BoxCollision boxSystem;
-    SlotMap<sf::Texture> texture_manager;
+    ResourceManager<sf::Texture> texture_manager;
 
     Entity entityA;
     Entity entityB;
