@@ -4,8 +4,8 @@
 
 #include <cstdint>
 
-#include "../Network.hpp"
 #include "../NetworkInterface/ClientInterface.hpp"
+#include "../NetworkRType.hpp"
 
 class ClientRType : public network::ClientInterface<RTypeEvents> {
    public:

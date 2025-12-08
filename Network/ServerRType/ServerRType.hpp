@@ -1,14 +1,12 @@
 #pragma once
-#include <functional>
-#include <map>
 #include <memory>
 #include <queue>
 #include <vector>
 
 #include "../Lobby/Lobby.hpp"
-#include "../Network.hpp"
 #include "../NetworkInterface/Connection.hpp"
 #include "../NetworkInterface/ServerInterface.hpp"
+#include "../NetworkRType.hpp"
 
 class ServerRType : public network::ServerInterface<RTypeEvents> {
    public:
