@@ -7,14 +7,15 @@
 
 #pragma once
 
-#include <SFML/Window/Keyboard.hpp>
+#include "../../Input/InputManager.hpp"
 #include "../ISystem.hpp"
-#include "../../Components/Components.hpp"
 
 class InputSystem : public ISystem {
-    public:
-        void init(Registry& registry) override {
-        }
+   public:
+    explicit InputSystem(InputManager& input) : _input(input) {}
 
-        void update(Registry& registry, system_context context) override;
+    void update(Registry& registry, float dt) { _input.update(dt); }
+
+   private:
+    InputManager& _input;
 };
