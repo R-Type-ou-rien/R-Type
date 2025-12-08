@@ -37,5 +37,4 @@ TEST_F(HealthTest, EntitySurvivesWithPositiveHP) {
     EXPECT_TRUE(registry.hasComponent<HealthComponent>(entity));
     auto& health = registry.getComponent<HealthComponent>(entity);
     EXPECT_EQ(health.current_hp, 10);
-
 }
