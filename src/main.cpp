@@ -61,18 +61,18 @@ void init(ECS& ecs) {
     ecs.registry.addComponent<sprite2D_component_s>(player, sprite_info);
 
     // ---- TEST BINDINGS ----
-    // Clavier : espace = Action::Shoot
-    ecs.input.bindAction(Action::Shoot, InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Space});
+    // Clavier : espace = "Shoot"
+    ecs.input.bindAction("Shoot", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Space});
 
     // Clavier : Z = MoveUp
-    ecs.input.bindAction(Action::MoveUp, InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Z});
+    ecs.input.bindAction("MoveUp", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Z});
 
     // Manette : bouton A = Shoot
     InputBinding shootPad;
     shootPad.device = InputDeviceType::GamepadButton;
     shootPad.joystickId = 0;
     shootPad.joystickButton = 0;
-    ecs.input.bindAction(Action::Shoot, shootPad);
+    ecs.input.bindAction("Shoot", shootPad);
 
     // Gâchette droite (RT) = Shoot
     InputBinding rt;
@@ -81,7 +81,7 @@ void init(ECS& ecs) {
     rt.axis = sf::Joystick::Axis::Z;
     rt.axisThreshold = 20.f;
     rt.axisSign = +1;  // direction positive
-    ecs.input.bindAction(Action::Shoot, rt);
+    ecs.input.bindAction("Shoot", rt);
 
     // D-PAD haut = MoveUp
     InputBinding dpadUp;
@@ -89,8 +89,8 @@ void init(ECS& ecs) {
     dpadUp.joystickId = 0;
     dpadUp.axis = sf::Joystick::Axis::PovY;
     dpadUp.axisThreshold = 50.f;
-    dpadUp.axisSign = +1;
-    ecs.input.bindAction(Action::MoveUp, dpadUp);
+    dpadUp.axisSign = -1;
+    ecs.input.bindAction("MoveUp", dpadUp);
 
     // Stick gauche vers la gauche = MoveLeft
     InputBinding stickLeft;
@@ -99,7 +99,7 @@ void init(ECS& ecs) {
     stickLeft.axis = sf::Joystick::Axis::X;  // axe horizontal du stick gauche
     stickLeft.axisThreshold = 20.f;          // deadzone
     stickLeft.axisSign = -1;                 // négatif = gauche
-    ecs.input.bindAction(Action::MoveLeft, stickLeft);
+    ecs.input.bindAction("MoveLeft", stickLeft);
 
     // Stick gauche vers la droite = MoveRight
     stickLeft.device = InputDeviceType::GamepadAxis;
@@ -107,7 +107,7 @@ void init(ECS& ecs) {
     stickLeft.axis = sf::Joystick::Axis::X;  // axe horizontal du stick gauche
     stickLeft.axisThreshold = 20.f;          // deadzone
     stickLeft.axisSign = +1;                 // positif = droit
-    ecs.input.bindAction(Action::MoveRight, stickLeft);
+    ecs.input.bindAction("MoveRight", stickLeft);
 
     // Stick gauche vers la bas = MoveDown
     stickLeft.device = InputDeviceType::GamepadAxis;
@@ -115,7 +115,7 @@ void init(ECS& ecs) {
     stickLeft.axis = sf::Joystick::Axis::Y;  // axe horizontal du stick gauche
     stickLeft.axisThreshold = 20.f;          // deadzone
     stickLeft.axisSign = +1;                 // positif = haut
-    ecs.input.bindAction(Action::MoveDown, stickLeft);
+    ecs.input.bindAction("MoveDown", stickLeft);
 
     // Stick gauche vers la haut = MoveUp
     stickLeft.device = InputDeviceType::GamepadAxis;
@@ -123,8 +123,7 @@ void init(ECS& ecs) {
     stickLeft.axis = sf::Joystick::Axis::Y;  // axe horizontal du stick gauche
     stickLeft.axisThreshold = 20.f;          // deadzone
     stickLeft.axisSign = -1;                 // négatif = bas
-    ecs.input.bindAction(Action::MoveUp, stickLeft);
-
+    ecs.input.bindAction("MoveUp", stickLeft);
     std::cout << "=== InputManager Test Ready ===\n";
     std::cout << "Press SPACE or Gamepad A or RT to test Shoot\n";
     std::cout << "Press Z or D-Pad UP to test MoveUp\n";
@@ -132,29 +131,29 @@ void init(ECS& ecs) {
 }
 
 void play(ECS& ecs) {
-    if (ecs.input.isJustPressed(Action::Shoot))
-        std::cout << "[Shoot] just pressed!\n";
+    if (ecs.input.isJustPressed("Shoot"))
+            std::cout << "[Shoot] just pressed!\n";
 
-    if (ecs.input.isJustReleased(Action::Shoot))
-        std::cout << "[Shoot] just released (hold time = " << ecs.input.getState(Action::Shoot).lastReleaseHoldTime
-                  << "s)\n";
+    if (ecs.input.isJustReleased("Shoot"))
+        std::cout << "[Shoot] just released (hold time = " << ecs.input.getState("Shoot").lastReleaseHoldTime
+                    << "s)\n";
 
-    if (ecs.input.isLongPress(Action::Shoot, 0.5f))
+    if (ecs.input.isLongPress("Shoot", 0.5f))
         std::cout << "[Shoot] LONG PRESS (>= 0.5s)\n";
 
-    if (ecs.input.isShortPress(Action::Shoot, 0.2f))
+    if (ecs.input.isShortPress("Shoot", 0.2f))
         std::cout << "[Shoot] SHORT PRESS (< 0.2s)\n";
 
-    if (ecs.input.isPressed(Action::MoveLeft))
+    if (ecs.input.isPressed("MoveLeft"))
         std::cout << "[MoveLeft] pressed\n";
 
-    if (ecs.input.isPressed(Action::MoveRight))
+    if (ecs.input.isPressed("MoveRight"))
         std::cout << "[MoveRight] pressed\n";
 
-    if (ecs.input.isPressed(Action::MoveUp))
+    if (ecs.input.isPressed("MoveUp"))
         std::cout << "[MoveUp] pressed\n";
 
-    if (ecs.input.isPressed(Action::MoveDown))
+    if (ecs.input.isPressed("MoveDown"))
         std::cout << "[MoveDown] pressed\n";
 
     return;
