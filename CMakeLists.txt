@@ -93,6 +93,10 @@ macro(add_rtype_test TEST_NAME FILE_PATH)
     add_rtype_test(test_collision   tests/test_collision.cpp)
     add_rtype_test(test_health      tests/test_health.cpp)
     add_rtype_test(test_damage      tests/test_damage.cpp)
+    add_rtype_test(test_hierarchy   tests/test_hierarchy.cpp)
+    add_rtype_test(test_shooter     tests/test_shooter.cpp)
+    add_rtype_test(test_spawn       tests/test_spawn.cpp)
+
 
 else()
     message(STATUS "unit tests disabled.")

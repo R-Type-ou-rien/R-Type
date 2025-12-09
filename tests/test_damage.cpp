@@ -1,17 +1,18 @@
 #include <gtest/gtest.h>
 
-#include "../src/box_collision/box_collision.hpp"
-#include "../src/damage_feature/damage.hpp"
-#include "../src/ecs/Registry/registry.hpp"
-#include "../src/health_feature/health.hpp"
-#include "../src/shoot_feature/shooter.hpp"  // Pour ProjectileComponent
-#include "../src/team_component/team_component.hpp"
+#include "../src/ecs/common/box_collision/box_collision.hpp"
+#include "../src/ecs/common/damage_feature/damage.hpp"
+#include "../src/ecs/common/Registry/registry.hpp"
+#include "../src/ecs/common/health_feature/health.hpp"
+#include "../src/ecs/common/shoot_feature/shooter.hpp"
+#include "../src/ecs/common/team_component/team_component.hpp"
 
 class DamageTest : public ::testing::Test {
    protected:
     Registry registry;
     Damage damageSys;
-    SlotMap<sf::Texture> texture_manager;
+    ResourceManager<sf::Texture> texture_manager;
+    sf::RenderWindow window;
 
     Entity attacker;
     Entity victim;
@@ -26,7 +27,8 @@ class DamageTest : public ::testing::Test {
 };
 
 TEST_F(DamageTest, EnemyHitsPlayer) {
-    system_context context = {0, texture_manager};
+    system_context context{0, texture_manager, window};
+
 
     registry.addComponent(victim, HealthComponent{100, 100});
     registry.addComponent(victim, TeamComponent{TeamComponent::ALLY});
@@ -44,7 +46,7 @@ TEST_F(DamageTest, EnemyHitsPlayer) {
 }
 
 TEST_F(DamageTest, FriendlyFireIsIgnored) {
-    system_context context = {0, texture_manager};
+    system_context context = {0, texture_manager, window};
 
     registry.addComponent(victim, HealthComponent{100, 100});
     registry.addComponent(victim, TeamComponent{TeamComponent::ALLY});
@@ -62,7 +64,7 @@ TEST_F(DamageTest, FriendlyFireIsIgnored) {
 }
 
 TEST_F(DamageTest, ProjectileIsDestroyedAfterHit) {
-    system_context context = {0, texture_manager};
+    system_context context = {0, texture_manager, window};
 
     registry.addComponent(victim, HealthComponent{100, 100});
     registry.addComponent(victim, TeamComponent{TeamComponent::ALLY});
@@ -80,7 +82,7 @@ TEST_F(DamageTest, ProjectileIsDestroyedAfterHit) {
 }
 
 TEST_F(DamageTest, DamageDoesNotGoBelowZero) {
-    system_context context = {0, texture_manager};
+    system_context context = {0, texture_manager, window};
 
     registry.addComponent(victim, HealthComponent{50, 10});
     registry.addComponent(victim, TeamComponent{TeamComponent::ALLY});
@@ -98,7 +100,7 @@ TEST_F(DamageTest, DamageDoesNotGoBelowZero) {
 }
 
 TEST_F(DamageTest, MultipleHitsAccumulateDamage) {
-    system_context context = {0, texture_manager};
+    system_context context = {0, texture_manager, window};
 
     registry.addComponent(victim, HealthComponent{200, 200});
     registry.addComponent(victim, TeamComponent{TeamComponent::ALLY});

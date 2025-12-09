@@ -26,6 +26,11 @@ struct Velocity2D {
     float vy;
 };
 
+struct TypeEntityComponent {
+    enum TypeEntity { PLAYER, ENEMY_BASIC, ENEMY_SHOOTER };
+    TypeEntity type;
+};
+
 struct sprite2D_component_s {
     handle_t<sf::Texture> handle;
     sf::IntRect dimension;

@@ -5,31 +5,26 @@
 
 #include "ecs/common/Components/Components.hpp"
 
-// namespace ECS {
-
 VelocityComponent ShooterSystem::get_projectile_speed(ShooterComponent::Projectile type, TeamComponent::Team team) {
     VelocityComponent vel = {0, 0};
-    double speed = 0.0;
+    double speed = 0;
 
     switch (type) {
         case ShooterComponent::NORMAL:
-            speed = 10.0;
+            speed = 5;
             break;
         case ShooterComponent::CHARG:
-            speed = 5.0;
+            speed = 7;
             break;
         case ShooterComponent::RED:
-            speed = 12.0;
+            speed = 10;
             break;
         case ShooterComponent::BLUE:
-            speed = 15.0;
+            speed = 10;
             break;
-        default:
-            speed = 10.0;
     }
     vel.vx = speed;
     vel.vy = 0;
-
     return vel;
 }
 
@@ -54,13 +49,11 @@ void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::Proj
     velocity.vx = speed.vx;
     velocity.vy = speed.vy;
     registry.addComponent(id, velocity);
-
-    std::cout << "Projectile create ID: " << id << "Type: " << type << std::endl;
 }
 
-void ShooterSystem::update(Registry& registry, float current_time) {
+void ShooterSystem::update(Registry& registry, system_context context) {
     auto& shootersIds = registry.getEntities<ShooterComponent>();
-    std::cout << "ShooterSystem updated" << std::endl;
+
     for (auto id : shootersIds) {
         if (!registry.hasComponent<transform_component_s>(id)) {
             continue;
@@ -73,10 +66,10 @@ void ShooterSystem::update(Registry& registry, float current_time) {
         transform_component_s& pos = registry.getComponent<transform_component_s>(id);
         TeamComponent& team = registry.getComponent<TeamComponent>(id);
 
-        if (current_time - shooter.last_shot > shooter.fire_rate) {
+        if (context.dt - shooter.last_shot >= shooter.fire_rate) {
             VelocityComponent projectile_velocity = get_projectile_speed(shooter.type, team.team);
             create_projectile(registry, shooter.type, team.team, pos, projectile_velocity);
+            shooter.last_shot = context.dt;
         }
     }
 }
-// }  // namespace ECS
