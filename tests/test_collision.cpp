@@ -1,8 +1,9 @@
 #include <gtest/gtest.h>
+
 #include <algorithm>
 
-#include "../src/ecs/Components/Components.hpp"
 #include "../src/box_collision/box_collision.hpp"
+#include "../src/ecs/Components/Components.hpp"
 #include "../src/ecs/Registry/registry.hpp"
 #include "../src/transform_component/transform.hpp"
 
@@ -22,16 +23,28 @@ class CollisionTest : public ::testing::Test {
         registry.addComponent(entityA, BoxCollisionComponent{});
         registry.addComponent(entityB, BoxCollisionComponent{});
 
-        registry.addComponent(entityA, sprite2D_component_s{{}, sf::IntRect({0, 0,}, {50, 50})});
-        registry.addComponent(entityB, sprite2D_component_s{{}, sf::IntRect({0, 0,}, {50, 50})});
+        registry.addComponent(entityA, sprite2D_component_s{{},
+                                                            sf::IntRect(
+                                                                {
+                                                                    0,
+                                                                    0,
+                                                                },
+                                                                {50, 50})});
+        registry.addComponent(entityB, sprite2D_component_s{{},
+                                                            sf::IntRect(
+                                                                {
+                                                                    0,
+                                                                    0,
+                                                                },
+                                                                {50, 50})});
     }
 };
 
 TEST_F(CollisionTest, NoCollisionWhenFarApart) {
     system_context context = {0, texture_manager};
 
-    registry.addComponent(entityA, TransformComponent{0.0f, 0.0f});
-    registry.addComponent(entityB, TransformComponent{1000.0f, 1000.0f});
+    registry.addComponent(entityA, transform_component_s{0.0f, 0.0f});
+    registry.addComponent(entityB, transform_component_s{1000.0f, 1000.0f});
     boxSystem.update(registry, context);
     auto& boxA = registry.getComponent<BoxCollisionComponent>(entityA);
     EXPECT_TRUE(boxA.collision.tags.empty());
@@ -40,8 +53,8 @@ TEST_F(CollisionTest, NoCollisionWhenFarApart) {
 TEST_F(CollisionTest, DetectsSimpleOverlap) {
     system_context context = {0, texture_manager};
 
-    registry.addComponent(entityA, TransformComponent{0.0f, 0.0f});
-    registry.addComponent(entityB, TransformComponent{10.0f, 10.0f});
+    registry.addComponent(entityA, transform_component_s{0.0f, 0.0f});
+    registry.addComponent(entityB, transform_component_s{10.0f, 10.0f});
     boxSystem.update(registry, context);
     auto& boxA = registry.getComponent<BoxCollisionComponent>(entityA);
     auto& boxB = registry.getComponent<BoxCollisionComponent>(entityB);
@@ -54,11 +67,11 @@ TEST_F(CollisionTest, DetectsSimpleOverlap) {
 TEST_F(CollisionTest, ScaleIncreaseHitbox) {
     system_context context = {0, texture_manager};
 
-    registry.addComponent(entityA, TransformComponent{0.0f, 0.0f});  // Scale défaut 1.0
-    registry.addComponent(entityB, TransformComponent{60.0f, 0.0f});
+    registry.addComponent(entityA, transform_component_s{0.0f, 0.0f});  // Scale défaut 1.0
+    registry.addComponent(entityB, transform_component_s{60.0f, 0.0f});
     boxSystem.update(registry, context);
     EXPECT_TRUE(registry.getComponent<BoxCollisionComponent>(entityA).collision.tags.empty());
-    auto& transformA = registry.getComponent<TransformComponent>(entityA);
+    auto& transformA = registry.getComponent<transform_component_s>(entityA);
     transformA.scale = {2.0f, 1.0f};
     boxSystem.update(registry, context);
     auto& boxA = registry.getComponent<BoxCollisionComponent>(entityA);
@@ -68,12 +81,12 @@ TEST_F(CollisionTest, ScaleIncreaseHitbox) {
 TEST_F(CollisionTest, NoCollisionAfterMovingApart) {
     system_context context = {0, texture_manager};
 
-    registry.addComponent(entityA, TransformComponent{0.0f, 0.0f});
-    registry.addComponent(entityB, TransformComponent{10.0f, 10.0f});
+    registry.addComponent(entityA, transform_component_s{0.0f, 0.0f});
+    registry.addComponent(entityB, transform_component_s{10.0f, 10.0f});
     boxSystem.update(registry, context);
     auto& boxA = registry.getComponent<BoxCollisionComponent>(entityA);
     ASSERT_FALSE(boxA.collision.tags.empty());
-    auto& transformB = registry.getComponent<TransformComponent>(entityB);
+    auto& transformB = registry.getComponent<transform_component_s>(entityB);
     transformB.x = 1000.0f;
     transformB.y = 1000.0f;
     boxSystem.update(registry, context);
@@ -85,11 +98,17 @@ TEST_F(CollisionTest, MultipleCollisionsDetected) {
 
     Entity entityC = registry.createEntity();
     registry.addComponent(entityC, BoxCollisionComponent{});
-    registry.addComponent(entityC, sprite2D_component_s{{}, sf::IntRect({0, 0,}, {50, 50})});
+    registry.addComponent(entityC, sprite2D_component_s{{},
+                                                        sf::IntRect(
+                                                            {
+                                                                0,
+                                                                0,
+                                                            },
+                                                            {50, 50})});
 
-    registry.addComponent(entityA, TransformComponent{0.0f, 0.0f});
-    registry.addComponent(entityB, TransformComponent{10.0f, 10.0f});
-    registry.addComponent(entityC, TransformComponent{20.0f, 20.0f});
+    registry.addComponent(entityA, transform_component_s{0.0f, 0.0f});
+    registry.addComponent(entityB, transform_component_s{10.0f, 10.0f});
+    registry.addComponent(entityC, transform_component_s{20.0f, 20.0f});
 
     boxSystem.update(registry, context);
 
@@ -102,7 +121,7 @@ TEST_F(CollisionTest, MultipleCollisionsDetected) {
 TEST_F(CollisionTest, NoSelfCollision) {
     system_context context = {0, texture_manager};
 
-    registry.addComponent(entityA, TransformComponent{0.0f, 0.0f});
+    registry.addComponent(entityA, transform_component_s{0.0f, 0.0f});
     boxSystem.update(registry, context);
     auto& boxA = registry.getComponent<BoxCollisionComponent>(entityA);
     EXPECT_TRUE(boxA.collision.tags.empty()) << "Une entité ne devrait pas se détecter elle-même en collision !";
@@ -111,8 +130,8 @@ TEST_F(CollisionTest, NoSelfCollision) {
 TEST_F(CollisionTest, DifferentSizesHandledCorrectly) {
     system_context context = {0, texture_manager};
 
-    registry.addComponent(entityA, TransformComponent{0.0f, 0.0f});
-    registry.addComponent(entityB, TransformComponent{60.0f, 0.0f});
+    registry.addComponent(entityA, transform_component_s{0.0f, 0.0f});
+    registry.addComponent(entityB, transform_component_s{60.0f, 0.0f});
 
     auto& spriteB = registry.getComponent<sprite2D_component_s>(entityB);
     spriteB.dimension.size = {100, 100};
@@ -126,10 +145,10 @@ TEST_F(CollisionTest, DifferentSizesHandledCorrectly) {
 TEST_F(CollisionTest, HighSpeedEntitiesCollide) {
     system_context context = {0, texture_manager};
 
-    registry.addComponent(entityA, TransformComponent{0.0f, 0.0f});
-    registry.addComponent(entityB, TransformComponent{200.0f, 0.0f});
+    registry.addComponent(entityA, transform_component_s{0.0f, 0.0f});
+    registry.addComponent(entityB, transform_component_s{200.0f, 0.0f});
 
-    auto& transformB = registry.getComponent<TransformComponent>(entityB);
+    auto& transformB = registry.getComponent<transform_component_s>(entityB);
     transformB.x = 25.0f;
 
     boxSystem.update(registry, context);
@@ -141,13 +160,13 @@ TEST_F(CollisionTest, HighSpeedEntitiesCollide) {
 TEST_F(CollisionTest, CollisionTagsClearedEachUpdate) {
     system_context context = {0, texture_manager};
 
-    registry.addComponent(entityA, TransformComponent{0.0f, 0.0f});
-    registry.addComponent(entityB, TransformComponent{10.0f, 10.0f});
+    registry.addComponent(entityA, transform_component_s{0.0f, 0.0f});
+    registry.addComponent(entityB, transform_component_s{10.0f, 10.0f});
     boxSystem.update(registry, context);
     auto& boxA = registry.getComponent<BoxCollisionComponent>(entityA);
     ASSERT_FALSE(boxA.collision.tags.empty());
 
-    auto& transformB = registry.getComponent<TransformComponent>(entityB);
+    auto& transformB = registry.getComponent<transform_component_s>(entityB);
     transformB.x = 1000.0f;
     transformB.y = 1000.0f;
 
