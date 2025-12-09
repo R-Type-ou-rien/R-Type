@@ -23,7 +23,9 @@ struct ProjectileComponent {
 
 class ShooterSystem : public ISystem {
    public:
-    void update(Registry& registry, float time);
+        ShooterSystem() = default;
+        ~ShooterSystem() = default;
+        void update(Registry& registry, system_context context) override;
 
    private:
     VelocityComponent get_projectile_speed(ShooterComponent::Projectile type, TeamComponent::Team team);

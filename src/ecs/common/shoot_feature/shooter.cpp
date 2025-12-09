@@ -51,7 +51,7 @@ void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::Proj
     registry.addComponent(id, velocity);
 }
 
-void ShooterSystem::update(Registry& registry, float current_time) {
+void ShooterSystem::update(Registry& registry, system_context context) {
     auto& shootersIds = registry.getEntities<ShooterComponent>();
 
     for (auto id : shootersIds) {
@@ -66,9 +66,10 @@ void ShooterSystem::update(Registry& registry, float current_time) {
         transform_component_s& pos = registry.getComponent<transform_component_s>(id);
         TeamComponent& team = registry.getComponent<TeamComponent>(id);
 
-        if (current_time - shooter.last_shot > shooter.fire_rate) {
+        if (context.dt - shooter.last_shot >= shooter.fire_rate) {
             VelocityComponent projectile_velocity = get_projectile_speed(shooter.type, team.team);
             create_projectile(registry, shooter.type, team.team, pos, projectile_velocity);
+            shooter.last_shot = context.dt;
         }
     }
 }
