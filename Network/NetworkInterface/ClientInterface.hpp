@@ -17,9 +17,8 @@ class ClientInterface {
             asio::ip::tcp::resolver resolver(_context);
             asio::ip::tcp::resolver::results_type endpoints = resolver.resolve(host, std::to_string(port));
 
-            _connection =
-                std::make_unique<Connection<T>>(Connection<T>::owner::client, _context, asio::ip::tcp::socket(_context),
-                                                _qMessagesIn, _socketUDP);
+            _connection = std::make_unique<Connection<T>>(Connection<T>::owner::client, _context,
+                                                          asio::ip::tcp::socket(_context), _qMessagesIn, _socketUDP);
             _connection->SetUDPEndpoint(_serverUDPEndpoint);
 
             _connection->ConnectToServer(endpoints);
