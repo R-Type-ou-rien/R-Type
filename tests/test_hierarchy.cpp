@@ -1,13 +1,14 @@
 #include <gtest/gtest.h>
+
 #include "../src/ecs/common/Registry/registry.hpp"
-#include "../src/ecs/common/hierarchy_feature/hierarchy.hpp"
 #include "../src/ecs/common/health_feature/health.hpp"
+#include "../src/ecs/common/hierarchy_feature/hierarchy.hpp"
 
 class HierarchyTest : public ::testing::Test {
-protected:
+   protected:
     Registry registry;
     HierarchySystem hierarchySys;
-    
+
     // Mocks
     ResourceManager<sf::Texture> texture_manager;
     sf::RenderWindow window;
@@ -30,11 +31,13 @@ TEST_F(HierarchyTest, ParentDies_ChildMustDie) {
     // ARRANGE
     // Configuration Parent
     // parent_id = -1, children = {child}
-    registry.addComponent(parent, HierarchyComponent{-1, {static_cast<int>(child)}, true}); // is_dead = TRUE (Le parent meurt)
-    
+    registry.addComponent(parent,
+                          HierarchyComponent{-1, {static_cast<int>(child)}, true});  // is_dead = TRUE (Le parent meurt)
+
     // Configuration Enfant
     // parent_id = parent, children = {}
-    registry.addComponent(child, HierarchyComponent{static_cast<int>(parent), {}, false}); // is_dead = FALSE (L'enfant va bien)
+    registry.addComponent(
+        child, HierarchyComponent{static_cast<int>(parent), {}, false});  // is_dead = FALSE (L'enfant va bien)
 
     // ACT
     hierarchySys.update(registry, context);
@@ -44,9 +47,17 @@ TEST_F(HierarchyTest, ParentDies_ChildMustDie) {
     // On vérifie si elles ont encore le composant Health (car destroyEntity supprime tout)
     bool parentExists = true;
     bool childExists = true;
-    
-    try { registry.getComponent<HealthComponent>(parent); } catch(...) { parentExists = false; }
-    try { registry.getComponent<HealthComponent>(child); } catch(...) { childExists = false; }
+
+    try {
+        registry.getComponent<HealthComponent>(parent);
+    } catch (...) {
+        parentExists = false;
+    }
+    try {
+        registry.getComponent<HealthComponent>(child);
+    } catch (...) {
+        childExists = false;
+    }
 
     EXPECT_FALSE(parentExists) << "Le parent aurait dû être détruit";
     EXPECT_FALSE(childExists) << "L'enfant aurait dû être détruit par cascade";
@@ -55,8 +66,8 @@ TEST_F(HierarchyTest, ParentDies_ChildMustDie) {
 TEST_F(HierarchyTest, ChildDies_ParentMustDie) {
     // ARRANGE
     // Parent vivant
-    registry.addComponent(parent, HierarchyComponent{-1, {static_cast<int>(child)}, false}); 
-    
+    registry.addComponent(parent, HierarchyComponent{-1, {static_cast<int>(child)}, false});
+
     // Enfant mort (is_dead = true)
     registry.addComponent(child, HierarchyComponent{static_cast<int>(parent), {}, true});
 
@@ -65,7 +76,11 @@ TEST_F(HierarchyTest, ChildDies_ParentMustDie) {
 
     // ASSERT
     bool parentExists = true;
-    try { registry.getComponent<HealthComponent>(parent); } catch(...) { parentExists = false; }
+    try {
+        registry.getComponent<HealthComponent>(parent);
+    } catch (...) {
+        parentExists = false;
+    }
 
     EXPECT_FALSE(parentExists) << "Le parent aurait dû être détruit car son enfant est mort";
 }
@@ -73,8 +88,8 @@ TEST_F(HierarchyTest, ChildDies_ParentMustDie) {
 TEST_F(HierarchyTest, NoDeath_NoEntitiesDestroyed) {
     // ARRANGE
     // Parent vivant
-    registry.addComponent(parent, HierarchyComponent{-1, {static_cast<int>(child)}, false}); 
-    
+    registry.addComponent(parent, HierarchyComponent{-1, {static_cast<int>(child)}, false});
+
     // Enfant vivant
     registry.addComponent(child, HierarchyComponent{static_cast<int>(parent), {}, false});
 
@@ -84,9 +99,17 @@ TEST_F(HierarchyTest, NoDeath_NoEntitiesDestroyed) {
     // ASSERT
     bool parentExists = true;
     bool childExists = true;
-    
-    try { registry.getComponent<HealthComponent>(parent); } catch(...) { parentExists = false; }
-    try { registry.getComponent<HealthComponent>(child); } catch(...) { childExists = false; }
+
+    try {
+        registry.getComponent<HealthComponent>(parent);
+    } catch (...) {
+        parentExists = false;
+    }
+    try {
+        registry.getComponent<HealthComponent>(child);
+    } catch (...) {
+        childExists = false;
+    }
 
     EXPECT_TRUE(parentExists) << "Le parent ne devrait pas être détruit";
     EXPECT_TRUE(childExists) << "L'enfant ne devrait pas être détruit";
@@ -98,8 +121,8 @@ TEST_F(HierarchyTest, ParentAndMultipleChildren_OneChildDies_AllDestroyed) {
     registry.addComponent(child2, HealthComponent{100, 100});
 
     // Parent
-    registry.addComponent(parent, HierarchyComponent{-1, {static_cast<int>(child), static_cast<int>(child2)}, false}); 
-    
+    registry.addComponent(parent, HierarchyComponent{-1, {static_cast<int>(child), static_cast<int>(child2)}, false});
+
     // Enfant 1 mort
     registry.addComponent(child, HierarchyComponent{static_cast<int>(parent), {}, true});
 
@@ -113,10 +136,22 @@ TEST_F(HierarchyTest, ParentAndMultipleChildren_OneChildDies_AllDestroyed) {
     bool parentExists = true;
     bool child1Exists = true;
     bool child2Exists = true;
-    
-    try { registry.getComponent<HealthComponent>(parent); } catch(...) { parentExists = false; }
-    try { registry.getComponent<HealthComponent>(child); } catch(...) { child1Exists = false; }
-    try { registry.getComponent<HealthComponent>(child2); } catch(...) { child2Exists = false; }
+
+    try {
+        registry.getComponent<HealthComponent>(parent);
+    } catch (...) {
+        parentExists = false;
+    }
+    try {
+        registry.getComponent<HealthComponent>(child);
+    } catch (...) {
+        child1Exists = false;
+    }
+    try {
+        registry.getComponent<HealthComponent>(child2);
+    } catch (...) {
+        child2Exists = false;
+    }
 
     EXPECT_FALSE(parentExists) << "Le parent aurait dû être détruit";
     EXPECT_FALSE(child1Exists) << "L'enfant 1 aurait dû être détruit";

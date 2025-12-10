@@ -28,7 +28,7 @@ class ClientGameEngine {
     int init();
     int run();
     ClientGameEngine(std::string window_name = "Default Name");
-    ~ClientGameEngine(){};
+    ~ClientGameEngine() {};
     void setUserFunction(std::function<void(ECS& ecs)> user_function);
     void setInitFunction(std::function<void(ECS& ecs)> user_function);
 
