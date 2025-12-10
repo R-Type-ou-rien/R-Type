@@ -1,7 +1,9 @@
 #pragma once
 
-#include <SFML/Graphics/Texture.hpp>
 #include <functional>
+#include <string>
+
+#include <SFML/Graphics/Texture.hpp>
 
 #include "ecs/client/InputSystem/InputSystem.hpp"
 #include "ecs/client/RenderSystem/RenderSystem.hpp"
@@ -27,8 +29,8 @@ class ClientGameEngine {
    public:
     int init();
     int run();
-    ClientGameEngine(std::string window_name = "Default Name");
-    ~ClientGameEngine(){};
+    explicit ClientGameEngine(std::string window_name = "Default Name");
+    ~ClientGameEngine() {}
     void setUserFunction(std::function<void(ECS& ecs)> user_function);
     void setInitFunction(std::function<void(ECS& ecs)> user_function);
 

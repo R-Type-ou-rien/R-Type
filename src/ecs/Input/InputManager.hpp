@@ -10,10 +10,10 @@
 #include <unordered_map>
 #include <vector>
 
+#include "ActionRegistry.hpp"
 #include "InputAction.hpp"
 #include "InputBinding.hpp"
 #include "InputState.hpp"
-#include "ActionRegistry.hpp"
 
 class InputManager {
    public:

@@ -5,10 +5,11 @@
 ** ActionRegistry.cpp
 */
 
+#include <string>
+
 #include "ActionRegistry.hpp"
 
-const Action& ActionRegistry::registerAction(const std::string& name)
-{
+const Action& ActionRegistry::registerAction(const std::string& name) {
     if (_knownNamesSet.insert(name).second) {
         _actions.emplace_back(name);
     }
@@ -19,7 +20,6 @@ const Action& ActionRegistry::registerAction(const std::string& name)
     return _actions.front();
 }
 
-bool ActionRegistry::exists(const std::string& name) const
-{
+bool ActionRegistry::exists(const std::string& name) const {
     return _knownNamesSet.find(name) != _knownNamesSet.end();
 }
