@@ -67,11 +67,11 @@ jobs:
             ! -path "*/build/*" ! -path "*/cmake-build-*/*" \
             -exec clang-format --dry-run --Werror {} +
 
-      - name: Lint C++ Code (cpplint)
+      - name: Check C++ Code Style (clang-format)
         run: |
-          echo "Analyzing code with cpplint..."            
-          filters="-legal/copyright,-build/header_guard,-readability/casting,-readability/check,-whitespace/indent"
-          cpplint --recursive --filter="$filters" --linelength=120 src
+          echo "Check the coding style with clang-format"
+          find src tests -type f \( -name "*.cpp" -o -name "*.hpp" \) \
+                      -exec clang-format --dry-run --Werror -style=file {} +
 
   push_to_mirror:
     name: push_to_mirror
