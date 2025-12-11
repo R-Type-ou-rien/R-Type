@@ -1,3 +1,5 @@
+#include <string>
+
 #include "client_game_engine.hpp"
 
 #include "ecs/common/ISystem.hpp"

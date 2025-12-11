@@ -1,9 +1,9 @@
-#include "../damage_feature/damage.hpp"
+#include "ecs/common/damage_feature/damage.hpp"
 
-#include "../box_collision/box_collision.hpp"
-#include "../health_feature/health.hpp"
-#include "../shoot_feature/shooter.hpp"
-#include "../team_component/team_component.hpp"
+#include "ecs/common/box_collision/box_collision.hpp"
+#include "ecs/common/health_feature/health.hpp"
+#include "ecs/common/shoot_feature/shooter.hpp"
+#include "ecs/common/team_component/team_component.hpp"
 
 void Damage::update(Registry& registry, system_context context) {
     auto& attackers = registry.getEntities<DamageOnCollision>();

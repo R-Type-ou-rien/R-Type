@@ -5,7 +5,6 @@
 ** main_test_input.cpp
 */
 
-
 #include <iostream>
 #include <optional>
 
@@ -125,8 +124,7 @@ int main() {
             std::cout << "[Shoot] just pressed!\n";
 
         if (input.isJustReleased("Shoot"))
-            std::cout << "[Shoot] just released (hold time = " << input.getState("Shoot").lastReleaseHoldTime
-                      << "s)\n";
+            std::cout << "[Shoot] just released (hold time = " << input.getState("Shoot").lastReleaseHoldTime << "s)\n";
 
         if (input.isLongPress("Shoot", 0.5f))
             std::cout << "[Shoot] LONG PRESS (>= 0.5s)\n";

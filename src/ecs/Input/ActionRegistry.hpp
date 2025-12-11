@@ -5,20 +5,21 @@
 ** ActionRegistry.hpp
 */
 
-#include <unordered_set>
 #include <string>
+#include <unordered_set>
 #include <vector>
+
 #include "InputAction.hpp"
 
-class ActionRegistry
-{ 
-    public:
-        const Action& registerAction(const std::string& name);
+class ActionRegistry {
+   public:
+    const Action& registerAction(const std::string& name);
 
-        std::vector<Action> &getActions(void) {return this->_actions;};
+    std::vector<Action>& getActions(void) { return this->_actions; }
 
-        bool exists(const std::string& name) const;
-    private:
-        std::vector<Action> _actions;
-        std::unordered_set<std::string> _knownNamesSet;
+    bool exists(const std::string& name) const;
+
+   private:
+    std::vector<Action> _actions;
+    std::unordered_set<std::string> _knownNamesSet;
 };

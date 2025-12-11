@@ -10,7 +10,9 @@ template <typename T>
 class ServerInterface {
    public:
     ServerInterface(uint16_t port)
-        : asioAcceptor(_asioContext, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), port)), _socketUDP(_asioContext), _port(port) {}
+        : asioAcceptor(_asioContext, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), port)),
+          _socketUDP(_asioContext),
+          _port(port) {}
 
     virtual ~ServerInterface() { Stop(); }
 

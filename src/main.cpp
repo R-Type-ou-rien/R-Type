@@ -132,11 +132,10 @@ void init(ECS& ecs) {
 
 void play(ECS& ecs) {
     if (ecs.input.isJustPressed("Shoot"))
-            std::cout << "[Shoot] just pressed!\n";
+        std::cout << "[Shoot] just pressed!\n";
 
     if (ecs.input.isJustReleased("Shoot"))
-        std::cout << "[Shoot] just released (hold time = " << ecs.input.getState("Shoot").lastReleaseHoldTime
-                    << "s)\n";
+        std::cout << "[Shoot] just released (hold time = " << ecs.input.getState("Shoot").lastReleaseHoldTime << "s)\n";
 
     if (ecs.input.isLongPress("Shoot", 0.5f))
         std::cout << "[Shoot] LONG PRESS (>= 0.5s)\n";

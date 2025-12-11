@@ -11,8 +11,6 @@
 #include <iostream>
 #include <iterator>
 
-// Public //
-
 void RenderSystem::update(Registry& registry, system_context context) {
     auto& positions = registry.getView<transform_component_s>();
     auto& sprites = registry.getView<sprite2D_component_s>();
@@ -46,5 +44,3 @@ void RenderSystem::drawEntity(const transform_component_s& transform, const spri
     context.window.draw(sprite);
     return;
 }
-
-// Private //

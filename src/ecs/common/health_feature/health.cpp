@@ -1,6 +1,8 @@
-#include "../health_feature/health.hpp"
+#include <vector>
 
-#include "../Components/Components.hpp"
+#include "ecs/common/health_feature/health.hpp"
+
+#include "ecs/common/Components/Components.hpp"
 
 void HealthSystem::update(Registry& registry, system_context context) {
     auto& entities = registry.getEntities<HealthComponent>();

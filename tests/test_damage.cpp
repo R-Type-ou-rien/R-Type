@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
+#include "../src/ecs/common/Registry/registry.hpp"
 #include "../src/ecs/common/box_collision/box_collision.hpp"
 #include "../src/ecs/common/damage_feature/damage.hpp"
-#include "../src/ecs/common/Registry/registry.hpp"
 #include "../src/ecs/common/health_feature/health.hpp"
 #include "../src/ecs/common/shoot_feature/shooter.hpp"
 #include "../src/ecs/common/team_component/team_component.hpp"
@@ -28,7 +28,6 @@ class DamageTest : public ::testing::Test {
 
 TEST_F(DamageTest, EnemyHitsPlayer) {
     system_context context{0, texture_manager, window};
-
 
     registry.addComponent(victim, HealthComponent{100, 100});
     registry.addComponent(victim, TeamComponent{TeamComponent::ALLY});

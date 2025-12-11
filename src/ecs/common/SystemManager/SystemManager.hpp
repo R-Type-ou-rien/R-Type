@@ -9,12 +9,13 @@
 
 #include <memory>
 #include <vector>
+#include <utility>
 
 #include "../ISystem.hpp"
 
 class SystemManager {
    public:
-    SystemManager(Registry& registry) : _registry(registry) {}
+    explicit SystemManager(Registry& registry) : _registry(registry) {}
 
     template <typename T, typename... Args>
     void addSystem(Args&&... args) {
