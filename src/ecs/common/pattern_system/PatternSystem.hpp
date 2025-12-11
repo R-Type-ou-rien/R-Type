@@ -6,15 +6,15 @@
 */
 
 #ifndef PATTERNSYSTEM_HPP_
-    #define PATTERNSYSTEM_HPP_
+#define PATTERNSYSTEM_HPP_
+
+#include <SFML/System/Vector2.hpp>
+#include <vector>
 
 #include "../Components/Components.hpp"
 #include "../tag_component/tag_component.hpp"
 #include "ecs/common/ISystem.hpp"
 #include "ecs/common/Registry/registry.hpp"
-
-#include <vector>
-#include <SFML/System/Vector2.hpp>
 
 struct PatternComponent {
     std::vector<sf::Vector2f> waypoints;

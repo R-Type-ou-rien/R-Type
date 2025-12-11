@@ -6,6 +6,7 @@
 */
 
 #include "PatternSystem.hpp"
+
 #include <cmath>
 
 void PatternSystem::update(Registry& registry, system_context context) {
@@ -20,8 +21,10 @@ void PatternSystem::update(Registry& registry, system_context context) {
         auto& transform = registry.getComponent<transform_component_s>(entity);
         auto& path = registry.getComponent<PatternComponent>(entity);
 
-        if (!path.is_active || path.waypoints.empty()) continue;
-        if (path.current_index >= path.waypoints.size()) continue;
+        if (!path.is_active || path.waypoints.empty())
+            continue;
+        if (path.current_index >= path.waypoints.size())
+            continue;
 
         sf::Vector2f target = path.waypoints[path.current_index];
         float dx = target.x - transform.x;
