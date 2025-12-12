@@ -1,8 +1,10 @@
 #include "WindowManager.hpp"
 
+#include <optional>
+#include <string>
+
 #include <SFML/Window/Event.hpp>
 #include <SFML/Window/VideoMode.hpp>
-#include <optional>
 
 WindowManager::WindowManager(unsigned int width, unsigned int height, const std::string& title) {
     _window.create(sf::VideoMode{{width, height}}, title);

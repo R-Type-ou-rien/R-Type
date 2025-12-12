@@ -1,4 +1,11 @@
+<<<<<<< HEAD:src/Engine/Lib/Systems/CollisionSystem.cpp
 #include "CollisionSystem.hpp"
+=======
+#include "ecs/common/box_collision/box_collision.hpp"
+
+#include "ecs/common/Components/Components.hpp"
+#include "ecs/common/ISystem.hpp"
+>>>>>>> 2e0d1a29fa2d0e6b3713286aabdb39628515dfd4:src/ecs/common/box_collision/box_collision.cpp
 
 void BoxCollision::update(Registry& registry, system_context context) {
     auto& entities = registry.getEntities<BoxCollisionComponent>();

@@ -1,4 +1,13 @@
+<<<<<<< HEAD:src/Engine/Core/ClientGameEngine.cpp
 #include "ClientGameEngine.hpp"
+=======
+#include <string>
+
+#include "client_game_engine.hpp"
+
+#include "ecs/common/ISystem.hpp"
+#include "ecs/common/MoveSystem/MoveSystem.hpp"
+>>>>>>> 2e0d1a29fa2d0e6b3713286aabdb39628515dfd4:src/game_engine/client/client_game_engine/client_game_engine.cpp
 
 ClientGameEngine::ClientGameEngine(std::string window_name) : _window_manager(WINDOW_W, WINDOW_H, window_name) {}
 

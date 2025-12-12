@@ -89,7 +89,12 @@ class SparseSet : public ISparseSet {
         @param std::size_t id
         @return The function returns reference to the corresponding data
     */
-    data_type& getDataFromId(std::size_t id) { return _dense[_sparse[id]]; }
+    data_type& getDataFromId(std::size_t id) {
+        if (!has(id)) {
+            throw std::runtime_error("Entity does not have component!");
+        }
+        return _dense[_sparse[id]];
+    }
 
     // /**
     //     A function to get the id of a given data
