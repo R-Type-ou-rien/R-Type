@@ -1,13 +1,14 @@
+#pragma once
+
 #include <cstdint>
 #include <memory>
 #include <tuple>
 #include <typeindex>
 #include <unordered_map>
 #include <vector>
+#include <typeinfo>
 
-#include "Utils/sparse_set/SparseSet.hpp"
-
-#pragma once
+#include "sparse_set/SparseSet.hpp"
 
 using Entity = uint32_t;
 

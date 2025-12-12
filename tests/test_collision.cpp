@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#include "../src/ecs//common/Registry/registry.hpp"
+#include "../src/Engine/Core/ECS/Registry/registry.hpp"
 #include "../src/ecs/common/Components/Components.hpp"
 #include "../src/ecs/common/box_collision/box_collision.hpp"
 

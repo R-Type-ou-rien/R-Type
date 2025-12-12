@@ -10,7 +10,7 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/Texture.hpp>
 
-#include "ECS/Registry/registry.hpp"
+#include "Registry/registry.hpp"
 #include "InputManager.hpp"
 #include "ressource_manager.hpp"
 

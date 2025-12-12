@@ -9,16 +9,10 @@
 
 #include <unordered_map>
 #include <string>
-
-<<<<<<< HEAD:src/Engine/Lib/Systems/RenderSystem.hpp
-#include "Components/StandardComponents.hpp"
-#include "ISystem.hpp"
-=======
 #include <SFML/Graphics.hpp>
 
-#include "ecs/common/Components/Components.hpp"
-#include "ecs/common/ISystem.hpp"
->>>>>>> 2e0d1a29fa2d0e6b3713286aabdb39628515dfd4:src/ecs/client/RenderSystem/RenderSystem.hpp
+#include "Components/StandardComponents.hpp"
+#include "ISystem.hpp"
 
 class RenderSystem : public ISystem {
    public:

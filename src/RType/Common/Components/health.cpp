@@ -1,12 +1,6 @@
-<<<<<<< HEAD:src/RType/Common/Components/health.cpp
-#include "health.hpp"
-=======
 #include <vector>
 
-#include "ecs/common/health_feature/health.hpp"
-
-#include "ecs/common/Components/Components.hpp"
->>>>>>> 2e0d1a29fa2d0e6b3713286aabdb39628515dfd4:src/ecs/common/health_feature/health.cpp
+#include "health.hpp"
 
 void HealthSystem::update(Registry& registry, system_context context) {
     auto& entities = registry.getEntities<HealthComponent>();

@@ -66,11 +66,7 @@ void ShooterSystem::update(Registry& registry, system_context context) {
         transform_component_s& pos = registry.getComponent<transform_component_s>(id);
         TeamComponent& team = registry.getComponent<TeamComponent>(id);
 
-<<<<<<< HEAD:src/RType/Common/Components/shooter.cpp
-        if (context.dt - shooter.last_shot > shooter.fire_rate) {
-=======
         if (context.dt - shooter.last_shot >= shooter.fire_rate) {
->>>>>>> 2e0d1a29fa2d0e6b3713286aabdb39628515dfd4:src/ecs/common/shoot_feature/shooter.cpp
             VelocityComponent projectile_velocity = get_projectile_speed(shooter.type, team.team);
             create_projectile(registry, shooter.type, team.team, pos, projectile_velocity);
             shooter.last_shot = context.dt;

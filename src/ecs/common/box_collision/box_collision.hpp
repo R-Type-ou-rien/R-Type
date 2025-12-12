@@ -3,10 +3,10 @@
 #include <string>
 #include <vector>
 
-#include "ecs/common/Components/Components.hpp"
-#include "ecs/common/tag_component/tag_component.hpp"
-#include "ecs/common/ISystem.hpp"
-#include "ecs/common/Registry/registry.hpp"
+#include "../Components/Components.hpp"
+#include "../tag_component/tag_component.hpp"
+#include "../../Engine/Core/ECS/ISystem.hpp"
+#include "../../Engine/Core/ECS/Registry/registry.hpp"
 
 struct BoxCollisionComponent {
     TagComponent collision;

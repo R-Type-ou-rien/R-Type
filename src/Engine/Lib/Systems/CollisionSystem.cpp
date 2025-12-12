@@ -1,11 +1,4 @@
-<<<<<<< HEAD:src/Engine/Lib/Systems/CollisionSystem.cpp
 #include "CollisionSystem.hpp"
-=======
-#include "ecs/common/box_collision/box_collision.hpp"
-
-#include "ecs/common/Components/Components.hpp"
-#include "ecs/common/ISystem.hpp"
->>>>>>> 2e0d1a29fa2d0e6b3713286aabdb39628515dfd4:src/ecs/common/box_collision/box_collision.cpp
 
 void BoxCollision::update(Registry& registry, system_context context) {
     auto& entities = registry.getEntities<BoxCollisionComponent>();
@@ -41,10 +34,10 @@ void BoxCollision::update(Registry& registry, system_context context) {
 
 bool BoxCollision::checkSize(const transform_component_s& a, const transform_component_s& b,
                              std::pair<float, float> size_a, std::pair<float, float> size_b) {
-    double width_a = size_a.first * a.x;
-    double height_a = size_a.second * a.y;
-    double width_b = size_b.first * b.x;
-    double height_b = size_b.second * b.y;
+    double width_a = size_a.first * a.scale_x;
+    double height_a = size_a.second * a.scale_y;
+    double width_b = size_b.first * b.scale_x;
+    double height_b = size_b.second * b.scale_y;
     double dist_x = std::abs(a.x - b.x);
     double dist_y = std::abs(a.y - b.y);
     bool colision_x = dist_x < (width_a / 2.0) + (width_b / 2.0);

@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "../src/ecs/common/Registry/registry.hpp"
+#include "../src/Engine/Core/ECS/Registry/registry.hpp"
 #include "../src/ecs/common/ScrollSystem/ScrollSystem.hpp"
 #include "../src/ecs/common/Components/Components.hpp"
 

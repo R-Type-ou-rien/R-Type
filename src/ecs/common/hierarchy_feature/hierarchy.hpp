@@ -2,8 +2,8 @@
 
 #include <vector>
 
-#include "ecs/common/ISystem.hpp"
-#include "ecs/common/Registry/registry.hpp"
+#include "../../Engine/Core/ECS/ISystem.hpp"
+#include "../../Engine/Core/ECS/Registry/registry.hpp"
 
 struct HierarchyComponent {
     int parent_id;

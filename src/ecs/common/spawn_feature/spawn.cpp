@@ -3,12 +3,12 @@
 #include <iostream>
 #include <vector>
 
-#include "ecs/common/Components/Components.hpp"
-#include "ecs/common/box_collision/box_collision.hpp"
-#include "ecs/common/damage_feature/damage.hpp"
-#include "ecs/common/health_feature/health.hpp"
-#include "ecs/common/shoot_feature/shooter.hpp"
-#include "ecs/common/team_component/team_component.hpp"
+#include "../Components/Components.hpp"
+#include "../box_collision/box_collision.hpp"
+#include "../damage_feature/damage.hpp"
+#include "../health_feature/health.hpp"
+#include "../shoot_feature/shooter.hpp"
+#include "../team_component/team_component.hpp"
 
 SpawnSystem::SpawnSystem() {
     _factories[TypeEntityComponent::PLAYER] = [](Registry& r, Entity e) {

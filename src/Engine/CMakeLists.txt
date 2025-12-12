@@ -10,6 +10,7 @@ find_package(SFML REQUIRED COMPONENTS Graphics Window System)
 
 file(GLOB_RECURSE SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/Core/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Core/ECS/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Graphics/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Inputs/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/*.cpp"
@@ -23,6 +24,7 @@ target_include_directories(Engine PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/ECS/Registry
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/ECS/SystemManager
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/ECS
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/ECS/Utils
     ${CMAKE_CURRENT_SOURCE_DIR}/Graphics
     ${CMAKE_CURRENT_SOURCE_DIR}/Inputs
     ${CMAKE_CURRENT_SOURCE_DIR}/Lib

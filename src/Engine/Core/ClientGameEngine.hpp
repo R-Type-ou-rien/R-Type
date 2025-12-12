@@ -5,8 +5,8 @@
 
 #include <SFML/Graphics/Texture.hpp>
 
-#include "ECS.hpp"
-#include "ISystem.hpp"
+#include "ECS/ECS.hpp"
+#include "ECS/ISystem.hpp"
 #include "InputSystem.hpp"
 #include "PhysicsSystem.hpp"
 #include "RenderSystem.hpp"
