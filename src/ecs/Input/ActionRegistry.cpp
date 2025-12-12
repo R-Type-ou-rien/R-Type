@@ -5,6 +5,8 @@
 ** ActionRegistry.cpp
 */
 
+#include <string>
+
 #include "ActionRegistry.hpp"
 
 const Action& ActionRegistry::registerAction(const std::string& name) {

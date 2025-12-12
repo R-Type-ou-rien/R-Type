@@ -1,6 +1,6 @@
-#include "../box_collision/box_collision.hpp"
+#include "ecs/common/box_collision/box_collision.hpp"
 
-#include "../../common/Components/Components.hpp"
+#include "ecs/common/Components/Components.hpp"
 #include "ecs/common/ISystem.hpp"
 
 void BoxCollision::update(Registry& registry, system_context context) {

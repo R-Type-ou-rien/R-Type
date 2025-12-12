@@ -7,11 +7,13 @@
 
 #pragma once
 
-#include <SFML/Graphics.hpp>
 #include <unordered_map>
+#include <string>
 
-#include "../../common/Components/Components.hpp"
-#include "../../common/ISystem.hpp"
+#include <SFML/Graphics.hpp>
+
+#include "ecs/common/Components/Components.hpp"
+#include "ecs/common/ISystem.hpp"
 
 class RenderSystem : public ISystem {
    public:

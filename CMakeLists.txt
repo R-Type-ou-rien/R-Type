@@ -96,6 +96,8 @@ macro(add_rtype_test TEST_NAME FILE_PATH)
     add_rtype_test(test_hierarchy   tests/test_hierarchy.cpp)
     add_rtype_test(test_shooter     tests/test_shooter.cpp)
     add_rtype_test(test_spawn       tests/test_spawn.cpp)
+    add_rtype_test(test_pattern     tests/test_pattern.cpp)
+    add_rtype_test(test_scroll      tests/test_scroll.cpp)
 
 
 else()

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include "ecs/common/ISystem.hpp"
 #include "ecs/common/Registry/registry.hpp"
 
