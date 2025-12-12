@@ -13,7 +13,7 @@ class PatternTest : public ::testing::Test {
 
     ResourceManager<sf::Texture> texture_manager;
     sf::RenderWindow window;
-    system_context context = {1.0f, texture_manager, window};  // dt = 1.0f
+    system_context context = {1.0f, texture_manager, window};
 
     void SetUp() override {}
 };
@@ -41,8 +41,8 @@ TEST_F(PatternTest, ReachesWaypointAndSwitches) {
 
     PatternComponent pattern;
     pattern.speed = 10.0f;
-    pattern.waypoints.push_back({100.0f, 0.0f});    // Index 0
-    pattern.waypoints.push_back({100.0f, 100.0f});  // Index 1
+    pattern.waypoints.push_back({100.0f, 0.0f});
+    pattern.waypoints.push_back({100.0f, 100.0f});
     pattern.is_active = true;
     registry.addComponent(entity, pattern);
 
@@ -59,7 +59,7 @@ TEST_F(PatternTest, LoopsPattern) {
     PatternComponent pattern;
     pattern.speed = 10.0f;
     pattern.loop = true;
-    pattern.waypoints.push_back({100.0f, 0.0f});  // Index 0
+    pattern.waypoints.push_back({100.0f, 0.0f});
     pattern.is_active = true;
     registry.addComponent(entity, pattern);
 
@@ -76,7 +76,7 @@ TEST_F(PatternTest, StopsAtEnd) {
     PatternComponent pattern;
     pattern.speed = 10.0f;
     pattern.loop = false;
-    pattern.waypoints.push_back({100.0f, 0.0f});  // Index 0
+    pattern.waypoints.push_back({100.0f, 0.0f});
     pattern.is_active = true;
     registry.addComponent(entity, pattern);
 

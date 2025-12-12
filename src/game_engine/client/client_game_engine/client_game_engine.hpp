@@ -24,6 +24,7 @@ class ClientGameEngine {
     WindowManager _window_manager;
     std::function<void(ECS& ecs)> _function;
     std::function<void(ECS& ecs)> _init_function;
+    // client network class
 
    public:
     int init();
