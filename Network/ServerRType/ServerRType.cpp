@@ -52,6 +52,7 @@ bool ServerRType::OnClientConnect(std::shared_ptr<network::Connection<RTypeEvent
     if (_deqConnections.size() >= _maxConnections)
         return false;
     AddMessageToPlayer(RTypeEvents::C_PING_SERVER, client->GetID(), NULL);
+    _toGameMessages.push({RTypeEvents::C_PING_SERVER, client->GetID(), network::message<RTypeEvents>()});
     return true;
 }
 
