@@ -4,10 +4,13 @@
 #include <unordered_map>
 #include <vector>
 
+#include "../Database/Database.hpp"
 #include "../Lobby/Lobby.hpp"
 #include "../NetworkInterface/Connection.hpp"
 #include "../NetworkInterface/ServerInterface.hpp"
 #include "../NetworkRType.hpp"
+
+#define DATABASE_FILE "rtype.db"
 
 #define MAX_PLAYERS 20
 
@@ -15,7 +18,7 @@ class ServerRType : public network::ServerInterface<RTypeEvents> {
     enum class ClientState : uint32_t { CONNECTED, WAITING_UDP_PING, LOGGED_IN, IN_LOBBY, READY, IN_GAME };
 
    public:
-    ServerRType(uint16_t nPort) : network::ServerInterface<RTypeEvents>(nPort) {}
+    ServerRType(uint16_t nPort) : network::ServerInterface<RTypeEvents>(nPort) {};
 
    protected:
     virtual void OnMessage(std::shared_ptr<network::Connection<RTypeEvents>> client,
@@ -144,4 +147,6 @@ class ServerRType : public network::ServerInterface<RTypeEvents> {
     };
 
     std::queue<coming_message> _toGameMessages;
+
+    Database _database{DATABASE_FILE};
 };
