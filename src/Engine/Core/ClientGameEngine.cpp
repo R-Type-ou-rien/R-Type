@@ -1,4 +1,8 @@
 #include "ClientGameEngine.hpp"
+#include "CollisionSystem.hpp"
+#include "ActionScriptSystem.hpp"
+#include "Components/StandardComponents.hpp"
+#include "PatternSystem/PatternSystem.hpp"
 
 
 ClientGameEngine::ClientGameEngine(std::string window_name) : _window_manager(WINDOW_W, WINDOW_H, window_name) {}
@@ -8,6 +12,10 @@ int ClientGameEngine::init() {
 
     _ecs.systems.addSystem<RenderSystem>();
     _ecs.systems.addSystem<InputSystem>(_ecs.input);
+    _ecs.systems.addSystem<BoxCollision>();
+    _ecs.systems.addSystem<ActionScriptSystem>();
+    _ecs.systems.addSystem<PatternSystem>();
+
     if (_init_function)
         _init_function(_ecs);
 
@@ -43,11 +51,11 @@ int ClientGameEngine::run() {
 
     this->init();
     while (_window_manager.isOpen()) {
+        context.dt = clock.restart().asSeconds();
         handleEvent();
         _window_manager.clear();
         if (_function)
             _function(_ecs);
-        context.dt = clock.restart().asSeconds();
         _ecs.update(context);
         _window_manager.display();
     }

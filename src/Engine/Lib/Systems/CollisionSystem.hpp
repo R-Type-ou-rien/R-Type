@@ -12,6 +12,7 @@ class BoxCollision : public ISystem {
     void update(Registry& registry, system_context context) override;
 
    private:
-    bool checkSize(const transform_component_s& a, const transform_component_s& b, std::pair<float, float> size,
+    bool checkSize(const transform_component_s a, const transform_component_s b, std::pair<float, float> size,
                    std::pair<float, float> size_b);
+      bool hasTagToCollide(BoxCollisionComponent entity_a, TagComponent entity_b);
 };

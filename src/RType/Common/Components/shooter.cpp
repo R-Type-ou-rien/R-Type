@@ -1,17 +1,21 @@
 #include "shooter.hpp"
 
 #include <iostream>
+#include <iterator>
 #include <ostream>
 
+#include "Components/StandardComponents.hpp"
 #include "ISystem.hpp"
+#include "registry.hpp"
+#include "team_component.hpp"
 
-VelocityComponent ShooterSystem::get_projectile_speed(ShooterComponent::Projectile type, TeamComponent::Team team) {
-    VelocityComponent vel = {0, 0};
+Velocity2D ShooterSystem::get_projectile_speed(ShooterComponent::ProjectileType type, TeamComponent::Team team) {
+    Velocity2D vel = {0, 0};
     double speed = 0;
 
     switch (type) {
         case ShooterComponent::NORMAL:
-            speed = 5;
+            speed = 500;
             break;
         case ShooterComponent::CHARG:
             speed = 7;
@@ -28,27 +32,55 @@ VelocityComponent ShooterSystem::get_projectile_speed(ShooterComponent::Projecti
     return vel;
 }
 
-void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::Projectile type, TeamComponent::Team team,
-                                      transform_component_s pos, VelocityComponent speed) {
+void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::ProjectileType type, TeamComponent::Team team,
+                                      transform_component_s pos, system_context context) {
     int id = registry.createEntity();
-    ProjectileComponent projectile;
-    TeamComponent team_component;
-    transform_component_s transform;
-    VelocityComponent velocity;
+    Velocity2D speed = get_projectile_speed(type, team);
+    TagComponent tags;
+    tags.tags.push_back("PROJECTILE");
+    
 
-    projectile.owner_id = -1;
-    registry.addComponent(id, projectile);
+    registry.addComponent<ProjectileComponent>(id, {id});
 
-    team_component.team = team;
-    registry.addComponent(id, team_component);
+    registry.addComponent<TeamComponent>(id, {team});
 
-    transform.x = pos.x + 1.0;
-    transform.y = pos.y;
-    registry.addComponent(id, transform);
+    registry.addComponent<transform_component_s>(id, {(pos.x + 32), (pos.y + 8)});
 
-    velocity.vx = speed.vx;
-    velocity.vy = speed.vy;
-    registry.addComponent(id, velocity);
+    registry.addComponent<Velocity2D>(id, speed);
+
+    registry.addComponent<TagComponent>(id, tags);
+
+    handle_t<sf::Texture> handle = context.texture_manager.load_resource("content/sprites/r-typesheet1.gif",
+                                                                     sf::Texture("content/sprites/r-typesheet1.gif"));
+
+    sprite2D_component_s sprite_info;
+    sprite_info.handle = handle;
+    sprite_info.animation_speed = 0;
+    sprite_info.current_animation_frame = 0;
+    sprite_info.dimension = {230, 103, 17, 13};
+    sprite_info.z_index = 1;
+
+    registry.addComponent<sprite2D_component_s>(id, sprite_info);
+
+    
+    registry.addComponent<BoxCollisionComponent>(id, {});
+    BoxCollisionComponent& collision = registry.getComponent<BoxCollisionComponent>(id);
+    if (team == TeamComponent::ALLY) {
+        collision.tagCollision.push_back("AI");
+    } else {
+        collision.tagCollision.push_back("PLAYER");
+    }
+
+    collision.callbackOnCollide = [](Registry& reg, system_context con, Entity current){
+        BoxCollisionComponent& coll = reg.getComponent<BoxCollisionComponent>(current);
+
+        for (auto collided_entity : coll.collision.tags) {
+            reg.destroyEntity(collided_entity);
+        }
+        reg.destroyEntity(current);
+    };
+
+
 }
 
 void ShooterSystem::update(Registry& registry, system_context context) {
@@ -61,15 +93,18 @@ void ShooterSystem::update(Registry& registry, system_context context) {
         if (!registry.hasComponent<TeamComponent>(id)) {
             continue;
         }
-
         ShooterComponent& shooter = registry.getComponent<ShooterComponent>(id);
+        shooter.last_shot += context.dt;
+        bool shoot = shooter.is_shooting || shooter.trigger_pressed;
+        if (!shoot)
+            continue;
         transform_component_s& pos = registry.getComponent<transform_component_s>(id);
         TeamComponent& team = registry.getComponent<TeamComponent>(id);
 
-        if (context.dt - shooter.last_shot >= shooter.fire_rate) {
-            VelocityComponent projectile_velocity = get_projectile_speed(shooter.type, team.team);
-            create_projectile(registry, shooter.type, team.team, pos, projectile_velocity);
-            shooter.last_shot = context.dt;
+        if (shooter.last_shot >= shooter.fire_rate) {
+            create_projectile(registry, shooter.type, team.team, pos, context);
+            shooter.last_shot = 0.f;
         }
+        shooter.trigger_pressed = false;
     }
 }

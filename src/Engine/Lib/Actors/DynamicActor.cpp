@@ -2,10 +2,11 @@
 
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "Components/StandardComponents.hpp"
 
-DynamicActor::DynamicActor(ECS& ecs, bool playable, const std::string name) : AActor(ecs, name) {
+DynamicActor::DynamicActor(ECS& ecs, bool playable, const std::string name) : AActor(ecs, name), _playable(playable) {
     ResourceComponent resources;
 
     _ecs.registry.addComponent<ResourceComponent>(_id, resources);
@@ -13,6 +14,9 @@ DynamicActor::DynamicActor(ECS& ecs, bool playable, const std::string name) : AA
     _ecs.registry.addComponent<Velocity2D>(_id, {0, 0});
 
     _ecs.registry.addComponent<ActionScript>(_id, {});
+
+    if (!_playable)
+        _ecs.registry.addComponent<PatternComponent>(_id, {});
 }
 
 void DynamicActor::addResourceStat(const std::string res_name, ResourceStat& resource) {
@@ -149,4 +153,80 @@ std::unordered_map<Action, ActionCallback> DynamicActor::getActionCallbackOnRele
     ActionScript comp = _ecs.registry.getComponent<ActionScript>(_id);
 
     return comp.actionOnReleased;
+}
+
+void DynamicActor::setPattern(std::vector<std::pair<float, float>> way_points)
+{
+    if (_playable)
+        return;
+    PatternComponent& comp = _ecs.registry.getComponent<PatternComponent>(_id);
+
+    comp.waypoints = way_points;
+    return;
+}
+
+std::vector<std::pair<float, float>> DynamicActor::getPattern()
+{
+    if (_playable)
+        return std::vector<std::pair<float, float>>();
+    PatternComponent comp = _ecs.registry.getComponent<PatternComponent>(_id);
+
+    return comp.waypoints;
+}
+
+void DynamicActor::setPatternActive(bool state)
+{
+    if (_playable)
+        return;
+    PatternComponent& comp = _ecs.registry.getComponent<PatternComponent>(_id);
+
+    comp.is_active = state;
+    return;
+}
+
+bool DynamicActor::getPatternActiveState()
+{
+    if (_playable)
+        return false;
+    PatternComponent comp = _ecs.registry.getComponent<PatternComponent>(_id);
+
+    return comp.is_active;
+}
+
+void DynamicActor::setPatternLoop(bool state)
+{
+    if (_playable)
+        return;
+    PatternComponent& comp = _ecs.registry.getComponent<PatternComponent>(_id);
+
+    comp.loop = state;
+    return;
+}
+
+bool DynamicActor::getPatternLoopState()
+{
+    if (_playable)
+        return false;
+    PatternComponent comp = _ecs.registry.getComponent<PatternComponent>(_id);
+
+    return comp.loop;
+}
+
+void DynamicActor::setPatternSpeed(float speed)
+{
+    if (_playable)
+        return;
+    PatternComponent& comp = _ecs.registry.getComponent<PatternComponent>(_id);
+
+    comp.speed = speed;
+    return;
+}
+
+float DynamicActor::getPatternSpeed()
+{
+    if (_playable)
+        return -1;
+    PatternComponent& comp = _ecs.registry.getComponent<PatternComponent>(_id);
+
+    return comp.speed;
 }

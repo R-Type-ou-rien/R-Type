@@ -29,7 +29,7 @@ target_include_directories(Engine PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Inputs
     ${CMAKE_CURRENT_SOURCE_DIR}/Lib
     ${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems
-    "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Actors/"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Actors"
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources
 )
 
