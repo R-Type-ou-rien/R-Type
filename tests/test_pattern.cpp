@@ -3,7 +3,7 @@
 #include <cmath>
 
 #include "../src/ecs/common/Components/Components.hpp"
-#include "../src/ecs/common/Registry/registry.hpp"
+#include "../src/Engine/Core/ECS/Registry/registry.hpp"
 #include "../src/ecs/common/pattern_system/PatternSystem.hpp"
 
 class PatternTest : public ::testing::Test {
