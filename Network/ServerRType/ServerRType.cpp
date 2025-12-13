@@ -69,7 +69,7 @@ void ServerRType::OnClientRegister(std::shared_ptr<network::Connection<RTypeEven
     connection_info info;
     msg >> info;
 
-    // Sauvegarder le username et password dans une base de données (non implémenté encore)
+    _database.RegisterUser(info.username, info.password);
 
     connection_server_return returnInfo;
     const std::string charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
@@ -77,6 +77,7 @@ void ServerRType::OnClientRegister(std::shared_ptr<network::Connection<RTypeEven
     for (int i = 0; i < 10; i++) {
         returnInfo.token += charset[rand() % charset.length()];
     }
+    _database.SaveToken(_database.LoginUser(info.username, info.password), returnInfo.token);
     returnInfo.id = client->GetID();
 
     _clientUsernames[client] = info.username;
@@ -89,9 +90,14 @@ void ServerRType::OnClientLogin(std::shared_ptr<network::Connection<RTypeEvents>
     connection_info info;
     msg >> info;
 
-    // Verifier username et password dans une base de données (non implémenté encore)
+    int userID = _database.LoginUser(info.username, info.password);
+    if (userID == -1) {
+        AddMessageToPlayer(RTypeEvents::S_LOGIN_KO, client->GetID(), NULL);
+        return;
+    }
     connection_server_return returnInfo;
-    // returnInfo.token = ; ---- Get le token de la database ---
+
+    returnInfo.token = _database.GetTokenById(userID);
     returnInfo.id = client->GetID();
 
     _clientUsernames[client] = info.username;
@@ -104,11 +110,14 @@ void ServerRType::OnClientLoginToken(std::shared_ptr<network::Connection<RTypeEv
     std::string token;
     msg >> token;
 
-    // Verifier le username et password dans une base de données (non implémenté encore)
-    // std::string username = ; ---- Get le username de la database --- (commencez pas a croire que ce commentaire aussi
-    // est du COPILOT HYN C MOI QUI L'AI FAIT)
+    int userID = _database.GetUserByToken(token);
+    if (userID == -1) {
+        AddMessageToPlayer(RTypeEvents::S_INVALID_TOKEN, client->GetID(), NULL);
+        return;
+    }
     connection_server_return returnInfo;
-    // returnInfo.token = ; ---- Get le token de la database (CELUI LA AUSSI AU PASSAGE)---
+    returnInfo.id = client->GetID();
+    returnInfo.token = _database.GetTokenById(userID);
     if (returnInfo.token != token) {
         AddMessageToPlayer(RTypeEvents::S_INVALID_TOKEN, client->GetID(), returnInfo);
     }
