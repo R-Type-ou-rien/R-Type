@@ -6,20 +6,21 @@
 */
 
 #include "PhysicsSystem.hpp"
+#include "Components/StandardComponents.hpp"
 
 void PhysicsSystem::update(Registry& registry, system_context context) {
     auto& velocities = registry.getView<Velocity2D>();
-    auto& positions = registry.getView<sprite2D_component_s>();
+    auto& positions = registry.getView<transform_component_s>();
     const auto& entities = registry.getEntities<Velocity2D>();
 
     for (size_t i = 0; i < entities.size(); ++i) {
         Entity entity = entities[i];
 
-        if (registry.hasComponent<sprite2D_component_s>(entity)) {
-            auto& pos = registry.getComponent<sprite2D_component_s>(entity);
+        if (registry.hasComponent<transform_component_s>(entity)) {
+            auto& pos = registry.getComponent<transform_component_s>(entity);
             auto& vel = velocities[i];
-            pos.dimension.x += vel.vx * context.dt;
-            pos.dimension.y += vel.vy * context.dt;
+            pos.x += vel.vx * context.dt;
+            pos.y += vel.vy * context.dt;
         }
     }
 }

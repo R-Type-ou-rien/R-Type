@@ -1,10 +1,14 @@
 #include <string>
 #include <utility>
-
 #include "AActor.hpp"
 #include "InputAction.hpp"
 
+#pragma once
+
 class DynamicActor : public AActor {
+
+    protected:
+        bool _playable;
    public:
     DynamicActor(ECS& ecs, bool playable, const std::string name = "DynamicActor");
 
@@ -33,8 +37,21 @@ class DynamicActor : public AActor {
     std::pair<float, float> getvelocity();
 
     /** IA */
-    // void setPattern(std::vector<std::pair<float, float>> way_points)
-    // std::vector<std::pair<float, float>> getPattern()
+    void setPattern(std::vector<std::pair<float, float>> way_points);
+
+    std::vector<std::pair<float, float>> getPattern();
+
+    void setPatternActive(bool state);
+
+    bool getPatternActiveState();
+
+    void setPatternLoop(bool state);
+
+    bool getPatternLoopState();
+
+    void setPatternSpeed(float speed);
+
+    float getPatternSpeed();
 
     /** Controllable */
     void bindActionCallbackOnPressed(Action action_name, ActionCallback callback);

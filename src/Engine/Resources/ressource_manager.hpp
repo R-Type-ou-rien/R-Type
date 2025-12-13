@@ -39,8 +39,8 @@ class ResourceManager {
 
     std::optional<handle_t<Resource>> get_handle(const std::string resource_name) {
         if (_loaded_data.find(resource_name) != _loaded_data.cend())
-            return std::nullopt;
-        return _loaded_data[resource_name];
+            return _loaded_data[resource_name];
+        return std::nullopt;
     }
 
     void remove_resource(handle_t<Resource> handle) {

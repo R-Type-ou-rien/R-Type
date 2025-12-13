@@ -1,18 +1,30 @@
 #include "CollisionSystem.hpp"
+#include <iostream>
+#include <iterator>
+#include <ostream>
+#include "Components/StandardComponents.hpp"
 
 void BoxCollision::update(Registry& registry, system_context context) {
     auto& entities = registry.getEntities<BoxCollisionComponent>();
 
     for (auto entity : entities) {
-        registry.getComponent<BoxCollisionComponent>(entity).collision.tags.clear();  // clear the previeous collisions
+        auto& col = registry.getComponent<BoxCollisionComponent>(entity);
+        col.collision.tags.clear();
     }
 
     for (auto entity_a : entities) {
         if (!registry.hasComponent<transform_component_s>(entity_a))  // check if the entity has a transform
             continue;
+        if (!registry.hasComponent<TagComponent>(entity_a))
+            continue;
         auto& transform_a = registry.getComponent<transform_component_s>(entity_a);
+        auto& collision_comp = registry.getComponent<BoxCollisionComponent>(entity_a);
         for (auto entity_b : entities) {
             if (entity_a == entity_b)  // check if its the same entity
+                continue;
+            if (!registry.hasComponent<TagComponent>(entity_b))  // check if the entity has a transform
+                continue;
+            if (!hasTagToCollide(collision_comp, registry.getComponent<TagComponent>(entity_b)))
                 continue;
             if (!registry.hasComponent<transform_component_s>(entity_b))  // check if the entity has a transform
                 continue;
@@ -25,14 +37,15 @@ void BoxCollision::update(Registry& registry, system_context context) {
             auto& sprite_b = registry.getComponent<sprite2D_component_s>(entity_b);
             if (checkSize(transform_a, transform_b, {sprite_a.dimension.height, sprite_a.dimension.width},
                           {sprite_b.dimension.height, sprite_b.dimension.width})) {
-                auto& box_collision_a = registry.getComponent<BoxCollisionComponent>(entity_a);
-                box_collision_a.collision.tags.push_back(entity_b);
+                collision_comp.collision.tags.push_back(entity_b);
             }
         }
+        if (collision_comp.callbackOnCollide && !collision_comp.collision.tags.empty())
+            collision_comp.callbackOnCollide(registry, context, entity_a);
     }
 }
 
-bool BoxCollision::checkSize(const transform_component_s& a, const transform_component_s& b,
+bool BoxCollision::checkSize(const transform_component_s a, const transform_component_s b,
                              std::pair<float, float> size_a, std::pair<float, float> size_b) {
     double width_a = size_a.first * a.scale_x;
     double height_a = size_a.second * a.scale_y;
@@ -43,4 +56,18 @@ bool BoxCollision::checkSize(const transform_component_s& a, const transform_com
     bool colision_x = dist_x < (width_a / 2.0) + (width_b / 2.0);
     bool colision_y = dist_y < (height_a / 2.0) + (height_b / 2.0);
     return colision_x && colision_y;
+}
+
+bool BoxCollision::hasTagToCollide(BoxCollisionComponent entity_a, TagComponent entity_b)
+{
+    if (entity_a.tagCollision.empty()) {
+        return false;
+    }
+    for (auto tag_to_collide : entity_a.tagCollision) {
+        for (auto tag : entity_b.tags) {
+            if (tag_to_collide == tag)
+                return true;
+        }
+    }
+    return false;
 }

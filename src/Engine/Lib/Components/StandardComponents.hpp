@@ -16,6 +16,7 @@
 #include <map>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "Components/tag_component.hpp"
@@ -23,6 +24,14 @@
 #include "ISystem.hpp"
 #include "InputAction.hpp"
 #include "registry.hpp"
+
+struct PatternComponent {
+    std::vector<std::pair<float, float>> waypoints;
+    int current_index = 0;
+    float speed = 100.0f;
+    bool loop = false;
+    bool is_active = true;
+};
 
 struct ResourceStat {
     float current;
@@ -58,6 +67,7 @@ struct rect {
 struct BoxCollisionComponent {
     CollidedEntity collision;
     std::vector<std::string> tagCollision;
+    std::function<void(Registry& registry, system_context context, Entity current_entity)> callbackOnCollide;
 };
 
 struct sprite2D_component_s {
