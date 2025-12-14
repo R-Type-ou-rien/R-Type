@@ -51,6 +51,7 @@ void ServerRType::OnClientDisconnect(std::shared_ptr<network::Connection<RTypeEv
 bool ServerRType::OnClientConnect(std::shared_ptr<network::Connection<RTypeEvents>> client) {
     if (_deqConnections.size() >= _maxConnections)
         return false;
+    client->SetTimeout(0);
     AddMessageToPlayer(RTypeEvents::C_PING_SERVER, client->GetID(), NULL);
     _toGameMessages.push({RTypeEvents::C_PING_SERVER, client->GetID(), network::message<RTypeEvents>()});
     return true;
@@ -73,7 +74,7 @@ void ServerRType::OnClientRegister(std::shared_ptr<network::Connection<RTypeEven
     _database.RegisterUser(info.username, info.password);
 
     connection_server_return returnInfo;
-    const std::string charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+    const std::string charset = ALPHA_NUMERIC;
     srand(time(nullptr) + client->GetID());
     for (int i = 0; i < 10; i++) {
         returnInfo.token += charset[rand() % charset.length()];
@@ -213,7 +214,6 @@ void ServerRType::OnClientLeaveLobby(std::shared_ptr<network::Connection<RTypeEv
             p.id = client->GetID();
             p.username = _clientUsernames[client];
             AddMessageToLobby(RTypeEvents::S_PLAYER_LEAVE, lobbyID, p);
-
             _toGameMessages.push({RTypeEvents::S_PLAYER_LEAVE, client->GetID(), msg});
 
             break;
@@ -256,8 +256,10 @@ void ServerRType::onClientStartGame(std::shared_ptr<network::Connection<RTypeEve
                 }
             }
             _toGameMessages.push({RTypeEvents::S_GAME_START, client->GetID(), msg});
-            for (auto& [id, connection] : lobby.getLobbyPlayers())
-                _clientStates[client] = ClientState::IN_GAME;
+            for (auto& [id, connection] : lobby.getLobbyPlayers()) {
+                _clientStates[connection] = ClientState::IN_GAME;
+                connection->SetTimeout(_timeout_seconds);
+            }
             AddMessageToLobby(RTypeEvents::S_GAME_START, lobby.GetID(), NULL);
             break;
         }
