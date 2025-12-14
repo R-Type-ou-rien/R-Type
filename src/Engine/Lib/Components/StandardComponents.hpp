@@ -109,3 +109,9 @@ struct Scroll {
     float scroll_speed_y;
     bool is_paused;
 };
+
+struct BackgroundComponent {
+    handle_t<sf::Texture> texture_handle;
+    float x_offset = 0.f;
+    float scroll_speed = 0.f;
+};
