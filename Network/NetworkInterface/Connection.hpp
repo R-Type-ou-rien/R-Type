@@ -71,7 +71,7 @@ class Connection : public std::enable_shared_from_this<Connection<T>> {
         });
     }
 
-   private:
+   protected:
     void WriteHeader() {
         asio::async_write(_socket, asio::buffer(&_qMessagesOut.front().header, sizeof(message_header<T>)),
                           [this](std::error_code ec, std::size_t length) {
@@ -164,9 +164,32 @@ class Connection : public std::enable_shared_from_this<Connection<T>> {
         ReadHeader();
     }
 
+    void ResetTimeout() {
+        m_timerTimeout.cancel();
+
+        if (m_nTimeoutDuration.count() == 0)
+            return;
+
+        m_timerTimeout.expires_after(m_nTimeoutDuration);
+
+        m_timerTimeout.async_wait([this](const std::error_code& ec) {
+            if (ec == asio::error::operation_aborted)
+                return;
+            if (!ec) {
+                std::cout << "[TIMEOUT] Client " << id << " n'a pas répondu depuis " << m_nTimeoutDuration.count()
+                          << "s.\n";
+                Disconnect();
+            }
+        });
+    }
+
    public:
     void SetUDPEndpoint(asio::ip::udp::endpoint endpoint) { _udpRemoteEndpoint = endpoint; }
     asio::ip::udp::endpoint GetUDPEndpoint() const { return _udpRemoteEndpoint; }
+    void SetTimeout(int seconds) {
+        m_nTimeoutDuration = std::chrono::seconds(seconds);
+        ResetTimeout();
+    }
 
    protected:
     asio::ip::udp::endpoint _udpRemoteEndpoint;
@@ -188,5 +211,8 @@ class Connection : public std::enable_shared_from_this<Connection<T>> {
     uint32_t id = 0;
 
     unsigned int SequenceID = 0;
+
+    asio::steady_timer m_timerTimeout;
+    std::chrono::seconds m_nTimeoutDuration = std::chrono::seconds(0);
 };
 }  // namespace network

@@ -11,6 +11,7 @@
 #include "../NetworkRType.hpp"
 
 #define DATABASE_FILE "rtype.db"
+#define ALPHA_NUMERIC "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 #define MAX_PLAYERS 20
 
@@ -18,7 +19,8 @@ class ServerRType : public network::ServerInterface<RTypeEvents> {
     enum class ClientState : uint32_t { CONNECTED, WAITING_UDP_PING, LOGGED_IN, IN_LOBBY, READY, IN_GAME };
 
    public:
-    ServerRType(uint16_t nPort) : network::ServerInterface<RTypeEvents>(nPort) {};
+    ServerRType(uint16_t nPort, int timeout_seconds)
+        : network::ServerInterface<RTypeEvents>(nPort), _timeout_seconds(timeout_seconds) {};
 
    protected:
     virtual void OnMessage(std::shared_ptr<network::Connection<RTypeEvents>> client,
@@ -51,6 +53,7 @@ class ServerRType : public network::ServerInterface<RTypeEvents> {
             if (client->GetID() == id) {
                 if (event == RTypeEvents::S_RETURN_TO_LOBBY) {
                     _clientStates[client] = ClientState::IN_LOBBY;
+                    client->SetTimeout(0);
                     return;
                 }
                 network::message<RTypeEvents> msg;
@@ -61,6 +64,8 @@ class ServerRType : public network::ServerInterface<RTypeEvents> {
                     MessageClient(client, msg);
                 } else if (std::find(_udpEvents.begin(), _udpEvents.end(), event) != _udpEvents.end()) {
                     MessageClientUDP(client, msg);
+                } else {
+                    MessageClient(client, msg);
                 }
 
                 break;
@@ -75,6 +80,7 @@ class ServerRType : public network::ServerInterface<RTypeEvents> {
                 if (event == RTypeEvents::S_RETURN_TO_LOBBY) {
                     for (auto& [id, client] : lobby.getLobbyPlayers()) {
                         _clientStates[client] = ClientState::IN_LOBBY;
+                        client->SetTimeout(0);
                         return;
                     }
                 }
@@ -149,4 +155,6 @@ class ServerRType : public network::ServerInterface<RTypeEvents> {
     std::queue<coming_message> _toGameMessages;
 
     Database _database{DATABASE_FILE};
+
+    int _timeout_seconds = 30;
 };
