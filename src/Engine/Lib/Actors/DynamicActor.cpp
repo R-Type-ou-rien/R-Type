@@ -155,8 +155,7 @@ std::unordered_map<Action, ActionCallback> DynamicActor::getActionCallbackOnRele
     return comp.actionOnReleased;
 }
 
-void DynamicActor::setPattern(std::vector<std::pair<float, float>> way_points)
-{
+void DynamicActor::setPattern(std::vector<std::pair<float, float>> way_points) {
     if (_playable)
         return;
     PatternComponent& comp = _ecs.registry.getComponent<PatternComponent>(_id);
@@ -165,8 +164,7 @@ void DynamicActor::setPattern(std::vector<std::pair<float, float>> way_points)
     return;
 }
 
-std::vector<std::pair<float, float>> DynamicActor::getPattern()
-{
+std::vector<std::pair<float, float>> DynamicActor::getPattern() {
     if (_playable)
         return std::vector<std::pair<float, float>>();
     PatternComponent comp = _ecs.registry.getComponent<PatternComponent>(_id);
@@ -174,8 +172,7 @@ std::vector<std::pair<float, float>> DynamicActor::getPattern()
     return comp.waypoints;
 }
 
-void DynamicActor::setPatternActive(bool state)
-{
+void DynamicActor::setPatternActive(bool state) {
     if (_playable)
         return;
     PatternComponent& comp = _ecs.registry.getComponent<PatternComponent>(_id);
@@ -184,8 +181,7 @@ void DynamicActor::setPatternActive(bool state)
     return;
 }
 
-bool DynamicActor::getPatternActiveState()
-{
+bool DynamicActor::getPatternActiveState() {
     if (_playable)
         return false;
     PatternComponent comp = _ecs.registry.getComponent<PatternComponent>(_id);
@@ -193,8 +189,7 @@ bool DynamicActor::getPatternActiveState()
     return comp.is_active;
 }
 
-void DynamicActor::setPatternLoop(bool state)
-{
+void DynamicActor::setPatternLoop(bool state) {
     if (_playable)
         return;
     PatternComponent& comp = _ecs.registry.getComponent<PatternComponent>(_id);
@@ -203,8 +198,7 @@ void DynamicActor::setPatternLoop(bool state)
     return;
 }
 
-bool DynamicActor::getPatternLoopState()
-{
+bool DynamicActor::getPatternLoopState() {
     if (_playable)
         return false;
     PatternComponent comp = _ecs.registry.getComponent<PatternComponent>(_id);
@@ -212,8 +206,7 @@ bool DynamicActor::getPatternLoopState()
     return comp.loop;
 }
 
-void DynamicActor::setPatternSpeed(float speed)
-{
+void DynamicActor::setPatternSpeed(float speed) {
     if (_playable)
         return;
     PatternComponent& comp = _ecs.registry.getComponent<PatternComponent>(_id);
@@ -222,8 +215,7 @@ void DynamicActor::setPatternSpeed(float speed)
     return;
 }
 
-float DynamicActor::getPatternSpeed()
-{
+float DynamicActor::getPatternSpeed() {
     if (_playable)
         return -1;
     PatternComponent& comp = _ecs.registry.getComponent<PatternComponent>(_id);

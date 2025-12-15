@@ -2,8 +2,10 @@
 #include <iostream>
 #include <memory>
 #include <ostream>
+#include <algorithm>
 #include <utility>
 #include "src/RType/Common/Components/shooter.hpp"
+#include "Components/StandardComponents.hpp"
 
 GameManager::GameManager() {
 }
@@ -39,6 +41,23 @@ void GameManager::init(ECS& ecs) {
     enemy->setPatternLoop(true);
     
     _ennemies.push_back(std::move(enemy));
+
+    // Spawner par défaut: 1 mob toutes les 2s
+    {
+        Entity spawner = ecs.registry.createEntity();
+        SpawnComponent sp{};
+        sp.active = true;
+        sp.interval = 2.0f;
+        sp.sprite_path = "content/sprites/r-typesheet8.gif";
+        sp.frame = rect{0, 0, 32, 32};
+        sp.scale_x = 2.0f;
+        sp.scale_y = 2.0f;
+        sp.speed_x = -100.0f; // défile vers la gauche
+        ecs.registry.addComponent<SpawnComponent>(spawner, sp);
+    }
+
+    // Démarrer le chrono du Boss (délai configurable via setBossTriggerTime)
+    _bossClock.restart();
     return;
 }
 
@@ -118,4 +137,35 @@ void GameManager::loadInputSetting(ECS& ecs) {
 }
 
 void GameManager::update(ECS& ecs) {
+    // Evénement Boss après _bossTriggerSeconds (configurable)
+    if (!_bossSpawned && _bossClock.getElapsedTime().asSeconds() >= _bossTriggerSeconds) {
+        // 1) Désactiver tous les spawners
+        const auto& spawners = ecs.registry.getEntities<SpawnComponent>();
+        for (Entity e : spawners) {
+            auto& sp = ecs.registry.getComponent<SpawnComponent>(e);
+            sp.active = false;
+        }
+
+        // 2) Supprimer toutes les entités ENEMY (tag)
+        const auto& tagged = ecs.registry.getEntities<TagComponent>();
+        for (Entity e : tagged) {
+            const auto& tag = ecs.registry.getComponent<TagComponent>(e).tags;
+            if (std::find(tag.begin(), tag.end(), std::string("ENEMY")) != tag.end()) {
+                ecs.registry.destroyEntity(e);
+            }
+        }
+
+        // 3) Créer le Boss statique
+        _boss = std::make_unique<AI>(ecs, std::pair<float, float>{700.f, 300.f});
+        _boss->setTexture(_bossSpritePath);
+        _boss->setTextureDimension(_bossFrame);
+        _boss->setScale(_bossScale);
+        _boss->setDisplayLayer(10);
+        _boss->addTag("BOSS");
+        if (_bossFireRate > 0.0)
+            _boss->setFireRate(_bossFireRate);
+
+        _bossSpawned = true;
+        std::cout << "[GameManager] Boss apparu après " << _bossTriggerSeconds << " secondes !" << std::endl;
+    }
 }

@@ -11,6 +11,7 @@
 #include "PhysicsSystem.hpp"
 #include "RenderSystem.hpp"
 #include "BackgroundSystem.hpp"
+#include "SpawnSystem.hpp"
 #include "WindowManager.hpp"
 #include "ressource_manager.hpp"
 

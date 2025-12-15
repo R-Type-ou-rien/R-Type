@@ -6,9 +6,9 @@
 #pragma once
 
 class DynamicActor : public AActor {
+   protected:
+    bool _playable;
 
-    protected:
-        bool _playable;
    public:
     DynamicActor(ECS& ecs, bool playable, const std::string name = "DynamicActor");
 

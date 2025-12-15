@@ -8,22 +8,22 @@
 #pragma once
 
 class AI : public DynamicActor {
-    public:
-        AI(ECS& ecs, std::pair<float, float> pos);
+   public:
+    AI(ECS& ecs, std::pair<float, float> pos);
 
-        void setProjectileType(ShooterComponent::ProjectileType type);
+    void setProjectileType(ShooterComponent::ProjectileType type);
 
-        ShooterComponent::ProjectileType getProjectileType();
+    ShooterComponent::ProjectileType getProjectileType();
 
-        void setShootingState(bool state);
+    void setShootingState(bool state);
 
-        bool isShooting();
+    bool isShooting();
 
-        void setFireRate(double fire_rate);
+    void setFireRate(double fire_rate);
 
-        double getFireRate();
+    double getFireRate();
 
-        void setTeam(TeamComponent::Team team);
+    void setTeam(TeamComponent::Team team);
 
-        TeamComponent::Team getTeam();
+    TeamComponent::Team getTeam();
 };
