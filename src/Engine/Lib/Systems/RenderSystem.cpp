@@ -29,10 +29,16 @@ void RenderSystem::update(Registry& registry, system_context context) {
 
 void RenderSystem::drawEntity(const transform_component_s& transform, const sprite2D_component_s& spriteData,
                               const system_context& context) {
-    if (!context.texture_manager.has_resource(spriteData.handle))
+    if (!context.texture_manager.has_value() || !context.window.has_value()) {
+        throw std::logic_error("The texture manager or/and the window is not initalized in the given context");
+    }
+    ResourceManager<sf::Texture>& texture_manager = context.texture_manager.value();
+    sf::RenderWindow& window = context.window.value();
+
+    if (!texture_manager.has_resource(spriteData.handle))
         return;
 
-    sf::Texture& texture = context.texture_manager.get_resource(spriteData.handle).value().get();
+    sf::Texture& texture = texture_manager.get_resource(spriteData.handle).value().get();
     sf::Sprite sprite(texture);
 
     if (spriteData.dimension.width > 0 && spriteData.dimension.height > 0)
@@ -42,6 +48,6 @@ void RenderSystem::drawEntity(const transform_component_s& transform, const spri
     sprite.setPosition({transform.x, transform.y});
     sprite.setScale({transform.scale_x, transform.scale_y});
 
-    context.window.draw(sprite);
+    window.draw(sprite);
     return;
 }

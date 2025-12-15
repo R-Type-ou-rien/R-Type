@@ -8,10 +8,10 @@
 #include <unordered_map>
 #include <typeindex>
 
-class NetworkSystem : public ISystem {
+class ComponentSenderSystem : public ISystem {
     public:
-        NetworkSystem() = default;
-        ~NetworkSystem() = default;
+        ComponentSenderSystem() = default;
+        ~ComponentSenderSystem() = default;
         void update(Registry& registry, system_context context) override;
         
 };

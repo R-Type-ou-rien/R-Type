@@ -1,13 +1,7 @@
-#pragma once
-
-#include <functional>
-#include <string>
-
-#include <SFML/Graphics/Texture.hpp>
-
 #include "ECS/ECS.hpp"
 #include "ECS/ISystem.hpp"
 #include "InputSystem.hpp"
+#include "Network/Server/Server.hpp"
 #include "PhysicsSystem.hpp"
 #include "RenderSystem.hpp"
 #include "BackgroundSystem.hpp"
@@ -15,30 +9,29 @@
 #include "ressource_manager.hpp"
 #include "Components/StandardComponents.hpp"
 #include "Network/Client/Client.hpp"
+#include "NetworkSystem/ComponentSenderSystem.hpp"
+#include "PatternSystem/PatternSystem.hpp"
+#include "CollisionSystem.hpp"
+#include "ActionScriptSystem.hpp"
 
-#define SUCCESS 0
-#define FAILURE -1
-#define WINDOW_H 1000
-#define WINDOW_W 1000
+#pragma once
 
-class ClientGameEngine {
-   private:
+class ServerGameEngine {
+    private:
     ECS _ecs;
-    WindowManager _window_manager;
-    Client _network_client;
+    Server _network_server;
     std::function<void(ECS& ecs)> _function;
     std::function<void(ECS& ecs)> _init_function;
 
    public:
     int init();
     int run();
-    explicit ClientGameEngine(std::string window_name = "Default Name");
-    ~ClientGameEngine();
+    explicit ServerGameEngine();
+    ~ServerGameEngine();
     void setUserFunction(std::function<void(ECS& ecs)> user_function);
     void setInitFunction(std::function<void(ECS& ecs)> user_function);
 
    private:
-    void handleEvent();
     void handleNetworkMessages();
     void execCorrespondingFunction(GameEvents event, coming_message c_msg);
 };

@@ -1,100 +1,60 @@
-#include "ClientGameEngine.hpp"
-#include <cstdint>
-#include <exception>
-#include <iostream>
-#include <ostream>
-#include <stdexcept>
-#include "CollisionSystem.hpp"
-#include "ActionScriptSystem.hpp"
-#include "Components/StandardComponents.hpp"
-#include "Network/Network.hpp"
-#include "Network/Network.hpp"
-#include "NetworkSystem/ComponentSenderSystem.hpp"
-#include "PatternSystem/PatternSystem.hpp"
+#include "ServerGameEngine.hpp"
+#include <optional>
 
 
-ClientGameEngine::ClientGameEngine(std::string window_name) : _window_manager(WINDOW_W, WINDOW_H, window_name) {}
+int ServerGameEngine::init()
+{
+    _network_server.WaitForClientConnection();
 
-int ClientGameEngine::init() {
-    InputManager input_manager;
-
-    _network_client.Connect("127.0.0.1", 8080);    
-
-    _ecs.systems.addSystem<BackgroundSystem>();
-    _ecs.systems.addSystem<RenderSystem>();
-    _ecs.systems.addSystem<InputSystem>(_ecs.input);
     _ecs.systems.addSystem<BoxCollision>();
     _ecs.systems.addSystem<ActionScriptSystem>();
     _ecs.systems.addSystem<PatternSystem>();
     _ecs.systems.addSystem<ComponentSenderSystem>();
+    _ecs.systems.addSystem<PhysicsSystem>();
 
     if (_init_function)
         _init_function(_ecs);
 
-    // if mode local
-    _ecs.systems.addSystem<PhysicsSystem>();
     return 0;
 }
 
-void ClientGameEngine::setUserFunction(std::function<void(ECS& ecs)> user_function) {
+void ServerGameEngine::setUserFunction(std::function<void(ECS& ecs)> user_function) {
     _function = user_function;
     return;
 }
 
-void ClientGameEngine::setInitFunction(std::function<void(ECS& ecs)> user_function) {
+void ServerGameEngine::setInitFunction(std::function<void(ECS& ecs)> user_function) {
     _init_function = user_function;
     return;
 }
 
-void ClientGameEngine::handleEvent() {
-    while (std::optional<sf::Event> event = _window_manager.pollEvent()) {
-        if (event->is<sf::Event::Closed>())
-            _window_manager.getWindow().close();
-        if (event->is<sf::Event::FocusLost>())
-            _ecs.input.setWindowHasFocus(false);
-        if (event->is<sf::Event::FocusGained>())
-            _ecs.input.setWindowHasFocus(true);
-    }
-}
-
-int ClientGameEngine::run() {
+int ServerGameEngine::run() {
     sf::Clock clock;
     system_context context = {
         0,
         _ecs._textureManager,
-        _window_manager.getWindow(),
-        _ecs.input,
-        //_network_client
+        std::nullopt,
+        std::nullopt,
+        std::nullopt,
+        _network_server
     };
 
     this->init();
-    while (_window_manager.isOpen()) {
+    while (1) {
         context.dt = clock.restart().asSeconds();
-        handleEvent();
-        _window_manager.clear();
         if (_function)
             _function(_ecs);
         _ecs.update(context);
-        _window_manager.display();
     }
     return 0;
 }
 
-void ClientGameEngine::handleNetworkMessages()
+void ServerGameEngine::handleNetworkMessages()
 {
-    // if (_network_client.IsConnected()) {
-    //     // send authentification
-    //     coming_message c_msg = _network_client.ReadIncomingMessage();
-
-    //     if (c_msg.id != GameEvents::NONE) {
-    //         // parse message
-    //     }
-    // } else {
-    //     // _network_client.Disconnect();
-    // }
+    
 }
 
-void ClientGameEngine::execCorrespondingFunction(GameEvents event, coming_message c_msg)
+void ServerGameEngine::execCorrespondingFunction(GameEvents event, coming_message c_msg)
 {
     switch (event) {
         case (GameEvents::S_REGISTER_OK):
