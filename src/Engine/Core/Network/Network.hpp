@@ -5,8 +5,11 @@
 
 #include "NetworkInterface/message.hpp"
 
-enum class RTypeEvents : uint32_t {
+enum class GameEvents : uint32_t {
+    NONE,
+    S_SEND_ID,
     C_PING_SERVER,
+    S_PING_SERVER,
 
     C_REGISTER,
     S_REGISTER_OK,
@@ -17,18 +20,22 @@ enum class RTypeEvents : uint32_t {
     S_LOGIN_OK,
     S_LOGIN_KO,
     C_DISCONNECT,
+    S_CONFIRM_UDP,
     C_CONFIRM_UDP,
 
     // LOBBY EVENTS
     C_LIST_ROOMS,
     S_ROOMS_LIST,
     C_JOIN_ROOM,
+    C_JOINT_RANDOM_LOBBY,
     S_ROOM_JOINED,
     S_PLAYER_JOINED,
     S_ROOM_NOT_JOINED,
     C_ROOM_LEAVE,
     S_PLAYER_LEAVE,
+    S_ROOM_LEAVE,
     S_PLAYER_KICKED,
+    S_ROOM_KICKED,
     S_NEW_HOST,
     C_NEW_LOBBY,
     S_CONFIRM_NEW_LOBBY,
@@ -40,8 +47,6 @@ enum class RTypeEvents : uint32_t {
     S_GAME_START,
     C_CANCEL_READY,
     S_CANCEL_READY_BROADCAST,
-    C_QUIT_LOBBY,
-    S_QUIT_LOBBY_BROADCAST,
 
     // IN-GAME EVENTS
     C_INPUT,
@@ -62,9 +67,9 @@ enum class RTypeEvents : uint32_t {
 };
 
 struct coming_message {
-    RTypeEvents id;
+    GameEvents id;
     uint32_t clientID;
-    network::message<RTypeEvents> msg;
+    network::message<GameEvents> msg;
 };
 
 struct connection_info {
