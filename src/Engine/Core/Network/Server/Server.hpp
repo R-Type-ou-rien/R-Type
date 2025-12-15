@@ -12,6 +12,7 @@
 
 #define DATABASE_FILE "rtype.db"
 #define ALPHA_NUMERIC "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+#define LOBBY_NAME "CACABOUDIIINNNNN"
 
 #define MAX_PLAYERS 20
 
@@ -20,7 +21,15 @@ class Server : public network::ServerInterface<GameEvents> {
 
    public:
     Server(uint16_t nPort, int timeout_seconds)
-        : network::ServerInterface<GameEvents>(nPort), _timeout_seconds(timeout_seconds) {};
+        : network::ServerInterface<GameEvents>(nPort), _timeout_seconds(timeout_seconds) {
+        uint32_t newLobbyID = 1;
+        if (!_lobbys.empty()) {
+            newLobbyID = _lobbys.back().GetID() + 1;
+        }
+        Lobby<GameEvents> newLobby(newLobbyID, LOBBY_NAME);
+
+        _lobbys.emplace_back(newLobby);
+    };
 
    protected:
     virtual void OnMessage(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents>& msg);

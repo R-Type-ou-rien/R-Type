@@ -7,6 +7,7 @@
 
 enum class GameEvents : uint32_t {
     NONE,
+    CONNECTION_PLAYER,
     S_SEND_ID,
     C_PING_SERVER,
     S_PING_SERVER,
@@ -97,6 +98,7 @@ struct player {
 struct lobby_in_info {
     uint32_t id;
     std::string name;
-    std::vector<player> players;
-    uint32_t maxPlayers;
+    std::vector<uint32_t> id_player;
+    // std::vector<player> players;
+    uint32_t nbPlayers;
 };

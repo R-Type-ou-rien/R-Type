@@ -6,6 +6,8 @@
 #include <cstdint>
 #include <cstring>
 #include <string>
+#include "Network/Network.hpp"
+#include "Network/NetworkInterface/message.hpp"
 
 void Server::OnMessage(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents>& msg) {
     switch (msg.header.id) {
@@ -31,8 +33,22 @@ void Server::OnMessage(std::shared_ptr<network::Connection<GameEvents>> client, 
             OnClientNewLobby(client, msg);
             break;
         case GameEvents::C_CONFIRM_UDP:
-            if (_clientStates[client] == ClientState::WAITING_UDP_PING)
-                _clientStates[client] = ClientState::LOGGED_IN;
+            // if (_clientStates[client] == ClientState::WAITING_UDP_PING)
+            //     _clientStates[client] = ClientState::LOGGED_IN;
+            if (_clientStates[client] == ClientState::WAITING_UDP_PING) {
+                _clientStates[client] = ClientState::IN_LOBBY;
+                if (_lobbys.back().GetNbPlayers() >= 2) {
+                    for (auto& [id, connection] : _lobbys.back().getLobbyPlayers()) {
+                        if (_clientStates[connection] != ClientState::IN_LOBBY)
+                            return;
+                    }
+                    for (auto& [id, connection] : _lobbys.back().getLobbyPlayers())
+                        _clientStates[connection] = ClientState::IN_GAME;
+                    AddMessageToLobby(GameEvents::S_GAME_START, _lobbys.back().GetID(), nullptr);
+                    _toGameMessages.push(
+                        {GameEvents::C_GAME_START, _lobbys.back().GetID(), network::message<GameEvents>()});
+                }
+            }
             break;
         default:
             _toGameMessages.push({msg.header.id, msg.header.user_id, msg});
@@ -51,8 +67,22 @@ bool Server::OnClientConnect(std::shared_ptr<network::Connection<GameEvents>> cl
     if (_deqConnections.size() >= _maxConnections)
         return false;
     client->SetTimeout(0);
-    AddMessageToPlayer(GameEvents::C_PING_SERVER, client->GetID(), NULL);
-    _toGameMessages.push({GameEvents::C_PING_SERVER, client->GetID(), network::message<GameEvents>()});
+    // AddMessageToPlayer(GameEvents::C_PING_SERVER, client->GetID(), NULL);
+    _toGameMessages.push({GameEvents::CONNECTION_PLAYER, client->GetID(), network::message<GameEvents>()});
+    AddMessageToPlayer(GameEvents::S_SEND_ID, client->GetID(), client->GetID());
+
+    AddMessageToLobby(GameEvents::S_PLAYER_JOINED, _lobbys.back().GetID(), client->GetID());
+    _lobbys.back().AddPlayer(client);
+    struct lobby_in_info info;
+    info.id = _lobbys.back().GetID();
+    info.name = _lobbys.back().GetName();
+    info.nbPlayers = _lobbys.back().GetNbPlayers();
+    for (auto& [id, connection] : _lobbys.back().getLobbyPlayers())
+        info.id_player.push_back(id);
+
+    AddMessageToPlayer(GameEvents::S_ROOM_JOINED, client->GetID(), info);
+
+    _clientStates[client] = ClientState::WAITING_UDP_PING;
     return true;
 }
 
@@ -160,12 +190,13 @@ void Server::OnClientJoinLobby(std::shared_ptr<network::Connection<GameEvents>> 
             struct lobby_in_info info;
             info.id = lobby.GetID();
             info.name = lobby.GetName();
-            info.maxPlayers = lobby.GetMaxPlayers();
+            info.nbPlayers = lobby.GetNbPlayers();
             for (auto& [id, connection] : lobby.getLobbyPlayers()) {
-                player p;
-                p.id = id;
-                p.username = _clientUsernames[connection];
-                info.players.push_back(p);
+                // player p;
+                // p.id = id;
+                // p.username = _clientUsernames[connection];
+                info.id_player.push_back(id);
+                // info.players.push_back(p);
             }
             AddMessageToPlayer(GameEvents::S_ROOM_JOINED, client->GetID(), info);
 
