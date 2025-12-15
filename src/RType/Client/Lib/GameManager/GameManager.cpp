@@ -10,6 +10,23 @@ GameManager::GameManager() {
 
 void GameManager::init(ECS& ecs) {
     ecs.systems.addSystem<ShooterSystem>();
+
+    {
+        const std::string bgPath = "content/sprites/background-R-Type.png";
+        Entity bgEntity = ecs.registry.createEntity();
+
+        BackgroundComponent bg{};
+        bg.x_offset = 0.f;
+        bg.scroll_speed = 60.f; // pixels per second, adjust if needed
+
+        if (ecs._textureManager.is_loaded(bgPath)) {
+            bg.texture_handle = ecs._textureManager.get_handle(bgPath).value();
+        } else {
+            bg.texture_handle = ecs._textureManager.load_resource(bgPath, sf::Texture(bgPath));
+        }
+
+        ecs.registry.addComponent<BackgroundComponent>(bgEntity, bg);
+    }
     _player = std::make_unique<Player>(ecs, std::pair<float, float>{100.f, 300.f});
     _player->setTexture("content/sprites/r-typesheet42.gif");
     _player->setTextureDimension(rect{0, 0, 32, 16});

@@ -32,7 +32,7 @@ void RenderSystem::drawEntity(const transform_component_s& transform, const spri
     if (!context.texture_manager.has_resource(spriteData.handle))
         return;
 
-    sf::Texture texture = context.texture_manager.get_resource(spriteData.handle).value();
+    sf::Texture& texture = context.texture_manager.get_resource(spriteData.handle).value().get();
     sf::Sprite sprite(texture);
 
     if (spriteData.dimension.width > 0 && spriteData.dimension.height > 0)

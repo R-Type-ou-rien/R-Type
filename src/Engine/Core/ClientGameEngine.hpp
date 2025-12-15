@@ -10,6 +10,7 @@
 #include "InputSystem.hpp"
 #include "PhysicsSystem.hpp"
 #include "RenderSystem.hpp"
+#include "BackgroundSystem.hpp"
 #include "WindowManager.hpp"
 #include "ressource_manager.hpp"
 #include "Components/StandardComponents.hpp"

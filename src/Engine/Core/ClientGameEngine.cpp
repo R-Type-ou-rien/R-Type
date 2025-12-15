@@ -13,6 +13,7 @@ ClientGameEngine::ClientGameEngine(std::string window_name) : _window_manager(WI
 int ClientGameEngine::init() {
     InputManager input_manager;
 
+    _ecs.systems.addSystem<BackgroundSystem>();
     _ecs.systems.addSystem<RenderSystem>();
     _ecs.systems.addSystem<InputSystem>(_ecs.input);
     _ecs.systems.addSystem<BoxCollision>();

@@ -2,7 +2,6 @@
 
 #include "Connection.hpp"
 #include "MsgQueue.hpp"
-#include "NetworkCommon.hpp"
 #include "message.hpp"
 
 namespace network {
@@ -145,9 +144,17 @@ class ServerInterface {
 
             nMessageCount++;
         }
+
+        for (auto& client : _deqConnections) {
+            if (!client->IsConnected()) {
+                OnClientDisconnect(client);
+                continue;
+            }
+            // client->ResetTimeout();
+        }
     }
 
-    void ReceiveUDP() {
+    virtual void ReceiveUDP() {
         _socketUDP.async_receive_from(
             asio::buffer(_udpMsgTemporaryIn), _udpEndpointTemporary, [this](std::error_code ec, std::size_t len) {
                 if (!ec && len > 0) {
