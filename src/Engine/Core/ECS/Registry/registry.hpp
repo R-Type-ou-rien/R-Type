@@ -1,23 +1,29 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
+#include <iostream>
 #include <memory>
+#include <ostream>
 #include <tuple>
 #include <typeindex>
 #include <unordered_map>
 #include <vector>
 #include <typeinfo>
 
+#include "Components/NetworkComponents.hpp"
 #include "sparse_set/SparseSet.hpp"
+#include "Hash/Hash.hpp"
 
 using Entity = uint32_t;
+using Pool_storage = std::unordered_map<std::type_index, std::unique_ptr<ISparseSet>>;
 
 class Registry {
    private:
     Entity _nextId = 0;
-    std::unordered_map<std::type_index, std::unique_ptr<ISparseSet>> _pools;
+    Pool_storage _pools;
     std::vector<Entity> _deadEntities;
-
+    
    public:
     Registry() = default;
     ~Registry() = default;
@@ -79,6 +85,16 @@ class Registry {
     }
 
     /**
+        A function to get the component of an entity (read-only, no dirty flag)
+        @param Entity entity
+        @return The function returns a const reference to a component
+    */
+    template <typename Component>
+    const Component& getComponentConst(Entity entity) {
+        return getPool<Component>().getDataFromIdConst(entity);
+    }
+
+    /**
         A function to know if an entity has a component
         @param Entity entity
         @return The function returns a boolean corresponding at the presence of a component in an entity
@@ -108,9 +124,12 @@ class Registry {
 
     /**
         A function to get the entities from a component pool
+        @return A reference to the list of entity that have the component 
     */
     template <typename Component>
     std::vector<std::size_t>& getEntities() {
         return getPool<Component>().getIdList();
     }
+
+    Pool_storage& getPools();
 };

@@ -1,7 +1,11 @@
 #include <cstddef>
+#include <cstdint>
+#include <cstring>
 #include <iostream>
 #include <ostream>
 #include <vector>
+#include "Components/NetworkComponents.hpp"
+#include "Hash/Hash.hpp"
 
 #ifndef SPARSE_HPP
 
@@ -10,6 +14,8 @@ class ISparseSet {
     virtual ~ISparseSet() = default;
     virtual void removeId(std::size_t Entity) = 0;
     virtual bool has(std::size_t Entity) const = 0;
+    virtual std::vector<std::size_t> popUpdatedEntities() = 0;
+    virtual ComponentPacket createPacket(uint32_t entity) = 0;
 };
 
 template <typename data_type>
@@ -29,6 +35,8 @@ class SparseSet : public ISparseSet {
         The id are stored contigously
     */
     std::vector<std::size_t> _reverse_dense;
+    
+    std::vector<bool> _dirty;
 
    public:
     /**
@@ -41,11 +49,13 @@ class SparseSet : public ISparseSet {
         }
         if (_sparse[id] != -1) {
             _dense[_sparse[id]] = data;
+            _dirty[_sparse[id]] = true;
             return;
         }
         _sparse[id] = _dense.size();
         _dense.push_back(data);
         _reverse_dense.push_back(id);
+        _dirty.push_back(true);
         return;
     }
 
@@ -67,16 +77,21 @@ class SparseSet : public ISparseSet {
             _dense[indexToRemove] = lastData;
             _reverse_dense[indexToRemove] = lastEntity;
             _sparse[lastEntity] = indexToRemove;
+            
+            _dirty[indexToRemove] = _dirty[lastIndex];
         }
         _sparse[id] = -1;
         _dense.pop_back();
         _reverse_dense.pop_back();
+        _dirty.pop_back();
         std::cout << "Component from entity " << id << " successfully removed." << std::endl;
         return;
     }
 
     /**
         A function to check if an id has a data
+        @param std::size_t id
+        @return Returns true if the id has a data and false otherwise
     */
     bool has(std::size_t id) const override {
         if (id < _sparse.size() && _sparse[id] > -1)
@@ -91,20 +106,23 @@ class SparseSet : public ISparseSet {
     */
     data_type& getDataFromId(std::size_t id) {
         if (!has(id)) {
-            throw std::runtime_error("Entity does not have component!");
+            throw std::runtime_error("Entity does not have component");
         }
+        _dirty[_sparse[id]] = true;
         return _dense[_sparse[id]];
     }
 
-    // /**
-    //     A function to get the id of a given data
-    //     @param data_type data
-    //     @return The function returns the corresponding id
-    // */
-    // std::size_t getIdFromData(data_type data) const
-    // {
-    //     return _reverse_dense[data];
-    // }
+    /**
+        A function to get the data of a given id without marking it as dirty (read-only)
+        @param std::size_t id
+        @return The function returns const reference to the corresponding data
+    */
+    const data_type& getDataFromIdConst(std::size_t id) const {
+        if (!has(id)) {
+            throw std::runtime_error("Entity does not have component");
+        }
+        return _dense[_sparse[id]];
+    }
 
     /**
         A function to get the data's list stored
@@ -117,6 +135,27 @@ class SparseSet : public ISparseSet {
         @return The function returns the _reverse_dense vector
     */
     std::vector<std::size_t>& getIdList() { return _reverse_dense; }
+
+    std::vector<std::size_t> popUpdatedEntities() override {
+        std::vector<std::size_t> updated;
+        for (size_t i = 0; i < _dirty.size(); ++i) {
+            if (_dirty[i]) {
+                updated.push_back(_reverse_dense[i]);
+                _dirty[i] = false;
+            }
+        }
+        return updated;
+    }
+
+    ComponentPacket createPacket(uint32_t entity) override {
+        ComponentPacket packet;
+        data_type& comp = this->getDataFromId(entity);
+
+        packet.component_type = Hash::fnv1a(comp.name);
+        packet.data.resize(sizeof(data_type));
+        std::memcpy(packet.data.data(), &comp, sizeof(data_type));
+        return packet;
+    }
 };
 
 #endif

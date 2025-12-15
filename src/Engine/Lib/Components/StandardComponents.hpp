@@ -26,6 +26,7 @@
 #include "registry.hpp"
 
 struct PatternComponent {
+    static constexpr auto name = "Pattern";
     std::vector<std::pair<float, float>> waypoints;
     int current_index = 0;
     float speed = 100.0f;
@@ -40,11 +41,13 @@ struct ResourceStat {
 };
 
 struct ResourceComponent {
+    static constexpr auto name = "Resource";
     std::map<std::string, ResourceStat> resources;
     std::map<std::string, std::function<void()>> empty_effects;
 };
 
 struct transform_component_s {
+    static constexpr auto name = "Transform";
     float x;
     float y;
     float scale_x = 1.0;
@@ -53,11 +56,13 @@ struct transform_component_s {
 };
 
 struct Velocity2D {
+    static constexpr auto name = "Velocity";
     float vx;
     float vy;
 };
 
 struct rect {
+    static constexpr auto name = "Rect";
     float x;
     float y;
     float width;
@@ -65,12 +70,14 @@ struct rect {
 };
 
 struct BoxCollisionComponent {
+    static constexpr auto name = "Collision";
     CollidedEntity collision;
     std::vector<std::string> tagCollision;
     std::function<void(Registry& registry, system_context context, Entity current_entity)> callbackOnCollide;
 };
 
 struct sprite2D_component_s {
+    static constexpr auto name = "Sprite";
     handle_t<sf::Texture> handle;
     rect dimension = {0.0f, 0.0f, 0.0f, 0.0f};
     bool is_animated = false;
@@ -81,12 +88,14 @@ struct sprite2D_component_s {
 };
 
 struct TagComponent {
+    static constexpr auto name = "Tag";
     std::vector<std::string> tags;
 };
 
 using ActionCallback = std::function<void(Registry& registry, system_context context, Entity current_entity)>;
 
 struct ActionScript {
+    static constexpr auto name = "ActionScript";
     std::unordered_map<Action, ActionCallback> actionOnPressed;
     std::unordered_map<Action, ActionCallback> actionOnReleased;
     std::unordered_map<Action, ActionCallback> actionPressed;
@@ -101,10 +110,12 @@ struct Shooter {
 };
 
 struct Projectile {
+    static constexpr auto name = "Projectile";
     float lifetime;
 };
 
 struct Scroll {
+    static constexpr auto name = "Scroll";
     float scroll_speed_x;
     float scroll_speed_y;
     bool is_paused;

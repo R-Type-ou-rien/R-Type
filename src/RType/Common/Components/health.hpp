@@ -4,6 +4,7 @@
 #include "registry.hpp"
 
 struct HealthComponent {
+    static constexpr auto name = "Health";
     int max_hp;
     int current_hp;
 };

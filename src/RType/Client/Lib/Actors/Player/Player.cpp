@@ -22,7 +22,7 @@ void Player::setProjectileType(ShooterComponent::ProjectileType type)
 
 ShooterComponent::ProjectileType Player::getProjectileType()
 {
-    ShooterComponent comp = _ecs.registry.getComponent<ShooterComponent>(_id);
+    ShooterComponent comp = _ecs.registry.getComponentConst<ShooterComponent>(_id);
 
     return comp.type;
 }
@@ -37,7 +37,7 @@ void Player::setShootingState(bool state)
 
 bool Player::isShooting()
 {
-    ShooterComponent comp = _ecs.registry.getComponent<ShooterComponent>(_id);
+    ShooterComponent comp = _ecs.registry.getComponentConst<ShooterComponent>(_id);
 
     return comp.is_shooting;
 }
@@ -52,7 +52,7 @@ void Player::setFireRate(double fire_rate)
 
 double Player::getFireRate()
 {
-    ShooterComponent comp = _ecs.registry.getComponent<ShooterComponent>(_id);
+    ShooterComponent comp = _ecs.registry.getComponentConst<ShooterComponent>(_id);
 
     return comp.fire_rate;
 }
@@ -67,7 +67,7 @@ void Player::setTeam(TeamComponent::Team team)
 
 TeamComponent::Team Player::getTeam()
 {
-    TeamComponent comp = _ecs.registry.getComponent<TeamComponent>(_id);
+    TeamComponent comp = _ecs.registry.getComponentConst<TeamComponent>(_id);
 
     return comp.team;
 }

@@ -24,7 +24,7 @@ void AI::setProjectileType(ShooterComponent::ProjectileType type)
 
 ShooterComponent::ProjectileType AI::getProjectileType()
 {
-    ShooterComponent comp = _ecs.registry.getComponent<ShooterComponent>(_id);
+    ShooterComponent comp = _ecs.registry.getComponentConst<ShooterComponent>(_id);
 
     return comp.type;
 }
@@ -39,7 +39,7 @@ void AI::setShootingState(bool state)
 
 bool AI::isShooting()
 {
-    ShooterComponent comp = _ecs.registry.getComponent<ShooterComponent>(_id);
+    ShooterComponent comp = _ecs.registry.getComponentConst<ShooterComponent>(_id);
 
     return comp.is_shooting;
 }
@@ -54,7 +54,7 @@ void AI::setFireRate(double fire_rate)
 
 double AI::getFireRate()
 {
-    ShooterComponent comp = _ecs.registry.getComponent<ShooterComponent>(_id);
+    ShooterComponent comp = _ecs.registry.getComponentConst<ShooterComponent>(_id);
 
     return comp.fire_rate;
 }
@@ -69,7 +69,7 @@ void AI::setTeam(TeamComponent::Team team)
 
 TeamComponent::Team AI::getTeam()
 {
-    TeamComponent comp = _ecs.registry.getComponent<TeamComponent>(_id);
+    TeamComponent comp = _ecs.registry.getComponentConst<TeamComponent>(_id);
 
     return comp.team;
 }

@@ -89,13 +89,6 @@ void GameManager::loadInputSetting(ECS& ecs) {
         if (registry.hasComponent<ShooterComponent>(entity)) {
             ShooterComponent& shoot = registry.getComponent<ShooterComponent>(entity);
             shoot.is_shooting = true;
-            shoot.trigger_pressed = true;
-        }
-    });
-    _player->bindActionCallbackOnReleased("shoot", [](Registry& registry, system_context context, Entity entity) {
-        if (registry.hasComponent<ShooterComponent>(entity)) {
-            auto& shoot = registry.getComponent<ShooterComponent>(entity);
-            shoot.is_shooting = false;
         }
     });
 }

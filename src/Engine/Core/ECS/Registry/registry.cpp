@@ -1,7 +1,17 @@
 #include "registry.hpp"
+#include <random>
+
+uint64_t generateRandomGuid() {
+    static std::random_device rd;
+    static std::mt19937_64 gen(rd());
+    static std::uniform_int_distribution<uint64_t> dis;
+    return dis(gen);
+}
 
 Entity Registry::createEntity() {
-    return _nextId++;
+    Entity id = _nextId++;
+    addComponent<NetworkIdentity>(id, NetworkIdentity{generateRandomGuid(), 0});
+    return id;
 }
 
 void Registry::destroyEntity(Entity id) {
@@ -11,4 +21,9 @@ void Registry::destroyEntity(Entity id) {
     }
     _deadEntities.push_back(id);
     return;
+}
+
+Pool_storage& Registry::getPools()
+{
+    return _pools;
 }

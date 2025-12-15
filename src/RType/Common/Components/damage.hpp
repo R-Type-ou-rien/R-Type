@@ -4,6 +4,7 @@
 #include "registry.hpp"
 
 struct DamageOnCollision {
+    static constexpr auto name = "Damage";
     int damage_value;
 };
 

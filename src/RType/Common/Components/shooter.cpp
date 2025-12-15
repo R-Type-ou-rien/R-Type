@@ -95,8 +95,7 @@ void ShooterSystem::update(Registry& registry, system_context context) {
         }
         ShooterComponent& shooter = registry.getComponent<ShooterComponent>(id);
         shooter.last_shot += context.dt;
-        bool shoot = shooter.is_shooting || shooter.trigger_pressed;
-        if (!shoot)
+        if (!shooter.is_shooting)
             continue;
         transform_component_s& pos = registry.getComponent<transform_component_s>(id);
         TeamComponent& team = registry.getComponent<TeamComponent>(id);
@@ -105,6 +104,6 @@ void ShooterSystem::update(Registry& registry, system_context context) {
             create_projectile(registry, shooter.type, team.team, pos, context);
             shooter.last_shot = 0.f;
         }
-        shooter.trigger_pressed = false;
+        shooter.is_shooting = false;
     }
 }

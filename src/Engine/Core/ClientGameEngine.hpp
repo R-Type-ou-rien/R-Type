@@ -12,6 +12,7 @@
 #include "RenderSystem.hpp"
 #include "WindowManager.hpp"
 #include "ressource_manager.hpp"
+#include "Components/StandardComponents.hpp"
 
 #define SUCCESS 0
 #define FAILURE -1

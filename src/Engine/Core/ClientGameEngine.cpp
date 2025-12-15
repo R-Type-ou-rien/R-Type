@@ -1,7 +1,10 @@
 #include "ClientGameEngine.hpp"
+#include <exception>
+#include <stdexcept>
 #include "CollisionSystem.hpp"
 #include "ActionScriptSystem.hpp"
 #include "Components/StandardComponents.hpp"
+#include "NetworkSystem/NetworkSystem.hpp"
 #include "PatternSystem/PatternSystem.hpp"
 
 
@@ -15,6 +18,7 @@ int ClientGameEngine::init() {
     _ecs.systems.addSystem<BoxCollision>();
     _ecs.systems.addSystem<ActionScriptSystem>();
     _ecs.systems.addSystem<PatternSystem>();
+    _ecs.systems.addSystem<NetworkSystem>();
 
     if (_init_function)
         _init_function(_ecs);
