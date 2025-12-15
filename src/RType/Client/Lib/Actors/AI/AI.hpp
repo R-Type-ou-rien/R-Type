@@ -26,4 +26,13 @@ class AI : public DynamicActor {
         void setTeam(TeamComponent::Team team);
 
         TeamComponent::Team getTeam();
+
+        void setLifePoint(int lifePoint);
+
+        int getCurrentHealth();
+        
+        int getMaxHealth();
+        
+        void takeDamage(int damage);
+
 };

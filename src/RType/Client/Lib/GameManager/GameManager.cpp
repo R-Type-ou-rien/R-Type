@@ -3,13 +3,19 @@
 #include <memory>
 #include <ostream>
 #include <utility>
+#include "src/RType/Common/Components/health.hpp"
 #include "src/RType/Common/Components/shooter.hpp"
+#include "src/RType/Common/Components/damage.hpp"
 
 GameManager::GameManager() {
+
 }
 
 void GameManager::init(ECS& ecs) {
     ecs.systems.addSystem<ShooterSystem>();
+    ecs.systems.addSystem<Damage>();
+    ecs.systems.addSystem<HealthSystem>();
+
 
     {
         const std::string bgPath = "content/sprites/background-R-Type.png";
@@ -31,12 +37,22 @@ void GameManager::init(ECS& ecs) {
     _player->setTexture("content/sprites/r-typesheet42.gif");
     _player->setTextureDimension(rect{0, 0, 32, 16});
     _player->setFireRate(0.5);
+    _player->setLifePoint(100);
+    _player->addCollisionTag("AI");
+    _player->addCollisionTag("ENEMY_PROJECTILE");
+    _player->addCollisionTag("ITEM");
+    _player->addCollisionTag("GROUND");
+
     loadInputSetting(ecs);
     auto enemy = std::make_unique<AI>(ecs, std::pair<float, float>(300.f, 300.f));
     enemy->setTextureEnemy("content/sprites/r-typesheet8.gif");
     enemy->setPattern({{500.f, 300.f}, {500.f, 500.f}, {300.f, 500.f}, {300.f, 300.f}});
     enemy->setPatternLoop(true);
-    
+    enemy->setLifePoint(1);
+    enemy->addCollisionTag("FRIENDLY_PROJECTILE");
+    // ecs.registry.getComponent<BoxCollisionComponent>(enemy->getId()).callbackOnCollide = [](Registry& registry, system_context con, Entity current){
+    //     registry.getComponent<DamageOnCollision>(current).damage_value -= 10;
+    // };
     _ennemies.push_back(std::move(enemy));
     return;
 }

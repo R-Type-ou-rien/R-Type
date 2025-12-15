@@ -27,4 +27,14 @@ class Player : public DynamicActor {
         void setTeam(TeamComponent::Team team);
 
         TeamComponent::Team getTeam();
+
+        void setLifePoint(int lifePoint);
+
+        int getCurrentHealth();
+        
+        int getMaxHealth();
+        
+        void setCurrentHealth(int health);
+        
+        void takeDamage(int damage);
 };

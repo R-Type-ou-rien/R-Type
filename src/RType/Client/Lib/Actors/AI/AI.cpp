@@ -1,4 +1,6 @@
 #include "AI.hpp"
+#include "src/RType/Common/Components/damage.hpp"
+#include "src/RType/Common/Components/health.hpp"
 
 
 AI::AI(ECS& ecs, std::pair<float, float> pos): DynamicActor(ecs, false, "AI")
@@ -12,6 +14,8 @@ AI::AI(ECS& ecs, std::pair<float, float> pos): DynamicActor(ecs, false, "AI")
     setPosition(pos);
     _ecs.registry.addComponent<TeamComponent>(_id, {TeamComponent::Team::ENEMY});
     _ecs.registry.addComponent<ShooterComponent>(_id, {});
+    _ecs.registry.addComponent<HealthComponent>(_id, {100, 100});
+    _ecs.registry.addComponent<DamageOnCollision>(_id, {10});
 }
 
 void AI::setProjectileType(ShooterComponent::ProjectileType type)
@@ -72,4 +76,36 @@ TeamComponent::Team AI::getTeam()
     TeamComponent comp = _ecs.registry.getComponent<TeamComponent>(_id);
 
     return comp.team;
+}
+
+void AI::setLifePoint(int lifePoint)
+{
+    HealthComponent& comp = _ecs.registry.getComponent<HealthComponent>(_id);
+
+    comp.max_hp = lifePoint;
+    comp.current_hp = lifePoint;
+    return;
+}
+int AI::getCurrentHealth()
+{
+    HealthComponent comp = _ecs.registry.getComponent<HealthComponent>(_id);
+
+    return comp.current_hp;
+}
+
+int AI::getMaxHealth()
+{
+    HealthComponent comp = _ecs.registry.getComponent<HealthComponent>(_id);
+
+    return comp.max_hp;
+}
+
+void AI::takeDamage(int damage)
+{
+    HealthComponent& comp = _ecs.registry.getComponent<HealthComponent>(_id);
+
+    comp.current_hp -= damage;
+    if (comp.current_hp < 0) {
+        comp.current_hp = 0;
+    }
 }
