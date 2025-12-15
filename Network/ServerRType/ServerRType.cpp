@@ -35,6 +35,9 @@ void ServerRType::OnMessage(std::shared_ptr<network::Connection<RTypeEvents>> cl
             if (_clientStates[client] == ClientState::WAITING_UDP_PING)
                 _clientStates[client] = ClientState::LOGGED_IN;
             break;
+        case RTypeEvents::C_VOICE_PACKET:
+            OnClientVoicePacket(client, msg);
+            break;
         default:
             _toGameMessages.push({msg.header.id, msg.header.user_id, msg});
             break;
@@ -296,6 +299,33 @@ void ServerRType::onClientUnready(std::shared_ptr<network::Connection<RTypeEvent
             p.id = client->GetID();
             p.username = _clientUsernames[client];
             AddMessageToLobby(RTypeEvents::S_CANCEL_READY_BROADCAST, lobby.GetID(), p);
+            break;
+        }
+    }
+}
+
+void ServerRType::OnClientVoicePacket(std::shared_ptr<network::Connection<RTypeEvents>> client,
+                                      network::message<RTypeEvents> msg) {
+    if (_clientStates[client] != ClientState::IN_LOBBY && _clientStates[client] != ClientState::READY &&
+        _clientStates[client] != ClientState::IN_GAME) {
+        return;
+    }
+
+    voice_packet packet;
+    msg >> packet;
+
+    for (Lobby<RTypeEvents>& lobby : _lobbys) {
+        auto players = lobby.getLobbyPlayers();
+        if (players.find(client->GetID()) != players.end()) {
+            for (auto& [id, connection] : players) {
+                if (id != client->GetID()) {
+                    network::message<RTypeEvents> relayMsg;
+                    relayMsg.header.id = RTypeEvents::S_VOICE_RELAY;
+                    relayMsg << packet;
+                    relayMsg.header.size = relayMsg.size();
+                    MessageClientUDP(connection, relayMsg);
+                }
+            }
             break;
         }
     }

@@ -95,3 +95,17 @@ struct lobby_in_info {
     std::vector<player> players;
     uint32_t maxPlayers;
 };
+
+struct voice_packet {
+    uint32_t sender_id;
+    uint32_t lobby_id;
+    uint32_t sequence_number;
+    uint32_t data_size;
+    uint8_t audio_data[480];
+};
+
+struct voice_config {
+    uint32_t sample_rate = 48000;
+    uint32_t channels = 1;
+    uint32_t frame_size = 480;
+};

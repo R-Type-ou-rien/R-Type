@@ -12,6 +12,7 @@
 class ClientRType : public network::ClientInterface<RTypeEvents> {
    public:
     void PingServer();
+    void SendVoicePacket(const voice_packet& packet);
 
     coming_message ReadIncomingMessage();
 

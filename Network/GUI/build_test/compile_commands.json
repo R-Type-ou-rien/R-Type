@@ -1,0 +1,20 @@
+[
+{
+  "directory": "/home/vignesh/Epitech/RType/RType/Network/GUI/build_test",
+  "command": "/usr/bin/c++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DQT_WIDGETS_LIB -I/home/vignesh/Epitech/RType/RType/Network/GUI/build_test/r-type-gui_autogen/include -isystem /usr/include/qt6/QtWidgets -isystem /usr/include/qt6 -isystem /usr/include/qt6/QtCore -isystem /usr/lib64/qt6/mkspecs/linux-g++ -isystem /usr/include/qt6/QtGui  -o CMakeFiles/r-type-gui.dir/r-type-gui_autogen/mocs_compilation.cpp.o -c /home/vignesh/Epitech/RType/RType/Network/GUI/build_test/r-type-gui_autogen/mocs_compilation.cpp",
+  "file": "/home/vignesh/Epitech/RType/RType/Network/GUI/build_test/r-type-gui_autogen/mocs_compilation.cpp",
+  "output": "CMakeFiles/r-type-gui.dir/r-type-gui_autogen/mocs_compilation.cpp.o"
+},
+{
+  "directory": "/home/vignesh/Epitech/RType/RType/Network/GUI/build_test",
+  "command": "/usr/bin/c++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DQT_WIDGETS_LIB -I/home/vignesh/Epitech/RType/RType/Network/GUI/build_test/r-type-gui_autogen/include -isystem /usr/include/qt6/QtWidgets -isystem /usr/include/qt6 -isystem /usr/include/qt6/QtCore -isystem /usr/lib64/qt6/mkspecs/linux-g++ -isystem /usr/include/qt6/QtGui  -o CMakeFiles/r-type-gui.dir/main.cpp.o -c /home/vignesh/Epitech/RType/RType/Network/GUI/main.cpp",
+  "file": "/home/vignesh/Epitech/RType/RType/Network/GUI/main.cpp",
+  "output": "CMakeFiles/r-type-gui.dir/main.cpp.o"
+},
+{
+  "directory": "/home/vignesh/Epitech/RType/RType/Network/GUI/build_test",
+  "command": "/usr/bin/c++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NO_DEBUG -DQT_WIDGETS_LIB -I/home/vignesh/Epitech/RType/RType/Network/GUI/build_test/r-type-gui_autogen/include -isystem /usr/include/qt6/QtWidgets -isystem /usr/include/qt6 -isystem /usr/include/qt6/QtCore -isystem /usr/lib64/qt6/mkspecs/linux-g++ -isystem /usr/include/qt6/QtGui  -o CMakeFiles/r-type-gui.dir/MainWindow.cpp.o -c /home/vignesh/Epitech/RType/RType/Network/GUI/MainWindow.cpp",
+  "file": "/home/vignesh/Epitech/RType/RType/Network/GUI/MainWindow.cpp",
+  "output": "CMakeFiles/r-type-gui.dir/MainWindow.cpp.o"
+}
+]

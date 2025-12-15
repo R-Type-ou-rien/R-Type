@@ -40,6 +40,9 @@ class ServerRType : public network::ServerInterface<RTypeEvents> {
                             network::message<RTypeEvents> msg);
     void OnClientNewLobby(std::shared_ptr<network::Connection<RTypeEvents>> client, network::message<RTypeEvents> msg);
 
+    void OnClientVoicePacket(std::shared_ptr<network::Connection<RTypeEvents>> client,
+                             network::message<RTypeEvents> msg);
+
     // Pre-Game event handlers
     void onClientStartGame(std::shared_ptr<network::Connection<RTypeEvents>> client, network::message<RTypeEvents> msg);
     void onClientReadyUp(std::shared_ptr<network::Connection<RTypeEvents>> client, network::message<RTypeEvents> msg);
@@ -149,6 +152,8 @@ class ServerRType : public network::ServerInterface<RTypeEvents> {
     std::vector<RTypeEvents> _udpEvents = {
         RTypeEvents::C_INPUT,
         RTypeEvents::S_SNAPSHOT,
+        RTypeEvents::C_VOICE_PACKET,
+        RTypeEvents::S_VOICE_RELAY,
 
     };
 

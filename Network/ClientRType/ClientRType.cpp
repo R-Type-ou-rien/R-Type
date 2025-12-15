@@ -12,6 +12,14 @@ void ClientRType::PingServer() {
     AddMessageToServer(RTypeEvents::C_PING_SERVER, 0, NULL);
 }
 
+void ClientRType::SendVoicePacket(const voice_packet& packet) {
+    network::message<RTypeEvents> msg;
+    msg << packet;
+    msg.header.id = RTypeEvents::C_VOICE_PACKET;
+    msg.header.size = msg.size();
+    SendUdp(msg);
+}
+
 void ClientRType::LoginServerToken() {
     std::ifstream file(TOKEN_FILENAME);
     std::string token;
