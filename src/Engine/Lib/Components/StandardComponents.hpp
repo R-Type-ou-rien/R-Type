@@ -122,6 +122,7 @@ struct Scroll {
 };
 
 struct BackgroundComponent {
+    static constexpr auto name = "Background";
     handle_t<sf::Texture> texture_handle;
     float x_offset = 0.f;
     float scroll_speed = 0.f;

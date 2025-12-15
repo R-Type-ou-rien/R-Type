@@ -3,6 +3,7 @@
 #include <chrono>
 #include <cstddef>
 #include <cstdio>
+#include <cstring>
 #include <fstream>
 #include <string>
 
@@ -23,13 +24,17 @@ void ClientRType::LoginServerToken() {
 }
 
 void ClientRType::LoginServer(std::string username, std::string password) {
-    struct connection_info info = {username, password};
+    struct connection_info info;
+    std::strncpy(info.username, username.c_str(), sizeof(info.username));
+    std::strncpy(info.password, password.c_str(), sizeof(info.password));
 
     AddMessageToServer(RTypeEvents::C_LOGIN, 0, info);
 }
 
 void ClientRType::RegisterServer(std::string username, std::string password) {
-    struct connection_info info = {username, password};
+    struct connection_info info;
+    std::strncpy(info.username, username.c_str(), sizeof(info.username));
+    std::strncpy(info.password, password.c_str(), sizeof(info.password));
 
     AddMessageToServer(RTypeEvents::C_REGISTER, 0, info);
 }

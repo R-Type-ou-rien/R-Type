@@ -22,7 +22,7 @@ class ClientRType : public network::ClientInterface<RTypeEvents> {
     template <typename T>
     void AddMessageToServer(RTypeEvents event, uint32_t id, const T& data) {
         network::message<RTypeEvents> msg;
-        msg.body << data;
+        msg << data;
         msg.header.id = event;
         msg.header.user_id = _id;
         msg.header.size = msg.size();

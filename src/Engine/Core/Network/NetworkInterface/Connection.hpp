@@ -108,14 +108,14 @@ class Connection : public std::enable_shared_from_this<Connection<T>> {
 
     void WriteUDP() {
         message<T> msg = _udpMessagesOut.pop_front();
-        std::vector<uint8_t> Buffer;
-        Buffer.resize(sizeof(msg.header) + msg.body.size());
+        auto bufferPtr = std::make_shared<std::vector<uint8_t>>(sizeof(msg.header) + msg.body.size());
 
-        std::memcpy(Buffer.data(), &msg.header, sizeof(msg.header));
+        std::memcpy(bufferPtr->data(), &msg.header, sizeof(msg.header));
         if (!msg.body.empty())
-            std::memcpy(Buffer.data() + sizeof(msg.header), msg.body.data(), msg.body.size());
-        _udpSocket.async_send_to(asio::buffer(_udpMessagesOut), _udpRemoteEndpoint,
-                                 [this](std::error_code ec, std::size_t bytes_sent) {
+            std::memcpy(bufferPtr->data() + sizeof(msg.header), msg.body.data(), msg.body.size());
+
+        _udpSocket.async_send_to(asio::buffer(*bufferPtr), _udpRemoteEndpoint,
+                                 [this, bufferPtr](std::error_code ec, std::size_t bytes_sent) {
                                      if (!ec) {
                                          if (!_udpMessagesOut.empty()) {
                                              WriteUDP();

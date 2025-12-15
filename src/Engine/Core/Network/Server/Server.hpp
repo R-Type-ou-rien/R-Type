@@ -57,7 +57,7 @@ class Server : public network::ServerInterface<RTypeEvents> {
                     return;
                 }
                 network::message<RTypeEvents> msg;
-                msg.body << data;
+                msg << data;
                 msg.header.id = event;
                 msg.header.size = msg.size();
                 if (std::find(_tcpEvents.begin(), _tcpEvents.end(), event) != _tcpEvents.end()) {
@@ -86,7 +86,7 @@ class Server : public network::ServerInterface<RTypeEvents> {
                 }
                 lobby.BroadcastMessage([&]() {
                     network::message<RTypeEvents> msg;
-                    msg.body << data;
+                    msg << data;
                     msg.header.id = event;
                     msg.header.size = msg.size();
                     return msg;

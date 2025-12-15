@@ -68,8 +68,8 @@ struct coming_message {
 };
 
 struct connection_info {
-    std::string username;
-    std::string password;
+    char username[32];
+    char password[32];
 };
 
 struct connection_server_return {

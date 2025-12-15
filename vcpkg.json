@@ -4,6 +4,7 @@
   "dependencies": [
     "sfml",
     "asio",
-    "opengl"
+    "opengl",
+    "sqlite3"
   ]
 }

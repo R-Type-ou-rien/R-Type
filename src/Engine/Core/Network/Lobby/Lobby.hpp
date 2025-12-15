@@ -19,7 +19,7 @@ class Lobby {
     }
 
     void AddPlayer(std::shared_ptr<network::Connection<T>> client) {
-        unsigned int id = client.GetID();
+        unsigned int id = client->GetID();
         _mapPlayers[id] = client;
         if (_mapPlayers.size() == 1) {
             _owner = client;
@@ -38,7 +38,7 @@ class Lobby {
 
     void BroadcastMessage(const network::message<T>& msg) {
         for (auto& [id, connection] : _mapPlayers) {
-            connection.Send(msg);
+            connection->Send(msg);
         }
     }
 
