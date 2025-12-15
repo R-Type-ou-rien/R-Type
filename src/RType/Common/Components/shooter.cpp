@@ -37,9 +37,12 @@ void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::Proj
     int id = registry.createEntity();
     Velocity2D speed = get_projectile_speed(type, team);
     TagComponent tags;
-    tags.tags.push_back("PROJECTILE");
+    if (team == TeamComponent::ALLY) {
+        tags.tags.push_back("ENEMY_PROJECTILE");
+    } else {
+        tags.tags.push_back("PLAYER_PROJECTILE");
+    }
     
-
     registry.addComponent<ProjectileComponent>(id, {id});
 
     registry.addComponent<TeamComponent>(id, {team});
@@ -49,6 +52,8 @@ void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::Proj
     registry.addComponent<Velocity2D>(id, speed);
 
     registry.addComponent<TagComponent>(id, tags);
+
+    registry.addComponent<>(Entity id, Component component)
 
     handle_t<sf::Texture> handle = context.texture_manager.load_resource("content/sprites/r-typesheet1.gif",
                                                                      sf::Texture("content/sprites/r-typesheet1.gif"));

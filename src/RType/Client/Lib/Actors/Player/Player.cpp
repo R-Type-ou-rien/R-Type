@@ -1,4 +1,5 @@
 #include "Player.hpp"
+#include "src/RType/Common/Components/health.hpp"
 
 Player::Player(ECS& ecs, std::pair<float, float> pos): DynamicActor(ecs, true, "PLAYER") {
     ResourceStat lifepoint;
@@ -10,6 +11,7 @@ Player::Player(ECS& ecs, std::pair<float, float> pos): DynamicActor(ecs, true, "
     setPosition(pos);
     _ecs.registry.addComponent<TeamComponent>(_id, {TeamComponent::Team::ALLY});
     _ecs.registry.addComponent<ShooterComponent>(_id, {});
+    _ecs.registry.addComponent<HealthComponent>(_id, {100, 100});
 }
 
 void Player::setProjectileType(ShooterComponent::ProjectileType type)
@@ -72,3 +74,34 @@ TeamComponent::Team Player::getTeam()
     return comp.team;
 }
 
+void Player::setLifePoint(int lifePoint)
+{
+    HealthComponent& comp = _ecs.registry.getComponent<HealthComponent>(_id);
+
+    comp.max_hp = lifePoint;
+    comp.current_hp = lifePoint;
+    return;
+}
+int Player::getCurrentHealth()
+{
+    HealthComponent comp = _ecs.registry.getComponent<HealthComponent>(_id);
+
+    return comp.current_hp;
+}
+
+int Player::getMaxHealth()
+{
+    HealthComponent comp = _ecs.registry.getComponent<HealthComponent>(_id);
+
+    return comp.max_hp;
+}
+
+void Player::takeDamage(int damage)
+{
+    HealthComponent& comp = _ecs.registry.getComponent<HealthComponent>(_id);
+
+    comp.current_hp -= damage;
+    if (comp.current_hp < 0) {
+        comp.current_hp = 0;
+    }
+}
