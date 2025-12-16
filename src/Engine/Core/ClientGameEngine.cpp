@@ -26,6 +26,10 @@ int ClientGameEngine::init() {
 
     _network_client.Connect("127.0.0.1", 4040);
 
+    _ecs._textureManager.load_resource("content/sprites/r-typesheet42.gif", sf::Texture("content/sprites/r-typesheet42.gif"));
+    _ecs._textureManager.load_resource("content/sprites/r-typesheet1.gif", sf::Texture("content/sprites/r-typesheet1.gif"));
+    _ecs._textureManager.load_resource("content/sprites/background-R-Type.png", sf::Texture("content/sprites/background-R-Type.png"));
+
     registerNetworkComponent<BoxCollisionComponent>();
     registerNetworkComponent<BackgroundComponent>();
     registerNetworkComponent<sprite2D_component_s>();
