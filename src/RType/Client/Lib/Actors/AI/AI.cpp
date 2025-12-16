@@ -18,6 +18,7 @@ AI::AI(ECS& ecs, std::pair<float, float> pos): DynamicActor(ecs, false, "AI")
     _ecs.registry.addComponent<DamageOnCollision>(_id, {10});
 }
 
+
 void AI::setProjectileType(ShooterComponent::ProjectileType type)
 {
     ShooterComponent& comp = _ecs.registry.getComponent<ShooterComponent>(_id);
@@ -100,7 +101,21 @@ int AI::getMaxHealth()
     return comp.max_hp;
 }
 
+void AI::setCurrentHealth(int health)
+{
+    HealthComponent& comp = _ecs.registry.getComponent<HealthComponent>(_id);
+
+    if (health < 0) {
+        comp.current_hp = 0;
+    } else if (health > comp.max_hp) {
+        comp.current_hp = comp.max_hp;
+    } else {
+        comp.current_hp = health;
+    }
+}
+
 void AI::takeDamage(int damage)
+
 {
     HealthComponent& comp = _ecs.registry.getComponent<HealthComponent>(_id);
 

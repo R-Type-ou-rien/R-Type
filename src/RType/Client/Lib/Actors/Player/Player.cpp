@@ -14,6 +14,7 @@ Player::Player(ECS& ecs, std::pair<float, float> pos): DynamicActor(ecs, true, "
     _ecs.registry.addComponent<HealthComponent>(_id, {100, 100});
 }
 
+
 void Player::setProjectileType(ShooterComponent::ProjectileType type)
 {
     ShooterComponent& comp = _ecs.registry.getComponent<ShooterComponent>(_id);

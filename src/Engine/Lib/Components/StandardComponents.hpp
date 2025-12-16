@@ -26,12 +26,18 @@
 #include "registry.hpp"
 
 struct PatternComponent {
+    enum PatternType { WAYPOINT, STRAIGHT, SINUSOIDAL };
+    PatternType type = WAYPOINT;
     std::vector<std::pair<float, float>> waypoints;
     int current_index = 0;
     float speed = 100.0f;
     bool loop = false;
     bool is_active = true;
+    float amplitude = 50.0f;
+    float frequency = 2.0f;
+    float time_elapsed = 0.0f;
 };
+
 
 struct ResourceStat {
     float current;
@@ -84,7 +90,17 @@ struct TagComponent {
     std::vector<std::string> tags;
 };
 
+struct TextComponent {
+    std::string text;
+    std::string fontPath;
+    unsigned int characterSize = 24;
+    sf::Color color = sf::Color::White;
+    float x;
+    float y;
+};
+
 using ActionCallback = std::function<void(Registry& registry, system_context context, Entity current_entity)>;
+
 
 struct ActionScript {
     std::unordered_map<Action, ActionCallback> actionOnPressed;

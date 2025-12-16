@@ -33,6 +33,9 @@ class AI : public DynamicActor {
         
         int getMaxHealth();
         
+        void setCurrentHealth(int health);
+        
         void takeDamage(int damage);
+
 
 };

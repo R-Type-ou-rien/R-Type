@@ -9,6 +9,7 @@ class GameManager {
     private:
         std::unique_ptr<Player> _player;
         std::vector<std::unique_ptr<AI>> _ennemies;
+        Entity _uiEntity;
     
     public:
         GameManager();

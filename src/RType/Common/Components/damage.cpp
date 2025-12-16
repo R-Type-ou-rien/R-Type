@@ -20,20 +20,29 @@ void Damage::update(Registry& registry, system_context context) {
         for (auto& hit : collider.collision.tags) {
             Entity hit_id = hit;
             auto& dmg = registry.getComponent<DamageOnCollision>(attacker);
+            
+            if (!registry.hasComponent<HealthComponent>(hit_id))
+                continue;
+                
             auto& health = registry.getComponent<HealthComponent>(hit_id);
+            
             if (registry.hasComponent<TeamComponent>(attacker) && registry.hasComponent<TeamComponent>(hit_id)) {
                 auto& teamA = registry.getComponent<TeamComponent>(attacker);
                 auto& teamB = registry.getComponent<TeamComponent>(hit_id);
                 if (teamA.team == teamB.team)
                     continue;
             }
-            if (!registry.hasComponent<HealthComponent>(hit_id))
+            if (health.last_damage_time > 0) {
                 continue;
+            }
+
             if (health.current_hp - dmg.damage_value <= 0) {
                 health.current_hp = 0;
             } else {
                 health.current_hp -= dmg.damage_value;
+                health.last_damage_time = health.invincibility_duration;
             }
+
             if (registry.hasComponent<ProjectileComponent>(attacker)) {
                 registry.destroyEntity(attacker);
                 break;
