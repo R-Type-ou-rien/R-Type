@@ -17,13 +17,12 @@
 #include "PatternSystem/PatternSystem.hpp"
 #include "registry.hpp"
 
-
 ClientGameEngine::ClientGameEngine(std::string window_name) : _window_manager(WINDOW_W, WINDOW_H, window_name) {}
 
 int ClientGameEngine::init() {
     InputManager input_manager;
 
-    _network_client.Connect("127.0.0.1", 4242);    
+    _network_client.Connect("127.0.0.1", 4040);
 
     registerNetworkComponent<BoxCollisionComponent>();
     registerNetworkComponent<BackgroundComponent>();
@@ -38,7 +37,6 @@ int ClientGameEngine::init() {
     registerNetworkComponent<Scroll>();
     registerNetworkComponent<NetworkIdentity>();
     registerNetworkComponent<ComponentPacket>();
-
 
     _ecs.systems.addSystem<BackgroundSystem>();
     _ecs.systems.addSystem<RenderSystem>();
@@ -79,16 +77,14 @@ void ClientGameEngine::handleEvent() {
 
 int ClientGameEngine::run() {
     sf::Clock clock;
-    system_context context = {
-        0,
-        _ecs._textureManager,
-        _window_manager.getWindow(),
-        _ecs.input,
-        _network_client,
-        std::nullopt,
-        std::nullopt,
-        _identity.id
-    };
+    system_context context = {0,
+                              _ecs._textureManager,
+                              _window_manager.getWindow(),
+                              _ecs.input,
+                              _network_client,
+                              std::nullopt,
+                              std::nullopt,
+                              _identity.id};
 
     this->init();
     while (_window_manager.isOpen()) {
@@ -107,35 +103,31 @@ int ClientGameEngine::run() {
     return 0;
 }
 
-void ClientGameEngine::handleNetworkMessages()
-{
+void ClientGameEngine::handleNetworkMessages() {
     if (_network_client.IsConnected()) {
         // send authentification
         coming_message c_msg = _network_client.ReadIncomingMessage();
-            // send id -> message udp -> S_CONFIRM_UDP
-            // S_ROOM_JOINED
-            // player qui join -> S_PLAYER_JOINED -> 
-            // S_GAME_START
+        // send id -> message udp -> S_CONFIRM_UDP
+        // S_ROOM_JOINED
+        // player qui join -> S_PLAYER_JOINED ->
+        // S_GAME_START
         if (c_msg.id != GameEvents::NONE) {
-           execCorrespondingFunction(c_msg.id, c_msg);
+            execCorrespondingFunction(c_msg.id, c_msg);
         }
     } else {
         throw std::logic_error("Client couldn't connect to the server");
     }
 }
 
-void ClientGameEngine::getID(coming_message msg)
-{
+void ClientGameEngine::getID(coming_message msg) {
     msg.msg >> _identity.id;
 }
 
-void ClientGameEngine::getRoom(coming_message msg)
-{
+void ClientGameEngine::getRoom(coming_message msg) {
     msg.msg >> _identity.lobby;
 }
 
-void ClientGameEngine::updateEntity(coming_message msg)
-{
+void ClientGameEngine::updateEntity(coming_message msg) {
     ComponentPacket packet;
     Entity current_entity;
 
@@ -152,11 +144,9 @@ void ClientGameEngine::updateEntity(coming_message msg)
     if (_deserializers.find(packet.component_type) != _deserializers.end()) {
         _deserializers[packet.component_type](_ecs.registry, current_entity, packet.data);
     }
-    
 }
 
-void ClientGameEngine::execCorrespondingFunction(GameEvents event, coming_message c_msg)
-{
+void ClientGameEngine::execCorrespondingFunction(GameEvents event, coming_message c_msg) {
     switch (event) {
         case (GameEvents::S_SNAPSHOT):
             updateEntity(c_msg);
@@ -165,7 +155,7 @@ void ClientGameEngine::execCorrespondingFunction(GameEvents event, coming_messag
             getID(c_msg);
             _network_client.AddMessageToServer(GameEvents::C_CONFIRM_UDP, _identity.id, NULL);
             break;
-        
+
         case (GameEvents::S_CONFIRM_UDP):
             std::cout << "UDP CONFIMED BY THE SERVER" << std::endl;
             break;
@@ -235,7 +225,7 @@ void ClientGameEngine::execCorrespondingFunction(GameEvents event, coming_messag
         case (GameEvents::S_CANCEL_READY_BROADCAST):
             std::cout << "CANCEL READY BROADCAST TO IMPLEMENT" << std::endl;
             break;
-        
+
         case (GameEvents::S_TEAM_CHAT):
             std::cout << "TEAM CHAT TO IMPLEMENT" << std::endl;
             break;
@@ -262,6 +252,6 @@ void ClientGameEngine::execCorrespondingFunction(GameEvents event, coming_messag
 
         default:
             std::cout << "EVENT " << uint32_t(event) << " IS NOT IMPLEMENTED" << std::endl;
-            break; 
+            break;
     }
 }

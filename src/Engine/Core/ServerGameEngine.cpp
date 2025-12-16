@@ -3,7 +3,7 @@
 #include <optional>
 #include "Network/Network.hpp"
 
-ServerGameEngine::ServerGameEngine() : _network_server(4242, 100) {}
+ServerGameEngine::ServerGameEngine() : _network_server(4040, 100) {}
 
 ServerGameEngine::~ServerGameEngine() {}
 
@@ -33,14 +33,8 @@ void ServerGameEngine::setInitFunction(std::function<void(ECS& ecs)> user_functi
 
 int ServerGameEngine::run() {
     sf::Clock clock;
-    system_context context = {0,
-        _ecs._textureManager, 
-        std::nullopt, 
-        std::nullopt, 
-        std::nullopt,
-        _network_server,
-        _players, 
-        std::nullopt
+    system_context context = {0,        _ecs._textureManager, std::nullopt, std::nullopt, std::nullopt, _network_server,
+                              _players, std::nullopt
 
     };
 

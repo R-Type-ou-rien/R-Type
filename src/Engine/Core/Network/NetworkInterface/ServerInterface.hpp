@@ -8,16 +8,20 @@ namespace network {
 template <typename T>
 class ServerInterface {
    public:
-    ServerInterface(uint16_t port)
-        : asioAcceptor(_asioContext, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), port)),
-          _socketUDP(_asioContext),
-          _port(port) {}
+    ServerInterface(uint16_t port) : asioAcceptor(_asioContext), _socketUDP(_asioContext), _port(port) {
+        asio::ip::tcp::endpoint endpoint(asio::ip::tcp::v4(), port);
+        asioAcceptor.open(endpoint.protocol());
+        asioAcceptor.set_option(asio::ip::tcp::acceptor::reuse_address(true));
+        asioAcceptor.bind(endpoint);
+        asioAcceptor.listen();
+    }
 
     virtual ~ServerInterface() { Stop(); }
 
     bool Start() {
         try {
             _socketUDP.open(asio::ip::udp::v4());
+            _socketUDP.set_option(asio::ip::udp::socket::reuse_address(true));
             _socketUDP.bind(asio::ip::udp::endpoint(asio::ip::udp::v4(), _port));
             WaitForClientConnection();
             ReceiveUDP();
