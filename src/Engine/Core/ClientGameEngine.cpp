@@ -15,7 +15,9 @@
 #include "Network/Network.hpp"
 #include "NetworkSystem/ComponentSenderSystem.hpp"
 #include "PatternSystem/PatternSystem.hpp"
+#include "PatternSystem/PatternSystem.hpp"
 #include "registry.hpp"
+#include "Systems/PhysicsSystem.hpp"
 
 ClientGameEngine::ClientGameEngine(std::string window_name) : _window_manager(WINDOW_W, WINDOW_H, window_name) {}
 
@@ -114,8 +116,6 @@ void ClientGameEngine::handleNetworkMessages() {
         if (c_msg.id != GameEvents::NONE) {
             std::cout << "GOT AN EVENT :)" << std::endl;
             execCorrespondingFunction(c_msg.id, c_msg);
-        } else {
-            std::cout << "Event is NONE :(" << std::endl;
         }
     } else {
         throw std::logic_error("Client couldn't connect to the server");
@@ -124,6 +124,7 @@ void ClientGameEngine::handleNetworkMessages() {
 
 void ClientGameEngine::getID(coming_message msg) {
     msg.msg >> _identity.id;
+    _network_client.SetID(_identity.id);
     std::cout << "RECEIVED ID " << _identity.id << std::endl;
 }
 
@@ -150,6 +151,9 @@ void ClientGameEngine::updateEntity(coming_message msg) {
     if (_deserializers.find(packet.component_type) != _deserializers.end()) {
         std::cout << "export data from network" << std::endl;
         _deserializers[packet.component_type](_ecs.registry, current_entity, packet.data);
+    } else {
+        std::cerr << "Unknown component type: " << packet.component_type << " for entity GUID " << packet.entity_guid
+                  << std::endl;
     }
 }
 
@@ -161,7 +165,7 @@ void ClientGameEngine::execCorrespondingFunction(GameEvents event, coming_messag
         case (GameEvents::S_SEND_ID):
             std::cout << "EVENT SEND ID" << std::endl;
             getID(c_msg);
-            // _network_client.AddMessageToServer(GameEvents::C_CONFIRM_UDP, _identity.id, NULL);
+            _network_client.AddMessageToServer(GameEvents::C_CONFIRM_UDP, _identity.id, NULL);
             break;
 
         case (GameEvents::S_CONFIRM_UDP):

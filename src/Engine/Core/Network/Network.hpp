@@ -102,3 +102,153 @@ struct lobby_in_info {
     // std::vector<player> players;
     uint32_t nbPlayers;
 };
+
+// Custom serialization for std::string
+namespace network {
+// Generic serialization for std::vector
+template <typename T, typename U>
+message<T>& operator<<(message<T>& msg, const std::vector<U>& vec) {
+    for (const auto& item : vec)
+        msg << item;
+    msg << static_cast<uint32_t>(vec.size());
+    return msg;
+}
+
+template <typename T, typename U>
+message<T>& operator>>(message<T>& msg, std::vector<U>& vec) {
+    uint32_t size = 0;
+    msg >> size;
+    vec.resize(size);
+    for (int i = size - 1; i >= 0; --i)
+        msg >> vec[i];
+    return msg;
+}
+
+// Custom serialization for std::string
+template <typename T>
+message<T>& operator<<(message<T>& msg, const std::string& str) {
+    uint32_t size = static_cast<uint32_t>(str.size());
+    for (char c : str)
+        msg << c;
+    msg << size;
+    return msg;
+}
+
+template <typename T>
+message<T>& operator>>(message<T>& msg, std::string& str) {
+    uint32_t size = 0;
+    msg >> size;
+    str.resize(size);
+    for (int i = size - 1; i >= 0; --i)
+        msg >> str[i];
+    return msg;
+}
+
+// Custom serialization for player
+template <typename T>
+message<T>& operator<<(message<T>& msg, const ::player& p) {
+    uint32_t nameSize = static_cast<uint32_t>(p.username.size());
+    for (char c : p.username)
+        msg << c;
+    msg << nameSize;
+    msg << p.id;
+    return msg;
+}
+
+template <typename T>
+message<T>& operator>>(message<T>& msg, ::player& p) {
+    msg >> p.id;
+    uint32_t nameSize = 0;
+    msg >> nameSize;
+    p.username.resize(nameSize);
+    for (int i = nameSize - 1; i >= 0; --i)
+        msg >> p.username[i];  // Pop reverse
+    return msg;
+}
+
+// Custom serialization for lobby_info
+template <typename T>
+message<T>& operator<<(message<T>& msg, const ::lobby_info& info) {
+    msg << info.maxPlayers;
+    msg << info.ncConnectedPlayers;
+    uint32_t nameSize = static_cast<uint32_t>(info.name.size());
+    for (char c : info.name)
+        msg << c;
+    msg << nameSize;
+    msg << info.id;
+    return msg;
+}
+
+template <typename T>
+message<T>& operator>>(message<T>& msg, ::lobby_info& info) {
+    msg >> info.id;
+    uint32_t nameSize = 0;
+    msg >> nameSize;
+    info.name.resize(nameSize);
+    for (int i = nameSize - 1; i >= 0; --i)
+        msg >> info.name[i];
+    msg >> info.ncConnectedPlayers;
+    msg >> info.maxPlayers;
+    return msg;
+}
+
+// Custom serialization for lobby_in_info
+template <typename T>
+message<T>& operator<<(message<T>& msg, const ::lobby_in_info& info) {
+    msg << info.nbPlayers;
+    // Vector
+    for (uint32_t pid : info.id_player)
+        msg << pid;
+    msg << static_cast<uint32_t>(info.id_player.size());
+    // Name
+    uint32_t nameSize = static_cast<uint32_t>(info.name.size());
+    for (char c : info.name)
+        msg << c;
+    msg << nameSize;
+
+    msg << info.id;
+    return msg;
+}
+
+template <typename T>
+message<T>& operator>>(message<T>& msg, ::lobby_in_info& info) {
+    msg >> info.id;
+
+    uint32_t nameSize = 0;
+    msg >> nameSize;
+    info.name.resize(nameSize);
+    for (int i = nameSize - 1; i >= 0; --i)
+        msg >> info.name[i];
+
+    uint32_t vecSize = 0;
+    msg >> vecSize;
+    info.id_player.resize(vecSize);
+    for (int i = vecSize - 1; i >= 0; --i)
+        msg >> info.id_player[i];
+
+    msg >> info.nbPlayers;
+    return msg;
+}
+
+// Custom serialization for connection_server_return
+template <typename T>
+message<T>& operator<<(message<T>& msg, const ::connection_server_return& ret) {
+    msg << ret.id;
+    uint32_t tokenSize = static_cast<uint32_t>(ret.token.size());
+    for (char c : ret.token)
+        msg << c;
+    msg << tokenSize;
+    return msg;
+}
+
+template <typename T>
+message<T>& operator>>(message<T>& msg, ::connection_server_return& ret) {
+    uint32_t tokenSize = 0;
+    msg >> tokenSize;
+    ret.token.resize(tokenSize);
+    for (int i = tokenSize - 1; i >= 0; --i)
+        msg >> ret.token[i];
+    msg >> ret.id;
+    return msg;
+}
+}  // namespace network

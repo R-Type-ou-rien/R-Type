@@ -16,9 +16,10 @@
 
 #include "Network/Client/Client.hpp"
 #include "Network/Server/Server.hpp"
-#include "Registry/registry.hpp"
 #include "InputManager.hpp"
 #include "ressource_manager.hpp"
+
+class Registry;
 
 struct system_context {
     float dt;

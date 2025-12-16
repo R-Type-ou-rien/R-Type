@@ -6,7 +6,8 @@
 */
 
 #include "RenderSystem.hpp"
-
+#include "registry.hpp"
+#include "Components/StandardComponents.hpp"
 #include <SFML/Graphics/Texture.hpp>
 #include <iostream>
 #include <iterator>

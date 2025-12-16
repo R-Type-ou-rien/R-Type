@@ -1,6 +1,7 @@
 #include "ResourceSystem.hpp"
 
 #include "Components/StandardComponents.hpp"
+#include "registry.hpp"
 
 void ResourceSystem::update(Registry& registry, system_context context) {
     auto& entities = registry.getEntities<ResourceComponent>();

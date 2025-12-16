@@ -6,6 +6,8 @@
 */
 
 #include "PatternSystem.hpp"
+#include "Components/StandardComponents.hpp"
+#include "registry.hpp"
 
 #include <cmath>
 #include <utility>

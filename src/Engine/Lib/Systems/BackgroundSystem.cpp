@@ -1,6 +1,7 @@
 #include "BackgroundSystem.hpp"
 #include <SFML/Graphics.hpp>
 #include "Components/StandardComponents.hpp"
+#include "registry.hpp"
 #include "ressource_manager.hpp"
 #include <SFML/Graphics/RenderTexture.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
@@ -23,7 +24,7 @@ void BackgroundSystem::update(Registry& registry, system_context context) {
 
     for (Entity entity : entities) {
         auto& bg = registry.getComponent<BackgroundComponent>(entity);
-        bg.x_offset -= bg.scroll_speed * context.dt; // move left
+        bg.x_offset -= bg.scroll_speed * context.dt;  // move left
         if (!context.texture_manager.has_resource(bg.texture_handle))
             continue;
         sf::Texture& texture = context.texture_manager.get_resource(bg.texture_handle).value().get();

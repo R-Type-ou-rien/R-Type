@@ -1,6 +1,7 @@
 #pragma once
 
 #include "MsgQueue.hpp"
+#include "Network/Network.hpp"
 #include "NetworkCommon.hpp"
 #include "message.hpp"
 
@@ -13,8 +14,11 @@ class Connection : public std::enable_shared_from_this<Connection<T>> {
    public:
     Connection(owner parent, asio::io_context& asioContext, asio::ip::tcp::socket socket,
                MsgQueue<owned_message<T>>& In, asio::ip::udp::socket& udpSocket)
-        : _asioContext(asioContext), _socket(std::move(socket)), _qMessagesIn(In), _udpSocket(udpSocket),
-         m_timerTimeout(asioContext) {
+        : _asioContext(asioContext),
+          _socket(std::move(socket)),
+          _qMessagesIn(In),
+          _udpSocket(udpSocket),
+          m_timerTimeout(asioContext) {
         _OwnerType = parent;
     }
 
@@ -53,6 +57,8 @@ class Connection : public std::enable_shared_from_this<Connection<T>> {
 
    public:
     void Send(const message<T>& msg) {
+        const GameEvents id = msg.header.id;
+        std::cout << "Send: " << (int)id << std::endl;
         asio::post(_asioContext, [this, msg]() {
             bool WritingMessage = !_qMessagesOut.empty();
             _qMessagesOut.push_back(msg);
@@ -108,6 +114,16 @@ class Connection : public std::enable_shared_from_this<Connection<T>> {
     }
 
     void WriteUDP() {
+        if (_udpRemoteEndpoint.port() == 0) {
+            std::cout << "[" << id << "] Warning: Attempted to write UDP to invalid endpoint (port 0). msg dropped.\n";
+            if (!_udpMessagesOut.empty()) {
+                _udpMessagesOut.pop_front();
+                if (!_udpMessagesOut.empty())
+                    WriteUDP();
+            }
+            return;
+        }
+
         message<T> msg = _udpMessagesOut.pop_front();
         auto bufferPtr = std::make_shared<std::vector<uint8_t>>(sizeof(msg.header) + msg.body.size());
 
@@ -122,7 +138,7 @@ class Connection : public std::enable_shared_from_this<Connection<T>> {
                                              WriteUDP();
                                          }
                                      } else {
-                                         std::cout << "[" << id << "] Write UDP Fail.\n";
+                                         std::cout << "[" << id << "] Write UDP Fail: " << ec.message() << "\n";
                                      }
                                  });
     }
@@ -185,7 +201,10 @@ class Connection : public std::enable_shared_from_this<Connection<T>> {
     }
 
    public:
-    void SetUDPEndpoint(asio::ip::udp::endpoint endpoint) { _udpRemoteEndpoint = endpoint; }
+    void SetUDPEndpoint(asio::ip::udp::endpoint endpoint) {
+        _udpRemoteEndpoint = endpoint;
+        std::cout << "[" << id << "] UDP Endpoint set to: " << _udpRemoteEndpoint << "\n";
+    }
     asio::ip::udp::endpoint GetUDPEndpoint() const { return _udpRemoteEndpoint; }
     void SetTimeout(int seconds) {
         m_nTimeoutDuration = std::chrono::seconds(seconds);

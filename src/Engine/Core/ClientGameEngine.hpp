@@ -9,8 +9,10 @@
 #include "ECS/ECS.hpp"
 #include "ECS/ISystem.hpp"
 #include "InputSystem.hpp"
+#include "Components/StandardComponents.hpp"
+#include "Components/ComponentSerializer.hpp"
 #include "Network/Network.hpp"
-#include "PhysicsSystem.hpp"
+#include "Network/Server/Server.hpp"
 #include "RenderSystem.hpp"
 #include "BackgroundSystem.hpp"
 #include "WindowManager.hpp"
@@ -50,14 +52,10 @@ class ClientGameEngine {
         uint32_t typeId = Hash::fnv1a(T::name);
 
         _deserializers[typeId] = [](Registry& reg, Entity e, const std::vector<uint8_t>& data) {
-
             T component;
+            // logic relying on memcy size check removed, delegated to serializer
 
-            if (data.size() != sizeof(T)) {
-                return;
-            }
-
-            std::memcpy(&component, data.data(), sizeof(T));
+            Serializer<T>::deserialize(component, data);
 
             if (reg.hasComponent<T>(e)) {
                 reg.getComponent<T>(e) = component;
@@ -65,8 +63,7 @@ class ClientGameEngine {
                 reg.addComponent<T>(e, component);
             }
         };
-    };
-           
+    }
 
     int init();
     int run();

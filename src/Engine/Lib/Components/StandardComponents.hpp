@@ -16,7 +16,13 @@
 #include "ECS/Utils/slot_map/slot_map.hpp"
 #include "ISystem.hpp"
 #include "InputAction.hpp"
-#include "registry.hpp"
+#include "Components/tag_component.hpp"
+#include "ECS/Utils/slot_map/slot_map.hpp"
+#include "ISystem.hpp"
+#include "InputAction.hpp"
+
+class Registry;
+struct system_context;
 
 struct PatternComponent {
     static constexpr auto name = "Pattern";
@@ -66,7 +72,7 @@ struct BoxCollisionComponent {
     static constexpr auto name = "Collision";
     CollidedEntity collision;
     std::vector<std::string> tagCollision;
-    std::function<void(Registry& registry, system_context context, Entity current_entity)> callbackOnCollide;
+    std::function<void(Registry& registry, system_context context, std::size_t current_entity)> callbackOnCollide;
 };
 
 struct sprite2D_component_s {
@@ -85,7 +91,7 @@ struct TagComponent {
     std::vector<std::string> tags;
 };
 
-using ActionCallback = std::function<void(Registry& registry, system_context context, Entity current_entity)>;
+using ActionCallback = std::function<void(Registry& registry, system_context context, std::size_t current_entity)>;
 
 struct ActionScript {
     static constexpr auto name = "ActionScript";

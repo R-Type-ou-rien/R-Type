@@ -17,16 +17,16 @@ class ClientInterface {
             asio::ip::tcp::resolver resolver(_context);
             asio::ip::tcp::resolver::results_type endpoints = resolver.resolve(host, std::to_string(port));
 
+            _serverUDPEndpoint = asio::ip::udp::endpoint(endpoints.begin()->endpoint().address(), port);
+
             _connection = std::make_unique<Connection<T>>(Connection<T>::owner::client, _context,
                                                           asio::ip::tcp::socket(_context), _qMessagesIn, _socketUDP);
             _connection->SetUDPEndpoint(_serverUDPEndpoint);
 
             _connection->ConnectToServer(endpoints);
 
-            _serverUDPEndpoint = asio::ip::udp::endpoint(endpoints.begin()->endpoint().address(), port);
-
             _socketUDP.open(asio::ip::udp::v4());
-
+            _udpMsgTemporaryIn.resize(2048);
             ReceiveUDP();
 
             thrContext = std::thread([this]() { _context.run(); });

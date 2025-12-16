@@ -7,6 +7,7 @@
 
 #include "PhysicsSystem.hpp"
 #include "Components/StandardComponents.hpp"
+#include "registry.hpp"
 
 void PhysicsSystem::update(Registry& registry, system_context context) {
     auto& velocities = registry.getView<Velocity2D>();

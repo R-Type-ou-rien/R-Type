@@ -1,8 +1,9 @@
 #pragma once
 
-#include "registry.hpp"
+#include <cstdint>
+#include <vector>
 
 struct CollidedEntity {
     static constexpr auto name = "CollidedEntity";
-    std::vector<Entity> tags;
+    std::vector<uint32_t> tags;
 };

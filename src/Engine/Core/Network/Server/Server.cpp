@@ -10,6 +10,7 @@
 #include "Network/NetworkInterface/message.hpp"
 
 void Server::OnMessage(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents>& msg) {
+    std::cout << "Event: " << (int)msg.header.id << std::endl;
     switch (msg.header.id) {
         case GameEvents::C_REGISTER:
             OnClientRegister(client, msg);
@@ -36,6 +37,17 @@ void Server::OnMessage(std::shared_ptr<network::Connection<GameEvents>> client, 
             // if (_clientStates[client] == ClientState::WAITING_UDP_PING)
             //     _clientStates[client] = ClientState::LOGGED_IN;
             if (_clientStates[client] == ClientState::WAITING_UDP_PING) {
+                _lobbys.back().AddPlayer(client);
+                AddMessageToLobby(GameEvents::S_PLAYER_JOINED, _lobbys.back().GetID(), client->GetID());
+                struct lobby_in_info info;
+                info.id = _lobbys.back().GetID();
+                info.name = _lobbys.back().GetName();
+                info.nbPlayers = _lobbys.back().GetNbPlayers();
+                for (auto& [id, connection] : _lobbys.back().getLobbyPlayers())
+                    info.id_player.push_back(id);
+
+                AddMessageToPlayer(GameEvents::S_ROOM_JOINED, client->GetID(), info);
+
                 _clientStates[client] = ClientState::IN_LOBBY;
                 if (_lobbys.back().GetNbPlayers() >= 2) {
                     for (auto& [id, connection] : _lobbys.back().getLobbyPlayers()) {
@@ -64,7 +76,7 @@ void Server::OnClientDisconnect(std::shared_ptr<network::Connection<GameEvents>>
 }
 
 bool Server::OnClientConnect(std::shared_ptr<network::Connection<GameEvents>> client) {
-    if (_deqConnections.size() >= _maxConnections)
+    if (_deqConnections.size() > _maxConnections)
         return false;
     client->SetTimeout(0);
     // AddMessageToPlayer(GameEvents::C_PING_SERVER, client->GetID(), NULL);
@@ -73,16 +85,6 @@ bool Server::OnClientConnect(std::shared_ptr<network::Connection<GameEvents>> cl
     msg << client->GetID();
     _toGameMessages.push({GameEvents::CONNECTION_PLAYER, client->GetID(), msg});
     std::cout << "envoie de l'id" << std::endl;
-    AddMessageToLobby(GameEvents::S_PLAYER_JOINED, _lobbys.back().GetID(), client->GetID());
-    _lobbys.back().AddPlayer(client);
-    struct lobby_in_info info;
-    info.id = _lobbys.back().GetID();
-    info.name = _lobbys.back().GetName();
-    info.nbPlayers = _lobbys.back().GetNbPlayers();
-    for (auto& [id, connection] : _lobbys.back().getLobbyPlayers())
-        info.id_player.push_back(id);
-
-    AddMessageToPlayer(GameEvents::S_ROOM_JOINED, client->GetID(), info);
 
     _clientStates[client] = ClientState::WAITING_UDP_PING;
     return true;

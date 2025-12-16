@@ -5,6 +5,7 @@
 #include <ostream>
 #include <vector>
 #include "Components/NetworkComponents.hpp"
+#include "Components/ComponentSerializer.hpp"
 #include "Hash/Hash.hpp"
 
 #ifndef SPARSE_HPP
@@ -35,7 +36,7 @@ class SparseSet : public ISparseSet {
         The id are stored contigously
     */
     std::vector<std::size_t> _reverse_dense;
-    
+
     std::vector<bool> _dirty;
 
    public:
@@ -77,7 +78,7 @@ class SparseSet : public ISparseSet {
             _dense[indexToRemove] = lastData;
             _reverse_dense[indexToRemove] = lastEntity;
             _sparse[lastEntity] = indexToRemove;
-            
+
             _dirty[indexToRemove] = _dirty[lastIndex];
         }
         _sparse[id] = -1;
@@ -152,8 +153,7 @@ class SparseSet : public ISparseSet {
         data_type& comp = this->getDataFromId(entity);
 
         packet.component_type = Hash::fnv1a(comp.name);
-        packet.data.resize(sizeof(data_type));
-        std::memcpy(packet.data.data(), &comp, sizeof(data_type));
+        packet.data = Serializer<data_type>::serialize(comp);
         return packet;
     }
 };

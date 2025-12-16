@@ -6,6 +6,7 @@
 */
 
 #include "ScrollSystem.hpp"
+#include "registry.hpp"
 
 void ScrollSystem::update(Registry& registry, system_context context) {
     auto& scrolls = registry.getView<Scroll>();

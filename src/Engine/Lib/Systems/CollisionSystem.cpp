@@ -2,6 +2,7 @@
 #include <iostream>
 #include <iterator>
 #include <ostream>
+#include "registry.hpp"
 #include "Components/StandardComponents.hpp"
 
 void BoxCollision::update(Registry& registry, system_context context) {
@@ -58,8 +59,7 @@ bool BoxCollision::checkSize(const transform_component_s a, const transform_comp
     return colision_x && colision_y;
 }
 
-bool BoxCollision::hasTagToCollide(BoxCollisionComponent entity_a, TagComponent entity_b)
-{
+bool BoxCollision::hasTagToCollide(BoxCollisionComponent entity_a, TagComponent entity_b) {
     if (entity_a.tagCollision.empty()) {
         return false;
     }

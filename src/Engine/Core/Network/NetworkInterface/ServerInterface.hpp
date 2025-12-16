@@ -23,6 +23,7 @@ class ServerInterface {
             _socketUDP.open(asio::ip::udp::v4());
             _socketUDP.set_option(asio::ip::udp::socket::reuse_address(true));
             _socketUDP.bind(asio::ip::udp::endpoint(asio::ip::udp::v4(), _port));
+            _udpMsgTemporaryIn.resize(2048);
             WaitForClientConnection();
             ReceiveUDP();
 
@@ -55,12 +56,12 @@ class ServerInterface {
 
                 newconn->ConnectToClient(nIDCounter++);
 
+                _deqConnections.push_back(newconn);
                 if (OnClientConnect(newconn)) {
-                    _deqConnections.push_back(std::move(newconn));
-
-                    std::cout << "[" << _deqConnections.back()->GetID() << "] Connection Approved\n";
+                    std::cout << "[" << newconn->GetID() << "] Connection Approved\n";
                 } else {
                     std::cout << "[-----] Connection Denied\n";
+                    _deqConnections.pop_back();
                 }
             } else {
                 std::cout << "[SERVER] New Connection Error: " << ec.message() << "\n";
@@ -191,6 +192,7 @@ class ServerInterface {
                             }
                             if (client->GetID() == msg.header.user_id) {
                                 pClient = client;
+                                pClient->SetUDPEndpoint(_udpEndpointTemporary);
                                 bClientFound = true;
                                 break;
                             }

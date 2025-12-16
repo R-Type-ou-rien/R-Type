@@ -21,6 +21,14 @@ class Server : public network::ServerInterface<GameEvents> {
 
    public:
     coming_message ReadIncomingMessage();
+    bool IsClientReady(uint32_t id) {
+        for (auto& [client, state] : _clientStates) {
+            if (client->GetID() == id) {
+                return state == ClientState::IN_LOBBY || state == ClientState::READY || state == ClientState::IN_GAME;
+            }
+        }
+        return false;
+    }
 
     Server(uint16_t nPort, int timeout_seconds)
         : network::ServerInterface<GameEvents>(nPort), _timeout_seconds(timeout_seconds) {
@@ -100,7 +108,7 @@ class Server : public network::ServerInterface<GameEvents> {
     // Pre-Game event handlers
     void onClientStartGame(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
     void onClientReadyUp(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
-    void onClientUnready(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg); 
+    void onClientUnready(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
 
    private:
     int _maxConnections = MAX_PLAYERS;
