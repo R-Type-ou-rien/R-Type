@@ -40,7 +40,6 @@ void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::Proj
     Velocity2D speed = get_projectile_speed(type, team);
 
     if (team == TeamComponent::ENEMY) {
-        // Shoot straight left
         speed.vx = -speed.vx;
     }
 

@@ -13,7 +13,6 @@ void EnemySpawnSystem::update(Registry& registry, system_context context) {
     auto& spawners = registry.getEntities<EnemySpawnComponent>();
     float windowWidth = static_cast<float>(context.window.getSize().x);
 
-    // Cleanup entities that are out of bounds (left side)
     auto& entities = registry.getEntities<transform_component_s>();
     for (auto entity : entities) {
         if (!registry.hasComponent<TagComponent>(entity)) continue;
@@ -38,9 +37,8 @@ void EnemySpawnSystem::update(Registry& registry, system_context context) {
 
         spawn_comp.total_time += context.dt;
 
-        // Boss Logic
         if (spawn_comp.total_time >= 30.0f && !spawn_comp.boss_spawned) {
-            spawn_comp.is_active = false; // Stop normal spawns
+            spawn_comp.is_active = false;
             spawn_comp.boss_spawned = true;
             spawnBoss(registry, context);
             continue;
@@ -70,7 +68,7 @@ void EnemySpawnSystem::spawnBoss(Registry& registry, system_context context) {
     float windowHeight = static_cast<float>(context.window.getSize().y);
 
     registry.addComponent<transform_component_s>(boss_id, {windowWidth - 200.0f, windowHeight / 2.0f - 50.0f});
-    registry.addComponent<Velocity2D>(boss_id, {0.0f, 0.0f}); // Boss just sits there for now
+    registry.addComponent<Velocity2D>(boss_id, {0.0f, 0.0f});
     registry.addComponent<HealthComponent>(boss_id, {100, 100, 0.0f, 1.0f});
     registry.addComponent<TeamComponent>(boss_id, {TeamComponent::ENEMY});
     registry.addComponent<DamageOnCollision>(boss_id, {20});
@@ -80,7 +78,7 @@ void EnemySpawnSystem::spawnBoss(Registry& registry, system_context context) {
 
     sprite2D_component_s sprite_info;
     sprite_info.handle = handle;
-    sprite_info.dimension = {0, 0, 162, 216}; // Approximate boss size from sprite sheet
+    sprite_info.dimension = {0, 0, 162, 216};
     sprite_info.z_index = 2;
     registry.addComponent<sprite2D_component_s>(boss_id, sprite_info);
 
