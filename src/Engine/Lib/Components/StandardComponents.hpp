@@ -131,3 +131,17 @@ struct BackgroundComponent {
     float x_offset = 0.f;
     float scroll_speed = 0.f;
 };
+
+// struct SpawnComponent {
+//     bool active = true;
+//     float interval = 2.0f;
+//     float elapsed = 0.0f;
+
+//     std::string sprite_path = "content/sprites/r-typesheet8.gif";
+//     rect frame {0, 0, 32, 32};
+
+//     float scale_x = 2.0f;
+//     float scale_y = 2.0f;
+//     float speed_x = -100.0f;
+//     bool allow_outside_right = true;
+// };

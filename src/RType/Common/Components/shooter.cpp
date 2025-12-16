@@ -40,38 +40,8 @@ void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::Proj
     Velocity2D speed = get_projectile_speed(type, team);
 
     if (team == TeamComponent::ENEMY) {
-        auto& tags = registry.getEntities<TagComponent>();
-        transform_component_s playerPos = {0, 0};
-        bool found = false;
-        for (auto entity : tags) {
-            if (!registry.hasComponent<TagComponent>(entity))
-                continue;
-            auto& tagComp = registry.getComponent<TagComponent>(entity);
-            for (const auto& tag : tagComp.tags) {
-                if (tag == "PLAYER") {
-                    if (registry.hasComponent<transform_component_s>(entity)) {
-                        playerPos = registry.getComponent<transform_component_s>(entity);
-                        found = true;
-                    }
-                    break;
-                }
-            }
-            if (found)
-                break;
-        }
-
-        if (found) {
-            float dx = playerPos.x - pos.x;
-            float dy = playerPos.y - pos.y;
-            float length = std::sqrt(dx * dx + dy * dy);
-            if (length != 0) {
-                float s = speed.vx;
-                speed.vx = (dx / length) * s;
-                speed.vy = (dy / length) * s;
-            }
-        } else {
-            speed.vx = -speed.vx;
-        }
+        // Shoot straight left
+        speed.vx = -speed.vx;
     }
 
     TagComponent tags;

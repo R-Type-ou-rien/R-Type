@@ -1,5 +1,6 @@
 #include <memory>
 #include <vector>
+#include <SFML/System/Clock.hpp>
 #include "../Actors/Player/Player.hpp"
 #include "../Actors/AI/AI.hpp"
 #include "ECS.hpp"
