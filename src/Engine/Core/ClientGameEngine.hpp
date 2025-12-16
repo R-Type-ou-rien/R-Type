@@ -2,6 +2,8 @@
 
 #include <cstdint>
 #include <functional>
+#include <iostream>
+#include <ostream>
 #include <string>
 
 #include <SFML/Graphics/Texture.hpp>
@@ -51,11 +53,19 @@ class ClientGameEngine {
     void registerNetworkComponent() {
         uint32_t typeId = Hash::fnv1a(T::name);
 
-        _deserializers[typeId] = [](Registry& reg, Entity e, const std::vector<uint8_t>& data) {
+        _deserializers[typeId] = [this](Registry& reg, Entity e, const std::vector<uint8_t>& data) {
             T component;
-            // logic relying on memcy size check removed, delegated to serializer
-
             Serializer<T>::deserialize(component, data);
+
+            if constexpr (std::is_same_v<T, sprite2D_component_s>) {
+                std::cout << "GET SPRITE COMPONENT" << std::endl;
+                if (component.texture_id != 0) {
+                    component.handle = _ecs._textureManager.getHandleByHash(component.texture_id);
+                    if (!_ecs._textureManager.has_resource(component.handle)) {
+                        std::cerr << "Texture ID " << component.texture_id << " not found in the resource manager" << std::endl;
+                    }
+                }
+            }
 
             if (reg.hasComponent<T>(e)) {
                 reg.getComponent<T>(e) = component;

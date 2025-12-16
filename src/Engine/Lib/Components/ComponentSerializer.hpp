@@ -162,7 +162,6 @@ struct Serializer<ResourceComponent> {
     }
 };
 
-// NetworkIdentity Serialization (POD)
 template <>
 struct Serializer<NetworkIdentity> {
     static std::vector<uint8_t> serialize(const NetworkIdentity& component) {
@@ -178,11 +177,129 @@ struct Serializer<NetworkIdentity> {
     }
 };
 
-// ComponentPacket Serialization (Should rely on its own operator<<)
+template <>
+struct Serializer<transform_component_s> {
+    static std::vector<uint8_t> serialize(const transform_component_s& component) {
+        std::vector<uint8_t> data;
+        WritePOD(data, component);
+        return data;
+    }
+
+    static void deserialize(transform_component_s& component, const std::vector<uint8_t>& data) {
+        if (data.size() != sizeof(transform_component_s))
+            return;
+        std::memcpy(&component, data.data(), sizeof(transform_component_s));
+    }
+};
+
+template <>
+struct Serializer<Velocity2D> {
+    static std::vector<uint8_t> serialize(const Velocity2D& component) {
+        std::vector<uint8_t> data;
+        WritePOD(data, component);
+        return data;
+    }
+
+    static void deserialize(Velocity2D& component, const std::vector<uint8_t>& data) {
+        if (data.size() != sizeof(Velocity2D))
+            return;
+        std::memcpy(&component, data.data(), sizeof(Velocity2D));
+    }
+};
+
+template <>
+struct Serializer<rect> {
+    static std::vector<uint8_t> serialize(const rect& component) {
+        std::vector<uint8_t> data;
+        WritePOD(data, component);
+        return data;
+    }
+
+    static void deserialize(rect& component, const std::vector<uint8_t>& data) {
+        if (data.size() != sizeof(rect))
+            return;
+        std::memcpy(&component, data.data(), sizeof(rect));
+    }
+};
+
+template <>
+struct Serializer<sprite2D_component_s> {
+    static std::vector<uint8_t> serialize(const sprite2D_component_s& component) {
+        std::vector<uint8_t> data;
+        WritePOD(data, component);
+        return data;
+    }
+
+    static void deserialize(sprite2D_component_s& component, const std::vector<uint8_t>& data) {
+        if (data.size() != sizeof(sprite2D_component_s))
+            return;
+        std::memcpy(&component, data.data(), sizeof(sprite2D_component_s));
+    }
+};
+
+template <>
+struct Serializer<Shooter> {
+    static std::vector<uint8_t> serialize(const Shooter& component) {
+        std::vector<uint8_t> data;
+        WritePOD(data, component);
+        return data;
+    }
+
+    static void deserialize(Shooter& component, const std::vector<uint8_t>& data) {
+        if (data.size() != sizeof(Shooter))
+            return;
+        std::memcpy(&component, data.data(), sizeof(Shooter));
+    }
+};
+
+template <>
+struct Serializer<Projectile> {
+    static std::vector<uint8_t> serialize(const Projectile& component) {
+        std::vector<uint8_t> data;
+        WritePOD(data, component);
+        return data;
+    }
+
+    static void deserialize(Projectile& component, const std::vector<uint8_t>& data) {
+        if (data.size() != sizeof(Projectile))
+            return;
+        std::memcpy(&component, data.data(), sizeof(Projectile));
+    }
+};
+
+template <>
+struct Serializer<Scroll> {
+    static std::vector<uint8_t> serialize(const Scroll& component) {
+        std::vector<uint8_t> data;
+        WritePOD(data, component);
+        return data;
+    }
+
+    static void deserialize(Scroll& component, const std::vector<uint8_t>& data) {
+        if (data.size() != sizeof(Scroll))
+            return;
+        std::memcpy(&component, data.data(), sizeof(Scroll));
+    }
+};
+
+template <>
+struct Serializer<BackgroundComponent> {
+    static std::vector<uint8_t> serialize(const BackgroundComponent& component) {
+        std::vector<uint8_t> data;
+        WritePOD(data, component);
+        return data;
+    }
+
+    static void deserialize(BackgroundComponent& component, const std::vector<uint8_t>& data) {
+        if (data.size() != sizeof(BackgroundComponent))
+            return;
+        std::memcpy(&component, data.data(), sizeof(BackgroundComponent));
+    }
+};
+
 template <>
 struct Serializer<ComponentPacket> {
     static std::vector<uint8_t> serialize(const ComponentPacket& component) {
-        // Component packet shouldn't be inside another component packet usually
         return {};
     }
     static void deserialize(ComponentPacket& component, const std::vector<uint8_t>& data) {}

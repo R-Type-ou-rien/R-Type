@@ -10,6 +10,8 @@ GameManager::GameManager() {
 
 void GameManager::init(ECS& ecs) {
     ecs.systems.addSystem<ShooterSystem>();
+    ecs._textureManager.load_resource("content/sprites/r-typesheet42.gif", sf::Texture("content/sprites/r-typesheet42.gif"));
+    ecs._textureManager.load_resource("content/sprites/r-typesheet1.gif", sf::Texture("content/sprites/r-typesheet1.gif"));
 
     {
         const std::string bgPath = "content/sprites/background-R-Type.png";

@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "Components/StandardComponents.hpp"
+#include "Hash/Hash.hpp"
 #include "registry.hpp"
 
 AActor::AActor(ECS& ecs, const std::string name) : _ecs(ecs), _id(_ecs.registry.createEntity()) {
@@ -101,6 +102,7 @@ std::pair<float, float> AActor::getScale() {
 void AActor::setTexture(const std::string pathname) {
     sprite2D_component_s sprite;
     sprite.animation_speed = 0;
+    sprite.texture_id = Hash::fnv1a(pathname.c_str());
     sprite.current_animation_frame = 0;
     sprite.dimension = {0, 0, 0, 0};
     sprite.z_index = 0;

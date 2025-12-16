@@ -78,6 +78,7 @@ struct BoxCollisionComponent {
 struct sprite2D_component_s {
     static constexpr auto name = "Sprite";
     handle_t<sf::Texture> handle;
+    uint32_t texture_id = 0;
     rect dimension = {0.0f, 0.0f, 0.0f, 0.0f};
     bool is_animated = false;
     float animation_speed = 0;

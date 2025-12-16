@@ -5,6 +5,7 @@
 #include <ostream>
 
 #include "Components/StandardComponents.hpp"
+#include "Hash/Hash.hpp"
 #include "ISystem.hpp"
 #include "registry.hpp"
 #include "team_component.hpp"
@@ -55,6 +56,7 @@ void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::Proj
                                                                      sf::Texture("content/sprites/r-typesheet1.gif"));
 
     sprite2D_component_s sprite_info;
+    sprite_info.texture_id = Hash::fnv1a("content/sprites/r-typesheet1.gif");
     sprite_info.handle = handle;
     sprite_info.animation_speed = 0;
     sprite_info.current_animation_frame = 0;
