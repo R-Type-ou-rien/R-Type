@@ -23,6 +23,6 @@ class RenderSystem : public ISystem {
    private:
     sf::Texture& getTexture(const std::string& path);
 
-    void drawEntity(const transform_component_s& transform, const sprite2D_component_s& spriteData,
+    void drawEntity(const transform_component_s& transform, sprite2D_component_s& spriteData,
                     const system_context& context);
 };

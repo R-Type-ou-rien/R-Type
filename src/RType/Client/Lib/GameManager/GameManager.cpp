@@ -33,8 +33,7 @@ void GameManager::init(ECS& ecs) {
     _player->setFireRate(0.5);
     loadInputSetting(ecs);
     auto enemy = std::make_unique<AI>(ecs, std::pair<float, float>(300.f, 300.f));
-    enemy->setTexture("content/sprites/r-typesheet42.gif");
-    enemy->setTextureDimension(rect{32, 0, 32, 16});
+    enemy->setTextureEnemy("content/sprites/r-typesheet8.gif");
     enemy->setPattern({{500.f, 300.f}, {500.f, 500.f}, {300.f, 500.f}, {300.f, 300.f}});
     enemy->setPatternLoop(true);
     
