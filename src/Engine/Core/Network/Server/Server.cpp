@@ -57,7 +57,7 @@ void Server::OnMessage(std::shared_ptr<network::Connection<GameEvents>> client, 
 }
 
 void Server::OnClientDisconnect(std::shared_ptr<network::Connection<GameEvents>> client) {
-    std::cout << "Removing client [" << client->GetID() << "]\n";
+    // std::cout << "Removing client [" << client->GetID() << "]\n";
     network::message<GameEvents> msg;
     msg << NULL;
     _toGameMessages.push({GameEvents::C_DISCONNECT, client->GetID(), msg});
