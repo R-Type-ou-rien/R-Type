@@ -3,9 +3,11 @@
 #include <iostream>
 #include <iterator>
 #include <ostream>
+#include <cmath>
 
 #include "Components/StandardComponents.hpp"
 #include "ISystem.hpp"
+#include "damage.hpp"
 #include "registry.hpp"
 #include "team_component.hpp"
 
@@ -36,6 +38,40 @@ void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::Proj
                                       transform_component_s pos, system_context context) {
     int id = registry.createEntity();
     Velocity2D speed = get_projectile_speed(type, team);
+    
+    if (team == TeamComponent::ENEMY) {
+        auto& tags = registry.getEntities<TagComponent>();
+        transform_component_s playerPos = {0, 0};
+        bool found = false;
+        for (auto entity : tags) {
+             if (!registry.hasComponent<TagComponent>(entity)) continue;
+             auto& tagComp = registry.getComponent<TagComponent>(entity);
+             for (const auto& tag : tagComp.tags) {
+                 if (tag == "PLAYER") {
+                     if (registry.hasComponent<transform_component_s>(entity)) {
+                         playerPos = registry.getComponent<transform_component_s>(entity);
+                         found = true;
+                     }
+                     break;
+                 }
+             }
+             if (found) break;
+        }
+
+        if (found) {
+            float dx = playerPos.x - pos.x;
+            float dy = playerPos.y - pos.y;
+            float length = std::sqrt(dx*dx + dy*dy);
+            if (length != 0) {
+                float s = speed.vx; 
+                speed.vx = (dx / length) * s;
+                speed.vy = (dy / length) * s;
+            }
+        } else {
+             speed.vx = -speed.vx;
+        }
+    }
+
     TagComponent tags;
     if (team == TeamComponent::ALLY) {
         tags.tags.push_back("ENEMY_PROJECTILE");
@@ -53,7 +89,7 @@ void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::Proj
 
     registry.addComponent<TagComponent>(id, tags);
 
-    registry.addComponent<>(Entity id, Component component)
+    registry.addComponent<DamageOnCollision>(id, {10});
 
     handle_t<sf::Texture> handle = context.texture_manager.load_resource("content/sprites/r-typesheet1.gif",
                                                                      sf::Texture("content/sprites/r-typesheet1.gif"));
@@ -75,17 +111,7 @@ void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::Proj
     } else {
         collision.tagCollision.push_back("PLAYER");
     }
-
-    collision.callbackOnCollide = [](Registry& reg, system_context con, Entity current){
-        BoxCollisionComponent& coll = reg.getComponent<BoxCollisionComponent>(current);
-
-        for (auto collided_entity : coll.collision.tags) {
-            reg.destroyEntity(collided_entity);
-        }
-        reg.destroyEntity(current);
-    };
-
-
+    return;
 }
 
 void ShooterSystem::update(Registry& registry, system_context context) {

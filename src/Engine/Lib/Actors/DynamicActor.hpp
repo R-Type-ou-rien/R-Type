@@ -39,7 +39,10 @@ class DynamicActor : public AActor {
     /** IA */
     void setPattern(std::vector<std::pair<float, float>> way_points);
 
+    void setPatternType(PatternComponent::PatternType type);
+
     std::vector<std::pair<float, float>> getPattern();
+
 
     void setPatternActive(bool state);
 
