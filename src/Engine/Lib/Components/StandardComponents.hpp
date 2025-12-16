@@ -136,27 +136,16 @@ struct BackgroundComponent {
     float scroll_speed = 0.f;
 };
 
-// // Spawner de mobs basique (toutes les `interval` secondes)
 // struct SpawnComponent {
-//     // Activation du spawner
 //     bool active = true;
-//     // Intervalle entre apparitions (secondes)
 //     float interval = 2.0f;
-//     // Accumulateur interne (remis à 0 après chaque spawn)
 //     float elapsed = 0.0f;
 
-//     // Visuel des entités à faire apparaître
 //     std::string sprite_path = "content/sprites/r-typesheet8.gif";
 //     rect frame {0, 0, 32, 32};
 
-//     // Mise à l'échelle du sprite
 //     float scale_x = 2.0f;
 //     float scale_y = 2.0f;
-
-//     // Vitesse horizontale (négative = vers la gauche)
 //     float speed_x = -100.0f;
-
-//     // Apparition dans l'écran ou hors écran (à droite)
-//     // Si true: moitié des spawns se feront hors écran à droite
 //     bool allow_outside_right = true;
 // };

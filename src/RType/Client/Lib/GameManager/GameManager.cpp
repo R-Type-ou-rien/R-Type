@@ -17,7 +17,7 @@ void GameManager::init(ECS& ecs) {
     ecs.systems.addSystem<Damage>();
     ecs.systems.addSystem<HealthSystem>();
     ecs.systems.addSystem<PatternSystem>();
-    ecs.systems.addSystem<SpawnSystem>();
+    ecs.systems.addSystem<EnemySpawnSystem>();
 
     {
         const std::string bgPath = "content/sprites/background-R-Type.png";
@@ -56,11 +56,11 @@ void GameManager::init(ECS& ecs) {
     _ennemies.push_back(std::move(enemy));
 
     Entity spawner = ecs.registry.createEntity();
-    SpawnComponent spawn_comp;
+    EnemySpawnComponent spawn_comp;
     spawn_comp.spawn_interval = 5.0f;
     spawn_comp.enemies_per_wave = 3;
     spawn_comp.is_active = true;
-    ecs.registry.addComponent<SpawnComponent>(spawner, spawn_comp);
+    ecs.registry.addComponent<EnemySpawnComponent>(spawner, spawn_comp);
 
     _uiEntity = ecs.registry.createEntity();
     ecs.registry.addComponent<TextComponent>(
