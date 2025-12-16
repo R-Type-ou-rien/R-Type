@@ -19,7 +19,4 @@ class SpawnSystem : public ISystem {
     ~SpawnSystem() override = default;
 
     void update(Registry& registry, system_context context) override;
-
-   private:
-    void spawn_one(Registry& registry, system_context& context, const SpawnComponent& cfg);
 };
