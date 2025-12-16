@@ -164,7 +164,19 @@ void DynamicActor::setPattern(std::vector<std::pair<float, float>> way_points) {
     return;
 }
 
-std::vector<std::pair<float, float>> DynamicActor::getPattern() {
+void DynamicActor::setPatternType(PatternComponent::PatternType type)
+{
+    if (_playable)
+        return;
+    PatternComponent& comp = _ecs.registry.getComponent<PatternComponent>(_id);
+
+    comp.type = type;
+    return;
+}
+
+std::vector<std::pair<float, float>> DynamicActor::getPattern()
+
+{
     if (_playable)
         return std::vector<std::pair<float, float>>();
     PatternComponent comp = _ecs.registry.getComponent<PatternComponent>(_id);

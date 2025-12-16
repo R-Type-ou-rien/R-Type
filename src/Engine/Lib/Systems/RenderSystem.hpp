@@ -25,4 +25,11 @@ class RenderSystem : public ISystem {
 
     void drawEntity(const transform_component_s& transform, const sprite2D_component_s& spriteData,
                     const system_context& context);
+    
+    void drawText(const TextComponent& textComp, const system_context& context);
+
+   private:
+    sf::Font _font;
+    bool _fontLoaded = false;
 };
+

@@ -24,10 +24,38 @@ void RenderSystem::update(Registry& registry, system_context context) {
             drawEntity(transform, spriteData, context);
         }
     }
+
+    const auto& textIds = registry.getEntities<TextComponent>();
+    for (Entity entity : textIds) {
+        auto& textComp = registry.getComponent<TextComponent>(entity);
+        drawText(textComp, context);
+    }
+
     return;
 }
 
+void RenderSystem::drawText(const TextComponent& textComp, const system_context& context) {
+    if (!_fontLoaded) {
+        if (!_font.openFromFile(textComp.fontPath)) {
+            std::cerr << "Failed to load font: " << textComp.fontPath << std::endl;
+            return;
+        }
+        _fontLoaded = true;
+    }
+    
+    if (!_fontLoaded) return;
+    
+    sf::Text text(_font);
+    text.setString(textComp.text);
+    text.setCharacterSize(textComp.characterSize);
+    text.setFillColor(textComp.color);
+    text.setPosition({textComp.x, textComp.y});
+    context.window.draw(text);
+}
+
+
 void RenderSystem::drawEntity(const transform_component_s& transform, const sprite2D_component_s& spriteData,
+
                               const system_context& context) {
     if (!context.texture_manager.has_resource(spriteData.handle))
         return;

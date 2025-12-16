@@ -1,16 +1,41 @@
+/*
+** EPITECH PROJECT, 2025
+** R-Type
+** File description:
+** Boss
+*/
+
 #include <string>
 #include <utility>
 #include "DynamicActor.hpp"
-#include "ECS.hpp"
+#include "Components/StandardComponents.hpp"
+#include "../../../../Common/Components/team_component.hpp"
+#include "../../../../Common/Components/shooter.hpp"
+
+#ifndef BOSS_HPP_
+    #define BOSS_HPP_
+
+class Boss : public DynamicActor {
+    public:
+        Boss(ECS& ecs);
+        ~Boss();
+
+    protected:
+    private:
+};
+
+#include <string>
+#include <utility>
+#include "DynamicActor.hpp"
 #include "Components/StandardComponents.hpp"
 #include "../../../../Common/Components/team_component.hpp"
 #include "../../../../Common/Components/shooter.hpp"
 
 #pragma once
 
-class Player : public DynamicActor {
+class AI : public DynamicActor {
    public:
-    Player(ECS& ecs, std::pair<float, float> pos);
+    AI(ECS& ecs, std::pair<float, float> pos);
 
     void setProjectileType(ShooterComponent::ProjectileType type);
 
@@ -38,3 +63,6 @@ class Player : public DynamicActor {
 
     void takeDamage(int damage);
 };
+
+
+#endif /* !BOSS_HPP_ */
