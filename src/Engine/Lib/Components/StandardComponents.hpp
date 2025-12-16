@@ -80,10 +80,14 @@ struct sprite2D_component_s {
     handle_t<sf::Texture> handle;
     rect dimension = {0.0f, 0.0f, 0.0f, 0.0f};
     bool is_animated = false;
+    std::vector<rect> frames;
+    bool reverse_animation = false;
+    bool loop_animation = false;
     float animation_speed = 0;
     int current_animation_frame = 0;
     float last_animation_update = 0;
     int z_index = 0;
+    float lastUpdateTime = 0.f;
 };
 
 struct TagComponent {

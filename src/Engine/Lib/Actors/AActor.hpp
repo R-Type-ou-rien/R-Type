@@ -41,6 +41,11 @@ class AActor {
     std::pair<float, float> getScale();
 
     /** Sprite2D component's methods */
+
+    void setTextureEnemy(const std::string pathname);
+
+    void setTextureBoss(const std::string pathname);
+
     void setTexture(const std::string pathname);
 
     void setTextureDimension(rect dimension);

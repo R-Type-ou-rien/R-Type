@@ -47,8 +47,7 @@ void GameManager::init(ECS& ecs) {
 
     loadInputSetting(ecs);
     auto enemy = std::make_unique<AI>(ecs, std::pair<float, float>(600.f, 200.f));
-    enemy->setTexture("content/sprites/r-typesheet42.gif");
-    enemy->setTextureDimension(rect{32, 0, 32, 16});
+    enemy->setTextureEnemy("content/sprites/r-typesheet8.gif");
     enemy->setPatternType(PatternComponent::SINUSOIDAL);
     enemy->setLifePoint(10);
     enemy->setCurrentHealth(10);
