@@ -4,13 +4,13 @@
 #include "Components/StandardComponents.hpp"
 #include "PatternSystem/PatternSystem.hpp"
 
-
 ClientGameEngine::ClientGameEngine(std::string window_name) : _window_manager(WINDOW_W, WINDOW_H, window_name) {}
 
 int ClientGameEngine::init() {
     InputManager input_manager;
 
     _ecs.systems.addSystem<BackgroundSystem>();
+    _ecs.systems.addSystem<SpawnSystem>();
     _ecs.systems.addSystem<RenderSystem>();
     _ecs.systems.addSystem<InputSystem>(_ecs.input);
     _ecs.systems.addSystem<BoxCollision>();

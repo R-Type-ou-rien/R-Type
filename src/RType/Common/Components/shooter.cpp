@@ -32,13 +32,12 @@ Velocity2D ShooterSystem::get_projectile_speed(ShooterComponent::ProjectileType 
     return vel;
 }
 
-void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::ProjectileType type, TeamComponent::Team team,
-                                      transform_component_s pos, system_context context) {
+void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::ProjectileType type,
+                                      TeamComponent::Team team, transform_component_s pos, system_context context) {
     int id = registry.createEntity();
     Velocity2D speed = get_projectile_speed(type, team);
     TagComponent tags;
     tags.tags.push_back("PROJECTILE");
-    
 
     registry.addComponent<ProjectileComponent>(id, {id});
 
@@ -50,8 +49,8 @@ void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::Proj
 
     registry.addComponent<TagComponent>(id, tags);
 
-    handle_t<sf::Texture> handle = context.texture_manager.load_resource("content/sprites/r-typesheet1.gif",
-                                                                     sf::Texture("content/sprites/r-typesheet1.gif"));
+    handle_t<sf::Texture> handle = context.texture_manager.load_resource(
+        "content/sprites/r-typesheet1.gif", sf::Texture("content/sprites/r-typesheet1.gif"));
 
     sprite2D_component_s sprite_info;
     sprite_info.handle = handle;
@@ -62,7 +61,6 @@ void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::Proj
 
     registry.addComponent<sprite2D_component_s>(id, sprite_info);
 
-    
     registry.addComponent<BoxCollisionComponent>(id, {});
     BoxCollisionComponent& collision = registry.getComponent<BoxCollisionComponent>(id);
     if (team == TeamComponent::ALLY) {
@@ -71,7 +69,7 @@ void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::Proj
         collision.tagCollision.push_back("PLAYER");
     }
 
-    collision.callbackOnCollide = [](Registry& reg, system_context con, Entity current){
+    collision.callbackOnCollide = [](Registry& reg, system_context con, Entity current) {
         BoxCollisionComponent& coll = reg.getComponent<BoxCollisionComponent>(current);
 
         for (auto collided_entity : coll.collision.tags) {
@@ -79,8 +77,6 @@ void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::Proj
         }
         reg.destroyEntity(current);
     };
-
-
 }
 
 void ShooterSystem::update(Registry& registry, system_context context) {
