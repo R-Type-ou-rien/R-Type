@@ -20,12 +20,12 @@ void Damage::update(Registry& registry, system_context context) {
         for (auto& hit : collider.collision.tags) {
             Entity hit_id = hit;
             auto& dmg = registry.getComponent<DamageOnCollision>(attacker);
-            
+
             if (!registry.hasComponent<HealthComponent>(hit_id))
                 continue;
-                
+
             auto& health = registry.getComponent<HealthComponent>(hit_id);
-            
+
             if (registry.hasComponent<TeamComponent>(attacker) && registry.hasComponent<TeamComponent>(hit_id)) {
                 auto& teamA = registry.getComponent<TeamComponent>(attacker);
                 auto& teamB = registry.getComponent<TeamComponent>(hit_id);

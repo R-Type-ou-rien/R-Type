@@ -1,7 +1,7 @@
 #include "Player.hpp"
 #include "src/RType/Common/Components/health.hpp"
 
-Player::Player(ECS& ecs, std::pair<float, float> pos): DynamicActor(ecs, true, "PLAYER") {
+Player::Player(ECS& ecs, std::pair<float, float> pos) : DynamicActor(ecs, true, "PLAYER") {
     ResourceStat lifepoint;
     lifepoint.max = 100;
     lifepoint.current = 100;
@@ -14,91 +14,78 @@ Player::Player(ECS& ecs, std::pair<float, float> pos): DynamicActor(ecs, true, "
     _ecs.registry.addComponent<HealthComponent>(_id, {100, 100});
 }
 
-
-void Player::setProjectileType(ShooterComponent::ProjectileType type)
-{
+void Player::setProjectileType(ShooterComponent::ProjectileType type) {
     ShooterComponent& comp = _ecs.registry.getComponent<ShooterComponent>(_id);
 
     comp.type = type;
     return;
 }
 
-ShooterComponent::ProjectileType Player::getProjectileType()
-{
+ShooterComponent::ProjectileType Player::getProjectileType() {
     ShooterComponent comp = _ecs.registry.getComponent<ShooterComponent>(_id);
 
     return comp.type;
 }
 
-void Player::setShootingState(bool state)
-{
+void Player::setShootingState(bool state) {
     ShooterComponent& comp = _ecs.registry.getComponent<ShooterComponent>(_id);
 
     comp.is_shooting = state;
     return;
 }
 
-bool Player::isShooting()
-{
+bool Player::isShooting() {
     ShooterComponent comp = _ecs.registry.getComponent<ShooterComponent>(_id);
 
     return comp.is_shooting;
 }
 
-void Player::setFireRate(double fire_rate)
-{
+void Player::setFireRate(double fire_rate) {
     ShooterComponent& comp = _ecs.registry.getComponent<ShooterComponent>(_id);
 
     comp.fire_rate = fire_rate;
     return;
 }
 
-double Player::getFireRate()
-{
+double Player::getFireRate() {
     ShooterComponent comp = _ecs.registry.getComponent<ShooterComponent>(_id);
 
     return comp.fire_rate;
 }
 
-void Player::setTeam(TeamComponent::Team team)
-{
+void Player::setTeam(TeamComponent::Team team) {
     TeamComponent& comp = _ecs.registry.getComponent<TeamComponent>(_id);
 
     comp.team = team;
     return;
 }
 
-TeamComponent::Team Player::getTeam()
-{
+TeamComponent::Team Player::getTeam() {
     TeamComponent comp = _ecs.registry.getComponent<TeamComponent>(_id);
 
     return comp.team;
 }
 
-void Player::setLifePoint(int lifePoint)
-{
+void Player::setLifePoint(int lifePoint) {
     HealthComponent& comp = _ecs.registry.getComponent<HealthComponent>(_id);
 
     comp.max_hp = lifePoint;
     comp.current_hp = lifePoint;
     return;
 }
-int Player::getCurrentHealth()
-{
+int Player::getCurrentHealth() {
     HealthComponent comp = _ecs.registry.getComponent<HealthComponent>(_id);
 
     return comp.current_hp;
 }
 
-int Player::getMaxHealth()
-{
+int Player::getMaxHealth() {
     HealthComponent comp = _ecs.registry.getComponent<HealthComponent>(_id);
 
     return comp.max_hp;
 }
 
-void Player::takeDamage(int damage)
-{
+void Player::takeDamage(int damage) {
     HealthComponent& comp = _ecs.registry.getComponent<HealthComponent>(_id);
 
     comp.current_hp -= damage;
