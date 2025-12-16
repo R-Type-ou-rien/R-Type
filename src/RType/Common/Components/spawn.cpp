@@ -9,40 +9,11 @@
 #include "shooter.hpp"
 #include "team_component.hpp"
 
-void EnemySpawnSystem::update(Registry& registry, system_context context) {
-    auto& spawners = registry.getEntities<EnemySpawnComponent>();
-    float windowWidth = static_cast<float>(context.window.getSize().x);
-
-    auto& entities = registry.getEntities<transform_component_s>();
-    for (auto entity : entities) {
-        if (!registry.hasComponent<TagComponent>(entity)) continue;
-        auto& tags = registry.getComponent<TagComponent>(entity);
-        bool is_enemy = false;
-        for (const auto& tag : tags.tags) {
-            if (tag == "AI" || tag == "ENEMY_PROJECTILE") {
-                is_enemy = true;
-                break;
-            }
-        }
-        if (!is_enemy) continue;
-
-        auto& transform = registry.getComponent<transform_component_s>(entity);
-        if (transform.x < -100.0f) {
-            registry.destroyEntity(entity);
-        }
-    }
+void SpawnSystem::update(Registry& registry, system_context context) {
+    auto& spawners = registry.getEntities<SpawnComponent>();
 
     for (auto spawner : spawners) {
-        auto& spawn_comp = registry.getComponent<EnemySpawnComponent>(spawner);
-
-        spawn_comp.total_time += context.dt;
-
-        if (spawn_comp.total_time >= 30.0f && !spawn_comp.boss_spawned) {
-            spawn_comp.is_active = false;
-            spawn_comp.boss_spawned = true;
-            spawnBoss(registry, context);
-            continue;
-        }
+        auto& spawn_comp = registry.getComponent<SpawnComponent>(spawner);
 
         if (!spawn_comp.is_active)
             continue;
@@ -62,38 +33,7 @@ void EnemySpawnSystem::update(Registry& registry, system_context context) {
     }
 }
 
-void EnemySpawnSystem::spawnBoss(Registry& registry, system_context context) {
-    Entity boss_id = registry.createEntity();
-    float windowWidth = static_cast<float>(context.window.getSize().x);
-    float windowHeight = static_cast<float>(context.window.getSize().y);
-
-    registry.addComponent<transform_component_s>(boss_id, {windowWidth - 200.0f, windowHeight / 2.0f - 50.0f});
-    registry.addComponent<Velocity2D>(boss_id, {0.0f, 0.0f});
-    registry.addComponent<HealthComponent>(boss_id, {100, 100, 0.0f, 1.0f});
-    registry.addComponent<TeamComponent>(boss_id, {TeamComponent::ENEMY});
-    registry.addComponent<DamageOnCollision>(boss_id, {20});
-
-    handle_t<sf::Texture> handle = context.texture_manager.load_resource(
-        "content/sprites/r-typesheet30.gif", sf::Texture("content/sprites/r-typesheet30.gif"));
-
-    sprite2D_component_s sprite_info;
-    sprite_info.handle = handle;
-    sprite_info.dimension = {0, 0, 162, 216};
-    sprite_info.z_index = 2;
-    registry.addComponent<sprite2D_component_s>(boss_id, sprite_info);
-
-    BoxCollisionComponent collision;
-    collision.tagCollision.push_back("FRIENDLY_PROJECTILE");
-    collision.tagCollision.push_back("PLAYER");
-    registry.addComponent<BoxCollisionComponent>(boss_id, collision);
-
-    TagComponent tags;
-    tags.tags.push_back("AI");
-    tags.tags.push_back("BOSS");
-    registry.addComponent<TagComponent>(boss_id, tags);
-}
-
-void EnemySpawnSystem::spawnEnemy(Registry& registry, system_context context, float x, float y, bool sine_pattern) {
+void SpawnSystem::spawnEnemy(Registry& registry, system_context context, float x, float y, bool sine_pattern) {
     Entity enemy_id = registry.createEntity();
 
     registry.addComponent<transform_component_s>(enemy_id, {x, y});

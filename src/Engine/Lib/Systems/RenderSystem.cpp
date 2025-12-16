@@ -54,7 +54,7 @@ void RenderSystem::drawText(const TextComponent& textComp, const system_context&
 }
 
 
-void RenderSystem::drawEntity(const transform_component_s& transform, const sprite2D_component_s& spriteData,
+void RenderSystem::drawEntity(const transform_component_s& transform, sprite2D_component_s& spriteData,
                               const system_context& context) {
     if (!context.texture_manager.has_resource(spriteData.handle))
         return;

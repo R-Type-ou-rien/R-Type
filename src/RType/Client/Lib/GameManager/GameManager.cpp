@@ -6,13 +6,9 @@
 #include <utility>
 #include "src/RType/Common/Components/health.hpp"
 #include "src/RType/Common/Components/shooter.hpp"
-<<<<<<< HEAD
 #include "src/RType/Common/Components/damage.hpp"
 #include "src/RType/Common/Components/spawn.hpp"
 #include "src/Engine/Lib/Systems/PatternSystem/PatternSystem.hpp"
-=======
-#include "Components/StandardComponents.hpp"
->>>>>>> 4e3429f (feat: map background and spawn mobs)
 
 GameManager::GameManager() {}
 
