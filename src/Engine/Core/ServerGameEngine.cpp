@@ -17,6 +17,7 @@ int ServerGameEngine::init() {
     if (_init_function)
         _init_function(_ecs);
 
+    _network_server.Start();
     return 0;
 }
 

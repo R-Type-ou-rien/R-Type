@@ -111,7 +111,6 @@ void ClientGameEngine::handleNetworkMessages()
 {
     if (_network_client.IsConnected()) {
         // send authentification
-        std::cout << "user connected" << std::endl;
         coming_message c_msg = _network_client.ReadIncomingMessage();
             // send id -> message udp -> S_CONFIRM_UDP
             // S_ROOM_JOINED
