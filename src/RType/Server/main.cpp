@@ -1,8 +1,15 @@
+#include "ECS.hpp"
 #include "ServerGameEngine.hpp"
 #include "Components/StandardComponents.hpp"
-#include ""
+#include "GameManager/GameManager.hpp"
+
 
 int main()
 {
     ServerGameEngine s;
+    GameManager gm;
+
+    s.setInitFunction([&gm](ECS& ecs){gm.init(ecs);});
+    s.setUserFunction([&gm](ECS& ecs){gm.update(ecs);});
+    s.run();
 }
