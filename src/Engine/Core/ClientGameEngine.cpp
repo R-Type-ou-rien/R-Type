@@ -23,7 +23,7 @@ ClientGameEngine::ClientGameEngine(std::string window_name) : _window_manager(WI
 int ClientGameEngine::init() {
     InputManager input_manager;
 
-    _network_client.Connect("127.0.0.1", 8080);    
+    _network_client.Connect("127.0.0.1", 4242);    
 
     registerNetworkComponent<BoxCollisionComponent>();
     registerNetworkComponent<BackgroundComponent>();
@@ -92,6 +92,7 @@ int ClientGameEngine::run() {
 
     this->init();
     while (_window_manager.isOpen()) {
+        handleNetworkMessages();
         context.dt = clock.restart().asSeconds();
         handleEvent();
         _window_manager.clear();
@@ -110,6 +111,7 @@ void ClientGameEngine::handleNetworkMessages()
 {
     if (_network_client.IsConnected()) {
         // send authentification
+        std::cout << "user connected" << std::endl;
         coming_message c_msg = _network_client.ReadIncomingMessage();
             // send id -> message udp -> S_CONFIRM_UDP
             // S_ROOM_JOINED

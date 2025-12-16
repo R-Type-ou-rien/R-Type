@@ -4,8 +4,7 @@
 #include "GameManager/GameManager.hpp"
 
 
-int main()
-{
+int main() {
     ServerGameEngine s;
     GameManager gm;
 

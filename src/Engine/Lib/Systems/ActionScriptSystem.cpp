@@ -9,7 +9,7 @@
 
 void ActionScriptSystem::update(Registry& registry, system_context context) {
     if (!context.input.has_value()) {
-        throw std::logic_error("The input manager is not initalized in the given context");
+        return;
     }
     InputManager input = context.input.value();
 

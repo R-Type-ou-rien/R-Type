@@ -6,10 +6,11 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/Texture.hpp>
 #include <iostream>
+#include <ostream>
 
 void BackgroundSystem::update(Registry& registry, system_context context) {
     if (!context.window.has_value()) {
-        throw std::logic_error("The window is not initalized in the given context");
+        return;
     }
     sf::RenderWindow& window = context.window.value();
 

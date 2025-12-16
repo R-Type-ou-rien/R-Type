@@ -10,6 +10,7 @@
 #include <SFML/Graphics/Texture.hpp>
 #include <iostream>
 #include <iterator>
+#include <ostream>
 
 void RenderSystem::update(Registry& registry, system_context context) {
     auto& positions = registry.getView<transform_component_s>();
@@ -30,7 +31,7 @@ void RenderSystem::update(Registry& registry, system_context context) {
 void RenderSystem::drawEntity(const transform_component_s& transform, const sprite2D_component_s& spriteData,
                               const system_context& context) {
     if (!context.window.has_value()) {
-        throw std::logic_error("The window is not initalized in the given context");
+        return;
     }
     sf::RenderWindow& window = context.window.value();
 

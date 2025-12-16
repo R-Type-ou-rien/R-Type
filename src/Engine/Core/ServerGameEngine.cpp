@@ -3,9 +3,11 @@
 #include <optional>
 #include "Network/Network.hpp"
 
+ServerGameEngine::ServerGameEngine() : _network_server(4242, 100) {}
 
-int ServerGameEngine::init()
-{
+ServerGameEngine::~ServerGameEngine() {}
+
+int ServerGameEngine::init() {
     _ecs.systems.addSystem<BoxCollision>();
     _ecs.systems.addSystem<ActionScriptSystem>();
     _ecs.systems.addSystem<PatternSystem>();
@@ -30,20 +32,20 @@ void ServerGameEngine::setInitFunction(std::function<void(ECS& ecs)> user_functi
 
 int ServerGameEngine::run() {
     sf::Clock clock;
-    system_context context = {
-        0,
-        _ecs._textureManager,
-        std::nullopt,
-        std::nullopt,
+    system_context context = {0,
+        _ecs._textureManager, 
+        std::nullopt, 
+        std::nullopt, 
         std::nullopt,
         _network_server,
-        _players,
+        _players, 
         std::nullopt
-        
+
     };
 
     this->init();
     while (1) {
+        handleNetworkMessages();
         context.dt = clock.restart().asSeconds();
         if (_function)
             _function(_ecs);
@@ -52,19 +54,20 @@ int ServerGameEngine::run() {
     return 0;
 }
 
-void ServerGameEngine::handleNetworkMessages()
-{
+void ServerGameEngine::handleNetworkMessages() {
     /**
         Connection player -> id
-        
-    
     */
+    _network_server.Update();
+    coming_message c_msg = _network_server.ReadIncomingMessage();
+
+    if (c_msg.id != GameEvents::NONE) {
+        execCorrespondingFunction(c_msg.id, c_msg);
+    }
 }
 
-void ServerGameEngine::execCorrespondingFunction(GameEvents event, coming_message c_msg)
-{
+void ServerGameEngine::execCorrespondingFunction(GameEvents event, coming_message c_msg) {
     switch (event) {
-        
         case (GameEvents::CONNECTION_PLAYER):
             uint32_t id;
             c_msg.msg >> id;
@@ -76,11 +79,11 @@ void ServerGameEngine::execCorrespondingFunction(GameEvents event, coming_messag
             break;
 
         case (GameEvents::C_INPUT):
-            
+
             break;
 
         default:
             std::cout << "EVENT " << uint32_t(event) << " IS NOT IMPLEMENTED" << std::endl;
-            break; 
+            break;
     }
 }

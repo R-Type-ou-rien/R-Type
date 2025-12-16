@@ -20,6 +20,8 @@ class Server : public network::ServerInterface<GameEvents> {
     enum class ClientState : uint32_t { CONNECTED, WAITING_UDP_PING, LOGGED_IN, IN_LOBBY, READY, IN_GAME };
 
    public:
+    coming_message ReadIncomingMessage();
+
     Server(uint16_t nPort, int timeout_seconds)
         : network::ServerInterface<GameEvents>(nPort), _timeout_seconds(timeout_seconds) {
         uint32_t newLobbyID = 1;
@@ -98,9 +100,7 @@ class Server : public network::ServerInterface<GameEvents> {
     // Pre-Game event handlers
     void onClientStartGame(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
     void onClientReadyUp(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
-    void onClientUnready(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
-
-    coming_message ReadIncomingMessage(); 
+    void onClientUnready(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg); 
 
    private:
     int _maxConnections = MAX_PLAYERS;

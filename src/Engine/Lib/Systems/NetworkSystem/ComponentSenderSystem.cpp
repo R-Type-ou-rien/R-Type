@@ -13,7 +13,7 @@ void ComponentSenderSystem::update(Registry& registry, system_context context)
     auto& component_pools = registry.getPools();
 
     if (!context.network_server.has_value() || !context.clients_id) {
-        throw std::logic_error("The server network class is not initalized in the given context");
+        return;
     }
     Server& server = context.network_server.value();
     auto& players = context.clients_id.value().get();
