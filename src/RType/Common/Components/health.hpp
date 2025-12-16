@@ -10,7 +10,6 @@ struct HealthComponent {
     float invincibility_duration = 1.0f;
 };
 
-
 class HealthSystem : public ISystem {
    public:
     HealthSystem() = default;

@@ -9,9 +9,7 @@
 #include "src/RType/Common/Components/spawn.hpp"
 #include "src/Engine/Lib/Systems/PatternSystem/PatternSystem.hpp"
 
-GameManager::GameManager() {
-
-}
+GameManager::GameManager() {}
 
 void GameManager::init(ECS& ecs) {
     ecs.systems.addSystem<ShooterSystem>();
@@ -20,15 +18,13 @@ void GameManager::init(ECS& ecs) {
     ecs.systems.addSystem<PatternSystem>();
     ecs.systems.addSystem<SpawnSystem>();
 
-
-
     {
         const std::string bgPath = "content/sprites/background-R-Type.png";
         Entity bgEntity = ecs.registry.createEntity();
 
         BackgroundComponent bg{};
         bg.x_offset = 0.f;
-        bg.scroll_speed = 60.f; // pixels per second, adjust if needed
+        bg.scroll_speed = 60.f;  // pixels per second, adjust if needed
 
         if (ecs._textureManager.is_loaded(bgPath)) {
             bg.texture_handle = ecs._textureManager.get_handle(bgPath).value();
@@ -59,7 +55,6 @@ void GameManager::init(ECS& ecs) {
     enemy->addCollisionTag("PLAYER");
     _ennemies.push_back(std::move(enemy));
 
-
     Entity spawner = ecs.registry.createEntity();
     SpawnComponent spawn_comp;
     spawn_comp.spawn_interval = 5.0f;
@@ -68,14 +63,14 @@ void GameManager::init(ECS& ecs) {
     ecs.registry.addComponent<SpawnComponent>(spawner, spawn_comp);
 
     _uiEntity = ecs.registry.createEntity();
-    ecs.registry.addComponent<TextComponent>(_uiEntity, {"HP: 100", "/usr/share/fonts/liberation-mono-fonts/LiberationMono-Regular.ttf", 30, sf::Color::White, 10, 10});
+    ecs.registry.addComponent<TextComponent>(
+        _uiEntity,
+        {"HP: 100", "/usr/share/fonts/liberation-mono-fonts/LiberationMono-Regular.ttf", 30, sf::Color::White, 10, 10});
 
     return;
 }
 
 void GameManager::loadInputSetting(ECS& ecs) {
-
-
     ecs.input.bindAction("move_left", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Q});
     _player->bindActionCallbackPressed("move_left", [](Registry& registry, system_context context, Entity entity) {
         if (registry.hasComponent<Velocity2D>(entity)) {

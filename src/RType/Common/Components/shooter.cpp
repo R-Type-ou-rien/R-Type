@@ -34,41 +34,43 @@ Velocity2D ShooterSystem::get_projectile_speed(ShooterComponent::ProjectileType 
     return vel;
 }
 
-void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::ProjectileType type, TeamComponent::Team team,
-                                      transform_component_s pos, system_context context) {
+void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::ProjectileType type,
+                                      TeamComponent::Team team, transform_component_s pos, system_context context) {
     int id = registry.createEntity();
     Velocity2D speed = get_projectile_speed(type, team);
-    
+
     if (team == TeamComponent::ENEMY) {
         auto& tags = registry.getEntities<TagComponent>();
         transform_component_s playerPos = {0, 0};
         bool found = false;
         for (auto entity : tags) {
-             if (!registry.hasComponent<TagComponent>(entity)) continue;
-             auto& tagComp = registry.getComponent<TagComponent>(entity);
-             for (const auto& tag : tagComp.tags) {
-                 if (tag == "PLAYER") {
-                     if (registry.hasComponent<transform_component_s>(entity)) {
-                         playerPos = registry.getComponent<transform_component_s>(entity);
-                         found = true;
-                     }
-                     break;
-                 }
-             }
-             if (found) break;
+            if (!registry.hasComponent<TagComponent>(entity))
+                continue;
+            auto& tagComp = registry.getComponent<TagComponent>(entity);
+            for (const auto& tag : tagComp.tags) {
+                if (tag == "PLAYER") {
+                    if (registry.hasComponent<transform_component_s>(entity)) {
+                        playerPos = registry.getComponent<transform_component_s>(entity);
+                        found = true;
+                    }
+                    break;
+                }
+            }
+            if (found)
+                break;
         }
 
         if (found) {
             float dx = playerPos.x - pos.x;
             float dy = playerPos.y - pos.y;
-            float length = std::sqrt(dx*dx + dy*dy);
+            float length = std::sqrt(dx * dx + dy * dy);
             if (length != 0) {
-                float s = speed.vx; 
+                float s = speed.vx;
                 speed.vx = (dx / length) * s;
                 speed.vy = (dy / length) * s;
             }
         } else {
-             speed.vx = -speed.vx;
+            speed.vx = -speed.vx;
         }
     }
 
@@ -78,7 +80,7 @@ void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::Proj
     } else {
         tags.tags.push_back("PLAYER_PROJECTILE");
     }
-    
+
     registry.addComponent<ProjectileComponent>(id, {id});
 
     registry.addComponent<TeamComponent>(id, {team});
@@ -91,8 +93,8 @@ void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::Proj
 
     registry.addComponent<DamageOnCollision>(id, {10});
 
-    handle_t<sf::Texture> handle = context.texture_manager.load_resource("content/sprites/r-typesheet1.gif",
-                                                                     sf::Texture("content/sprites/r-typesheet1.gif"));
+    handle_t<sf::Texture> handle = context.texture_manager.load_resource(
+        "content/sprites/r-typesheet1.gif", sf::Texture("content/sprites/r-typesheet1.gif"));
 
     sprite2D_component_s sprite_info;
     sprite_info.handle = handle;
@@ -103,7 +105,6 @@ void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::Proj
 
     registry.addComponent<sprite2D_component_s>(id, sprite_info);
 
-    
     registry.addComponent<BoxCollisionComponent>(id, {});
     BoxCollisionComponent& collision = registry.getComponent<BoxCollisionComponent>(id);
     if (team == TeamComponent::ALLY) {
