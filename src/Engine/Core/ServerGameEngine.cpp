@@ -1,6 +1,8 @@
 #include "ServerGameEngine.hpp"
 #include <cstdint>
+#include <iostream>
 #include <optional>
+#include <ostream>
 #include "Network/Network.hpp"
 
 ServerGameEngine::ServerGameEngine() : _network_server(4242, 100) {}
@@ -48,6 +50,8 @@ int ServerGameEngine::run() {
     while (1) {
         handleNetworkMessages();
         context.dt = clock.restart().asSeconds();
+        if (_players.size() < 2)
+            continue;
         if (_function)
             _function(_ecs);
         _ecs.update(context);
@@ -73,14 +77,16 @@ void ServerGameEngine::execCorrespondingFunction(GameEvents event, coming_messag
             uint32_t id;
             c_msg.msg >> id;
             _players.push_back(id);
+            std::cout << "Connect player " << id << std::endl;
             break;
 
         case (GameEvents::C_GAME_START):
+            std::cout << "START GAME" << std::endl;
             _has_game_start = true;
             break;
 
         case (GameEvents::C_INPUT):
-
+            std::cout << "Input to implement" << std::endl;
             break;
 
         default:

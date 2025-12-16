@@ -68,8 +68,10 @@ bool Server::OnClientConnect(std::shared_ptr<network::Connection<GameEvents>> cl
         return false;
     client->SetTimeout(0);
     // AddMessageToPlayer(GameEvents::C_PING_SERVER, client->GetID(), NULL);
-    _toGameMessages.push({GameEvents::CONNECTION_PLAYER, client->GetID(), network::message<GameEvents>()});
-    AddMessageToPlayer(GameEvents::S_SEND_ID, client->GetID(), client->GetID());
+    
+    network::message<GameEvents> msg;
+    msg << client->GetID();
+    _toGameMessages.push({GameEvents::CONNECTION_PLAYER, client->GetID(), msg});
     std::cout << "envoie de l'id" << std::endl;
     AddMessageToLobby(GameEvents::S_PLAYER_JOINED, _lobbys.back().GetID(), client->GetID());
     _lobbys.back().AddPlayer(client);
