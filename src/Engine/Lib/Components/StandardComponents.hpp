@@ -1,10 +1,3 @@
-/*
-** EPITECH PROJECT, 2025
-** R-Type
-** File description:
-** Components.hpp
-*/
-
 #pragma once
 
 #include <SFML/Graphics/Rect.hpp>
@@ -102,6 +95,7 @@ struct ActionScript {
 };
 
 struct Shooter {
+    static constexpr auto name = "OLD SHOOTER";
     sf::Keyboard::Key shootKey;
     float projectileSpeed;
     float projectileLifetime;

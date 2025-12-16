@@ -31,28 +31,6 @@ class Server : public network::ServerInterface<GameEvents> {
         _lobbys.emplace_back(newLobby);
     };
 
-   protected:
-    virtual void OnMessage(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents>& msg);
-
-    virtual bool OnClientConnect(std::shared_ptr<network::Connection<GameEvents>> client);
-    virtual void OnClientDisconnect(std::shared_ptr<network::Connection<GameEvents>> client);
-
-    // Connection and Lobby event handlers (croyez pas y'a que gemini qui sait faire des commentaires bandes de fous)
-    void OnClientRegister(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
-    void OnClientLogin(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
-    void OnClientLoginToken(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
-    void OnClientListLobby(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
-    void OnClientJoinLobby(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
-    void OnClientLeaveLobby(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
-    void OnClientNewLobby(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
-
-    // Pre-Game event handlers
-    void onClientStartGame(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
-    void onClientReadyUp(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
-    void onClientUnready(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
-
-    coming_message ReadIncomingMessage();
-
     template <typename T>
     void AddMessageToPlayer(GameEvents event, uint32_t id, const T& data) {
         for (std::shared_ptr<network::Connection<GameEvents>>& client : _deqConnections) {
@@ -101,6 +79,28 @@ class Server : public network::ServerInterface<GameEvents> {
             }
         }
     }
+
+   protected:
+    virtual void OnMessage(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents>& msg);
+
+    virtual bool OnClientConnect(std::shared_ptr<network::Connection<GameEvents>> client);
+    virtual void OnClientDisconnect(std::shared_ptr<network::Connection<GameEvents>> client);
+
+    // Connection and Lobby event handlers (croyez pas y'a que gemini qui sait faire des commentaires bandes de fous)
+    void OnClientRegister(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
+    void OnClientLogin(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
+    void OnClientLoginToken(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
+    void OnClientListLobby(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
+    void OnClientJoinLobby(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
+    void OnClientLeaveLobby(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
+    void OnClientNewLobby(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
+
+    // Pre-Game event handlers
+    void onClientStartGame(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
+    void onClientReadyUp(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
+    void onClientUnready(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
+
+    coming_message ReadIncomingMessage(); 
 
    private:
     int _maxConnections = MAX_PLAYERS;

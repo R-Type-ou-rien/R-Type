@@ -1,3 +1,5 @@
+#include <cstdint>
+#include <vector>
 #include "ECS/ECS.hpp"
 #include "ECS/ISystem.hpp"
 #include "InputSystem.hpp"
@@ -20,6 +22,8 @@ class ServerGameEngine {
     private:
     ECS _ecs;
     Server _network_server;
+    bool _has_game_start = false;
+    std::vector<uint32_t> _players;
     std::function<void(ECS& ecs)> _function;
     std::function<void(ECS& ecs)> _init_function;
 

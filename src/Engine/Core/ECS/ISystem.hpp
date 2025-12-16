@@ -9,8 +9,10 @@
 
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/Texture.hpp>
+#include <cstdint>
 #include <functional>
 #include <optional>
+#include <vector>
 
 #include "Network/Client/Client.hpp"
 #include "Network/Server/Server.hpp"
@@ -20,11 +22,13 @@
 
 struct system_context {
     float dt;
-    std::optional<std::reference_wrapper<ResourceManager<sf::Texture>>> texture_manager;
+    ResourceManager<sf::Texture>& texture_manager;
     std::optional<std::reference_wrapper<sf::RenderWindow>> window;
     std::optional<std::reference_wrapper<InputManager>> input;
     std::optional<std::reference_wrapper<Client>> network_client;
     std::optional<std::reference_wrapper<Server>> network_server;
+    std::optional<std::reference_wrapper<std::vector<std::uint32_t>>> clients_id;
+    std::optional<std::reference_wrapper<std::uint32_t>> client_id;
 };
 
 class ISystem {

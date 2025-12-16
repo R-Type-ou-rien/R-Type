@@ -1,16 +1,21 @@
 #include "ClientGameEngine.hpp"
+#include <SFML/Graphics/RenderTexture.hpp>
+#include <cstddef>
 #include <cstdint>
 #include <exception>
 #include <iostream>
+#include <optional>
 #include <ostream>
 #include <stdexcept>
 #include "CollisionSystem.hpp"
 #include "ActionScriptSystem.hpp"
+#include "Components/NetworkComponents.hpp"
 #include "Components/StandardComponents.hpp"
 #include "Network/Network.hpp"
 #include "Network/Network.hpp"
 #include "NetworkSystem/ComponentSenderSystem.hpp"
 #include "PatternSystem/PatternSystem.hpp"
+#include "registry.hpp"
 
 
 ClientGameEngine::ClientGameEngine(std::string window_name) : _window_manager(WINDOW_W, WINDOW_H, window_name) {}
@@ -19,6 +24,21 @@ int ClientGameEngine::init() {
     InputManager input_manager;
 
     _network_client.Connect("127.0.0.1", 8080);    
+
+    registerNetworkComponent<BoxCollisionComponent>();
+    registerNetworkComponent<BackgroundComponent>();
+    registerNetworkComponent<sprite2D_component_s>();
+    registerNetworkComponent<transform_component_s>();
+    registerNetworkComponent<PatternComponent>();
+    registerNetworkComponent<Velocity2D>();
+    registerNetworkComponent<TagComponent>();
+    registerNetworkComponent<ActionScript>();
+    registerNetworkComponent<Shooter>();
+    registerNetworkComponent<Projectile>();
+    registerNetworkComponent<Scroll>();
+    registerNetworkComponent<NetworkIdentity>();
+    registerNetworkComponent<ComponentPacket>();
+
 
     _ecs.systems.addSystem<BackgroundSystem>();
     _ecs.systems.addSystem<RenderSystem>();
@@ -64,7 +84,10 @@ int ClientGameEngine::run() {
         _ecs._textureManager,
         _window_manager.getWindow(),
         _ecs.input,
-        //_network_client
+        _network_client,
+        std::nullopt,
+        std::nullopt,
+        _identity.id
     };
 
     this->init();
@@ -72,9 +95,12 @@ int ClientGameEngine::run() {
         context.dt = clock.restart().asSeconds();
         handleEvent();
         _window_manager.clear();
-        if (_function)
-            _function(_ecs);
-        _ecs.update(context);
+        if (_has_game_started) {
+            if (_function) {
+                _function(_ecs);
+            }
+            _ecs.update(context);
+        }
         _window_manager.display();
     }
     return 0;
@@ -82,21 +108,67 @@ int ClientGameEngine::run() {
 
 void ClientGameEngine::handleNetworkMessages()
 {
-    // if (_network_client.IsConnected()) {
-    //     // send authentification
-    //     coming_message c_msg = _network_client.ReadIncomingMessage();
+    if (_network_client.IsConnected()) {
+        // send authentification
+        coming_message c_msg = _network_client.ReadIncomingMessage();
+            // send id -> message udp -> S_CONFIRM_UDP
+            // S_ROOM_JOINED
+            // player qui join -> S_PLAYER_JOINED -> 
+            // S_GAME_START
+        if (c_msg.id != GameEvents::NONE) {
+           execCorrespondingFunction(c_msg.id, c_msg);
+        }
+    } else {
+        throw std::logic_error("Client couldn't connect to the server");
+    }
+}
 
-    //     if (c_msg.id != GameEvents::NONE) {
-    //         // parse message
-    //     }
-    // } else {
-    //     // _network_client.Disconnect();
-    // }
+void ClientGameEngine::getID(coming_message msg)
+{
+    msg.msg >> _identity.id;
+}
+
+void ClientGameEngine::getRoom(coming_message msg)
+{
+    msg.msg >> _identity.lobby;
+}
+
+void ClientGameEngine::updateEntity(coming_message msg)
+{
+    ComponentPacket packet;
+    Entity current_entity;
+
+    msg.msg >> packet;
+
+    if (_networkToLocalEntity.find(packet.entity_guid) != _networkToLocalEntity.end()) {
+        current_entity = _networkToLocalEntity[packet.entity_guid];
+    } else {
+        current_entity = _ecs.registry.createEntity();
+        _networkToLocalEntity[packet.entity_guid] = current_entity;
+        _ecs.registry.addComponent<NetworkIdentity>(current_entity, {packet.entity_guid, msg.clientID});
+    }
+
+    if (_deserializers.find(packet.component_type) != _deserializers.end()) {
+        _deserializers[packet.component_type](_ecs.registry, current_entity, packet.data);
+    }
+    
 }
 
 void ClientGameEngine::execCorrespondingFunction(GameEvents event, coming_message c_msg)
 {
     switch (event) {
+        case (GameEvents::S_SNAPSHOT):
+            updateEntity(c_msg);
+            break;
+        case (GameEvents::S_SEND_ID):
+            getID(c_msg);
+            _network_client.AddMessageToServer(GameEvents::C_CONFIRM_UDP, _identity.id, NULL);
+            break;
+        
+        case (GameEvents::S_CONFIRM_UDP):
+            std::cout << "UDP CONFIMED BY THE SERVER" << std::endl;
+            break;
+
         case (GameEvents::S_REGISTER_OK):
             std::cout << "REGISTER OK TO IMPLEMENT" << std::endl;
             break;
@@ -122,11 +194,12 @@ void ClientGameEngine::execCorrespondingFunction(GameEvents event, coming_messag
             break;
 
         case (GameEvents::S_ROOM_JOINED):
-            std::cout << "ROOM JOINED TO IMPLEMENT" << std::endl;
+            getRoom(c_msg);
+            std::cout << "ROOM JOINED" << std::endl;
             break;
 
         case (GameEvents::S_PLAYER_JOINED):
-            std::cout << "PLAYER JOINED TO IMPLEMENT" << std::endl;
+            std::cout << "A PLAYER JOINED !!!!" << std::endl;
             break;
 
         case (GameEvents::S_ROOM_NOT_JOINED):
@@ -154,19 +227,12 @@ void ClientGameEngine::execCorrespondingFunction(GameEvents event, coming_messag
             break;
 
         case (GameEvents::S_GAME_START):
-            std::cout << "GAME START TO IMPLEMENT" << std::endl;
+            _has_game_started = true;
+            std::cout << "GAME START" << std::endl;
             break;
 
         case (GameEvents::S_CANCEL_READY_BROADCAST):
             std::cout << "CANCEL READY BROADCAST TO IMPLEMENT" << std::endl;
-            break;
-
-        case (GameEvents::S_QUIT_LOBBY_BROADCAST):
-            std::cout << "QUIT LOBBY BROADCAST TO IMPLEMENT" << std::endl;
-            break;
-
-        case (GameEvents::S_SNAPSHOT):
-            std::cout << "SNAPSHOT TO IMPLEMENT" << std::endl;
             break;
         
         case (GameEvents::S_TEAM_CHAT):

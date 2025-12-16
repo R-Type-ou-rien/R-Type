@@ -18,7 +18,7 @@ struct message_header {
     uint32_t user_id = 0;
     T id{};
     uint32_t size = 0;
-    message_header<T>() : magic_value(MAGIC_VALUE) {}
+    message_header() : magic_value(MAGIC_VALUE) {}
 };
 
 #pragma pack(pop)

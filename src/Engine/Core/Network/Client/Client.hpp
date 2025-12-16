@@ -42,7 +42,7 @@ class Client : public network::ClientInterface<GameEvents> {
         GameEvents::C_PING_SERVER, GameEvents::S_SEND_ID,         GameEvents::C_REGISTER,
         GameEvents::S_REGISTER_OK, GameEvents::S_REGISTER_KO,     GameEvents::C_LOGIN,
         GameEvents::C_LOGIN_TOKEN, GameEvents::S_INVALID_TOKEN,   GameEvents::S_LOGIN_OK,
-        GameEvents::S_LOGIN_KO,    GameEvents::C_DISCONNECT,      GameEvents::C_CONFIRM_UDP,
+        GameEvents::S_LOGIN_KO,    GameEvents::C_DISCONNECT, 
         GameEvents::C_LIST_ROOMS,  GameEvents::S_ROOMS_LIST,      GameEvents::C_JOIN_ROOM,
         GameEvents::S_ROOM_JOINED, GameEvents::S_PLAYER_JOINED,   GameEvents::S_ROOM_NOT_JOINED,
         GameEvents::C_ROOM_LEAVE,  GameEvents::S_PLAYER_LEAVE,    GameEvents::S_PLAYER_KICKED,
@@ -58,5 +58,6 @@ class Client : public network::ClientInterface<GameEvents> {
         GameEvents::S_SNAPSHOT,
         GameEvents::C_VOICE_PACKET,
         GameEvents::S_VOICE_RELAY,
+        GameEvents::C_CONFIRM_UDP
     };
 };

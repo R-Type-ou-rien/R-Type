@@ -13,7 +13,8 @@ class Connection : public std::enable_shared_from_this<Connection<T>> {
    public:
     Connection(owner parent, asio::io_context& asioContext, asio::ip::tcp::socket socket,
                MsgQueue<owned_message<T>>& In, asio::ip::udp::socket& udpSocket)
-        : _asioContext(asioContext), _socket(std::move(socket)), _qMessagesIn(In), _udpSocket(udpSocket) {
+        : _asioContext(asioContext), _socket(std::move(socket)), _qMessagesIn(In), _udpSocket(udpSocket),
+         m_timerTimeout(asioContext) {
         _OwnerType = parent;
     }
 

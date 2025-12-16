@@ -37,10 +37,7 @@ void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::Proj
     int id = registry.createEntity();
     Velocity2D speed = get_projectile_speed(type, team);
     TagComponent tags;
-    if (!context.texture_manager.has_value()) {
-        throw std::logic_error("The texture manager is not initalized in the given context");
-    }
-    ResourceManager<sf::Texture>& texture_manager = context.texture_manager.value();
+
     tags.tags.push_back("PROJECTILE");
     
 
@@ -54,7 +51,7 @@ void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::Proj
 
     registry.addComponent<TagComponent>(id, tags);
 
-    handle_t<sf::Texture> handle = texture_manager.load_resource("content/sprites/r-typesheet1.gif",
+    handle_t<sf::Texture> handle = context.texture_manager.load_resource("content/sprites/r-typesheet1.gif",
                                                                      sf::Texture("content/sprites/r-typesheet1.gif"));
 
     sprite2D_component_s sprite_info;

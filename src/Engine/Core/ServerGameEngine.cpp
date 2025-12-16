@@ -1,11 +1,11 @@
 #include "ServerGameEngine.hpp"
+#include <cstdint>
 #include <optional>
+#include "Network/Network.hpp"
 
 
 int ServerGameEngine::init()
 {
-    _network_server.WaitForClientConnection();
-
     _ecs.systems.addSystem<BoxCollision>();
     _ecs.systems.addSystem<ActionScriptSystem>();
     _ecs.systems.addSystem<PatternSystem>();
@@ -36,7 +36,10 @@ int ServerGameEngine::run() {
         std::nullopt,
         std::nullopt,
         std::nullopt,
-        _network_server
+        _network_server,
+        _players,
+        std::nullopt
+        
     };
 
     this->init();
@@ -51,106 +54,29 @@ int ServerGameEngine::run() {
 
 void ServerGameEngine::handleNetworkMessages()
 {
+    /**
+        Connection player -> id
+        
     
+    */
 }
 
 void ServerGameEngine::execCorrespondingFunction(GameEvents event, coming_message c_msg)
 {
     switch (event) {
-        case (GameEvents::S_REGISTER_OK):
-            std::cout << "REGISTER OK TO IMPLEMENT" << std::endl;
-            break;
-
-        case (GameEvents::S_REGISTER_KO):
-            std::cout << "REGISTER KO TO IMPLEMENT" << std::endl;
-            break;
-
-        case (GameEvents::S_INVALID_TOKEN):
-            std::cout << "INVALID TOKEN TO IMPLEMENT" << std::endl;
-            break;
-
-        case (GameEvents::S_LOGIN_OK):
-            std::cout << "LOGIN OK TO IMPLEMENT" << std::endl;
-            break;
-
-        case (GameEvents::S_LOGIN_KO):
-            std::cout << "LOGIN KO TO IMPLEMENT" << std::endl;
-            break;
-
-        case (GameEvents::S_ROOMS_LIST):
-            std::cout << "ROOMS LIST TO IMPLEMENT" << std::endl;
-            break;
-
-        case (GameEvents::S_ROOM_JOINED):
-            std::cout << "ROOM JOINED TO IMPLEMENT" << std::endl;
-            break;
-
-        case (GameEvents::S_PLAYER_JOINED):
-            std::cout << "PLAYER JOINED TO IMPLEMENT" << std::endl;
-            break;
-
-        case (GameEvents::S_ROOM_NOT_JOINED):
-            std::cout << "ROOM NOT JOINED TO IMPLEMENT" << std::endl;
-            break;
-
-        case (GameEvents::S_PLAYER_LEAVE):
-            std::cout << "PLAYER LEAVE TO IMPLEMENT" << std::endl;
-            break;
-
-        case (GameEvents::S_PLAYER_KICKED):
-            std::cout << "PLAYER KICKED TO IMPLEMENT" << std::endl;
-            break;
-
-        case (GameEvents::S_NEW_HOST):
-            std::cout << "NEW HOST TO IMPLEMENT" << std::endl;
-            break;
-
-        case (GameEvents::S_CONFIRM_NEW_LOBBY):
-            std::cout << "CONFIRM NEW LOBBY TO IMPLEMENT" << std::endl;
-            break;
-
-        case (GameEvents::S_READY_RETURN):
-            std::cout << "READY RETURN TO IMPLEMENT" << std::endl;
-            break;
-
-        case (GameEvents::S_GAME_START):
-            std::cout << "GAME START TO IMPLEMENT" << std::endl;
-            break;
-
-        case (GameEvents::S_CANCEL_READY_BROADCAST):
-            std::cout << "CANCEL READY BROADCAST TO IMPLEMENT" << std::endl;
-            break;
-
-        case (GameEvents::S_QUIT_LOBBY_BROADCAST):
-            std::cout << "QUIT LOBBY BROADCAST TO IMPLEMENT" << std::endl;
-            break;
-
-        case (GameEvents::S_SNAPSHOT):
-            std::cout << "SNAPSHOT TO IMPLEMENT" << std::endl;
-            break;
         
-        case (GameEvents::S_TEAM_CHAT):
-            std::cout << "TEAM CHAT TO IMPLEMENT" << std::endl;
+        case (GameEvents::CONNECTION_PLAYER):
+            uint32_t id;
+            c_msg.msg >> id;
+            _players.push_back(id);
             break;
 
-        case (GameEvents::S_VOICE_RELAY):
-            std::cout << "VOICE RELAY TO IMPLEMENT" << std::endl;
+        case (GameEvents::C_GAME_START):
+            _has_game_start = true;
             break;
 
-        case (GameEvents::S_PLAYER_DEATH):
-            std::cout << "PLAYER DEATH TO IMPLEMENT" << std::endl;
-            break;
-
-        case (GameEvents::S_SCORE_UPDATE):
-            std::cout << "SCORE UPDATE TO IMPLEMENT" << std::endl;
-            break;
-
-        case (GameEvents::S_GAME_OVER):
-            std::cout << "GAME OVER TO IMPLEMENT" << std::endl;
-            break;
-
-        case (GameEvents::S_RETURN_TO_LOBBY):
-            std::cout << "RETURN TO LOBBY TO IMPLEMENT" << std::endl;
+        case (GameEvents::C_INPUT):
+            
             break;
 
         default:

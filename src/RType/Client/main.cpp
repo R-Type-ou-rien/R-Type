@@ -6,14 +6,13 @@
 
 #include "ClientGameEngine.hpp"
 #include "Components/StandardComponents.hpp"
-#include "Lib/GameManager/GameManager.hpp"
-
+#include ""
 int main() {
     ClientGameEngine cl;
     GameManager gm;
 
-    cl.setInitFunction([&gm](ECS& ecs){ gm.init(ecs); });
-    cl.setUserFunction([&gm](ECS& ecs){ gm.update(ecs); });  // -> to rename, this function is called in the loop
+    // cl.setInitFunction([&gm](ECS& ecs){ gm.init(ecs); });
+    // cl.setUserFunction([&gm](ECS& ecs){ gm.update(ecs); });  // -> to rename, this function is called in the loop
     cl.run();
     return 0;
 }

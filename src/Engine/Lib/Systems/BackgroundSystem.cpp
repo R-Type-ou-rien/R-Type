@@ -8,10 +8,9 @@
 #include <iostream>
 
 void BackgroundSystem::update(Registry& registry, system_context context) {
-    if (!context.texture_manager.has_value() || !context.window.has_value()) {
-        throw std::logic_error("The texture manager or/and the window is not initalized in the given context");
+    if (!context.window.has_value()) {
+        throw std::logic_error("The window is not initalized in the given context");
     }
-    ResourceManager<sf::Texture>& texture_manager = context.texture_manager.value();
     sf::RenderWindow& window = context.window.value();
 
     const auto& entities = registry.getEntities<BackgroundComponent>();
@@ -24,9 +23,9 @@ void BackgroundSystem::update(Registry& registry, system_context context) {
     for (Entity entity : entities) {
         auto& bg = registry.getComponent<BackgroundComponent>(entity);
         bg.x_offset -= bg.scroll_speed * context.dt; // move left
-        if (!texture_manager.has_resource(bg.texture_handle))
+        if (!context.texture_manager.has_resource(bg.texture_handle))
             continue;
-        sf::Texture& texture = texture_manager.get_resource(bg.texture_handle).value().get();
+        sf::Texture& texture = context.texture_manager.get_resource(bg.texture_handle).value().get();
         texture.setRepeated(true);
         sf::Sprite sprite(texture);
         float scale = windowHeight / sprite.getLocalBounds().size.y;

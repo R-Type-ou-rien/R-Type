@@ -8,6 +8,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 include_directories(
     ../../../
     ${CMAKE_CURRENT_SOURCE_DIR}/Components
+    ${CMAKE_CURRENT_SOURCE_DIR}/Lib
+
 )
 
 file(GLOB_RECURSE SOURCES "*.cpp")
