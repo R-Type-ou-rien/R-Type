@@ -11,17 +11,11 @@
 void init(ECS& ecs) {
     Entity player = ecs.registry.createEntity();
 
-    /* link of the entity with components */
     ecs.registry.addComponent(player, transform_component_s{100.f, 300.f});
     ecs.registry.addComponent(player, Velocity2D{0.f, 0.f});
 
-    /* the component is linked to the player entity */
-
-    // ---- TEST BINDINGS ----
-    // Clavier : espace = "Shoot"
     ecs.input.bindAction("Shoot", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Space});
 
-    // Clavier : Z = MoveUp
     ecs.input.bindAction("MoveUp", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Z});
 
     std::cout << "=== InputManager Test Ready ===\n";
@@ -39,7 +33,7 @@ int main() {
     GameManager gm;
 
     cl.setInitFunction([&gm](ECS& ecs) { gm.init(ecs); });
-    cl.setUserFunction([&gm](ECS& ecs) { gm.update(ecs); });  // -> to rename, this function is called in the loop
+    cl.setUserFunction([&gm](ECS& ecs) { gm.update(ecs); });
     cl.run();
     return 0;
 }
