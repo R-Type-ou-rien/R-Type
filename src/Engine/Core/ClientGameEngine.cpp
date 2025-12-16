@@ -112,7 +112,10 @@ void ClientGameEngine::handleNetworkMessages() {
         // player qui join -> S_PLAYER_JOINED ->
         // S_GAME_START
         if (c_msg.id != GameEvents::NONE) {
+            std::cout << "GOT AN EVENT :)" << std::endl;
             execCorrespondingFunction(c_msg.id, c_msg);
+        } else {
+            std::cout << "Event is NONE :(" << std::endl;
         }
     } else {
         throw std::logic_error("Client couldn't connect to the server");
@@ -121,6 +124,7 @@ void ClientGameEngine::handleNetworkMessages() {
 
 void ClientGameEngine::getID(coming_message msg) {
     msg.msg >> _identity.id;
+    std::cout << "RECEIVED ID " << _identity.id << std::endl;
 }
 
 void ClientGameEngine::getRoom(coming_message msg) {
@@ -132,16 +136,19 @@ void ClientGameEngine::updateEntity(coming_message msg) {
     Entity current_entity;
 
     msg.msg >> packet;
-
+    std::cout << "packet guid: " << packet.entity_guid << " component type: " << packet.component_type << std::endl;
     if (_networkToLocalEntity.find(packet.entity_guid) != _networkToLocalEntity.end()) {
+        std::cout << "get local entity from network" << std::endl;
         current_entity = _networkToLocalEntity[packet.entity_guid];
     } else {
+        std::cout << "create local entity from network" << std::endl;
         current_entity = _ecs.registry.createEntity();
         _networkToLocalEntity[packet.entity_guid] = current_entity;
         _ecs.registry.addComponent<NetworkIdentity>(current_entity, {packet.entity_guid, msg.clientID});
     }
 
     if (_deserializers.find(packet.component_type) != _deserializers.end()) {
+        std::cout << "export data from network" << std::endl;
         _deserializers[packet.component_type](_ecs.registry, current_entity, packet.data);
     }
 }
@@ -152,8 +159,9 @@ void ClientGameEngine::execCorrespondingFunction(GameEvents event, coming_messag
             updateEntity(c_msg);
             break;
         case (GameEvents::S_SEND_ID):
+            std::cout << "EVENT SEND ID" << std::endl;
             getID(c_msg);
-            _network_client.AddMessageToServer(GameEvents::C_CONFIRM_UDP, _identity.id, NULL);
+            // _network_client.AddMessageToServer(GameEvents::C_CONFIRM_UDP, _identity.id, NULL);
             break;
 
         case (GameEvents::S_CONFIRM_UDP):
@@ -185,12 +193,12 @@ void ClientGameEngine::execCorrespondingFunction(GameEvents event, coming_messag
             break;
 
         case (GameEvents::S_ROOM_JOINED):
-            getRoom(c_msg);
             std::cout << "ROOM JOINED" << std::endl;
+            getRoom(c_msg);
             break;
 
         case (GameEvents::S_PLAYER_JOINED):
-            std::cout << "A PLAYER JOINED !!!!" << std::endl;
+            std::cout << "PLAYER JOINED !!!!" << std::endl;
             break;
 
         case (GameEvents::S_ROOM_NOT_JOINED):
@@ -251,7 +259,7 @@ void ClientGameEngine::execCorrespondingFunction(GameEvents event, coming_messag
             break;
 
         default:
-            std::cout << "EVENT " << uint32_t(event) << " IS NOT IMPLEMENTED" << std::endl;
+            // std::cout << "EVENT " << uint32_t(event) << " IS NOT IMPLEMENTED" << std::endl;
             break;
     }
 }

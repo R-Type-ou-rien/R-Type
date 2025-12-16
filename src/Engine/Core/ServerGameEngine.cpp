@@ -72,6 +72,7 @@ void ServerGameEngine::execCorrespondingFunction(GameEvents event, coming_messag
             c_msg.msg >> id;
             _players.push_back(id);
             std::cout << "Connect player " << id << std::endl;
+            _network_server.AddMessageToPlayer(GameEvents::S_SEND_ID, id, id);
             break;
 
         case (GameEvents::C_GAME_START):
@@ -84,7 +85,7 @@ void ServerGameEngine::execCorrespondingFunction(GameEvents event, coming_messag
             break;
 
         default:
-            std::cout << "EVENT " << uint32_t(event) << " IS NOT IMPLEMENTED" << std::endl;
+            // std::cout << "EVENT " << uint32_t(event) << " IS NOT IMPLEMENTED" << std::endl;
             break;
     }
 }
