@@ -48,6 +48,8 @@ R-type
 
 .idea
 
+rtype.db
+
 R-Type
 test_collision
 test_damage
