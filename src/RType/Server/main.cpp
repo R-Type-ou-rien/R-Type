@@ -1,8 +1,7 @@
 #include "ServerGameEngine.hpp"
 #include "Components/StandardComponents.hpp"
-#include ""
 
-int main()
-{
+int main() {
     ServerGameEngine s;
+    s.run();
 }

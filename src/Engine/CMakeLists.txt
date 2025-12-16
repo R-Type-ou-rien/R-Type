@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(SFML REQUIRED COMPONENTS Graphics Window System)
+find_package(unofficial-sqlite3 CONFIG REQUIRED)
 
 
 file(GLOB_RECURSE SOURCES
@@ -45,4 +46,4 @@ target_include_directories(Engine PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/Core/Network/Server/*.cpp"
 )
 
-target_link_libraries(Engine PUBLIC SFML::Graphics SFML::Window SFML::System)
+target_link_libraries(Engine PUBLIC SFML::Graphics SFML::Window SFML::System unofficial::sqlite3::sqlite3)
