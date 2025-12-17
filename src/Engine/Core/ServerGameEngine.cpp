@@ -41,7 +41,10 @@ int ServerGameEngine::run() {
     };
 
     this->init();
+    const double target_dt = 1.0 / 60.0;
     while (1) {
+        auto start_time = std::chrono::steady_clock::now();
+
         handleNetworkMessages();
         context.dt = clock.restart().asSeconds();
         if (_players.size() < 2)
@@ -49,6 +52,12 @@ int ServerGameEngine::run() {
         if (_function)
             _function(_ecs);
         _ecs.update(context);
+
+        auto end_time = std::chrono::steady_clock::now();
+        std::chrono::duration<double> elapsed = end_time - start_time;
+        if (elapsed.count() < target_dt) {
+            std::this_thread::sleep_for(std::chrono::duration<double>(target_dt - elapsed.count()));
+        }
     }
     return 0;
 }
@@ -75,14 +84,45 @@ void ServerGameEngine::execCorrespondingFunction(GameEvents event, coming_messag
             _network_server.AddMessageToPlayer(GameEvents::S_SEND_ID, id, id);
             break;
 
-        case (GameEvents::C_GAME_START):
+        case (GameEvents::C_GAME_START): {
             std::cout << "START GAME" << std::endl;
             _has_game_start = true;
+            auto& pools = _ecs.registry.getPools();
+            for (auto& [type, pool] : pools) {
+                pool->markAllUpdated();
+            }
+            std::cout << "Resynchronizing all components for Game Start" << std::endl;
             break;
+        }
 
-        case (GameEvents::C_INPUT):
-            std::cout << "Input to implement" << std::endl;
+        case (GameEvents::C_INPUT): {
+            std::string action;
+            bool pressed;
+            c_msg.msg >> pressed >> action;
+            // std::cout << "Received Input: " << action << " " << pressed << " from " << c_msg.clientID << std::endl;
+
+            auto& net_ids = _ecs.registry.getView<NetworkIdentity>();
+            auto& ids = _ecs.registry.getEntities<NetworkIdentity>();
+
+            for (size_t i = 0; i < net_ids.size(); ++i) {
+                if (net_ids[i].owner_user_id == c_msg.clientID) {
+                    Entity e = ids[i];
+                    if (_ecs.registry.hasComponent<Velocity2D>(e)) {
+                        auto& vel = _ecs.registry.getComponent<Velocity2D>(e);
+                        if (action == "move_left")
+                            vel.vx = pressed ? -100.0f : 0.0f;
+                        if (action == "move_right")
+                            vel.vx = pressed ? 100.0f : 0.0f;
+                        if (action == "move_up")
+                            vel.vy = pressed ? -100.0f : 0.0f;
+                        if (action == "move_down")
+                            vel.vy = pressed ? 100.0f : 0.0f;
+                    }
+                    break;
+                }
+            }
             break;
+        }
 
         default:
             // std::cout << "EVENT " << uint32_t(event) << " IS NOT IMPLEMENTED" << std::endl;

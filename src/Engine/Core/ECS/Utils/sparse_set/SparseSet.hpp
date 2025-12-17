@@ -17,6 +17,7 @@ class ISparseSet {
     virtual bool has(std::size_t Entity) const = 0;
     virtual std::vector<std::size_t> popUpdatedEntities() = 0;
     virtual ComponentPacket createPacket(uint32_t entity) = 0;
+    virtual void markAllUpdated() = 0;
 };
 
 template <typename data_type>
@@ -155,6 +156,12 @@ class SparseSet : public ISparseSet {
         packet.component_type = Hash::fnv1a(comp.name);
         packet.data = Serializer<data_type>::serialize(comp);
         return packet;
+    }
+
+    void markAllUpdated() override {
+        for (size_t i = 0; i < _dirty.size(); ++i) {
+            _dirty[i] = true;
+        }
     }
 };
 

@@ -226,59 +226,26 @@ template <>
 struct Serializer<sprite2D_component_s> {
     static std::vector<uint8_t> serialize(const sprite2D_component_s& component) {
         std::vector<uint8_t> data;
-        WritePOD(data, component);
+        // Skip handle, serialize PODs manually
+        WritePOD(data, component.texture_id);
+        WritePOD(data, component.dimension);
+        WritePOD(data, component.is_animated);
+        WritePOD(data, component.animation_speed);
+        WritePOD(data, component.current_animation_frame);
+        WritePOD(data, component.last_animation_update);
+        WritePOD(data, component.z_index);
         return data;
     }
 
     static void deserialize(sprite2D_component_s& component, const std::vector<uint8_t>& data) {
-        if (data.size() != sizeof(sprite2D_component_s))
-            return;
-        std::memcpy(&component, data.data(), sizeof(sprite2D_component_s));
-    }
-};
-
-template <>
-struct Serializer<Shooter> {
-    static std::vector<uint8_t> serialize(const Shooter& component) {
-        std::vector<uint8_t> data;
-        WritePOD(data, component);
-        return data;
-    }
-
-    static void deserialize(Shooter& component, const std::vector<uint8_t>& data) {
-        if (data.size() != sizeof(Shooter))
-            return;
-        std::memcpy(&component, data.data(), sizeof(Shooter));
-    }
-};
-
-template <>
-struct Serializer<Projectile> {
-    static std::vector<uint8_t> serialize(const Projectile& component) {
-        std::vector<uint8_t> data;
-        WritePOD(data, component);
-        return data;
-    }
-
-    static void deserialize(Projectile& component, const std::vector<uint8_t>& data) {
-        if (data.size() != sizeof(Projectile))
-            return;
-        std::memcpy(&component, data.data(), sizeof(Projectile));
-    }
-};
-
-template <>
-struct Serializer<Scroll> {
-    static std::vector<uint8_t> serialize(const Scroll& component) {
-        std::vector<uint8_t> data;
-        WritePOD(data, component);
-        return data;
-    }
-
-    static void deserialize(Scroll& component, const std::vector<uint8_t>& data) {
-        if (data.size() != sizeof(Scroll))
-            return;
-        std::memcpy(&component, data.data(), sizeof(Scroll));
+        size_t offset = 0;
+        ReadPOD(data, offset, component.texture_id);
+        ReadPOD(data, offset, component.dimension);
+        ReadPOD(data, offset, component.is_animated);
+        ReadPOD(data, offset, component.animation_speed);
+        ReadPOD(data, offset, component.current_animation_frame);
+        ReadPOD(data, offset, component.last_animation_update);
+        ReadPOD(data, offset, component.z_index);
     }
 };
 
@@ -286,21 +253,20 @@ template <>
 struct Serializer<BackgroundComponent> {
     static std::vector<uint8_t> serialize(const BackgroundComponent& component) {
         std::vector<uint8_t> data;
-        WritePOD(data, component);
+        // WritePOD(data, component.x_offset); // Don't send x_offset, let client simulate it
+        WritePOD(data, component.scroll_speed);
         return data;
     }
 
     static void deserialize(BackgroundComponent& component, const std::vector<uint8_t>& data) {
-        if (data.size() != sizeof(BackgroundComponent))
-            return;
-        std::memcpy(&component, data.data(), sizeof(BackgroundComponent));
+        size_t offset = 0;
+        // ReadPOD(data, offset, component.x_offset);
+        ReadPOD(data, offset, component.scroll_speed);
     }
 };
 
 template <>
 struct Serializer<ComponentPacket> {
-    static std::vector<uint8_t> serialize(const ComponentPacket& component) {
-        return {};
-    }
+    static std::vector<uint8_t> serialize(const ComponentPacket& component) { return {}; }
     static void deserialize(ComponentPacket& component, const std::vector<uint8_t>& data) {}
 };

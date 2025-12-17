@@ -54,7 +54,10 @@ class ClientGameEngine {
         uint32_t typeId = Hash::fnv1a(T::name);
 
         _deserializers[typeId] = [this](Registry& reg, Entity e, const std::vector<uint8_t>& data) {
-            T component;
+            T component{};
+            if constexpr (std::is_same_v<T, sprite2D_component_s>) {
+                component.handle = handle_t<sf::Texture>::Null();
+            }
             Serializer<T>::deserialize(component, data);
 
             if constexpr (std::is_same_v<T, sprite2D_component_s>) {
@@ -62,7 +65,8 @@ class ClientGameEngine {
                 if (component.texture_id != 0) {
                     component.handle = _ecs._textureManager.getHandleByHash(component.texture_id);
                     if (!_ecs._textureManager.has_resource(component.handle)) {
-                        std::cerr << "Texture ID " << component.texture_id << " not found in the resource manager" << std::endl;
+                        std::cerr << "Texture ID " << component.texture_id << " not found in the resource manager"
+                                  << std::endl;
                     }
                 }
             }

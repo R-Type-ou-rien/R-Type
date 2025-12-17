@@ -37,6 +37,11 @@ void Server::OnMessage(std::shared_ptr<network::Connection<GameEvents>> client, 
             // if (_clientStates[client] == ClientState::WAITING_UDP_PING)
             //     _clientStates[client] = ClientState::LOGGED_IN;
             if (_clientStates[client] == ClientState::WAITING_UDP_PING) {
+                std::cout << "[DEBUG] Received C_CONFIRM_UDP from Client " << client->GetID() << ". Adding to lobby."
+                          << std::endl;
+                if (_lobbys.empty()) {
+                    _lobbys.emplace_back(Lobby<GameEvents>(1, "Lobby 1"));
+                }
                 _lobbys.back().AddPlayer(client);
                 AddMessageToLobby(GameEvents::S_PLAYER_JOINED, _lobbys.back().GetID(), client->GetID());
                 struct lobby_in_info info;
@@ -49,16 +54,41 @@ void Server::OnMessage(std::shared_ptr<network::Connection<GameEvents>> client, 
                 AddMessageToPlayer(GameEvents::S_ROOM_JOINED, client->GetID(), info);
 
                 _clientStates[client] = ClientState::IN_LOBBY;
-                if (_lobbys.back().GetNbPlayers() >= 2) {
-                    for (auto& [id, connection] : _lobbys.back().getLobbyPlayers()) {
-                        if (_clientStates[connection] != ClientState::IN_LOBBY)
-                            return;
+
+                bool gameAlreadyStarted = false;
+                for (auto& [id, connection] : _lobbys.back().getLobbyPlayers()) {
+                    if (_clientStates[connection] == ClientState::IN_GAME) {
+                        gameAlreadyStarted = true;
+                        break;
                     }
-                    for (auto& [id, connection] : _lobbys.back().getLobbyPlayers())
-                        _clientStates[connection] = ClientState::IN_GAME;
-                    AddMessageToLobby(GameEvents::S_GAME_START, _lobbys.back().GetID(), nullptr);
-                    _toGameMessages.push(
-                        {GameEvents::C_GAME_START, _lobbys.back().GetID(), network::message<GameEvents>()});
+                }
+
+                if (gameAlreadyStarted) {
+                    std::cout << "[DEBUG] Game already started. Late joining Client " << client->GetID() << std::endl;
+                    _clientStates[client] = ClientState::IN_GAME;
+                    AddMessageToPlayer(GameEvents::S_GAME_START, client->GetID(), nullptr);
+                    // No need to push C_GAME_START to engine as it's already running
+                } else {
+                    std::cout << "[DEBUG] CHECKING START CONDITION. Players: " << _lobbys.back().GetNbPlayers() << std::endl;
+                    if (_lobbys.back().GetNbPlayers() >= 2) {
+                        bool allReady = true;
+                        for (auto& [id, connection] : _lobbys.back().getLobbyPlayers()) {
+                            std::cout << "[DEBUG] Player " << id << " State: " << (int)_clientStates[connection] << std::endl;
+                            if (_clientStates[connection] != ClientState::IN_LOBBY) {
+                                std::cout << "[DEBUG] Player " << id << " NOT IN_LOBBY. Abort start." << std::endl;
+                                allReady = false;
+                                // Do not return, just flag, to see all states
+                            }
+                        }
+                        if (!allReady) return;
+
+                        std::cout << "[DEBUG] ALL PLAYERS READY. STARTING GAME." << std::endl;
+                        for (auto& [id, connection] : _lobbys.back().getLobbyPlayers())
+                            _clientStates[connection] = ClientState::IN_GAME;
+                        AddMessageToLobby(GameEvents::S_GAME_START, _lobbys.back().GetID(), nullptr);
+                        _toGameMessages.push(
+                            {GameEvents::C_GAME_START, _lobbys.back().GetID(), network::message<GameEvents>()});
+                    }
                 }
             }
             break;

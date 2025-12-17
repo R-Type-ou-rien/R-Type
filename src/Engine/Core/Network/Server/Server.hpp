@@ -130,11 +130,12 @@ class Server : public network::ServerInterface<GameEvents> {
         GameEvents::S_GAME_START,  GameEvents::C_CANCEL_READY,    GameEvents::S_CANCEL_READY_BROADCAST,
         GameEvents::C_TEAM_CHAT,   GameEvents::S_TEAM_CHAT,       GameEvents::C_VOICE_PACKET,
         GameEvents::S_VOICE_RELAY, GameEvents::S_PLAYER_DEATH,    GameEvents::S_SCORE_UPDATE,
-        GameEvents::S_GAME_OVER,   GameEvents::S_RETURN_TO_LOBBY, GameEvents::S_CONFIRM_UDP};
+        GameEvents::S_GAME_OVER,   GameEvents::S_RETURN_TO_LOBBY, GameEvents::S_CONFIRM_UDP,
+        GameEvents::S_SNAPSHOT};
 
     std::vector<GameEvents> _udpEvents = {
         GameEvents::C_INPUT,
-        GameEvents::S_SNAPSHOT,
+        // GameEvents::S_SNAPSHOT,
         GameEvents::C_VOICE_PACKET,
         GameEvents::S_VOICE_RELAY,
     };

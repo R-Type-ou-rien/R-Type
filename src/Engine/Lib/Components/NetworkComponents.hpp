@@ -20,8 +20,8 @@ struct ComponentPacket {
 
 template <typename T>
 network::message<T>& operator<<(network::message<T>& msg, const ComponentPacket& packet) {
-    std::cout << "[DEBUG] Serializing Packet: GUID=" << packet.entity_guid << " Type=" << packet.component_type
-              << " DataSize=" << packet.data.size() << std::endl;
+    // std::cout << "[DEBUG] Serializing Packet: GUID=" << packet.entity_guid << " Type=" << packet.component_type
+    //           << " DataSize=" << packet.data.size() << std::endl;
     for (const auto& byte : packet.data) {
         msg << byte;
     }
@@ -39,8 +39,8 @@ network::message<T>& operator>>(network::message<T>& msg, ComponentPacket& packe
     uint32_t size = 0;
     msg >> size;
 
-    std::cout << "[DEBUG] Deserializing Packet: GUID=" << packet.entity_guid << " Type=" << packet.component_type
-              << " Size=" << size << std::endl;
+    // std::cout << "[DEBUG] Deserializing Packet: GUID=" << packet.entity_guid << " Type=" << packet.component_type
+    //           << " Size=" << size << std::endl;
 
     packet.data.resize(size);
     for (int i = size - 1; i >= 0; --i) {

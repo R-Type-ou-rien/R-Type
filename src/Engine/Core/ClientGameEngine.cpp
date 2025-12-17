@@ -1,3 +1,4 @@
+#include "Hash/Hash.hpp"
 #include "ClientGameEngine.hpp"
 #include <SFML/Graphics/RenderTexture.hpp>
 #include <cstddef>
@@ -26,9 +27,12 @@ int ClientGameEngine::init() {
 
     _network_client.Connect("127.0.0.1", 4040);
 
-    _ecs._textureManager.load_resource("content/sprites/r-typesheet42.gif", sf::Texture("content/sprites/r-typesheet42.gif"));
-    _ecs._textureManager.load_resource("content/sprites/r-typesheet1.gif", sf::Texture("content/sprites/r-typesheet1.gif"));
-    _ecs._textureManager.load_resource("content/sprites/background-R-Type.png", sf::Texture("content/sprites/background-R-Type.png"));
+    _ecs._textureManager.load_resource("content/sprites/r-typesheet42.gif",
+                                       sf::Texture("content/sprites/r-typesheet42.gif"));
+    _ecs._textureManager.load_resource("content/sprites/r-typesheet1.gif",
+                                       sf::Texture("content/sprites/r-typesheet1.gif"));
+    _ecs._textureManager.load_resource("content/sprites/background-R-Type.png",
+                                       sf::Texture("content/sprites/background-R-Type.png"));
 
     registerNetworkComponent<BoxCollisionComponent>();
     registerNetworkComponent<BackgroundComponent>();
@@ -43,6 +47,39 @@ int ClientGameEngine::init() {
     registerNetworkComponent<Scroll>();
     registerNetworkComponent<NetworkIdentity>();
     registerNetworkComponent<ComponentPacket>();
+
+    // Manual registration for BackgroundComponent to reload texture
+    uint32_t bgTypeId = Hash::fnv1a(BackgroundComponent::name);
+    _deserializers[bgTypeId] = [this](Registry& reg, Entity e, const std::vector<uint8_t>& data) {
+        BackgroundComponent component{};
+        component.texture_handle = handle_t<sf::Texture>::Null();
+        Serializer<BackgroundComponent>::deserialize(component, data);
+
+        // Reload texture handle (hardcoded for now as ID is missing in packet)
+        // If we had a texture ID in BackgroundComponent, we would use it here.
+        // Falling back to default R-Type background.
+        std::string bgPath = "content/sprites/background-R-Type.png";
+        if (_ecs._textureManager.is_loaded(bgPath)) {
+            component.texture_handle = _ecs._textureManager.get_handle(bgPath).value();
+        } else {
+            // Should verify if loaded, but init() usually loads it.
+            // If not loaded, we might have an invalid handle, but safer than random server memory.
+        }
+
+        if (reg.hasComponent<BackgroundComponent>(e)) {
+            // Preserve x_offset to allow smooth scrolling
+            auto& existing = reg.getComponent<BackgroundComponent>(e);
+            existing.scroll_speed = component.scroll_speed;
+
+            // Update texture if newly loaded (though it's hardcoded)
+            // But CRITICALLY, do not overwrite x_offset with component.x_offset (which is 0)
+            if (component.texture_handle != handle_t<sf::Texture>::Null()) {
+                existing.texture_handle = component.texture_handle;
+            }
+        } else {
+            reg.addComponent<BackgroundComponent>(e, component);
+        }
+    };
 
     _ecs.systems.addSystem<BackgroundSystem>();
     _ecs.systems.addSystem<RenderSystem>();
@@ -111,15 +148,14 @@ int ClientGameEngine::run() {
 
 void ClientGameEngine::handleNetworkMessages() {
     if (_network_client.IsConnected()) {
-        // send authentification
-        coming_message c_msg = _network_client.ReadIncomingMessage();
-        // send id -> message udp -> S_CONFIRM_UDP
-        // S_ROOM_JOINED
-        // player qui join -> S_PLAYER_JOINED ->
-        // S_GAME_START
-        if (c_msg.id != GameEvents::NONE) {
-            std::cout << "GOT AN EVENT :)" << std::endl;
+        int processed = 0;
+        while (processed < 100) {
+            coming_message c_msg = _network_client.ReadIncomingMessage();
+            if (c_msg.id == GameEvents::NONE) {
+                break;
+            }
             execCorrespondingFunction(c_msg.id, c_msg);
+            processed++;
         }
     } else {
         throw std::logic_error("Client couldn't connect to the server");
@@ -152,6 +188,19 @@ void ClientGameEngine::updateEntity(coming_message msg) {
         _ecs.registry.addComponent<NetworkIdentity>(current_entity, {packet.entity_guid, msg.clientID});
     }
 
+    // Rubber Banding Fix: Ignore server updates for our own entity's movement (Transform/Velocity)
+    // We trust our local prediction for display smoothness.
+    if (_ecs.registry.hasComponent<NetworkIdentity>(current_entity)) {
+        auto& netId = _ecs.registry.getComponent<NetworkIdentity>(current_entity);
+        if (netId.owner_user_id == _identity.id) {
+            // Recalculate hashes locally since we can't easily access the component type from just the packet type ID
+            // without a lookup But we know StandardComponents defines them.
+            if (packet.component_type == Hash::fnv1a("Transform") || packet.component_type == Hash::fnv1a("Velocity")) {
+                return;
+            }
+        }
+    }
+
     if (_deserializers.find(packet.component_type) != _deserializers.end()) {
         std::cout << "export data from network" << std::endl;
         _deserializers[packet.component_type](_ecs.registry, current_entity, packet.data);
@@ -169,7 +218,10 @@ void ClientGameEngine::execCorrespondingFunction(GameEvents event, coming_messag
         case (GameEvents::S_SEND_ID):
             std::cout << "EVENT SEND ID" << std::endl;
             getID(c_msg);
-            _network_client.AddMessageToServer(GameEvents::C_CONFIRM_UDP, _identity.id, NULL);
+            // Redundant send to ensure server gets UDP endpoint despite packet loss
+            for (int i = 0; i < 20; ++i) {
+                _network_client.AddMessageToServer(GameEvents::C_CONFIRM_UDP, _identity.id, NULL);
+            }
             break;
 
         case (GameEvents::S_CONFIRM_UDP):

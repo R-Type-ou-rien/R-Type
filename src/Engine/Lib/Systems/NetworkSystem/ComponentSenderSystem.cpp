@@ -26,6 +26,8 @@ void ComponentSenderSystem::update(Registry& registry, system_context context) {
             packet = pool->createPacket(entity);
             packet.entity_guid = registry.getComponentConst<NetworkIdentity>(entity).guid;
             for (auto& player : players) {
+                // std::cout << "Checking if player " << player << " is ready: " << server.IsClientReady(player) <<
+                // std::endl;
                 if (!server.IsClientReady(player))
                     continue;
                 server.AddMessageToPlayer(GameEvents::S_SNAPSHOT, player, packet);
