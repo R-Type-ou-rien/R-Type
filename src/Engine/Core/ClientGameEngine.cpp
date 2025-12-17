@@ -74,6 +74,7 @@ int ClientGameEngine::init() {
     };
 
     _ecs.systems.addSystem<BackgroundSystem>();
+    _ecs.systems.addSystem<SpawnSystem>();
     _ecs.systems.addSystem<RenderSystem>();
     _ecs.systems.addSystem<InputSystem>(_ecs.input);
     _ecs.systems.addSystem<BoxCollision>();

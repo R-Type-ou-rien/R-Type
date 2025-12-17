@@ -2,10 +2,15 @@
 #include <iostream>
 #include <memory>
 #include <ostream>
+#include <algorithm>
 #include <utility>
+
 #include "Network/Network.hpp"
 #include "src/Engine/Lib/Systems/CollisionSystem.hpp"
 #include "src/RType/Common/Components/shooter.hpp"
+#include "src/RType/Common/Components/damage.hpp"
+#include "src/RType/Common/Components/spawn.hpp"
+// #include "src/Engine/Lib/Systems/PatternSystem/PatternSystem.hpp"
 
 GameManager::GameManager() {}
 
@@ -23,7 +28,7 @@ void GameManager::init(ECS& ecs) {
 
         BackgroundComponent bg{};
         bg.x_offset = 0.f;
-        bg.scroll_speed = 60.f;  // pixels per second, adjust if needed
+        bg.scroll_speed = 60.f;
 
         if (ecs._textureManager.is_loaded(bgPath)) {
             bg.texture_handle = ecs._textureManager.get_handle(bgPath).value();
@@ -43,7 +48,6 @@ void GameManager::init(ECS& ecs) {
     ecs.registry.addComponent<NetworkIdentity>(entity, {static_cast<uint64_t>(entity), 0});  // 0 = Server Owned
 
     _ennemies.push_back(std::move(enemy));
-    return;
 }
 
 void GameManager::loadInputSetting(ECS& ecs) {
@@ -131,11 +135,6 @@ void GameManager::setupPlayerInputs(ECS& ecs, Player& player) {
         if (registry.hasComponent<ShooterComponent>(entity)) {
             ShooterComponent& shoot = registry.getComponent<ShooterComponent>(entity);
             shoot.is_shooting = true;
-            std::cout << "[GameManager] Shoot callback executed for entity " << entity << "! is_shooting set to true."
-                      << std::endl;
-        } else {
-            std::cout << "[GameManager] Shoot callback executed but Entity " << entity << " has NO ShooterComponent!"
-                      << std::endl;
         }
     });
 }

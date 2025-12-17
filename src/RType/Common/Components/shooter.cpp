@@ -3,10 +3,12 @@
 #include <iostream>
 #include <iterator>
 #include <ostream>
+#include <cmath>
 
 #include "Components/StandardComponents.hpp"
 #include "Hash/Hash.hpp"
 #include "ISystem.hpp"
+#include "damage.hpp"
 #include "registry.hpp"
 #include "team_component.hpp"
 
@@ -37,9 +39,19 @@ void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::Proj
                                       TeamComponent::Team team, transform_component_s pos, system_context context) {
     int id = registry.createEntity();
     Velocity2D speed = get_projectile_speed(type, team);
+
+    if (team == TeamComponent::ENEMY) {
+        speed.vx = -speed.vx;
+    }
+
     TagComponent tags;
 
     tags.tags.push_back("PROJECTILE");
+    if (team == TeamComponent::ALLY) {
+        tags.tags.push_back("ENEMY_PROJECTILE");
+    } else {
+        tags.tags.push_back("PLAYER_PROJECTILE");
+    }
 
     registry.addComponent<ProjectileComponent>(id, {id});
 
@@ -51,6 +63,7 @@ void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::Proj
 
     registry.addComponent<TagComponent>(id, tags);
 
+    registry.addComponent<DamageOnCollision>(id, {10});
     handle_t<sf::Texture> handle = context.texture_manager.load_resource(
         "content/sprites/r-typesheet1.gif", sf::Texture("content/sprites/r-typesheet1.gif"));
 
@@ -71,7 +84,6 @@ void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::Proj
     } else {
         collision.tagCollision.push_back("PLAYER");
     }
-
     collision.callbackOnCollide = [](Registry& reg, system_context con, Entity current) {
         BoxCollisionComponent& coll = reg.getComponent<BoxCollisionComponent>(current);
 

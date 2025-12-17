@@ -99,6 +99,46 @@ std::pair<float, float> AActor::getScale() {
     return std::pair<float, float>(comp.scale_x, comp.scale_y);
 }
 
+void AActor::setTextureEnemy(const std::string pathname) {
+    sprite2D_component_s sprite;
+    sprite.animation_speed = 0.6f;
+    sprite.current_animation_frame = 0;
+    sprite.is_animated = true;
+    sprite.loop_animation = true;
+    for (float i = 0; i < 8; i++)
+        sprite.frames.push_back((rect){i * 32, 0, 34, 34});
+    for (float i = 0; i < 8; i++)
+        sprite.frames.push_back((rect){i * 32, 34, 34, 34});
+
+    if (_ecs._textureManager.is_loaded(pathname)) {
+        sprite.handle = _ecs._textureManager.get_handle(pathname).value();
+    } else {
+        sprite.handle = _ecs._textureManager.load_resource(pathname, sf::Texture(pathname));
+    }
+    _ecs.registry.addComponent<sprite2D_component_s>(_id, sprite);
+    return;
+}
+
+void AActor::setTextureBoss(const std::string pathname) {
+    sprite2D_component_s sprite;
+    sprite.animation_speed = 0.5f;
+    sprite.current_animation_frame = 0;
+    sprite.is_animated = true;
+    sprite.loop_animation = false;
+    for (float i = 0; i < 4; i++) {
+        sprite.frames.push_back((rect){260, i * 143, 260, 143});
+        sprite.frames.push_back((rect){0, i * 143, 260, 143});
+    }
+    
+    if (_ecs._textureManager.is_loaded(pathname)) {
+        sprite.handle = _ecs._textureManager.get_handle(pathname).value();
+    } else {
+        sprite.handle = _ecs._textureManager.load_resource(pathname, sf::Texture(pathname));
+    }
+    _ecs.registry.addComponent<sprite2D_component_s>(_id, sprite);
+    return;
+}
+
 void AActor::setTexture(const std::string pathname) {
     sprite2D_component_s sprite;
     sprite.animation_speed = 0;

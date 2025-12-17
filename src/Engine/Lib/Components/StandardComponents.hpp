@@ -16,21 +16,25 @@
 #include "ECS/Utils/slot_map/slot_map.hpp"
 #include "ISystem.hpp"
 #include "InputAction.hpp"
-#include "Components/tag_component.hpp"
-#include "ECS/Utils/slot_map/slot_map.hpp"
-#include "ISystem.hpp"
-#include "InputAction.hpp"
+
+#include <cstdint>
 
 class Registry;
 struct system_context;
+using Entity = std::uint32_t;
 
 struct PatternComponent {
     static constexpr auto name = "Pattern";
+    enum PatternType { WAYPOINT, STRAIGHT, SINUSOIDAL };
+    PatternType type = WAYPOINT;
     std::vector<std::pair<float, float>> waypoints;
     int current_index = 0;
     float speed = 100.0f;
     bool loop = false;
     bool is_active = true;
+    float amplitude = 50.0f;
+    float frequency = 2.0f;
+    float time_elapsed = 0.0f;
 };
 
 struct ResourceStat {
@@ -81,10 +85,14 @@ struct sprite2D_component_s {
     uint32_t texture_id = 0;
     rect dimension = {0.0f, 0.0f, 0.0f, 0.0f};
     bool is_animated = false;
+    std::vector<rect> frames;
+    bool reverse_animation = false;
+    bool loop_animation = false;
     float animation_speed = 0;
     int current_animation_frame = 0;
     float last_animation_update = 0;
     int z_index = 0;
+    float lastUpdateTime = 0.f;
 };
 
 struct TagComponent {
@@ -92,7 +100,17 @@ struct TagComponent {
     std::vector<std::string> tags;
 };
 
-using ActionCallback = std::function<void(Registry& registry, system_context context, std::size_t current_entity)>;
+struct TextComponent {
+    static constexpr auto name = "Text";
+    std::string text;
+    std::string fontPath;
+    unsigned int characterSize = 24;
+    sf::Color color = sf::Color::White;
+    float x;
+    float y;
+};
+
+using ActionCallback = std::function<void(Registry& registry, system_context context, Entity current_entity)>;
 
 struct ActionScript {
     static constexpr auto name = "ActionScript";
@@ -128,3 +146,17 @@ struct BackgroundComponent {
     float x_offset = 0.f;
     float scroll_speed = 0.f;
 };
+
+// struct SpawnComponent {
+//     bool active = true;
+//     float interval = 2.0f;
+//     float elapsed = 0.0f;
+
+//     std::string sprite_path = "content/sprites/r-typesheet8.gif";
+//     rect frame {0, 0, 32, 32};
+
+//     float scale_x = 2.0f;
+//     float scale_y = 2.0f;
+//     float speed_x = -100.0f;
+//     bool allow_outside_right = true;
+// };

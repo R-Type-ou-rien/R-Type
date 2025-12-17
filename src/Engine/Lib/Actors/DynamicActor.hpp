@@ -6,9 +6,9 @@
 #pragma once
 
 class DynamicActor : public AActor {
+   protected:
+    bool _playable;
 
-    protected:
-        bool _playable;
    public:
     DynamicActor(ECS& ecs, bool playable, const std::string name = "DynamicActor");
 
@@ -39,7 +39,10 @@ class DynamicActor : public AActor {
     /** IA */
     void setPattern(std::vector<std::pair<float, float>> way_points);
 
+    void setPatternType(PatternComponent::PatternType type);
+
     std::vector<std::pair<float, float>> getPattern();
+
 
     void setPatternActive(bool state);
 

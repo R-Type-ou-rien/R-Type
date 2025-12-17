@@ -1,3 +1,29 @@
+/*
+** EPITECH PROJECT, 2025
+** R-Type
+** File description:
+** Boss
+*/
+
+#include <string>
+#include <utility>
+#include "DynamicActor.hpp"
+#include "Components/StandardComponents.hpp"
+#include "../../../../Common/Components/team_component.hpp"
+#include "../../../../Common/Components/shooter.hpp"
+
+#ifndef BOSS_HPP_
+    #define BOSS_HPP_
+
+class Boss : public DynamicActor {
+    public:
+        Boss(ECS& ecs);
+        ~Boss();
+
+    protected:
+    private:
+};
+
 #include <string>
 #include <utility>
 #include "DynamicActor.hpp"
@@ -37,3 +63,6 @@ class AI : public DynamicActor {
 
     void takeDamage(int damage);
 };
+
+
+#endif /* !BOSS_HPP_ */
