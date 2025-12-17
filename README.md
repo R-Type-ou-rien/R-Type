@@ -51,7 +51,7 @@ The project follows a **client-server architecture** with a shared **Entity Comp
 │  • Authentication           │  • Player Input                   │
 │  • Lobby Management         │  • Game State Snapshots           │
 │  • Chat Messages            │  • Entity Updates                 │
-                              │  • Voice Chat (VoIP)              │
+│                             │  • Voice Chat (VoIP)              │
 └─────────────────────────────┴───────────────────────────────────┘
                               │
                               ▼
@@ -62,7 +62,7 @@ The project follows a **client-server architecture** with a shared **Entity Comp
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-1. **Client** sends player inputs via UDP
+1. **Client** sends player inputs via UDP at 60Hz
 2. **Server** processes inputs, runs game logic, detects collisions
 3. **Server** broadcasts authoritative game state to all clients
 4. **Client** reconciles state and renders the game
@@ -71,25 +71,33 @@ The project follows a **client-server architecture** with a shared **Entity Comp
 
 > [!IMPORTANT]
 > **Prerequisites:**
-> - C++17 compatible compiler (GCC, Clang, or MSVC)
-> - CMake 3.16+
-> - vcpkg package manager
+> - C++20 compatible compiler (GCC, Clang, or MSVC)
+> - CMake 3.17+
 > - Git
 
 ### Building the Project
 
-1. **Clone the repository**
+1. **Clone the repository with submodules**
    ```bash
-   git clone https://github.com/R-Type-ou-rien/R-Type.git
+   git clone --recurse-submodules https://github.com/R-Type-ou-rien/R-Type.git
    cd R-Type
    ```
+
+   > [!TIP]
+   > If you already cloned without submodules, run:
+   > ```bash
+   > git submodule update --init --recursive
+   > ```
 
 2. **Configure and build**
    ```bash
    mkdir build && cd build
-   cmake .. -DCMAKE_TOOLCHAIN_FILE=<vcpkg-root>/scripts/buildsystems/vcpkg.cmake
+   cmake ..
    cmake --build .
    ```
+
+   > [!NOTE]
+   > vcpkg is included as a submodule and will bootstrap automatically during CMake configuration.
 
 3. **Run the application**
 
@@ -136,6 +144,19 @@ r-type/
 └── docs/                          # Documentation
 ```
 
+## ECS Engine
+
+> [!TIP]
+> The custom ECS engine uses **Data-Oriented Design** for cache-efficient performance.
+
+### Core Concepts
+
+| Concept | Description | Example |
+|---------|-------------|---------|
+| **Entity** | Unique identifier (just an ID) | Player #1, Enemy #42, Bullet #156 |
+| **Component** | Pure data attached to entities | Position, Velocity, Sprite, Health |
+| **System** | Logic that processes entities | PhysicsSystem, RenderSystem, CollisionSystem |
+
 ## Network Protocol
 
 The game uses a hybrid TCP/UDP protocol:
@@ -145,13 +166,7 @@ The game uses a hybrid TCP/UDP protocol:
 | **TCP** | 8000 | Authentication, Lobby, Chat, Critical Events |
 | **UDP** | 7777 | Player Input, Game State, Entity Updates |
 
-### Key Features
-
-- **Server Authority** - Server validates all actions, prevents cheating
-- **Client Prediction** - Local movement for responsive controls
-- **Server Reconciliation** - Corrects client state when needed
-- **Entity Interpolation** - Smooth rendering between updates
-
+## Development
 
 ### Commit Convention
 
@@ -212,10 +227,17 @@ The project uses **GitHub Actions** for continuous integration:
 <details>
 <summary><strong>Build fails with missing dependencies</strong></summary>
 
-Ensure vcpkg is properly configured:
+Ensure you cloned with submodules:
 ```bash
-vcpkg integrate install
-cmake .. -DCMAKE_TOOLCHAIN_FILE=<vcpkg-root>/scripts/buildsystems/vcpkg.cmake
+git submodule update --init --recursive
+```
+
+Then reconfigure:
+```bash
+rm -rf build
+mkdir build && cd build
+cmake ..
+cmake --build .
 ```
 
 </details>
