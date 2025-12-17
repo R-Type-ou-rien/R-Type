@@ -26,12 +26,12 @@ if (-not (Test-Path .\build)) {
     cmake -B build -DCMAKE_BUILD_TYPE=Debug
 }
 
-cmake --build build --config Release -v
-
-if (Test-Path .\Release\r-type-client.exe) {
-    Copy-Item .\Release\r-type-client.exe .
-}
+cmake --build build --config Debug -v
 
 if (Test-Path .\Debug\r-type-client.exe) {
     Copy-Item .\Debug\r-type-client.exe .
+}
+
+if (Test-Path .\Debug\r-type-server.exe) {
+    Copy-Item .\Debug\r-type-server.exe .
 }
