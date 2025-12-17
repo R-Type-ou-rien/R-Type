@@ -79,15 +79,9 @@ The project follows a **client-server architecture** with a shared **Entity Comp
 
 1. **Clone the repository with submodules**
    ```bash
-   git clone --recurse-submodules https://github.com/R-Type-ou-rien/R-Type.git
+   git clone https://github.com/R-Type-ou-rien/R-Type.git
    cd R-Type
    ```
-
-   > [!TIP]
-   > If you already cloned without submodules, run:
-   > ```bash
-   > git submodule update --init --recursive
-   > ```
 
 2. **Configure and build**
    ```bash
@@ -95,9 +89,6 @@ The project follows a **client-server architecture** with a shared **Entity Comp
    cmake ..
    cmake --build .
    ```
-
-   > [!NOTE]
-   > vcpkg is included as a submodule and will bootstrap automatically during CMake configuration.
 
 3. **Run the application**
 
@@ -226,11 +217,6 @@ The project uses **GitHub Actions** for continuous integration:
 
 <details>
 <summary><strong>Build fails with missing dependencies</strong></summary>
-
-Ensure you cloned with submodules:
-```bash
-git submodule update --init --recursive
-```
 
 Then reconfigure:
 ```bash
