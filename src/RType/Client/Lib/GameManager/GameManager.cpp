@@ -71,7 +71,7 @@ void GameManager::init(ECS& ecs) {
 }
 
 void GameManager::loadInputSetting(ECS& ecs) {
-    ecs.input.bindAction("move_left", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Q});
+    ecs.input.bindAction("move_left", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Left});
     _player->bindActionCallbackPressed("move_left", [](Registry& registry, system_context context, Entity entity) {
         if (registry.hasComponent<Velocity2D>(entity)) {
             Velocity2D& vel = registry.getComponent<Velocity2D>(entity);
@@ -85,7 +85,7 @@ void GameManager::loadInputSetting(ECS& ecs) {
         }
     });
 
-    ecs.input.bindAction("move_right", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::D});
+    ecs.input.bindAction("move_right", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Right});
     _player->bindActionCallbackPressed("move_right", [](Registry& registry, system_context context, Entity entity) {
         if (registry.hasComponent<Velocity2D>(entity)) {
             Velocity2D& vel = registry.getComponent<Velocity2D>(entity);
@@ -99,7 +99,7 @@ void GameManager::loadInputSetting(ECS& ecs) {
         }
     });
 
-    ecs.input.bindAction("move_up", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Z});
+    ecs.input.bindAction("move_up", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Up});
     _player->bindActionCallbackPressed("move_up", [](Registry& registry, system_context context, Entity entity) {
         if (registry.hasComponent<Velocity2D>(entity)) {
             Velocity2D& vel = registry.getComponent<Velocity2D>(entity);
@@ -113,7 +113,7 @@ void GameManager::loadInputSetting(ECS& ecs) {
         }
     });
 
-    ecs.input.bindAction("move_down", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::S});
+    ecs.input.bindAction("move_down", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Down});
     _player->bindActionCallbackPressed("move_down", [](Registry& registry, system_context context, Entity entity) {
         if (registry.hasComponent<Velocity2D>(entity)) {
             Velocity2D& vel = registry.getComponent<Velocity2D>(entity);
