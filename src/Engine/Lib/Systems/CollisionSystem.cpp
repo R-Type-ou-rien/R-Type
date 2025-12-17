@@ -14,20 +14,20 @@ void BoxCollision::update(Registry& registry, system_context context) {
     }
 
     for (auto entity_a : entities) {
-        if (!registry.hasComponent<transform_component_s>(entity_a))  // check if the entity has a transform
+        if (!registry.hasComponent<transform_component_s>(entity_a))  
             continue;
         if (!registry.hasComponent<TagComponent>(entity_a))
             continue;
         auto& transform_a = registry.getComponent<transform_component_s>(entity_a);
         auto& collision_comp = registry.getComponent<BoxCollisionComponent>(entity_a);
         for (auto entity_b : entities) {
-            if (entity_a == entity_b)  // check if its the same entity
+            if (entity_a == entity_b)  
                 continue;
-            if (!registry.hasComponent<TagComponent>(entity_b))  // check if the entity has a transform
+            if (!registry.hasComponent<TagComponent>(entity_b))  
                 continue;
             if (!hasTagToCollide(collision_comp, registry.getComponent<TagComponent>(entity_b)))
                 continue;
-            if (!registry.hasComponent<transform_component_s>(entity_b))  // check if the entity has a transform
+            if (!registry.hasComponent<transform_component_s>(entity_b))  
                 continue;
             if (!registry.hasComponent<sprite2D_component_s>(entity_a))
                 continue;

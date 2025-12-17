@@ -1,4 +1,5 @@
 #include "spawn.hpp"
+#include "Hash/Hash.hpp"
 
 #include <cmath>
 #include <iostream>
@@ -25,12 +26,18 @@ void EnemySpawnSystem::update(Registry& registry, system_context context) {
                 is_enemy = true;
                 break;
             }
+            if (tag == "PLAYER_PROJECTILE") {
+                is_enemy = true;  
+                break;
+            }
         }
         if (!is_enemy)
             continue;
 
         auto& transform = registry.getComponent<transform_component_s>(entity);
         if (transform.x < -100.0f) {
+            registry.destroyEntity(entity);
+        } else if (transform.x > windowWidth + 100.0f) {
             registry.destroyEntity(entity);
         }
     }
@@ -82,6 +89,7 @@ void EnemySpawnSystem::spawnBoss(Registry& registry, system_context context) {
         "content/sprites/r-typesheet30.gif", sf::Texture("content/sprites/r-typesheet30.gif"));
 
     sprite2D_component_s sprite_info;
+    sprite_info.texture_id = Hash::fnv1a("content/sprites/r-typesheet30.gif");
     sprite_info.handle = handle;
     sprite_info.dimension = {0, 0, 162, 216};
     sprite_info.z_index = 2;
@@ -96,6 +104,8 @@ void EnemySpawnSystem::spawnBoss(Registry& registry, system_context context) {
     tags.tags.push_back("AI");
     tags.tags.push_back("BOSS");
     registry.addComponent<TagComponent>(boss_id, tags);
+
+    registry.addComponent<NetworkIdentity>(boss_id, {static_cast<uint64_t>(boss_id), 0});  
 }
 
 void EnemySpawnSystem::spawnEnemy(Registry& registry, system_context context, float x, float y, bool sine_pattern) {
@@ -132,6 +142,7 @@ void EnemySpawnSystem::spawnEnemy(Registry& registry, system_context context, fl
         "content/sprites/r-typesheet42.gif", sf::Texture("content/sprites/r-typesheet42.gif"));
 
     sprite2D_component_s sprite_info;
+    sprite_info.texture_id = Hash::fnv1a("content/sprites/r-typesheet42.gif");
     sprite_info.handle = handle;
     sprite_info.dimension = {32, 0, 32, 16};
     sprite_info.z_index = 1;
@@ -145,4 +156,6 @@ void EnemySpawnSystem::spawnEnemy(Registry& registry, system_context context, fl
     TagComponent tags;
     tags.tags.push_back("AI");
     registry.addComponent<TagComponent>(enemy_id, tags);
+
+    registry.addComponent<NetworkIdentity>(enemy_id, {static_cast<uint64_t>(enemy_id), 0});  
 }

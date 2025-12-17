@@ -1,9 +1,4 @@
-/*
-** EPITECH PROJECT, 2025
-** R-Type
-** File description:
-** RenderSystem.cpp
-*/
+ 
 
 #include "RenderSystem.hpp"
 #include "registry.hpp"

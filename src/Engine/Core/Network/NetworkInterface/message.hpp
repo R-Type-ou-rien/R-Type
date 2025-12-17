@@ -73,4 +73,4 @@ struct owned_message {
         return os;
     }
 };
-}  // namespace network
+}  

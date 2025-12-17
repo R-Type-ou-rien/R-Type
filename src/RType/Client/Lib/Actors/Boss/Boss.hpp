@@ -1,9 +1,4 @@
-/*
-** EPITECH PROJECT, 2025
-** R-Type
-** File description:
-** Boss
-*/
+ 
 
 #include <string>
 #include <utility>
@@ -65,4 +60,4 @@ class AI : public DynamicActor {
 };
 
 
-#endif /* !BOSS_HPP_ */
+#endif  

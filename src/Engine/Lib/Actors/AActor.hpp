@@ -18,7 +18,7 @@ class AActor {
 
     Entity getId();
 
-    /** Tag component's methods */
+     
     std::vector<std::string> getTags();
 
     void setTags(const std::vector<std::string> tags);
@@ -27,7 +27,7 @@ class AActor {
 
     void removeTag(const std::string tag);
 
-    /** Transform component's methods */
+     
     std::pair<float, float> getPosition();
 
     void setPosition(std::pair<float, float> pos);
@@ -40,7 +40,7 @@ class AActor {
 
     std::pair<float, float> getScale();
 
-    /** Sprite2D component's methods */
+     
 
     void setTextureEnemy(const std::string pathname);
 
@@ -64,7 +64,7 @@ class AActor {
 
     int getDisplayLayer();
 
-    /** Collision component's methods */
+     
     void setCollisionTags(std::vector<std::string> tags);
 
     void addCollisionTag(const std::string tag);

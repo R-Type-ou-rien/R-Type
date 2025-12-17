@@ -1,9 +1,4 @@
-/*
-** EPITECH PROJECT, 2025
-** R-Type
-** File description:
-** InputManager.cpp
-*/
+ 
 
 #include "InputManager.hpp"
 #include <iostream>
@@ -18,7 +13,7 @@
 void InputManager::bindAction(Action action, const InputBinding& binding) {
     _actionRegistry.registerAction(action);
     _bindings[action].push_back(binding);
-    // _states.try_emplace(action, ActionState{});
+    
 }
 
 bool InputManager::isBindingActive(const InputBinding& b) const {
@@ -89,13 +84,13 @@ void InputManager::update(float dt, std::optional<std::reference_wrapper<Client>
         st.pressed = down;
 
         if (serv.has_value() && player_id.has_value()) {
-            // std::cout << "READY TO SEND INPUT" << std::endl;
+            
             Client& client_instance = serv.value();
             if (st.justPressed || st.justReleased || st.pressed) {
                 InputPacket packet;
                 packet.action_name = action;
                 packet.state = st;
-                // std::cout << "AN EVENT IS SENDING" << std::endl;
+                
                 client_instance.AddMessageToServer(GameEvents::C_INPUT, player_id.value(), packet);
             }
         }

@@ -1,9 +1,4 @@
-/*
-** EPITECH PROJECT, 2025
-** R-Type
-** File description:
-** Components.hpp
-*/
+ 
 
 #pragma once
 
@@ -49,20 +44,20 @@ struct InputControl {
 };
 
 struct GamepadControl {
-    unsigned int joystickId = 0;  // id de la manette (0 par défaut)
+    unsigned int joystickId = 0;  
     sf::Joystick::Axis axisX = sf::Joystick::Axis::X;
     sf::Joystick::Axis axisY = sf::Joystick::Axis::Y;
-    unsigned int buttonShoot = 0;  // pour plus tard (tir)
-    float speed = 300.f;           // vitesse max
-    float deadZone = 15.f;         // pour ignorer les petits mouvements
+    unsigned int buttonShoot = 0;  
+    float speed = 300.f;           
+    float deadZone = 15.f;         
 };
 
 struct Shooter {
     sf::Keyboard::Key shootKey;
     float projectileSpeed;
     float projectileLifetime;
-    float fireRate;                 // tirs par seconde
-    float timeSinceLastShot = 0.f;  // état interne, géré par le système
+    float fireRate;                 
+    float timeSinceLastShot = 0.f;  
 };
 
 struct Projectile {

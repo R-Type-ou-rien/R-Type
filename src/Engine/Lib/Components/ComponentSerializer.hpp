@@ -8,14 +8,14 @@
 #include "Components/StandardComponents.hpp"
 #include "Components/NetworkComponents.hpp"
 
-// Helper to write POD data to vector
+
 template <typename T>
 void WritePOD(std::vector<uint8_t>& buffer, const T& data) {
     const uint8_t* ptr = reinterpret_cast<const uint8_t*>(&data);
     buffer.insert(buffer.end(), ptr, ptr + sizeof(T));
 }
 
-// Helper to read POD data from vector
+
 template <typename T>
 void ReadPOD(const std::vector<uint8_t>& buffer, size_t& offset, T& data) {
     if (offset + sizeof(T) > buffer.size())
@@ -28,7 +28,7 @@ template <typename T>
 struct Serializer {
     static std::vector<uint8_t> serialize(const T& component) {
         std::vector<uint8_t> data;
-        WritePOD(data, component);  // Default fallback: POD copy
+        WritePOD(data, component);  
         return data;
     }
 
@@ -39,12 +39,12 @@ struct Serializer {
     }
 };
 
-// PatternComponent Serialization (contains vector)
+
 template <>
 struct Serializer<PatternComponent> {
     static std::vector<uint8_t> serialize(const PatternComponent& component) {
         std::vector<uint8_t> data;
-        // Waypoints (vector size + elements)
+        
         uint32_t vecSize = component.waypoints.size();
         WritePOD(data, vecSize);
         for (const auto& wp : component.waypoints) {
@@ -76,7 +76,7 @@ struct Serializer<PatternComponent> {
     }
 };
 
-// TagComponent Serialization (contains vector of strings)
+
 template <>
 struct Serializer<TagComponent> {
     static std::vector<uint8_t> serialize(const TagComponent& component) {
@@ -107,20 +107,20 @@ struct Serializer<TagComponent> {
     }
 };
 
-// ActionScript: SKIP (contains functions and maps)
+
 template <>
 struct Serializer<ActionScript> {
     static std::vector<uint8_t> serialize(const ActionScript& component) {
-        // Cannot serialize functions
+        
         return {};
     }
 
     static void deserialize(ActionScript& component, const std::vector<uint8_t>& data) {
-        // Do nothing
+        
     }
 };
 
-// BoxCollisionComponent: SKIP (contains function)
+
 template <>
 struct Serializer<BoxCollisionComponent> {
     static std::vector<uint8_t> serialize(const BoxCollisionComponent& component) { return {}; }
@@ -128,7 +128,7 @@ struct Serializer<BoxCollisionComponent> {
     static void deserialize(BoxCollisionComponent& component, const std::vector<uint8_t>& data) {}
 };
 
-// ResourceComponent (contains map)
+
 template <>
 struct Serializer<ResourceComponent> {
     static std::vector<uint8_t> serialize(const ResourceComponent& component) {
@@ -139,7 +139,7 @@ struct Serializer<ResourceComponent> {
             uint32_t keySize = kv.first.size();
             WritePOD(data, keySize);
             data.insert(data.end(), kv.first.begin(), kv.first.end());
-            WritePOD(data, kv.second);  // ResourceStat is POD
+            WritePOD(data, kv.second);  
         }
         return data;
     }
@@ -226,7 +226,7 @@ template <>
 struct Serializer<sprite2D_component_s> {
     static std::vector<uint8_t> serialize(const sprite2D_component_s& component) {
         std::vector<uint8_t> data;
-        // Skip handle, serialize PODs manually
+        
         WritePOD(data, component.texture_id);
         WritePOD(data, component.dimension);
         WritePOD(data, component.is_animated);
@@ -253,14 +253,14 @@ template <>
 struct Serializer<BackgroundComponent> {
     static std::vector<uint8_t> serialize(const BackgroundComponent& component) {
         std::vector<uint8_t> data;
-        // WritePOD(data, component.x_offset); // Don't send x_offset, let client simulate it
+        
         WritePOD(data, component.scroll_speed);
         return data;
     }
 
     static void deserialize(BackgroundComponent& component, const std::vector<uint8_t>& data) {
         size_t offset = 0;
-        // ReadPOD(data, offset, component.x_offset);
+        
         ReadPOD(data, offset, component.scroll_speed);
     }
 };

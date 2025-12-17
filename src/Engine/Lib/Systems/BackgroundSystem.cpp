@@ -24,7 +24,7 @@ void BackgroundSystem::update(Registry& registry, system_context context) {
 
     for (Entity entity : entities) {
         auto& bg = registry.getComponent<BackgroundComponent>(entity);
-        bg.x_offset -= bg.scroll_speed * context.dt;  // move left
+        bg.x_offset -= bg.scroll_speed * context.dt;  
         if (!context.texture_manager.has_resource(bg.texture_handle))
             continue;
         sf::Texture& texture = context.texture_manager.get_resource(bg.texture_handle).value().get();

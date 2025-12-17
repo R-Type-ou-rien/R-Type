@@ -10,7 +10,7 @@
 #include "Network/NetworkInterface/message.hpp"
 
 void Server::OnMessage(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents>& msg) {
-    // std::cout << "Event: " << (int)msg.header.id << std::endl;
+    
     switch (msg.header.id) {
         case GameEvents::C_REGISTER:
             OnClientRegister(client, msg);
@@ -34,8 +34,8 @@ void Server::OnMessage(std::shared_ptr<network::Connection<GameEvents>> client, 
             OnClientNewLobby(client, msg);
             break;
         case GameEvents::C_CONFIRM_UDP:
-            // if (_clientStates[client] == ClientState::WAITING_UDP_PING)
-            //     _clientStates[client] = ClientState::LOGGED_IN;
+            
+            
             if (_clientStates[client] == ClientState::WAITING_UDP_PING) {
                 std::cout << "[DEBUG] Received C_CONFIRM_UDP from Client " << client->GetID() << ". Adding to lobby."
                           << std::endl;
@@ -67,7 +67,7 @@ void Server::OnMessage(std::shared_ptr<network::Connection<GameEvents>> client, 
                     std::cout << "[DEBUG] Game already started. Late joining Client " << client->GetID() << std::endl;
                     _clientStates[client] = ClientState::IN_GAME;
                     AddMessageToPlayer(GameEvents::S_GAME_START, client->GetID(), nullptr);
-                    // No need to push C_GAME_START to engine as it's already running
+                    
                 } else {
                     std::cout << "[DEBUG] CHECKING START CONDITION. Players: " << _lobbys.back().GetNbPlayers() << std::endl;
                     if (_lobbys.back().GetNbPlayers() >= 2) {
@@ -77,7 +77,7 @@ void Server::OnMessage(std::shared_ptr<network::Connection<GameEvents>> client, 
                             if (_clientStates[connection] != ClientState::IN_LOBBY) {
                                 std::cout << "[DEBUG] Player " << id << " NOT IN_LOBBY. Abort start." << std::endl;
                                 allReady = false;
-                                // Do not return, just flag, to see all states
+                                
                             }
                         }
                         if (!allReady) return;
@@ -99,7 +99,7 @@ void Server::OnMessage(std::shared_ptr<network::Connection<GameEvents>> client, 
 }
 
 void Server::OnClientDisconnect(std::shared_ptr<network::Connection<GameEvents>> client) {
-    // std::cout << "Removing client [" << client->GetID() << "]\n";
+    
     network::message<GameEvents> msg;
     msg << NULL;
     _toGameMessages.push({GameEvents::C_DISCONNECT, client->GetID(), msg});
@@ -109,7 +109,7 @@ bool Server::OnClientConnect(std::shared_ptr<network::Connection<GameEvents>> cl
     if (_deqConnections.size() > _maxConnections)
         return false;
     client->SetTimeout(0);
-    // AddMessageToPlayer(GameEvents::C_PING_SERVER, client->GetID(), NULL);
+    
 
     network::message<GameEvents> msg;
     msg << client->GetID();
@@ -188,7 +188,7 @@ void Server::OnClientLoginToken(std::shared_ptr<network::Connection<GameEvents>>
 
     returnInfo.id = client->GetID();
 
-    //_clientUsernames[client] = username;
+    
     _clientStates[client] = ClientState::WAITING_UDP_PING;
     AddMessageToPlayer(GameEvents::S_LOGIN_OK, client->GetID(), returnInfo);
 }
@@ -226,11 +226,11 @@ void Server::OnClientJoinLobby(std::shared_ptr<network::Connection<GameEvents>> 
             info.name = lobby.GetName();
             info.nbPlayers = lobby.GetNbPlayers();
             for (auto& [id, connection] : lobby.getLobbyPlayers()) {
-                // player p;
-                // p.id = id;
-                // p.username = _clientUsernames[connection];
+                
+                
+                
                 info.id_player.push_back(id);
-                // info.players.push_back(p);
+                
             }
             AddMessageToPlayer(GameEvents::S_ROOM_JOINED, client->GetID(), info);
 

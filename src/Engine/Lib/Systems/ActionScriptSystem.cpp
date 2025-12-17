@@ -16,11 +16,11 @@ void ActionScriptSystem::update(Registry& registry, system_context context) {
 
     std::vector<size_t> entities = registry.getEntities<ActionScript>();
     for (auto entity : entities) {
-        // Only apply inputs to the local player's entity
+        
         if (context.client_id.has_value() && registry.hasComponent<NetworkIdentity>(entity)) {
             const NetworkIdentity& netId = registry.getComponent<NetworkIdentity>(entity);
             if (netId.owner_user_id != context.client_id.value().get()) {
-                continue;  // Skip entities that don't belong to the local player
+                continue;  
             }
         }
 

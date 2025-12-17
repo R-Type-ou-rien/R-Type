@@ -9,4 +9,4 @@ struct TeamComponent {
     Team team;
 };
 
-#endif  // TEAM_COMPONENT_TEAM_COMPONENT_HPP_
+#endif  

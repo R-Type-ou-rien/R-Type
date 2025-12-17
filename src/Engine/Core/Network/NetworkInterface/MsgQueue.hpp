@@ -81,4 +81,4 @@ class MsgQueue {
     std::condition_variable cvBlocking;
     std::mutex muxBlocking;
 };
-}  // namespace network
+}  

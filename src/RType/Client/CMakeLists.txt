@@ -13,6 +13,7 @@ include_directories(
 
 file(GLOB_RECURSE SOURCES "*.cpp")
 
+
 add_executable(r-type-client ${SOURCES})
 
 target_link_libraries(r-type-client PRIVATE Engine RTypeCommon)

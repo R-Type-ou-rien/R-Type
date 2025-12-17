@@ -96,7 +96,7 @@ class Server : public network::ServerInterface<GameEvents> {
     virtual bool OnClientConnect(std::shared_ptr<network::Connection<GameEvents>> client);
     virtual void OnClientDisconnect(std::shared_ptr<network::Connection<GameEvents>> client);
 
-    // Connection and Lobby event handlers (croyez pas y'a que gemini qui sait faire des commentaires bandes de fous)
+    
     void OnClientRegister(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
     void OnClientLogin(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
     void OnClientLoginToken(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
@@ -105,7 +105,7 @@ class Server : public network::ServerInterface<GameEvents> {
     void OnClientLeaveLobby(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
     void OnClientNewLobby(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
 
-    // Pre-Game event handlers
+    
     void onClientStartGame(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
     void onClientReadyUp(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
     void onClientUnready(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
@@ -135,7 +135,7 @@ class Server : public network::ServerInterface<GameEvents> {
 
     std::vector<GameEvents> _udpEvents = {
         GameEvents::C_INPUT,
-        // GameEvents::S_SNAPSHOT,
+        
         GameEvents::C_VOICE_PACKET,
         GameEvents::S_VOICE_RELAY,
     };

@@ -2,7 +2,7 @@
 #include "damage.hpp"
 
 #include "health.hpp"
-// #include "collision.hpp"
+
 
 void HealthSystem::update(Registry& registry, system_context context) {
     auto& entities = registry.getEntities<HealthComponent>();
@@ -21,6 +21,20 @@ void HealthSystem::update(Registry& registry, system_context context) {
     }
     for (auto dead_entity : dead_entities) {
         if (registry.hasComponent<HealthComponent>(dead_entity)) {
+            if (context.network_server.has_value()) {
+                Server& server = context.network_server.value();
+                auto& netIdent = registry.getComponent<NetworkIdentity>(dead_entity);
+                if (netIdent.owner_user_id != 0) {  
+                    std::cout << "Player " << netIdent.owner_user_id << " Died! Sending Game Over." << std::endl;
+                    server.AddMessageToPlayer(GameEvents::S_GAME_OVER, netIdent.owner_user_id, 0);
+                }
+                
+                auto& players = context.clients_id.value().get();
+                uint32_t guid = static_cast<uint32_t>(netIdent.guid);
+                for (auto& player_id : players) {
+                    server.AddMessageToPlayer(GameEvents::S_PLAYER_DEATH, player_id, guid);
+                }
+            }
             registry.destroyEntity(dead_entity);
         }
     }

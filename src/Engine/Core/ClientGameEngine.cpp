@@ -19,13 +19,17 @@
 #include "PatternSystem/PatternSystem.hpp"
 #include "registry.hpp"
 #include "Systems/PhysicsSystem.hpp"
+#include "../../RType/Common/Components/health.hpp"
+#include "../../RType/Common/Components/team_component.hpp"
+#include "../../RType/Client/Lib/Systems/HUDSystem.hpp"
 
-ClientGameEngine::ClientGameEngine(std::string window_name) : _window_manager(WINDOW_W, WINDOW_H, window_name) {}
+ClientGameEngine::ClientGameEngine(std::string ip, std::string window_name)
+    : _window_manager(WINDOW_W, WINDOW_H, window_name), _server_ip(ip) {}
 
 int ClientGameEngine::init() {
     InputManager input_manager;
 
-    _network_client.Connect("127.0.0.1", 4040);
+    _network_client.Connect(_server_ip, 4040);
 
     _ecs._textureManager.load_resource("content/sprites/r-typesheet42.gif",
                                        sf::Texture("content/sprites/r-typesheet42.gif"));
@@ -47,6 +51,7 @@ int ClientGameEngine::init() {
     registerNetworkComponent<Scroll>();
     registerNetworkComponent<NetworkIdentity>();
     registerNetworkComponent<ComponentPacket>();
+    registerNetworkComponent<TeamComponent>();
 
     uint32_t bgTypeId = Hash::fnv1a(BackgroundComponent::name);
 
@@ -80,12 +85,15 @@ int ClientGameEngine::init() {
     _ecs.systems.addSystem<BoxCollision>();
     _ecs.systems.addSystem<ActionScriptSystem>();
     _ecs.systems.addSystem<PatternSystem>();
+    registerNetworkComponent<HealthComponent>();
+
     _ecs.systems.addSystem<ComponentSenderSystem>();
+    _ecs.systems.addSystem<HUDSystem>();
+    _ecs.systems.addSystem<HealthSystem>();
 
     if (_init_function)
         _init_function(_ecs);
 
-    // if mode local
     _ecs.systems.addSystem<PhysicsSystem>();
     return 0;
 }
@@ -296,7 +304,18 @@ void ClientGameEngine::execCorrespondingFunction(GameEvents event, coming_messag
             break;
 
         case (GameEvents::S_GAME_OVER):
-            std::cout << "GAME OVER TO IMPLEMENT" << std::endl;
+            std::cout << "GAME OVER RECEIVED" << std::endl;
+            {
+                Entity localEntity = _ecs.registry.createEntity();
+                TextComponent text;
+                text.fontPath = "content/fonts/arial.ttf";
+                text.characterSize = 50;
+                text.x = 300;
+                text.y = 300;
+                text.color = sf::Color::Red;
+                text.text = "GAME OVER";
+                _ecs.registry.addComponent<TextComponent>(localEntity, text);
+            }
             break;
 
         case (GameEvents::S_RETURN_TO_LOBBY):
@@ -304,7 +323,7 @@ void ClientGameEngine::execCorrespondingFunction(GameEvents event, coming_messag
             break;
 
         default:
-            // std::cout << "EVENT " << uint32_t(event) << " IS NOT IMPLEMENTED" << std::endl;
+
             break;
     }
 }

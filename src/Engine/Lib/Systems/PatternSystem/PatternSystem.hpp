@@ -1,9 +1,4 @@
-/*
-** EPITECH PROJECT, 2025
-** R-Type
-** File description:
-** PatternSystem
-*/
+ 
 
 #ifndef PATTERNSYSTEM_HPP_
 #define PATTERNSYSTEM_HPP_
@@ -25,4 +20,4 @@ class PatternSystem : public ISystem {
    private:
 };
 
-#endif /* !PATTERNSYSTEM_HPP_ */
+#endif  

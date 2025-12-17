@@ -30,13 +30,13 @@ class DynamicActor : public AActor {
 
     void addEmptyEffect(const std::string res_name, std::function<void()> effect);
 
-    /** */
+     
 
     void setVelocity(std::pair<float, float> velocity);
 
     std::pair<float, float> getvelocity();
 
-    /** IA */
+     
     void setPattern(std::vector<std::pair<float, float>> way_points);
 
     void setPatternType(PatternComponent::PatternType type);
@@ -56,7 +56,7 @@ class DynamicActor : public AActor {
 
     float getPatternSpeed();
 
-    /** Controllable */
+     
     void bindActionCallbackOnPressed(Action action_name, ActionCallback callback);
 
     void bindActionCallbackPressed(Action action_name, ActionCallback callback);

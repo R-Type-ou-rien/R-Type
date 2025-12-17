@@ -105,4 +105,4 @@ class ClientInterface {
 
     MsgQueue<owned_message<T>> _qMessagesIn;
 };
-}  // namespace network
+}  

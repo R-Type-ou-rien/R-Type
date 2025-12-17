@@ -10,7 +10,8 @@
 #include "src/RType/Common/Components/shooter.hpp"
 #include "src/RType/Common/Components/damage.hpp"
 #include "src/RType/Common/Components/spawn.hpp"
-// #include "src/Engine/Lib/Systems/PatternSystem/PatternSystem.hpp"
+#include "src/Engine/Lib/Systems/PatternSystem/PatternSystem.hpp"
+#include "src/RType/Common/Components/health.hpp"
 
 GameManager::GameManager() {}
 
@@ -19,6 +20,15 @@ void GameManager::init(ECS& ecs) {
     ecs._textureManager.load_resource("content/sprites/r-typesheet42.gif",
                                       sf::Texture("content/sprites/r-typesheet42.gif"));
     ecs.systems.addSystem<BoxCollision>();
+    ecs.systems.addSystem<EnemySpawnSystem>();
+    ecs.systems.addSystem<PatternSystem>();
+    ecs.systems.addSystem<HealthSystem>();
+    ecs.systems.addSystem<Damage>();
+
+    ecs.registry.createEntity();  
+    Entity spawner = ecs.registry.createEntity();
+    ecs.registry.addComponent<EnemySpawnComponent>(spawner, {});
+
     ecs._textureManager.load_resource("content/sprites/r-typesheet1.gif",
                                       sf::Texture("content/sprites/r-typesheet1.gif"));
 
@@ -39,23 +49,23 @@ void GameManager::init(ECS& ecs) {
         ecs.registry.addComponent<BackgroundComponent>(bgEntity, bg);
     }
     auto enemy = std::make_unique<AI>(ecs, std::pair<float, float>(300.f, 300.f));
-    enemy->setTexture("content/sprites/r-typesheet42.gif");
+    enemy->setTextureBoss("content/sprites/r-typesheet42.gif");
     enemy->setTextureDimension(rect{32, 0, 32, 16});
     enemy->setPattern({{500.f, 300.f}, {500.f, 500.f}, {300.f, 500.f}, {300.f, 300.f}});
     enemy->setPatternLoop(true);
 
     Entity entity = enemy->getId();
-    ecs.registry.addComponent<NetworkIdentity>(entity, {static_cast<uint64_t>(entity), 0});  // 0 = Server Owned
+    ecs.registry.addComponent<NetworkIdentity>(entity, {static_cast<uint64_t>(entity), 0});  
 
-    _ennemies.push_back(std::move(enemy));
+    
 }
 
 void GameManager::loadInputSetting(ECS& ecs) {
-    // Legacy function, inputs are now setup per player in setupPlayerInputs
+    
 }
 
 void GameManager::onPlayerConnect(ECS& ecs, std::uint32_t id) {
-    float y_pos = 100.f + ((id % 10) * 50.f);  // Clamp ID effect to avoid off-screen
+    float y_pos = 100.f + ((id % 10) * 50.f);  
     auto player = std::make_shared<Player>(ecs, std::pair<float, float>{100.f, y_pos});
 
     std::cout << "GameManager::onPlayerConnect called for ID: " << id << " Spawning at Y: " << y_pos << std::endl;
@@ -64,7 +74,7 @@ void GameManager::onPlayerConnect(ECS& ecs, std::uint32_t id) {
     player->setTextureDimension(rect{0, 0, 32, 16});
     player->setFireRate(0.5);
 
-    // Assign NetworkIdentity so actions and updates are synced correctly
+    
     Entity entity = player->getId();
     ecs.registry.addComponent<NetworkIdentity>(entity, {static_cast<uint64_t>(entity), id});
 
@@ -135,6 +145,12 @@ void GameManager::setupPlayerInputs(ECS& ecs, Player& player) {
         if (registry.hasComponent<ShooterComponent>(entity)) {
             ShooterComponent& shoot = registry.getComponent<ShooterComponent>(entity);
             shoot.is_shooting = true;
+        }
+    });
+    player.bindActionCallbackOnReleased("shoot", [](Registry& registry, system_context context, Entity entity) {
+        if (registry.hasComponent<ShooterComponent>(entity)) {
+            ShooterComponent& shoot = registry.getComponent<ShooterComponent>(entity);
+            shoot.is_shooting = false;
         }
     });
 }

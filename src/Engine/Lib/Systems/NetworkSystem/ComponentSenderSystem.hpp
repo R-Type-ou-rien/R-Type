@@ -9,9 +9,11 @@
 #include <typeindex>
 
 class ComponentSenderSystem : public ISystem {
-    public:
-        ComponentSenderSystem() = default;
-        ~ComponentSenderSystem() = default;
-        void update(Registry& registry, system_context context) override;
-        
+   public:
+    ComponentSenderSystem() = default;
+    ~ComponentSenderSystem() = default;
+    void update(Registry& registry, system_context context) override;
+
+   private:
+    std::vector<uint32_t> _known_ready_clients;
 };

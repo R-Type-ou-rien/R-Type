@@ -1,9 +1,4 @@
-/*
-** EPITECH PROJECT, 2025
-** R-Type
-** File description:
-** PhysicsSystem.cpp
-*/
+ 
 
 #include "PhysicsSystem.hpp"
 #include "Components/StandardComponents.hpp"

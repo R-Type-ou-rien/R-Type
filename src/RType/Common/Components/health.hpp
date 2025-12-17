@@ -5,8 +5,8 @@
 
 struct HealthComponent {
     static constexpr auto name = "Health";
-    int max_hp;
-    int current_hp;
+    int max_hp = 100;
+    int current_hp = 100;
     float last_damage_time = 0.0f;
     float invincibility_duration = 1.0f;
 };

@@ -155,7 +155,7 @@ class ServerInterface {
                 OnClientDisconnect(client);
                 continue;
             }
-            // client->ResetTimeout();
+            
         }
     }
 
@@ -238,4 +238,4 @@ class ServerInterface {
    private:
     uint16_t _port;
 };
-}  // namespace network
+}  

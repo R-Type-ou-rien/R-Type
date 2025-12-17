@@ -24,7 +24,7 @@ enum class GameEvents : uint32_t {
     S_CONFIRM_UDP,
     C_CONFIRM_UDP,
 
-    // LOBBY EVENTS
+    
     C_LIST_ROOMS,
     S_ROOMS_LIST,
     C_JOIN_ROOM,
@@ -41,7 +41,7 @@ enum class GameEvents : uint32_t {
     C_NEW_LOBBY,
     S_CONFIRM_NEW_LOBBY,
 
-    // LANCEMENT
+    
     C_READY,
     S_READY_RETURN,
     C_GAME_START,
@@ -49,17 +49,17 @@ enum class GameEvents : uint32_t {
     C_CANCEL_READY,
     S_CANCEL_READY_BROADCAST,
 
-    // IN-GAME EVENTS
+    
     C_INPUT,
     S_SNAPSHOT,
 
-    // CHAT EVENTS
+    
     C_TEAM_CHAT,
     S_TEAM_CHAT,
     C_VOICE_PACKET,
     S_VOICE_RELAY,
 
-    // GAME EVENTS
+    
     S_PLAYER_DEATH,
     S_SCORE_UPDATE,
     S_GAME_OVER,
@@ -99,13 +99,13 @@ struct lobby_in_info {
     uint32_t id;
     std::string name;
     std::vector<uint32_t> id_player;
-    // std::vector<player> players;
+    
     uint32_t nbPlayers;
 };
 
-// Custom serialization for std::string
+
 namespace network {
-// Generic serialization for std::vector
+
 template <typename T, typename U>
 message<T>& operator<<(message<T>& msg, const std::vector<U>& vec) {
     for (const auto& item : vec)
@@ -124,7 +124,7 @@ message<T>& operator>>(message<T>& msg, std::vector<U>& vec) {
     return msg;
 }
 
-// Custom serialization for std::string
+
 template <typename T>
 message<T>& operator<<(message<T>& msg, const std::string& str) {
     uint32_t size = static_cast<uint32_t>(str.size());
@@ -144,7 +144,7 @@ message<T>& operator>>(message<T>& msg, std::string& str) {
     return msg;
 }
 
-// Custom serialization for player
+
 template <typename T>
 message<T>& operator<<(message<T>& msg, const ::player& p) {
     uint32_t nameSize = static_cast<uint32_t>(p.username.size());
@@ -162,11 +162,11 @@ message<T>& operator>>(message<T>& msg, ::player& p) {
     msg >> nameSize;
     p.username.resize(nameSize);
     for (int i = nameSize - 1; i >= 0; --i)
-        msg >> p.username[i];  // Pop reverse
+        msg >> p.username[i];  
     return msg;
 }
 
-// Custom serialization for lobby_info
+
 template <typename T>
 message<T>& operator<<(message<T>& msg, const ::lobby_info& info) {
     msg << info.maxPlayers;
@@ -192,15 +192,15 @@ message<T>& operator>>(message<T>& msg, ::lobby_info& info) {
     return msg;
 }
 
-// Custom serialization for lobby_in_info
+
 template <typename T>
 message<T>& operator<<(message<T>& msg, const ::lobby_in_info& info) {
     msg << info.nbPlayers;
-    // Vector
+    
     for (uint32_t pid : info.id_player)
         msg << pid;
     msg << static_cast<uint32_t>(info.id_player.size());
-    // Name
+    
     uint32_t nameSize = static_cast<uint32_t>(info.name.size());
     for (char c : info.name)
         msg << c;
@@ -230,7 +230,7 @@ message<T>& operator>>(message<T>& msg, ::lobby_in_info& info) {
     return msg;
 }
 
-// Custom serialization for connection_server_return
+
 template <typename T>
 message<T>& operator<<(message<T>& msg, const ::connection_server_return& ret) {
     msg << ret.id;
@@ -251,4 +251,4 @@ message<T>& operator>>(message<T>& msg, ::connection_server_return& ret) {
     msg >> ret.id;
     return msg;
 }
-}  // namespace network
+}  

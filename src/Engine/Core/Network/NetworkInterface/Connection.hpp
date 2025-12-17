@@ -58,7 +58,7 @@ class Connection : public std::enable_shared_from_this<Connection<T>> {
    public:
     void Send(const message<T>& msg) {
         const GameEvents id = msg.header.id;
-        // std::cout << "Send: " << (int)id << std::endl;
+        
         asio::post(_asioContext, [this, msg]() {
             bool WritingMessage = !_qMessagesOut.empty();
             _qMessagesOut.push_back(msg);
@@ -235,4 +235,4 @@ class Connection : public std::enable_shared_from_this<Connection<T>> {
     asio::steady_timer m_timerTimeout;
     std::chrono::seconds m_nTimeoutDuration = std::chrono::seconds(0);
 };
-}  // namespace network
+}  

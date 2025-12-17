@@ -47,7 +47,7 @@ coming_message Client::ReadIncomingMessage() {
         coming_message comingMsg;
         comingMsg.id = msg.msg.header.id;
         comingMsg.msg = msg.msg;
-        // msg.msg >> comingMsg.msg.body;
+        
         return comingMsg;
     }
     return coming_message{};

@@ -40,6 +40,7 @@ class ClientGameEngine {
     WindowManager _window_manager;
     Client _network_client;
     client_identity _identity;
+    std::string _server_ip;
     bool _has_game_started = false;
 
     using ComponentDeserializer = std::function<void(Registry&, Entity, const std::vector<uint8_t>&)>;
@@ -82,7 +83,7 @@ class ClientGameEngine {
 
     int init();
     int run();
-    explicit ClientGameEngine(std::string window_name = "Default Name");
+    explicit ClientGameEngine(std::string ip, std::string window_name = "Default Name");
     ~ClientGameEngine() {};
     void setUserFunction(std::function<void(ECS& ecs)> user_function);
     void setInitFunction(std::function<void(ECS& ecs)> user_function);

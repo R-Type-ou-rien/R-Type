@@ -11,6 +11,10 @@ ServerGameEngine::ServerGameEngine() : _network_server(4040, 100) {}
 
 ServerGameEngine::~ServerGameEngine() {}
 
+#include <ifaddrs.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
 int ServerGameEngine::init() {
     _ecs.systems.addSystem<BoxCollision>();
     _ecs.systems.addSystem<ActionScriptSystem>();
@@ -23,6 +27,30 @@ int ServerGameEngine::init() {
         _init_function(_ecs);
 
     _network_server.Start();
+
+    std::cout << "Server started on port 4040. Available IPs:" << std::endl;
+    struct ifaddrs* ifAddrStruct = NULL;
+    struct ifaddrs* ifa = NULL;
+    void* tmpAddrPtr = NULL;
+
+    getifaddrs(&ifAddrStruct);
+
+    for (ifa = ifAddrStruct; ifa != NULL; ifa = ifa->ifa_next) {
+        if (!ifa->ifa_addr) {
+            continue;
+        }
+        if (ifa->ifa_addr->sa_family == AF_INET) {  // check it is IP4
+            // is a valid IP4 Address
+            tmpAddrPtr = &((struct sockaddr_in*)ifa->ifa_addr)->sin_addr;
+            char addressBuffer[INET_ADDRSTRLEN];
+            inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
+            if (std::string(addressBuffer) != "127.0.0.1")
+                std::cout << "  " << ifa->ifa_name << ": " << addressBuffer << std::endl;
+        }
+    }
+    if (ifAddrStruct != NULL)
+        freeifaddrs(ifAddrStruct);
+
     return 0;
 }
 
@@ -75,14 +103,10 @@ int ServerGameEngine::run() {
 }
 
 void ServerGameEngine::handleNetworkMessages() {
-    /**
-        Connection player -> id
-    */
     _network_server.Update();
 
-    // Process all pending messages
     size_t processed_count = 0;
-    const size_t max_messages_per_frame = 1000;  // Safety limit
+    const size_t max_messages_per_frame = 1000;
 
     while (processed_count < max_messages_per_frame) {
         coming_message c_msg = _network_server.ReadIncomingMessage();
@@ -125,8 +149,6 @@ void ServerGameEngine::execCorrespondingFunction(GameEvents event, coming_messag
             c_msg.msg >> packet;
             std::cout << "Received Input: " << packet.action_name << " from " << c_msg.clientID << std::endl;
 
-            // _input_manager.setReceivedAction(packet); // CAUSE OF BUG: Global input affects all players
-
             auto& registry = _ecs.registry;
             auto identities = registry.getEntities<NetworkIdentity>();
 
@@ -136,7 +158,6 @@ void ServerGameEngine::execCorrespondingFunction(GameEvents event, coming_messag
                     if (registry.hasComponent<ActionScript>(entity)) {
                         auto& script = registry.getComponent<ActionScript>(entity);
 
-                        // Construct a temporary context for the callback
                         system_context context = {
                             0,        _ecs._textureManager, std::nullopt, _input_manager, std::nullopt, _network_server,
                             _players, c_msg.clientID};
@@ -167,7 +188,7 @@ void ServerGameEngine::execCorrespondingFunction(GameEvents event, coming_messag
         }
 
         default:
-            // std::cout << "EVENT " << uint32_t(event) << " IS NOT IMPLEMENTED" << std::endl;
+
             break;
     }
 }

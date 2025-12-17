@@ -1,9 +1,4 @@
-/*
-** EPITECH PROJECT, 2025
-** R-Type
-** File description:
-** ScoreSystem
-*/
+ 
 
 #ifndef SCORESYSTEM_HPP_
     #define SCORESYSTEM_HPP_
@@ -30,4 +25,4 @@ class ScoreSystem  : public ISystem {
 
 };
 
-#endif /* !SCORESYSTEM_HPP_ */
+#endif  

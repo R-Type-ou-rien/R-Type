@@ -5,7 +5,7 @@
 
 struct DamageOnCollision {
     static constexpr auto name = "Damage";
-    int damage_value;
+    int damage_value = 10;
 };
 
 class Damage : public ISystem {
