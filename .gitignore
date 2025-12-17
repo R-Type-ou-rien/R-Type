@@ -47,3 +47,15 @@ build
 R-type
 
 .idea
+
+rtype.db
+
+R-Type
+test_collision
+test_damage
+test_health
+test_hierarchy
+test_pattern
+test_scroll
+test_shooter
+test_spawn

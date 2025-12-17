@@ -12,7 +12,7 @@
 #include <SFML/Window/Joystick.hpp>
 #include <SFML/Window/Keyboard.hpp>
 
-#include "../../../utils/slot_map/slot_map.hpp"
+#include "../../Engine/Core/ECS/Utils/slot_map/slot_map.hpp"
 
 struct transform_component_s {
     float x;
@@ -24,6 +24,11 @@ struct transform_component_s {
 struct Velocity2D {
     float vx;
     float vy;
+};
+
+struct TypeEntityComponent {
+    enum TypeEntity { PLAYER, ENEMY_BASIC, ENEMY_SHOOTER };
+    TypeEntity type;
 };
 
 struct sprite2D_component_s {

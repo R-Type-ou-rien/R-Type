@@ -45,7 +45,7 @@ PointerAlignment: Left
 DerivePointerAlignment: false
 
 # Includes
-SortIncludes: true
+SortIncludes: false
 IncludeBlocks: Regroup
 IncludeCategories:
   - Regex: '^<.*\.h>'

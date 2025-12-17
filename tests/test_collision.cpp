@@ -2,16 +2,16 @@
 
 #include <algorithm>
 
-#include "../src/box_collision/box_collision.hpp"
-#include "../src/ecs/Components/Components.hpp"
-#include "../src/ecs/Registry/registry.hpp"
-#include "../src/transform_component/transform.hpp"
+#include "../src/Engine/Core/ECS/Registry/registry.hpp"
+#include "../src/ecs/common/Components/Components.hpp"
+#include "../src/ecs/common/box_collision/box_collision.hpp"
 
 class CollisionTest : public ::testing::Test {
    protected:
     Registry registry;
     BoxCollision boxSystem;
-    SlotMap<sf::Texture> texture_manager;
+    ResourceManager<sf::Texture> texture_manager;
+    sf::RenderWindow window;
 
     Entity entityA;
     Entity entityB;
@@ -41,7 +41,7 @@ class CollisionTest : public ::testing::Test {
 };
 
 TEST_F(CollisionTest, NoCollisionWhenFarApart) {
-    system_context context = {0, texture_manager};
+    system_context context = {0, texture_manager, window};
 
     registry.addComponent(entityA, transform_component_s{0.0f, 0.0f});
     registry.addComponent(entityB, transform_component_s{1000.0f, 1000.0f});
@@ -51,7 +51,7 @@ TEST_F(CollisionTest, NoCollisionWhenFarApart) {
 }
 
 TEST_F(CollisionTest, DetectsSimpleOverlap) {
-    system_context context = {0, texture_manager};
+    system_context context = {0, texture_manager, window};
 
     registry.addComponent(entityA, transform_component_s{0.0f, 0.0f});
     registry.addComponent(entityB, transform_component_s{10.0f, 10.0f});
@@ -65,7 +65,7 @@ TEST_F(CollisionTest, DetectsSimpleOverlap) {
 }
 
 TEST_F(CollisionTest, ScaleIncreaseHitbox) {
-    system_context context = {0, texture_manager};
+    system_context context = {0, texture_manager, window};
 
     registry.addComponent(entityA, transform_component_s{0.0f, 0.0f});  // Scale défaut 1.0
     registry.addComponent(entityB, transform_component_s{60.0f, 0.0f});
@@ -79,7 +79,7 @@ TEST_F(CollisionTest, ScaleIncreaseHitbox) {
 }
 
 TEST_F(CollisionTest, NoCollisionAfterMovingApart) {
-    system_context context = {0, texture_manager};
+    system_context context = {0, texture_manager, window};
 
     registry.addComponent(entityA, transform_component_s{0.0f, 0.0f});
     registry.addComponent(entityB, transform_component_s{10.0f, 10.0f});
@@ -94,7 +94,7 @@ TEST_F(CollisionTest, NoCollisionAfterMovingApart) {
 }
 
 TEST_F(CollisionTest, MultipleCollisionsDetected) {
-    system_context context = {0, texture_manager};
+    system_context context = {0, texture_manager, window};
 
     Entity entityC = registry.createEntity();
     registry.addComponent(entityC, BoxCollisionComponent{});
@@ -119,7 +119,7 @@ TEST_F(CollisionTest, MultipleCollisionsDetected) {
 }
 
 TEST_F(CollisionTest, NoSelfCollision) {
-    system_context context = {0, texture_manager};
+    system_context context = {0, texture_manager, window};
 
     registry.addComponent(entityA, transform_component_s{0.0f, 0.0f});
     boxSystem.update(registry, context);
@@ -128,7 +128,7 @@ TEST_F(CollisionTest, NoSelfCollision) {
 }
 
 TEST_F(CollisionTest, DifferentSizesHandledCorrectly) {
-    system_context context = {0, texture_manager};
+    system_context context = {0, texture_manager, window};
 
     registry.addComponent(entityA, transform_component_s{0.0f, 0.0f});
     registry.addComponent(entityB, transform_component_s{60.0f, 0.0f});
@@ -143,7 +143,7 @@ TEST_F(CollisionTest, DifferentSizesHandledCorrectly) {
 }
 
 TEST_F(CollisionTest, HighSpeedEntitiesCollide) {
-    system_context context = {0, texture_manager};
+    system_context context = {0, texture_manager, window};
 
     registry.addComponent(entityA, transform_component_s{0.0f, 0.0f});
     registry.addComponent(entityB, transform_component_s{200.0f, 0.0f});
@@ -158,7 +158,7 @@ TEST_F(CollisionTest, HighSpeedEntitiesCollide) {
 }
 
 TEST_F(CollisionTest, CollisionTagsClearedEachUpdate) {
-    system_context context = {0, texture_manager};
+    system_context context = {0, texture_manager, window};
 
     registry.addComponent(entityA, transform_component_s{0.0f, 0.0f});
     registry.addComponent(entityB, transform_component_s{10.0f, 10.0f});

@@ -3,9 +3,9 @@
 #include <functional>
 #include <unordered_map>
 
-#include "ecs/common/Components/Components.hpp"
-#include "ecs/common/ISystem.hpp"
-#include "ecs/common/Registry/registry.hpp"
+#include "../Components/Components.hpp"
+#include "../../Engine/Core/ECS/ISystem.hpp"
+#include "../../Engine/Core/ECS/Registry/registry.hpp"
 
 struct SpawnComponent {
     double time_until_spawn;
