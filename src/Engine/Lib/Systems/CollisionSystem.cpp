@@ -36,13 +36,16 @@ void BoxCollision::update(Registry& registry, system_context context) {
             auto& transform_b = registry.getComponent<transform_component_s>(entity_b);
             auto& sprite_a = registry.getComponent<sprite2D_component_s>(entity_a);
             auto& sprite_b = registry.getComponent<sprite2D_component_s>(entity_b);
-            if (checkSize(transform_a, transform_b, {sprite_a.dimension.height, sprite_a.dimension.width},
-                          {sprite_b.dimension.height, sprite_b.dimension.width})) {
+            if (checkSize(transform_a, transform_b, {sprite_a.dimension.width, sprite_a.dimension.height},
+                          {sprite_b.dimension.width, sprite_b.dimension.height})) {
                 collision_comp.collision.tags.push_back(entity_b);
             }
         }
-        if (collision_comp.callbackOnCollide && !collision_comp.collision.tags.empty())
+        if (collision_comp.callbackOnCollide && !collision_comp.collision.tags.empty()) {
+            std::cout << "[Server] Collision detected for Entity " << entity_a << " with "
+                      << collision_comp.collision.tags.size() << " targets." << std::endl;
             collision_comp.callbackOnCollide(registry, context, entity_a);
+        }
     }
 }
 

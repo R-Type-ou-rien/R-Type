@@ -59,7 +59,6 @@ int ClientGameEngine::init() {
         if (_ecs._textureManager.is_loaded(bgPath)) {
             component.texture_handle = _ecs._textureManager.get_handle(bgPath).value();
         } else {
-            
         }
 
         if (reg.hasComponent<BackgroundComponent>(e)) {
@@ -179,15 +178,6 @@ void ClientGameEngine::updateEntity(coming_message msg) {
         _ecs.registry.addComponent<NetworkIdentity>(current_entity, {packet.entity_guid, msg.clientID});
     }
 
-    if (_ecs.registry.hasComponent<NetworkIdentity>(current_entity)) {
-        auto& netId = _ecs.registry.getComponent<NetworkIdentity>(current_entity);
-        if (netId.owner_user_id == _identity.id) {
-            if (packet.component_type == Hash::fnv1a("Transform") || packet.component_type == Hash::fnv1a("Velocity")) {
-                return;
-            }
-        }
-    }
-
     if (_deserializers.find(packet.component_type) != _deserializers.end()) {
         _deserializers[packet.component_type](_ecs.registry, current_entity, packet.data);
     } else {
@@ -287,9 +277,18 @@ void ClientGameEngine::execCorrespondingFunction(GameEvents event, coming_messag
             std::cout << "VOICE RELAY TO IMPLEMENT" << std::endl;
             break;
 
-        case (GameEvents::S_PLAYER_DEATH):
-            std::cout << "PLAYER DEATH TO IMPLEMENT" << std::endl;
+        case (GameEvents::S_PLAYER_DEATH): {
+            uint32_t guid;
+            c_msg.msg >> guid;
+            std::cout << "Received PLAYER DEATH (Entity Destroy) for GUID: " << guid << std::endl;
+            if (_networkToLocalEntity.count(guid)) {
+                Entity localEntity = _networkToLocalEntity[guid];
+                _ecs.registry.destroyEntity(localEntity);
+                _networkToLocalEntity.erase(guid);
+                std::cout << "Destroyed local entity " << localEntity << std::endl;
+            }
             break;
+        }
 
         case (GameEvents::S_SCORE_UPDATE):
             std::cout << "SCORE UPDATE TO IMPLEMENT" << std::endl;

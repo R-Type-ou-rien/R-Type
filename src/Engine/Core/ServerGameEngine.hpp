@@ -20,7 +20,7 @@
 #pragma once
 
 class ServerGameEngine {
-    private:
+   private:
     ECS _ecs;
     Server _network_server;
     bool _has_game_start = false;
@@ -40,4 +40,9 @@ class ServerGameEngine {
    private:
     void handleNetworkMessages();
     void execCorrespondingFunction(GameEvents event, coming_message c_msg);
+    std::function<void(std::uint32_t)> _onPlayerConnect;
+
+   public:
+    void setOnPlayerConnect(std::function<void(std::uint32_t)> callback);
+    ECS& getECS();
 };

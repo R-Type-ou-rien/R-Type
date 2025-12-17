@@ -59,3 +59,16 @@ test_pattern
 test_scroll
 test_shooter
 test_spawn
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cmake
+!CMakeLists.txt
+!/src/RType/cmake_install.cmake # Exclude generic cmake installs but keep source ones if any (though usually cmake_install.cmake is generated)
+
+# vcpkg
+vcpkg_installed/
+vcpkg-manifest-install.log

@@ -4,6 +4,7 @@
 #include <ostream>
 #include <utility>
 #include "Network/Network.hpp"
+#include "src/Engine/Lib/Systems/CollisionSystem.hpp"
 #include "src/RType/Common/Components/shooter.hpp"
 
 GameManager::GameManager() {}
@@ -12,6 +13,7 @@ void GameManager::init(ECS& ecs) {
     ecs.systems.addSystem<ShooterSystem>();
     ecs._textureManager.load_resource("content/sprites/r-typesheet42.gif",
                                       sf::Texture("content/sprites/r-typesheet42.gif"));
+    ecs.systems.addSystem<BoxCollision>();
     ecs._textureManager.load_resource("content/sprites/r-typesheet1.gif",
                                       sf::Texture("content/sprites/r-typesheet1.gif"));
 
@@ -31,103 +33,109 @@ void GameManager::init(ECS& ecs) {
 
         ecs.registry.addComponent<BackgroundComponent>(bgEntity, bg);
     }
-    _player = std::make_unique<Player>(ecs, std::pair<float, float>{100.f, 300.f});
-    _player->setTexture("content/sprites/r-typesheet42.gif");
-    _player->setTextureDimension(rect{0, 0, 32, 16});
-    _player->setFireRate(0.5);
-    loadInputSetting(ecs);
     auto enemy = std::make_unique<AI>(ecs, std::pair<float, float>(300.f, 300.f));
     enemy->setTexture("content/sprites/r-typesheet42.gif");
     enemy->setTextureDimension(rect{32, 0, 32, 16});
     enemy->setPattern({{500.f, 300.f}, {500.f, 500.f}, {300.f, 500.f}, {300.f, 300.f}});
     enemy->setPatternLoop(true);
 
+    Entity entity = enemy->getId();
+    ecs.registry.addComponent<NetworkIdentity>(entity, {static_cast<uint64_t>(entity), 0});  // 0 = Server Owned
+
     _ennemies.push_back(std::move(enemy));
     return;
 }
 
 void GameManager::loadInputSetting(ECS& ecs) {
-    // auto  = [](system_context& context, const std::string& action, bool pressed) {
-    //     if (context.network_client.has_value()) {
-    //         network::message<GameEvents> msg;
-    //         msg.header.id = GameEvents::C_INPUT;
-    //         msg << action << pressed;
-    //         context.network_client.value().get().Send(msg);
-    //     }
-    // };
+    // Legacy function, inputs are now setup per player in setupPlayerInputs
+}
 
+void GameManager::onPlayerConnect(ECS& ecs, std::uint32_t id) {
+    float y_pos = 100.f + ((id % 10) * 50.f);  // Clamp ID effect to avoid off-screen
+    auto player = std::make_shared<Player>(ecs, std::pair<float, float>{100.f, y_pos});
+
+    std::cout << "GameManager::onPlayerConnect called for ID: " << id << " Spawning at Y: " << y_pos << std::endl;
+
+    player->setTexture("content/sprites/r-typesheet42.gif");
+    player->setTextureDimension(rect{0, 0, 32, 16});
+    player->setFireRate(0.5);
+
+    // Assign NetworkIdentity so actions and updates are synced correctly
+    Entity entity = player->getId();
+    ecs.registry.addComponent<NetworkIdentity>(entity, {static_cast<uint64_t>(entity), id});
+
+    setupPlayerInputs(ecs, *player);
+    std::cout << "Player " << id << " spawned with entity " << entity << std::endl;
+    _players[id] = player;
+}
+
+void GameManager::setupPlayerInputs(ECS& ecs, Player& player) {
     ecs.input.bindAction("move_left", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Q});
-    _player->bindActionCallbackPressed("move_left",
-                                       [](Registry& registry, system_context context, Entity entity) {
-                                           if (registry.hasComponent<Velocity2D>(entity)) {
-                                               Velocity2D& vel = registry.getComponent<Velocity2D>(entity);
-                                               vel.vx = -100.0f;
-                                           }
-                                       });
-    _player->bindActionCallbackOnReleased("move_left",
-                                          [](Registry& registry, system_context context, Entity entity) {
-                                              if (registry.hasComponent<Velocity2D>(entity)) {
-                                                  Velocity2D& vel = registry.getComponent<Velocity2D>(entity);
-                                                  vel.vx = 0;
-                                              }
-                                          });
+    player.bindActionCallbackPressed("move_left", [](Registry& registry, system_context context, Entity entity) {
+        if (registry.hasComponent<Velocity2D>(entity)) {
+            Velocity2D& vel = registry.getComponent<Velocity2D>(entity);
+            vel.vx = -100.0f;
+        }
+    });
+    player.bindActionCallbackOnReleased("move_left", [](Registry& registry, system_context context, Entity entity) {
+        if (registry.hasComponent<Velocity2D>(entity)) {
+            Velocity2D& vel = registry.getComponent<Velocity2D>(entity);
+            vel.vx = 0;
+        }
+    });
 
     ecs.input.bindAction("move_right", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::D});
-    _player->bindActionCallbackPressed("move_right",
-                                       [](Registry& registry, system_context context, Entity entity) {
-                                           if (registry.hasComponent<Velocity2D>(entity)) {
-                                               Velocity2D& vel = registry.getComponent<Velocity2D>(entity);
-                                               vel.vx = +100.0f;
-                                           }
-                                       });
-    _player->bindActionCallbackOnReleased("move_right",
-                                          [](Registry& registry, system_context context, Entity entity) {
-                                              if (registry.hasComponent<Velocity2D>(entity)) {
-                                                  Velocity2D& vel = registry.getComponent<Velocity2D>(entity);
-                                                  vel.vx = 0;
-                                              }
-                                          });
+    player.bindActionCallbackPressed("move_right", [](Registry& registry, system_context context, Entity entity) {
+        if (registry.hasComponent<Velocity2D>(entity)) {
+            Velocity2D& vel = registry.getComponent<Velocity2D>(entity);
+            vel.vx = +100.0f;
+        }
+    });
+    player.bindActionCallbackOnReleased("move_right", [](Registry& registry, system_context context, Entity entity) {
+        if (registry.hasComponent<Velocity2D>(entity)) {
+            Velocity2D& vel = registry.getComponent<Velocity2D>(entity);
+            vel.vx = 0;
+        }
+    });
 
     ecs.input.bindAction("move_up", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Z});
-    _player->bindActionCallbackPressed("move_up",
-                                       [](Registry& registry, system_context context, Entity entity) {
-                                           if (registry.hasComponent<Velocity2D>(entity)) {
-                                               Velocity2D& vel = registry.getComponent<Velocity2D>(entity);
-                                               vel.vy = -100.0f;
-                                           }
-                                       });
-    _player->bindActionCallbackOnReleased("move_up",
-                                          [](Registry& registry, system_context context, Entity entity) {
-                                              if (registry.hasComponent<Velocity2D>(entity)) {
-                                                  Velocity2D& vel = registry.getComponent<Velocity2D>(entity);
-                                                  vel.vy = 0;
-                                              }
-                                          });
+    player.bindActionCallbackPressed("move_up", [](Registry& registry, system_context context, Entity entity) {
+        if (registry.hasComponent<Velocity2D>(entity)) {
+            Velocity2D& vel = registry.getComponent<Velocity2D>(entity);
+            vel.vy = -100.0f;
+        }
+    });
+    player.bindActionCallbackOnReleased("move_up", [](Registry& registry, system_context context, Entity entity) {
+        if (registry.hasComponent<Velocity2D>(entity)) {
+            Velocity2D& vel = registry.getComponent<Velocity2D>(entity);
+            vel.vy = 0;
+        }
+    });
 
     ecs.input.bindAction("move_down", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::S});
-    _player->bindActionCallbackPressed("move_down",
-                                       [](Registry& registry, system_context context, Entity entity) {
-            
-                                           if (registry.hasComponent<Velocity2D>(entity)) {
-                                               Velocity2D& vel = registry.getComponent<Velocity2D>(entity);
-                                               vel.vy = +100.0f;
-                                           }
-                                       });
-    _player->bindActionCallbackOnReleased("move_down",
-                                          [](Registry& registry, system_context context, Entity entity) {
-                                        
-                                              if (registry.hasComponent<Velocity2D>(entity)) {
-                                                  Velocity2D& vel = registry.getComponent<Velocity2D>(entity);
-                                                  vel.vy = 0;
-                                              }
-                                          });
+    player.bindActionCallbackPressed("move_down", [](Registry& registry, system_context context, Entity entity) {
+        if (registry.hasComponent<Velocity2D>(entity)) {
+            Velocity2D& vel = registry.getComponent<Velocity2D>(entity);
+            vel.vy = +100.0f;
+        }
+    });
+    player.bindActionCallbackOnReleased("move_down", [](Registry& registry, system_context context, Entity entity) {
+        if (registry.hasComponent<Velocity2D>(entity)) {
+            Velocity2D& vel = registry.getComponent<Velocity2D>(entity);
+            vel.vy = 0;
+        }
+    });
 
     ecs.input.bindAction("shoot", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Space});
-    std::cout << "Player id " << _player->getId() << std::endl;
-    _player->bindActionCallbackPressed("shoot", [](Registry& registry, system_context context, Entity entity) {
+    player.bindActionCallbackPressed("shoot", [](Registry& registry, system_context context, Entity entity) {
         if (registry.hasComponent<ShooterComponent>(entity)) {
             ShooterComponent& shoot = registry.getComponent<ShooterComponent>(entity);
             shoot.is_shooting = true;
+            std::cout << "[GameManager] Shoot callback executed for entity " << entity << "! is_shooting set to true."
+                      << std::endl;
+        } else {
+            std::cout << "[GameManager] Shoot callback executed but Entity " << entity << " has NO ShooterComponent!"
+                      << std::endl;
         }
     });
 }

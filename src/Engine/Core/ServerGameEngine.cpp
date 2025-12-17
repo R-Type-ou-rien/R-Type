@@ -36,10 +36,19 @@ void ServerGameEngine::setInitFunction(std::function<void(ECS& ecs)> user_functi
     return;
 }
 
+void ServerGameEngine::setOnPlayerConnect(std::function<void(std::uint32_t)> callback) {
+    _onPlayerConnect = callback;
+}
+
+ECS& ServerGameEngine::getECS() {
+    return _ecs;
+}
+
 int ServerGameEngine::run() {
     sf::Clock clock;
-    system_context context = {0,        _ecs._textureManager, std::nullopt, _input_manager, std::nullopt, _network_server,
-                              _players, std::nullopt
+    system_context context = {
+        0,        _ecs._textureManager, std::nullopt, _input_manager, std::nullopt, _network_server,
+        _players, std::nullopt
 
     };
 
@@ -50,7 +59,7 @@ int ServerGameEngine::run() {
 
         handleNetworkMessages();
         context.dt = clock.restart().asSeconds();
-        if (_players.size() < 2)
+        if (_players.size() < 1)
             continue;
         if (_function)
             _function(_ecs);
@@ -85,6 +94,9 @@ void ServerGameEngine::execCorrespondingFunction(GameEvents event, coming_messag
             _players.push_back(id);
             std::cout << "Connect player " << id << std::endl;
             _network_server.AddMessageToPlayer(GameEvents::S_SEND_ID, id, id);
+            if (_onPlayerConnect) {
+                _onPlayerConnect(id);
+            }
             break;
 
         case (GameEvents::C_GAME_START): {
@@ -103,10 +115,44 @@ void ServerGameEngine::execCorrespondingFunction(GameEvents event, coming_messag
             c_msg.msg >> packet;
             std::cout << "Received Input: " << packet.action_name << " from " << c_msg.clientID << std::endl;
 
-            auto& net_ids = _ecs.registry.getView<NetworkIdentity>();
-            auto& ids = _ecs.registry.getEntities<NetworkIdentity>();
+            // _input_manager.setReceivedAction(packet); // CAUSE OF BUG: Global input affects all players
 
-            _input_manager.setReceivedAction(packet);
+            auto& registry = _ecs.registry;
+            auto identities = registry.getEntities<NetworkIdentity>();
+
+            for (auto entity : identities) {
+                const auto& netId = registry.getComponentConst<NetworkIdentity>(entity);
+                if (netId.owner_user_id == c_msg.clientID) {
+                    if (registry.hasComponent<ActionScript>(entity)) {
+                        auto& script = registry.getComponent<ActionScript>(entity);
+
+                        // Construct a temporary context for the callback
+                        system_context context = {
+                            0,        _ecs._textureManager, std::nullopt, _input_manager, std::nullopt, _network_server,
+                            _players, c_msg.clientID};
+
+                        if (packet.state.justPressed && script.actionOnPressed.count(packet.action_name)) {
+                            std::cout << "[Server] Executing ActionOnPressed: " << packet.action_name << " for entity "
+                                      << entity << std::endl;
+                            script.actionOnPressed[packet.action_name](registry, context, entity);
+                        }
+                        if (packet.state.justReleased && script.actionOnReleased.count(packet.action_name)) {
+                            script.actionOnReleased[packet.action_name](registry, context, entity);
+                        }
+                        if (packet.state.pressed && script.actionPressed.count(packet.action_name)) {
+                            std::cout << "[Server] Executing ActionPressed: " << packet.action_name << " for entity "
+                                      << entity << std::endl;
+                            script.actionPressed[packet.action_name](registry, context, entity);
+                        } else if (packet.state.pressed) {
+                            std::cout << "[Server] ActionPressed " << packet.action_name
+                                      << " found but NOT in script.actionPressed map!" << std::endl;
+                        }
+                    } else {
+                        std::cout << "[Server] Entity " << entity << " has no ActionScript!" << std::endl;
+                    }
+                    break;
+                }
+            }
             break;
         }
 
