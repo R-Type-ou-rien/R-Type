@@ -79,10 +79,20 @@ void ServerGameEngine::handleNetworkMessages() {
         Connection player -> id
     */
     _network_server.Update();
-    coming_message c_msg = _network_server.ReadIncomingMessage();
 
-    if (c_msg.id != GameEvents::NONE) {
+    // Process all pending messages
+    size_t processed_count = 0;
+    const size_t max_messages_per_frame = 1000;  // Safety limit
+
+    while (processed_count < max_messages_per_frame) {
+        coming_message c_msg = _network_server.ReadIncomingMessage();
+
+        if (c_msg.id == GameEvents::NONE) {
+            break;
+        }
+
         execCorrespondingFunction(c_msg.id, c_msg);
+        processed_count++;
     }
 }
 

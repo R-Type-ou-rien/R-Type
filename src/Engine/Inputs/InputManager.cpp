@@ -15,7 +15,6 @@
 #include "Network/Network.hpp"
 #include "Network/Server/Server.hpp"
 
-
 void InputManager::bindAction(Action action, const InputBinding& binding) {
     _actionRegistry.registerAction(action);
     _bindings[action].push_back(binding);
@@ -52,7 +51,7 @@ bool InputManager::isBindingActive(const InputBinding& b) const {
 }
 
 void InputManager::update(float dt, std::optional<std::reference_wrapper<Client>> serv,
-    std::optional<std::reference_wrapper<std::uint32_t>> player_id) {
+                          std::optional<std::reference_wrapper<std::uint32_t>> player_id) {
     if (!_hasFocus) {
         for (auto& [action, state] : _states) {
             state.pressed = false;
@@ -90,21 +89,20 @@ void InputManager::update(float dt, std::optional<std::reference_wrapper<Client>
         st.pressed = down;
 
         if (serv.has_value() && player_id.has_value()) {
-            std::cout << "READY TO SEND INPUT" << std::endl;
+            // std::cout << "READY TO SEND INPUT" << std::endl;
             Client& client_instance = serv.value();
             if (st.justPressed || st.justReleased || st.pressed) {
                 InputPacket packet;
                 packet.action_name = action;
                 packet.state = st;
-                std::cout << "AN EVENT IS SENDING" << std::endl;
+                // std::cout << "AN EVENT IS SENDING" << std::endl;
                 client_instance.AddMessageToServer(GameEvents::C_INPUT, player_id.value(), packet);
             }
         }
     }
 }
 
-void InputManager::setReceivedAction(InputPacket packet)
-{
+void InputManager::setReceivedAction(InputPacket packet) {
     Action name = packet.action_name;
     ActionState state = packet.state;
 
