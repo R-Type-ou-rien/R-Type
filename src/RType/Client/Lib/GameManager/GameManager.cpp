@@ -56,7 +56,7 @@ void GameManager::init(ECS& ecs) {
     _ennemies.push_back(std::move(enemy));
 
     Entity spawner = ecs.registry.createEntity();
-    EnemySpawnComponent spawn_comp;
+    EnemySpawnComponent spawn_comp; 
     spawn_comp.spawn_interval = 5.0f;
     spawn_comp.enemies_per_wave = 3;
     spawn_comp.is_active = true;
@@ -65,7 +65,7 @@ void GameManager::init(ECS& ecs) {
     _uiEntity = ecs.registry.createEntity();
     ecs.registry.addComponent<TextComponent>(
         _uiEntity,
-        {"HP: 100", "/usr/share/fonts/liberation-mono-fonts/LiberationMono-Regular.ttf", 30, sf::Color::White, 10, 10});
+        {"HP: 100", "content/open_dyslexic/OpenDyslexic-Regular.otf", 30, sf::Color::White, 10, 10});
 
     return;
 }
@@ -141,6 +141,12 @@ void GameManager::loadInputSetting(ECS& ecs) {
             auto& shoot = registry.getComponent<ShooterComponent>(entity);
             shoot.is_shooting = false;
         }
+    });
+
+    ecs.input.bindAction("ecs", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Escape});
+    std::cout << "Player id " << _player->getId() << std::endl;
+    _player->bindActionCallbackPressed("ecs", [](Registry& registry, system_context context, Entity entity) {
+        context.requested_scene = "ECSDebug";
     });
 }
 

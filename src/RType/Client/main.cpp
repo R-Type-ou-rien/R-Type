@@ -16,7 +16,7 @@ void init(ECS& ecs) {
 
     ecs.input.bindAction("Shoot", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Space});
 
-    ecs.input.bindAction("MoveUp", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Z});
+    ecs.input.bindAction("Move²Up", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Z});
 
     std::cout << "=== InputManager Test Ready ===\n";
     std::cout << "Press SPACE or Gamepad A or RT to test Shoot\n";
