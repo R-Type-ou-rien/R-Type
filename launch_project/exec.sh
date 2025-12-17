@@ -4,9 +4,11 @@ if [ -d vcpkg ]; then
     git submodule update --init --recursive
 fi
 
-if [ "$1" == "clean" ] && [ -d build ]; then
-    cmake --build build --target clean
-    rm -rf build
+if [ "$1" == "clean" ]; then
+    if [ -d build ]; then
+        cmake --build build --target clean
+        rm -rf build
+    fi
     exit 0
 fi
 

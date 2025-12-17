@@ -2,6 +2,7 @@
 #include <vector>
 #include "ECS/ECS.hpp"
 #include "ECS/ISystem.hpp"
+#include "InputManager.hpp"
 #include "InputSystem.hpp"
 #include "Network/Server/Server.hpp"
 #include "PhysicsSystem.hpp"
@@ -23,6 +24,7 @@ class ServerGameEngine {
     ECS _ecs;
     Server _network_server;
     bool _has_game_start = false;
+    InputManager _input_manager;
     std::vector<uint32_t> _players;
     std::function<void(ECS& ecs)> _function;
     std::function<void(ECS& ecs)> _init_function;

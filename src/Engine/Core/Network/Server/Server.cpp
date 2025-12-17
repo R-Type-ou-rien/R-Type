@@ -10,7 +10,7 @@
 #include "Network/NetworkInterface/message.hpp"
 
 void Server::OnMessage(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents>& msg) {
-    std::cout << "Event: " << (int)msg.header.id << std::endl;
+    // std::cout << "Event: " << (int)msg.header.id << std::endl;
     switch (msg.header.id) {
         case GameEvents::C_REGISTER:
             OnClientRegister(client, msg);

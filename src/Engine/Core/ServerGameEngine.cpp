@@ -3,6 +3,8 @@
 #include <iostream>
 #include <optional>
 #include <ostream>
+#include "Components/NetworkComponents.hpp"
+#include "InputSystem.hpp"
 #include "Network/Network.hpp"
 
 ServerGameEngine::ServerGameEngine() : _network_server(4040, 100) {}
@@ -15,6 +17,7 @@ int ServerGameEngine::init() {
     _ecs.systems.addSystem<PatternSystem>();
     _ecs.systems.addSystem<ComponentSenderSystem>();
     _ecs.systems.addSystem<PhysicsSystem>();
+    _ecs.systems.addSystem<InputSystem>(_input_manager);
 
     if (_init_function)
         _init_function(_ecs);
@@ -35,7 +38,7 @@ void ServerGameEngine::setInitFunction(std::function<void(ECS& ecs)> user_functi
 
 int ServerGameEngine::run() {
     sf::Clock clock;
-    system_context context = {0,        _ecs._textureManager, std::nullopt, std::nullopt, std::nullopt, _network_server,
+    system_context context = {0,        _ecs._textureManager, std::nullopt, _input_manager, std::nullopt, _network_server,
                               _players, std::nullopt
 
     };
@@ -96,31 +99,14 @@ void ServerGameEngine::execCorrespondingFunction(GameEvents event, coming_messag
         }
 
         case (GameEvents::C_INPUT): {
-            std::string action;
-            bool pressed;
-            c_msg.msg >> pressed >> action;
-            // std::cout << "Received Input: " << action << " " << pressed << " from " << c_msg.clientID << std::endl;
+            InputPacket packet;
+            c_msg.msg >> packet;
+            std::cout << "Received Input: " << packet.action_name << " from " << c_msg.clientID << std::endl;
 
             auto& net_ids = _ecs.registry.getView<NetworkIdentity>();
             auto& ids = _ecs.registry.getEntities<NetworkIdentity>();
 
-            for (size_t i = 0; i < net_ids.size(); ++i) {
-                if (net_ids[i].owner_user_id == c_msg.clientID) {
-                    Entity e = ids[i];
-                    if (_ecs.registry.hasComponent<Velocity2D>(e)) {
-                        auto& vel = _ecs.registry.getComponent<Velocity2D>(e);
-                        if (action == "move_left")
-                            vel.vx = pressed ? -100.0f : 0.0f;
-                        if (action == "move_right")
-                            vel.vx = pressed ? 100.0f : 0.0f;
-                        if (action == "move_up")
-                            vel.vy = pressed ? -100.0f : 0.0f;
-                        if (action == "move_down")
-                            vel.vy = pressed ? 100.0f : 0.0f;
-                    }
-                    break;
-                }
-            }
+            _input_manager.setReceivedAction(packet);
             break;
         }
 
