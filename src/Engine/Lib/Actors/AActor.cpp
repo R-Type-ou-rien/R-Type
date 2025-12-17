@@ -105,9 +105,9 @@ void AActor::setTextureEnemy(const std::string pathname) {
     sprite.is_animated = true;
     sprite.loop_animation = true;
     for (float i = 0; i < 8; i++)
-        sprite.frames.push_back((rect){i * 32, 0, 34, 34});
+        sprite.frames.push_back({i * 32, 0, 34, 34});
     for (float i = 0; i < 8; i++)
-        sprite.frames.push_back((rect){i * 32, 34, 34, 34});
+        sprite.frames.push_back({i * 32, 34, 34, 34});
 
     if (_ecs._textureManager.is_loaded(pathname)) {
         sprite.handle = _ecs._textureManager.get_handle(pathname).value();
@@ -125,8 +125,8 @@ void AActor::setTextureBoss(const std::string pathname) {
     sprite.is_animated = true;
     sprite.loop_animation = false;
     for (float i = 0; i < 4; i++) {
-        sprite.frames.push_back((rect){260, i * 143, 260, 143});
-        sprite.frames.push_back((rect){0, i * 143, 260, 143});
+        sprite.frames.push_back({260, i * 143, 260, 143});
+        sprite.frames.push_back({0, i * 143, 260, 143});
     }
     
     if (_ecs._textureManager.is_loaded(pathname)) {
