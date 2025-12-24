@@ -51,11 +51,11 @@ class ServerInterface {
 
                 newconn->ConnectToClient(nIDCounter++);
 
+                _deqConnections.push_back(std::move(newconn));
                 if (OnClientConnect(newconn)) {
-                    _deqConnections.push_back(std::move(newconn));
-
                     std::cout << "[" << _deqConnections.back()->GetID() << "] Connection Approved\n";
                 } else {
+                    _deqConnections.pop_back();
                     std::cout << "[-----] Connection Denied\n";
                 }
             } else {

@@ -52,7 +52,10 @@ class Connection : public std::enable_shared_from_this<Connection<T>> {
 
    public:
     void Send(const message<T>& msg) {
-        asio::post(_asioContext, [this, msg]() {
+        asio::post(_asioContext, [this, msg]() mutable {
+#if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+            msg.to_little_endian();
+#endif
             bool WritingMessage = !_qMessagesOut.empty();
             _qMessagesOut.push_back(msg);
             if (!WritingMessage) {
@@ -62,7 +65,10 @@ class Connection : public std::enable_shared_from_this<Connection<T>> {
     }
 
     void SendUdp(const message<T>& msg) {
-        asio::post(_asioContext, [this, msg]() {
+        asio::post(_asioContext, [this, msg]() mutable {
+#if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+            msg.to_little_endian();
+#endif
             bool WritingMessage = !_udpMessagesOut.empty();
             _udpMessagesOut.push_back(msg);
             if (!WritingMessage) {
