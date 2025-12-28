@@ -3,9 +3,16 @@
 #include "Connection.hpp"
 #include "MsgQueue.hpp"
 #include "message.hpp"
+#ifdef _WIN32
+#include <winsock2.h>
+#include <iphlpapi.h>
+#include <stdio.h>
+#pragma comment(lib, "IPHLPAPI.lib")
+#else
 #include <ifaddrs.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#endif
 
 namespace network {
 template <typename T>
@@ -22,6 +29,24 @@ class ServerInterface {
         std::cout << "[SERVER] Starting server on port 4040..." << std::endl;
         std::cout << "[SERVER] Finding LAN IP addresses...\n";
 
+#ifdef _WIN32
+        ULONG outBufLen = 15000;
+        PIP_ADAPTER_INFO pAdapterInfo = (IP_ADAPTER_INFO*)malloc(outBufLen);
+        if (pAdapterInfo == NULL)
+            return false;
+
+        if (GetAdaptersInfo(pAdapterInfo, &outBufLen) == NO_ERROR) {
+            PIP_ADAPTER_INFO pAdapter = pAdapterInfo;
+            while (pAdapter) {
+                std::string ip(pAdapter->IpAddressList.IpAddress.String);
+                if (ip != "127.0.0.1" && ip != "0.0.0.0") {
+                    std::cout << "[SERVER] LAN IP: " << ip << " (Interface: " << pAdapter->Description << ")\n";
+                }
+                pAdapter = pAdapter->Next;
+            }
+        }
+        free(pAdapterInfo);
+#else
         struct ifaddrs* ifAddrStruct = NULL;
         struct ifaddrs* ifa = NULL;
         void* tmpAddrPtr = NULL;
@@ -29,17 +54,23 @@ class ServerInterface {
         getifaddrs(&ifAddrStruct);
 
         bool found = false;
-        if (!ifAddrStruct->ifa_addr) {
+        if (!ifAddrStruct) {
             return false;
         }
-        if (ifAddrStruct->ifa_addr->sa_family == AF_INET) {
-            tmpAddrPtr = &((struct sockaddr_in*)ifAddrStruct->ifa_addr)->sin_addr;
-            char addressBuffer[INET_ADDRSTRLEN];
-            inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
-            std::string ip(addressBuffer);
-            if (ip != "127.0.0.1") {
-                std::cout << "[SERVER] LAN IP: " << ip << " (Interface: " << ifAddrStruct->ifa_name << ")\n";
-                found = true;
+        for (ifa = ifAddrStruct; ifa != NULL; ifa = ifa->ifa_next) {
+            if (!ifa->ifa_addr) {
+                continue;
+            }
+            if (ifa->ifa_addr->sa_family == AF_INET) {
+                tmpAddrPtr = &((struct sockaddr_in*)ifa->ifa_addr)->sin_addr;
+                char addressBuffer[INET_ADDRSTRLEN];
+                inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
+                std::string ip(addressBuffer);
+                if (ip != "127.0.0.1") {
+                    std::cout << "[SERVER] LAN IP: " << ip << " (Interface: " << ifa->ifa_name << ")\n";
+                    found = true;
+                    break;
+                }
             }
         }
         if (ifAddrStruct != NULL)
@@ -48,6 +79,7 @@ class ServerInterface {
         if (!found) {
             std::cout << "[SERVER] Could not detect LAN IP. Please check `ip addr` or `ifconfig`.\n";
         }
+#endif
 
         try {
             _socketUDP.open(asio::ip::udp::v4());
