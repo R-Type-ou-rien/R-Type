@@ -29,7 +29,13 @@ class ClientInterface {
 
             ReceiveUDP();
 
-            thrContext = std::thread([this]() { _context.run(); });
+            thrContext = std::thread([this]() {
+                try {
+                    _context.run();
+                } catch (const std::exception& e) {
+                    std::cerr << "[CLIENT] IO Thread Exception: " << e.what() << std::endl;
+                }
+            });
         } catch (std::exception& e) {
             std::cerr << "Client Exception: " << e.what() << "\n";
             return false;
@@ -68,21 +74,35 @@ class ClientInterface {
     }
 
     void ReceiveUDP() {
+        if (_udpMsgTemporaryIn.size() < 4096)
+            _udpMsgTemporaryIn.resize(4096);
         _socketUDP.async_receive_from(
-            asio::buffer(_udpMsgTemporaryIn), _serverUDPEndpoint, [this](std::error_code ec, std::size_t len) {
+            asio::buffer(_udpMsgTemporaryIn.data(), _udpMsgTemporaryIn.size()), _serverUDPEndpoint,
+            [this](std::error_code ec, std::size_t len) {
                 if (!ec && len > 0) {
                     message<T> msg;
 
                     if (len >= sizeof(message_header<T>)) {
                         std::memcpy(&msg.header, _udpMsgTemporaryIn.data(), sizeof(message_header<T>));
 
-                        if (msg.header.size > 0 && len >= sizeof(message_header<T>) + msg.header.size) {
-                            msg.body.resize(msg.header.size);
-                            std::memcpy(msg.body.data(), _udpMsgTemporaryIn.data() + sizeof(message_header<T>),
-                                        msg.header.size);
+                        if (msg.header.magic_value != MAGIC_VALUE) {
+                            std::cout << "[UDP] Error: Invalid Magic Value " << std::hex << msg.header.magic_value
+                                      << std::dec << "\n";
+                        } else {
+                            if (msg.header.size > 0) {
+                                if (msg.header.size <= len - sizeof(message_header<T>)) {
+                                    msg.body.resize(msg.header.size);
+                                    std::memcpy(msg.body.data(), _udpMsgTemporaryIn.data() + sizeof(message_header<T>),
+                                                msg.header.size);
+                                    _qMessagesIn.push_back({nullptr, msg});
+                                } else {
+                                    std::cout << "[UDP] Error: Invalid Size " << msg.header.size << " (Len: " << len
+                                              << ")\n";
+                                }
+                            } else {
+                                _qMessagesIn.push_back({nullptr, msg});
+                            }
                         }
-
-                        _qMessagesIn.push_back({nullptr, msg});
                     }
 
                     ReceiveUDP();

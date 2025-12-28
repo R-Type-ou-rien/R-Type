@@ -13,7 +13,11 @@ class Connection : public std::enable_shared_from_this<Connection<T>> {
    public:
     Connection(owner parent, asio::io_context& asioContext, asio::ip::tcp::socket socket,
                MsgQueue<owned_message<T>>& In, asio::ip::udp::socket& udpSocket)
-        : _asioContext(asioContext), _socket(std::move(socket)), _qMessagesIn(In), _udpSocket(udpSocket) {
+        : _asioContext(asioContext),
+          _socket(std::move(socket)),
+          _qMessagesIn(In),
+          _udpSocket(udpSocket),
+          m_timerTimeout(asioContext) {
         _OwnerType = parent;
     }
 
@@ -52,7 +56,10 @@ class Connection : public std::enable_shared_from_this<Connection<T>> {
 
    public:
     void Send(const message<T>& msg) {
-        asio::post(_asioContext, [this, msg]() {
+        asio::post(_asioContext, [this, msg]() mutable {
+#if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+            msg.to_little_endian();
+#endif
             bool WritingMessage = !_qMessagesOut.empty();
             _qMessagesOut.push_back(msg);
             if (!WritingMessage) {
@@ -62,7 +69,10 @@ class Connection : public std::enable_shared_from_this<Connection<T>> {
     }
 
     void SendUdp(const message<T>& msg) {
-        asio::post(_asioContext, [this, msg]() {
+        asio::post(_asioContext, [this, msg]() mutable {
+#if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+            msg.to_little_endian();
+#endif
             bool WritingMessage = !_udpMessagesOut.empty();
             _udpMessagesOut.push_back(msg);
             if (!WritingMessage) {
@@ -86,6 +96,7 @@ class Connection : public std::enable_shared_from_this<Connection<T>> {
                                   }
                               } else {
                                   std::cout << "[" << id << "] Write Header Fail.\n";
+                                  std::cout << ec.message() << "\n";
                                   _socket.close();
                               }
                           });
@@ -101,6 +112,7 @@ class Connection : public std::enable_shared_from_this<Connection<T>> {
                                   }
                               } else {
                                   std::cout << "[" << id << "] Write Body Fail.\n";
+                                  std::cout << ec.message() << "\n";
                                   _socket.close();
                               }
                           });
@@ -114,14 +126,16 @@ class Connection : public std::enable_shared_from_this<Connection<T>> {
         std::memcpy(Buffer.data(), &msg.header, sizeof(msg.header));
         if (!msg.body.empty())
             std::memcpy(Buffer.data() + sizeof(msg.header), msg.body.data(), msg.body.size());
-        _udpSocket.async_send_to(asio::buffer(_udpMessagesOut), _udpRemoteEndpoint,
-                                 [this](std::error_code ec, std::size_t bytes_sent) {
+        _udpSocket.async_send_to(asio::buffer(Buffer.data(), Buffer.size()), _udpRemoteEndpoint,
+                                 [this, Buffer = std::move(Buffer)](std::error_code ec, std::size_t bytes_sent) {
                                      if (!ec) {
                                          if (!_udpMessagesOut.empty()) {
                                              WriteUDP();
                                          }
                                      } else {
                                          std::cout << "[" << id << "] Write UDP Fail.\n";
+                                         std::cout << ec.message() << "\n";
+                                         _socket.close();
                                      }
                                  });
     }
@@ -130,6 +144,12 @@ class Connection : public std::enable_shared_from_this<Connection<T>> {
         asio::async_read(_socket, asio::buffer(&_msgTemporaryIn.header, sizeof(message_header<T>)),
                          [this](std::error_code ec, std::size_t length) {
                              if (!ec) {
+                                 if (_msgTemporaryIn.header.magic_value != MAGIC_VALUE) {
+                                     std::cout << "[" << id << "] Error: Invalid Magic Value " << std::hex
+                                               << _msgTemporaryIn.header.magic_value << std::dec << "\n";
+                                     _socket.close();
+                                     return;
+                                 }
                                  if (_msgTemporaryIn.header.size > 0) {
                                      _msgTemporaryIn.body.resize(_msgTemporaryIn.header.size);
                                      ReadBody();
@@ -138,6 +158,7 @@ class Connection : public std::enable_shared_from_this<Connection<T>> {
                                  }
                              } else {
                                  std::cout << "[" << id << "] Read Header Fail.\n";
+                                 std::cout << ec.message() << "\n";
                                  _socket.close();
                              }
                          });
@@ -150,6 +171,7 @@ class Connection : public std::enable_shared_from_this<Connection<T>> {
                                  AddToIncomingMessageQueue();
                              } else {
                                  std::cout << "[" << id << "] Read Body Fail.\n";
+                                 std::cout << ec.message() << "\n";
                                  _socket.close();
                              }
                          });

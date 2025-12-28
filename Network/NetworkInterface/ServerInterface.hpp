@@ -3,6 +3,16 @@
 #include "Connection.hpp"
 #include "MsgQueue.hpp"
 #include "message.hpp"
+#ifdef _WIN32
+#include <winsock2.h>
+#include <iphlpapi.h>
+#include <stdio.h>
+#pragma comment(lib, "IPHLPAPI.lib")
+#else
+#include <ifaddrs.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#endif
 
 namespace network {
 template <typename T>
@@ -16,13 +26,74 @@ class ServerInterface {
     virtual ~ServerInterface() { Stop(); }
 
     bool Start() {
+        std::cout << "[SERVER] Starting server on port 4040..." << std::endl;
+        std::cout << "[SERVER] Finding LAN IP addresses...\n";
+
+#ifdef _WIN32
+        ULONG outBufLen = 15000;
+        PIP_ADAPTER_INFO pAdapterInfo = (IP_ADAPTER_INFO*)malloc(outBufLen);
+        if (pAdapterInfo == NULL)
+            return false;
+
+        if (GetAdaptersInfo(pAdapterInfo, &outBufLen) == NO_ERROR) {
+            PIP_ADAPTER_INFO pAdapter = pAdapterInfo;
+            while (pAdapter) {
+                std::string ip(pAdapter->IpAddressList.IpAddress.String);
+                if (ip != "127.0.0.1" && ip != "0.0.0.0") {
+                    std::cout << "[SERVER] LAN IP: " << ip << " (Interface: " << pAdapter->Description << ")\n";
+                }
+                pAdapter = pAdapter->Next;
+            }
+        }
+        free(pAdapterInfo);
+#else
+        struct ifaddrs* ifAddrStruct = NULL;
+        struct ifaddrs* ifa = NULL;
+        void* tmpAddrPtr = NULL;
+
+        getifaddrs(&ifAddrStruct);
+
+        bool found = false;
+        if (!ifAddrStruct) {
+            return false;
+        }
+        for (ifa = ifAddrStruct; ifa != NULL; ifa = ifa->ifa_next) {
+            if (!ifa->ifa_addr) {
+                continue;
+            }
+            if (ifa->ifa_addr->sa_family == AF_INET) {
+                tmpAddrPtr = &((struct sockaddr_in*)ifa->ifa_addr)->sin_addr;
+                char addressBuffer[INET_ADDRSTRLEN];
+                inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
+                std::string ip(addressBuffer);
+                if (ip != "127.0.0.1") {
+                    std::cout << "[SERVER] LAN IP: " << ip << " (Interface: " << ifa->ifa_name << ")\n";
+                    found = true;
+                    break;
+                }
+            }
+        }
+        if (ifAddrStruct != NULL)
+            freeifaddrs(ifAddrStruct);
+
+        if (!found) {
+            std::cout << "[SERVER] Could not detect LAN IP. Please check `ip addr` or `ifconfig`.\n";
+        }
+#endif
+
         try {
             _socketUDP.open(asio::ip::udp::v4());
             _socketUDP.bind(asio::ip::udp::endpoint(asio::ip::udp::v4(), _port));
             WaitForClientConnection();
             ReceiveUDP();
 
-            _threadContext = std::thread([this]() { _asioContext.run(); });
+            _threadContext = std::thread([this]() {
+                try {
+                    _asioContext.run();
+                } catch (std::exception& e) {
+                    std::cerr << "[SERVER] Thread Exception: " << e.what() << "\n";
+                }
+            });
         } catch (std::exception& e) {
             std::cerr << "[SERVER] Exception: " << e.what() << "\n";
             return false;
@@ -51,11 +122,11 @@ class ServerInterface {
 
                 newconn->ConnectToClient(nIDCounter++);
 
+                _deqConnections.push_back(newconn);
                 if (OnClientConnect(newconn)) {
-                    _deqConnections.push_back(std::move(newconn));
-
                     std::cout << "[" << _deqConnections.back()->GetID() << "] Connection Approved\n";
                 } else {
+                    _deqConnections.pop_back();
                     std::cout << "[-----] Connection Denied\n";
                 }
             } else {
@@ -155,8 +226,11 @@ class ServerInterface {
     }
 
     virtual void ReceiveUDP() {
+        if (_udpMsgTemporaryIn.size() < 4096)
+            _udpMsgTemporaryIn.resize(4096);
         _socketUDP.async_receive_from(
-            asio::buffer(_udpMsgTemporaryIn), _udpEndpointTemporary, [this](std::error_code ec, std::size_t len) {
+            asio::buffer(_udpMsgTemporaryIn.data(), _udpMsgTemporaryIn.size()), _udpEndpointTemporary,
+            [this](std::error_code ec, std::size_t len) {
                 if (!ec && len > 0) {
                     network::message<T> msg;
 

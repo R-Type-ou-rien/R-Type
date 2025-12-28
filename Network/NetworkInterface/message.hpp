@@ -61,6 +61,36 @@ struct message {
 
         return msg;
     }
+
+    void to_little_endian() {
+        auto swap_uint32 = [](uint32_t val) -> uint32_t {
+            return ((val >> 24) & 0x000000FF) | ((val >> 8) & 0x0000FF00) | ((val << 8) & 0x00FF0000) |
+                   ((val << 24) & 0xFF000000);
+        };
+
+        auto swap_t = [](T val) -> T {
+            if constexpr (sizeof(T) == 1)
+                return val;
+            if constexpr (sizeof(T) == 2) {
+                uint16_t x = static_cast<uint16_t>(val);
+                x = (x >> 8) | (x << 8);
+                return static_cast<T>(x);
+            }
+            if constexpr (sizeof(T) == 4) {
+                uint32_t x = static_cast<uint32_t>(val);
+                x = ((x >> 24) & 0x000000FF) | ((x >> 8) & 0x0000FF00) | ((x << 8) & 0x00FF0000) |
+                    ((x << 24) & 0xFF000000);
+                return static_cast<T>(x);
+            }
+            // Fallback for other sizes if necessary, or just return val for now to avoid errors on complex types
+            return val;
+        };
+
+        header.magic_value = swap_uint32(header.magic_value);
+        header.user_id = swap_uint32(header.user_id);
+        header.id = swap_t(header.id);
+        header.size = swap_uint32(header.size);
+    }
 };
 
 template <typename T>

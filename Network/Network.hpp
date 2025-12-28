@@ -1,12 +1,21 @@
 #pragma once
-#include <sys/types.h>
 
 #include <cstdint>
 
 #include "NetworkInterface/message.hpp"
 
-enum class RTypeEvents : uint32_t {
+namespace network {
+
+enum class GameEvents : uint32_t {
+    NONE,
+
+    ASK_UDP,
+    ASK_LOG,
+
+    C_CONNECTION,
+    S_SEND_ID,
     C_PING_SERVER,
+    S_PING_SERVER,
 
     C_REGISTER,
     S_REGISTER_OK,
@@ -17,43 +26,41 @@ enum class RTypeEvents : uint32_t {
     S_LOGIN_OK,
     S_LOGIN_KO,
     C_DISCONNECT,
+    S_CONFIRM_UDP,
     C_CONFIRM_UDP,
 
-    // LOBBY EVENTS
     C_LIST_ROOMS,
     S_ROOMS_LIST,
     C_JOIN_ROOM,
+    C_JOINT_RANDOM_LOBBY,
     S_ROOM_JOINED,
     S_PLAYER_JOINED,
     S_ROOM_NOT_JOINED,
     C_ROOM_LEAVE,
     S_PLAYER_LEAVE,
+    S_ROOM_LEAVE,
     S_PLAYER_KICKED,
+    S_ROOM_KICKED,
     S_NEW_HOST,
     C_NEW_LOBBY,
     S_CONFIRM_NEW_LOBBY,
 
-    // LANCEMENT
     C_READY,
     S_READY_RETURN,
     C_GAME_START,
     S_GAME_START,
+    S_GAME_START_KO,
     C_CANCEL_READY,
     S_CANCEL_READY_BROADCAST,
-    C_QUIT_LOBBY,
-    S_QUIT_LOBBY_BROADCAST,
 
-    // IN-GAME EVENTS
     C_INPUT,
     S_SNAPSHOT,
 
-    // CHAT EVENTS
     C_TEAM_CHAT,
     S_TEAM_CHAT,
     C_VOICE_PACKET,
     S_VOICE_RELAY,
 
-    // GAME EVENTS
     S_PLAYER_DEATH,
     S_SCORE_UPDATE,
     S_GAME_OVER,
@@ -62,36 +69,39 @@ enum class RTypeEvents : uint32_t {
 };
 
 struct coming_message {
-    RTypeEvents id;
+    GameEvents id;
     uint32_t clientID;
-    network::message<RTypeEvents> msg;
+    message<GameEvents> msg;
 };
 
 struct connection_info {
-    std::string username;
-    std::string password;
-};
-
-struct connection_server_return {
-    std::string token;
-    uint32_t id;
+    char username[32];
+    char password[32];
 };
 
 struct lobby_info {
     uint32_t id;
-    std::string name;
-    uint32_t ncConnectedPlayers;
+    char name[32];
+    uint32_t nbConnectedPlayers;
     uint32_t maxPlayers;
+    uint32_t state;
+};
+struct lobby_info_return {
+    uint32_t nb_lobbys;
+    std::vector<lobby_info> lobbies;
 };
 
 struct player {
     uint32_t id;
-    std::string username;
+    char username[32];
 };
 
 struct lobby_in_info {
     uint32_t id;
-    std::string name;
-    std::vector<player> players;
-    uint32_t maxPlayers;
+    char name[32];
+    std::vector<uint32_t> id_player;
+
+    uint32_t nbPlayers;
 };
+
+}  // namespace network

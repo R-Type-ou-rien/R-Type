@@ -58,3 +58,20 @@ test_scroll
 test_shooter
 test_spawn
 r-type-client
+
+# CMake and Build Artifacts
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+compile_commands.json
+vcpkg_installed/
+
+# Temporary Files
+*.db
+.secrettoken*
+build_verify/
+
+# Network Test Executables
+r-type_server
+r-type_client_test
