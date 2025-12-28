@@ -28,7 +28,7 @@ void Database::_initialize() {
         "ID INTEGER PRIMARY KEY AUTOINCREMENT,"
         "Username TEXT UNIQUE NOT NULL,"
         "Password TEXT NOT NULL,"
-        "Token TEXT,"
+        "Token TEXT"
         ");";
 
     char* errMsg = nullptr;

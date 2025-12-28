@@ -3,6 +3,9 @@
 #include "Connection.hpp"
 #include "MsgQueue.hpp"
 #include "message.hpp"
+#include <ifaddrs.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 namespace network {
 template <typename T>
@@ -16,13 +19,49 @@ class ServerInterface {
     virtual ~ServerInterface() { Stop(); }
 
     bool Start() {
+        std::cout << "[SERVER] Starting server on port 4040..." << std::endl;
+        std::cout << "[SERVER] Finding LAN IP addresses...\n";
+
+        struct ifaddrs* ifAddrStruct = NULL;
+        struct ifaddrs* ifa = NULL;
+        void* tmpAddrPtr = NULL;
+
+        getifaddrs(&ifAddrStruct);
+
+        bool found = false;
+        if (!ifAddrStruct->ifa_addr) {
+            return false;
+        }
+        if (ifAddrStruct->ifa_addr->sa_family == AF_INET) {
+            tmpAddrPtr = &((struct sockaddr_in*)ifAddrStruct->ifa_addr)->sin_addr;
+            char addressBuffer[INET_ADDRSTRLEN];
+            inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
+            std::string ip(addressBuffer);
+            if (ip != "127.0.0.1") {
+                std::cout << "[SERVER] LAN IP: " << ip << " (Interface: " << ifAddrStruct->ifa_name << ")\n";
+                found = true;
+            }
+        }
+        if (ifAddrStruct != NULL)
+            freeifaddrs(ifAddrStruct);
+
+        if (!found) {
+            std::cout << "[SERVER] Could not detect LAN IP. Please check `ip addr` or `ifconfig`.\n";
+        }
+
         try {
             _socketUDP.open(asio::ip::udp::v4());
             _socketUDP.bind(asio::ip::udp::endpoint(asio::ip::udp::v4(), _port));
             WaitForClientConnection();
             ReceiveUDP();
 
-            _threadContext = std::thread([this]() { _asioContext.run(); });
+            _threadContext = std::thread([this]() {
+                try {
+                    _asioContext.run();
+                } catch (std::exception& e) {
+                    std::cerr << "[SERVER] Thread Exception: " << e.what() << "\n";
+                }
+            });
         } catch (std::exception& e) {
             std::cerr << "[SERVER] Exception: " << e.what() << "\n";
             return false;
@@ -51,7 +90,7 @@ class ServerInterface {
 
                 newconn->ConnectToClient(nIDCounter++);
 
-                _deqConnections.push_back(std::move(newconn));
+                _deqConnections.push_back(newconn);
                 if (OnClientConnect(newconn)) {
                     std::cout << "[" << _deqConnections.back()->GetID() << "] Connection Approved\n";
                 } else {
@@ -155,8 +194,11 @@ class ServerInterface {
     }
 
     virtual void ReceiveUDP() {
+        if (_udpMsgTemporaryIn.size() < 4096)
+            _udpMsgTemporaryIn.resize(4096);
         _socketUDP.async_receive_from(
-            asio::buffer(_udpMsgTemporaryIn), _udpEndpointTemporary, [this](std::error_code ec, std::size_t len) {
+            asio::buffer(_udpMsgTemporaryIn.data(), _udpMsgTemporaryIn.size()), _udpEndpointTemporary,
+            [this](std::error_code ec, std::size_t len) {
                 if (!ec && len > 0) {
                     network::message<T> msg;
 

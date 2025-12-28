@@ -75,14 +75,14 @@ struct coming_message {
 };
 
 struct connection_info {
-    std::string username;
-    std::string password;
+    char username[32];
+    char password[32];
 };
 
 struct lobby_info {
     uint32_t id;
-    std::string name;
-    uint32_t ncConnectedPlayers;
+    char name[32];
+    uint32_t nbConnectedPlayers;
     uint32_t maxPlayers;
     uint32_t state;
 };
@@ -93,12 +93,12 @@ struct lobby_info_return {
 
 struct player {
     uint32_t id;
-    std::string username;
+    char username[32];
 };
 
 struct lobby_in_info {
     uint32_t id;
-    std::string name;
+    char name[32];
     std::vector<uint32_t> id_player;
 
     uint32_t nbPlayers;

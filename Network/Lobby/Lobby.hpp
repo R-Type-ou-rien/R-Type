@@ -35,6 +35,7 @@ class Lobby {
         if (_mapPlayers.size() == 1) {
             _owner = client;
         }
+        return true;
     }
 
     std::string GetName() const { return _name; };

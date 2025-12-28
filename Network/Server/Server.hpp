@@ -68,7 +68,7 @@ class Server : public network::ServerInterface<GameEvents> {
                     return;
                 }
                 network::message<GameEvents> msg;
-                msg.body << data;
+                msg << data;
                 msg.header.id = event;
                 msg.header.size = msg.size();
                 if (std::find(_udpEvents.begin(), _udpEvents.end(), event) != _udpEvents.end()) {

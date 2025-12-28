@@ -1,7 +1,5 @@
 #pragma once
 
-#include <sys/types.h>
-
 #include <cstdint>
 
 #include "../NetworkInterface/ClientInterface.hpp"
@@ -23,7 +21,7 @@ class Client : public ClientInterface<GameEvents> {
     template <typename T>
     void AddMessageToServer(GameEvents event, uint32_t id, const T& data) {
         network::message<GameEvents> msg;
-        msg.body << data;
+        msg << data;
         msg.header.id = event;
         msg.header.user_id = _id;
         msg.header.size = msg.size();
@@ -35,7 +33,7 @@ class Client : public ClientInterface<GameEvents> {
     }
 
    private:
-    uint32_t _id;
+    uint32_t _id = 0;
     std::vector<GameEvents> _udpEvents = {
         GameEvents::S_SNAPSHOT,
         GameEvents::C_INPUT,

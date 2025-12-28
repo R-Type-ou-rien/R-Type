@@ -10,6 +10,7 @@ using namespace network;
 void Server::OnMessage(std::shared_ptr<Connection<GameEvents>> client, message<GameEvents>& msg) {
     switch (msg.header.id) {
         case GameEvents::C_REGISTER:
+            std::cout << "[SERVER] Register\n";
             OnClientRegister(client, msg);
             break;
         case GameEvents::C_LOGIN:
@@ -34,6 +35,7 @@ void Server::OnMessage(std::shared_ptr<Connection<GameEvents>> client, message<G
             OnClientNewLobby(client, msg);
             break;
         case GameEvents::C_CONFIRM_UDP:
+            std::cout << "[SERVER] Confirm UDP\n";
             if (_clientStates[client] == ClientState::WAITING_UDP_PING)
                 _clientStates[client] = ClientState::CONNECTED;
             break;
@@ -53,19 +55,24 @@ void Server::OnClientDisconnect(std::shared_ptr<Connection<GameEvents>> client) 
 bool Server::OnClientConnect(std::shared_ptr<Connection<GameEvents>> client) {
     if (_deqConnections.size() >= _maxConnections)
         return false;
+    std::cout << "[DEBUG] OnClientConnect: SetTimeout\n";
     client->SetTimeout(0);
 
     // Confirmation connection (TOUJOURS PAS UN COMMENTAIRE DE GEMINI OU AUTRE)
-    AddMessageToPlayer(GameEvents::S_SEND_ID, client->GetID(), NULL);
+    std::cout << "[DEBUG] OnClientConnect: Send ID\n";
+    AddMessageToPlayer(GameEvents::S_SEND_ID, client->GetID(), 0);
     // Demander un paquet UDP pour save le endpint  udp (eh vsy j'ai meme pas besoin de parler la)
-    AddMessageToPlayer(GameEvents::S_CONFIRM_UDP, client->GetID(), NULL);
+    std::cout << "[DEBUG] OnClientConnect: Confirm UDP\n";
+    AddMessageToPlayer(GameEvents::S_CONFIRM_UDP, client->GetID(), 0);
 
     // Envoi du message de connection au game (bON POUR CA L'AUTOCOMPLETION DE L'IDE A UN PEU AIDER)
     network::message<GameEvents> msg;
-    msg << NULL;
+    msg << 0;
+    std::cout << "[DEBUG] OnClientConnect: Push to game\n";
     _toGameMessages.push({GameEvents::C_CONNECTION, client->GetID(), msg});
 
     _clientStates[client] = ClientState::WAITING_UDP_PING;
+    std::cout << "[DEBUG] OnClientConnect: Done\n";
     return true;
 }
 
@@ -88,16 +95,20 @@ void Server::OnClientRegister(std::shared_ptr<Connection<GameEvents>> client, me
     }
     _database.RegisterUser(info.username, info.password);
 
-    std::string token = "";
+    std::string tokenStr = "";
     const std::string charset = ALPHA_NUMERIC;
     srand(time(nullptr) + client->GetID());
     for (int i = 0; i < 10; i++) {
-        token += charset[rand() % charset.length()];
+        tokenStr += charset[rand() % charset.length()];
     }
-    _database.SaveToken(_database.LoginUser(info.username, info.password), token);
+    _database.SaveToken(_database.LoginUser(info.username, info.password), tokenStr);
 
     _clientUsernames[client] = info.username;
     _clientStates[client] = ClientState::LOGGED_IN;
+    std::cout << "[SERVER] Register OK\n";
+
+    char token[32] = {0};
+    std::strncpy(token, tokenStr.c_str(), 31);
     AddMessageToPlayer(GameEvents::S_REGISTER_OK, client->GetID(), token);
 }
 
@@ -115,21 +126,25 @@ void Server::OnClientLogin(std::shared_ptr<Connection<GameEvents>> client, messa
         return;
     }
 
-    std::string token = _database.GetTokenById(userID);
+    std::string tokenStr = _database.GetTokenById(userID);
+    char token[32] = {0};
+    std::strncpy(token, tokenStr.c_str(), 31);
+
     _clientUsernames[client] = info.username;
     _clientStates[client] = ClientState::LOGGED_IN;
     AddMessageToPlayer(GameEvents::S_LOGIN_OK, client->GetID(), token);
 }
 
 void Server::OnClientLoginToken(std::shared_ptr<Connection<GameEvents>> client, message<GameEvents> msg) {
-    std::string token;
+    char token[32];
     msg >> token;
+    std::string tokenStr(token);
 
     if (_clientStates[client] != ClientState::CONNECTED) {
         AddMessageToPlayer(GameEvents::ASK_UDP, client->GetID(), NULL);
         return;
     }
-    int userID = _database.GetUserByToken(token);
+    int userID = _database.GetUserByToken(tokenStr);
     if (userID == -1) {
         AddMessageToPlayer(GameEvents::S_INVALID_TOKEN, client->GetID(), NULL);
         return;
@@ -145,21 +160,26 @@ void Server::OnClientListLobby(std::shared_ptr<Connection<GameEvents>> client, m
         AddMessageToPlayer(GameEvents::ASK_LOG, client->GetID(), NULL);
         return;
     }
-    lobby_info_return return_info;
-    return_info.nb_lobbys = _lobbys.size();
+    network::message<GameEvents> responseMsg;
+    responseMsg.header.id = GameEvents::S_ROOMS_LIST;
+    responseMsg.header.user_id = client->GetID();
 
-    std::vector<lobby_info> lobbysInfo;
+    uint32_t nb_lobbys = _lobbys.size();
+
+    // Push lobbies directly
     for (Lobby<GameEvents>& lobby : _lobbys) {
         lobby_info info;
         info.id = lobby.GetID();
-        info.name = lobby.GetName();
-        info.ncConnectedPlayers = lobby.GetNbPlayers();
+        std::strncpy(info.name, lobby.GetName().c_str(), 32);
+        info.nbConnectedPlayers = lobby.GetNbPlayers();
         info.maxPlayers = lobby.GetMaxPlayers();
         info.state = (uint32_t)lobby.GetState();
-        lobbysInfo.push_back(info);
+        responseMsg << info;
     }
-    return_info.lobbies = lobbysInfo;
-    AddMessageToPlayer(GameEvents::S_ROOMS_LIST, client->GetID(), return_info);
+    // Push count last
+    responseMsg << nb_lobbys;
+
+    client->Send(responseMsg);
 }
 
 void Server::OnClientJoinLobby(std::shared_ptr<Connection<GameEvents>> client, message<GameEvents> msg) {
@@ -180,13 +200,13 @@ void Server::OnClientJoinLobby(std::shared_ptr<Connection<GameEvents>> client, m
             // ECRIT LE COMMENTAIRE BORIS JE VAIS TE HAGAR)
             struct player p;
             p.id = client->GetID();
-            p.username = _clientUsernames[client];
+            std::strncpy(p.username, _clientUsernames[client].c_str(), 32);
             AddMessageToLobby(GameEvents::S_PLAYER_JOINED, lobbyID, p);
 
             // envoyer le message de room joined au joueur (azy j'ai plus besoin de parler)
             struct lobby_in_info info;
             info.id = lobby.GetID();
-            info.name = lobby.GetName();
+            std::strncpy(info.name, lobby.GetName().c_str(), 32);
             info.nbPlayers = lobby.GetNbPlayers();
             for (auto& [id, connection] : lobby.getLobbyPlayers()) {
                 info.id_player.push_back(id);
@@ -212,13 +232,13 @@ void Server::OnClientJoinRandomLobby(std::shared_ptr<Connection<GameEvents>> cli
             // ECRIT LE COMMENTAIRE BORIS JE VAIS TE HAGAR)
             struct player p;
             p.id = client->GetID();
-            p.username = _clientUsernames[client];
+            std::strncpy(p.username, _clientUsernames[client].c_str(), 32);
             AddMessageToLobby(GameEvents::S_PLAYER_JOINED, lobby.GetID(), p);
 
             // envoyer le message de room joined au joueur (azy j'ai plus besoin de parler)
             struct lobby_in_info info;
             info.id = lobby.GetID();
-            info.name = lobby.GetName();
+            std::strncpy(info.name, lobby.GetName().c_str(), 32);
             info.nbPlayers = lobby.GetNbPlayers();
             for (auto& [id, connection] : lobby.getLobbyPlayers()) {
                 info.id_player.push_back(id);
@@ -274,8 +294,9 @@ void Server::OnClientLeaveLobby(std::shared_ptr<Connection<GameEvents>> client, 
 void Server::OnClientNewLobby(std::shared_ptr<Connection<GameEvents>> client, message<GameEvents> msg) {
     if (_clientStates[client] != ClientState::LOGGED_IN)
         return;
-    std::string lobbyName;
-    msg >> lobbyName;
+    char name[32];
+    msg >> name;
+    std::string lobbyName = name;
     uint32_t newLobbyID = 1;
     if (!_lobbys.empty()) {
         newLobbyID = _lobbys.back().GetID() + 1;
