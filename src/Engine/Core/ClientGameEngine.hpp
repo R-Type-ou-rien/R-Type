@@ -7,6 +7,7 @@
 
 #include "ECS/ECS.hpp"
 #include "ECS/ISystem.hpp"
+#include "InputManager.hpp"
 #include "InputSystem.hpp"
 #include "PhysicsSystem.hpp"
 #include "RenderSystem.hpp"
@@ -19,13 +20,15 @@
 #define FAILURE -1
 #define WINDOW_H 1000
 #define WINDOW_W 1000
+#define USER_FUNCTION_TYPE void(ECS& ecs, InputManager& inputs)
 
 class ClientGameEngine {
    private:
     ECS _ecs;
     WindowManager _window_manager;
-    std::function<void(ECS& ecs)> _function;
-    std::function<void(ECS& ecs)> _init_function;
+    InputManager input_manager;
+    std::function<USER_FUNCTION_TYPE> _function;
+    std::function<USER_FUNCTION_TYPE> _init_function;
     // client network class
 
    public:
@@ -33,8 +36,8 @@ class ClientGameEngine {
     int run();
     explicit ClientGameEngine(std::string window_name = "Default Name");
     ~ClientGameEngine() {}
-    void setUserFunction(std::function<void(ECS& ecs)> user_function);
-    void setInitFunction(std::function<void(ECS& ecs)> user_function);
+    void setUserFunction(std::function<USER_FUNCTION_TYPE> user_function);
+    void setInitFunction(std::function<USER_FUNCTION_TYPE> user_function);
 
    private:
     void handleEvent();
