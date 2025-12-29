@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Threads REQUIRED)
+find_package(asio CONFIG REQUIRED)
 
 # Include directories
 include_directories(
@@ -36,6 +37,7 @@ set(NETWORK_SOURCES
 )
 
 add_library(NetworkLib STATIC ${NETWORK_SOURCES})
+target_link_libraries(NetworkLib PUBLIC asio::asio)
 target_link_libraries(NetworkLib PRIVATE Threads::Threads ${CMAKE_DL_LIBS})
 
 # Server Executable
