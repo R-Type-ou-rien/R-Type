@@ -6,6 +6,7 @@
 
 #include "ClientGameEngine.hpp"
 #include "Components/StandardComponents.hpp"
+#include "InputManager.hpp"
 #include "Lib/GameManager/GameManager.hpp"
 
 void init(ECS& ecs) {
@@ -14,9 +15,9 @@ void init(ECS& ecs) {
     ecs.registry.addComponent(player, transform_component_s{100.f, 300.f});
     ecs.registry.addComponent(player, Velocity2D{0.f, 0.f});
 
-    ecs.input.bindAction("Shoot", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Space});
+    // ecs.input.bindAction("Shoot", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Space});
 
-    ecs.input.bindAction("MoveUp", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Z});
+    // ecs.input.bindAction("MoveUp", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Z});
 
     std::cout << "=== InputManager Test Ready ===\n";
     std::cout << "Press SPACE or Gamepad A or RT to test Shoot\n";
@@ -32,8 +33,8 @@ int main() {
     ClientGameEngine cl;
     GameManager gm;
 
-    cl.setInitFunction([&gm](ECS& ecs) { gm.init(ecs); });
-    cl.setUserFunction([&gm](ECS& ecs) { gm.update(ecs); });
+    cl.setInitFunction([&gm](ECS& ecs, InputManager& inputs) { gm.init(ecs, inputs); });
+    cl.setUserFunction([&gm](ECS& ecs, InputManager& inputs) { gm.update(ecs, inputs); });
     cl.run();
     return 0;
 }
