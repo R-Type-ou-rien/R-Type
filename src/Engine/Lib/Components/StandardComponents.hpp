@@ -26,6 +26,7 @@
 #include "registry.hpp"
 
 struct PatternComponent {
+    static constexpr std::string_view name = "PatternComponent";
     enum PatternType { WAYPOINT, STRAIGHT, SINUSOIDAL };
     PatternType type = WAYPOINT;
     std::vector<std::pair<float, float>> waypoints;
@@ -46,11 +47,13 @@ struct ResourceStat {
 };
 
 struct ResourceComponent {
+    static constexpr std::string_view name = "ResourceComponent";
     std::map<std::string, ResourceStat> resources;
     std::map<std::string, std::function<void()>> empty_effects;
 };
 
 struct transform_component_s {
+    static constexpr std::string_view name = "TransformComponent";
     float x;
     float y;
     float scale_x = 1.0;
@@ -59,6 +62,7 @@ struct transform_component_s {
 };
 
 struct Velocity2D {
+    static constexpr std::string_view name = "Velocity2DComponent";
     float vx;
     float vy;
 };
@@ -71,12 +75,14 @@ struct rect {
 };
 
 struct BoxCollisionComponent {
+    static constexpr std::string_view name = "CollisionComponent";
     CollidedEntity collision;
     std::vector<std::string> tagCollision;
     std::function<void(Registry& registry, system_context context, Entity current_entity)> callbackOnCollide;
 };
 
 struct sprite2D_component_s {
+    static constexpr std::string_view name = "Sprite2DComponent";
     handle_t<sf::Texture> handle;
     rect dimension = {0.0f, 0.0f, 0.0f, 0.0f};
     bool is_animated = false;
@@ -91,10 +97,12 @@ struct sprite2D_component_s {
 };
 
 struct TagComponent {
+    static constexpr std::string_view name = "TagComponent";
     std::vector<std::string> tags;
 };
 
 struct TextComponent {
+    static constexpr std::string_view name = "TextComponent";
     std::string text;
     std::string fontPath;
     unsigned int characterSize = 24;
@@ -105,14 +113,15 @@ struct TextComponent {
 
 using ActionCallback = std::function<void(Registry& registry, system_context context, Entity current_entity)>;
 
-
 struct ActionScript {
+    static constexpr std::string_view name = "ActionEffectComponent";
     std::unordered_map<Action, ActionCallback> actionOnPressed;
     std::unordered_map<Action, ActionCallback> actionOnReleased;
     std::unordered_map<Action, ActionCallback> actionPressed;
 };
 
 struct Shooter {
+    static constexpr std::string_view name = "ShooterComponent";
     sf::Keyboard::Key shootKey;
     float projectileSpeed;
     float projectileLifetime;
@@ -121,16 +130,19 @@ struct Shooter {
 };
 
 struct Projectile {
+    static constexpr std::string_view name = "ProjectileComponent";
     float lifetime;
 };
 
 struct Scroll {
+    static constexpr std::string_view name = "ScrollComponent";
     float scroll_speed_x;
     float scroll_speed_y;
     bool is_paused;
 };
 
 struct BackgroundComponent {
+    static constexpr std::string_view name = "BackgroundComponent";
     handle_t<sf::Texture> texture_handle;
     float x_offset = 0.f;
     float scroll_speed = 0.f;
