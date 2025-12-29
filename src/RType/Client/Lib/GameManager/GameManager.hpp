@@ -13,7 +13,7 @@ class GameManager {
 
    public:
     GameManager();
-    void init(ECS& ecs);
-    void update(ECS& ecs);
-    void loadInputSetting(ECS& ecs);
+    void init(ECS& ecs, InputManager& inputs);
+    void update(ECS& ecs, InputManager& inputs);
+    void loadInputSetting(InputManager& inputs);
 };

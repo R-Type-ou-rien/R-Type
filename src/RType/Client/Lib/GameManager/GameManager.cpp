@@ -4,6 +4,7 @@
 #include <ostream>
 #include <algorithm>
 #include <utility>
+#include "InputManager.hpp"
 #include "src/RType/Common/Components/health.hpp"
 #include "src/RType/Common/Components/shooter.hpp"
 #include "src/RType/Common/Components/damage.hpp"
@@ -12,7 +13,7 @@
 
 GameManager::GameManager() {}
 
-void GameManager::init(ECS& ecs) {
+void GameManager::init(ECS& ecs, InputManager& inputs) {
     ecs.systems.addSystem<ShooterSystem>();
     ecs.systems.addSystem<Damage>();
     ecs.systems.addSystem<HealthSystem>();
@@ -45,7 +46,7 @@ void GameManager::init(ECS& ecs) {
     _player->addCollisionTag("ITEM");
     _player->addCollisionTag("GROUND");
 
-    loadInputSetting(ecs);
+    loadInputSetting(inputs);
     auto enemy = std::make_unique<AI>(ecs, std::pair<float, float>(600.f, 200.f));
     enemy->setTextureEnemy("content/sprites/r-typesheet8.gif");
     enemy->setPatternType(PatternComponent::SINUSOIDAL);
@@ -62,16 +63,16 @@ void GameManager::init(ECS& ecs) {
     spawn_comp.is_active = true;
     ecs.registry.addComponent<EnemySpawnComponent>(spawner, spawn_comp);
 
-    _uiEntity = ecs.registry.createEntity();
-    ecs.registry.addComponent<TextComponent>(
-        _uiEntity,
-        {"HP: 100", "/usr/share/fonts/liberation-mono-fonts/LiberationMono-Regular.ttf", 30, sf::Color::White, 10, 10});
+    //_uiEntity = ecs.registry.createEntity();
+    // ecs.registry.addComponent<TextComponent>(
+    //     _uiEntity,
+    //     {"HP: 100", "/usr/share/fonts/liberation-mono-fonts/LiberationMono-Regular.ttf", 30, sf::Color::White, 10, 10});
 
     return;
 }
 
-void GameManager::loadInputSetting(ECS& ecs) {
-    ecs.input.bindAction("move_left", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Left});
+void GameManager::loadInputSetting(InputManager& inputs) {
+    inputs.bindAction("move_left", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Left});
     _player->bindActionCallbackPressed("move_left", [](Registry& registry, system_context context, Entity entity) {
         if (registry.hasComponent<Velocity2D>(entity)) {
             Velocity2D& vel = registry.getComponent<Velocity2D>(entity);
@@ -85,7 +86,7 @@ void GameManager::loadInputSetting(ECS& ecs) {
         }
     });
 
-    ecs.input.bindAction("move_right", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Right});
+    inputs.bindAction("move_right", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Right});
     _player->bindActionCallbackPressed("move_right", [](Registry& registry, system_context context, Entity entity) {
         if (registry.hasComponent<Velocity2D>(entity)) {
             Velocity2D& vel = registry.getComponent<Velocity2D>(entity);
@@ -99,7 +100,7 @@ void GameManager::loadInputSetting(ECS& ecs) {
         }
     });
 
-    ecs.input.bindAction("move_up", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Up});
+    inputs.bindAction("move_up", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Up});
     _player->bindActionCallbackPressed("move_up", [](Registry& registry, system_context context, Entity entity) {
         if (registry.hasComponent<Velocity2D>(entity)) {
             Velocity2D& vel = registry.getComponent<Velocity2D>(entity);
@@ -113,7 +114,7 @@ void GameManager::loadInputSetting(ECS& ecs) {
         }
     });
 
-    ecs.input.bindAction("move_down", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Down});
+    inputs.bindAction("move_down", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Down});
     _player->bindActionCallbackPressed("move_down", [](Registry& registry, system_context context, Entity entity) {
         if (registry.hasComponent<Velocity2D>(entity)) {
             Velocity2D& vel = registry.getComponent<Velocity2D>(entity);
@@ -127,7 +128,7 @@ void GameManager::loadInputSetting(ECS& ecs) {
         }
     });
 
-    ecs.input.bindAction("shoot", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Space});
+    inputs.bindAction("shoot", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Space});
     std::cout << "Player id " << _player->getId() << std::endl;
     _player->bindActionCallbackPressed("shoot", [](Registry& registry, system_context context, Entity entity) {
         if (registry.hasComponent<ShooterComponent>(entity)) {
@@ -144,20 +145,20 @@ void GameManager::loadInputSetting(ECS& ecs) {
     });
 }
 
-void GameManager::update(ECS& ecs) {
+void GameManager::update(ECS& ecs, InputManager& inputs) {
     if (_player) {
         Entity player_id = _player->getId();
         if (ecs.registry.hasComponent<HealthComponent>(player_id)) {
             int hp = _player->getCurrentHealth();
-            if (ecs.registry.hasComponent<TextComponent>(_uiEntity)) {
-                auto& text = ecs.registry.getComponent<TextComponent>(_uiEntity);
-                text.text = "HP: " + std::to_string(hp);
-            }
-        } else {
-            if (ecs.registry.hasComponent<TextComponent>(_uiEntity)) {
-                auto& text = ecs.registry.getComponent<TextComponent>(_uiEntity);
-                text.text = "GAME OVER";
-            }
+        //     if (ecs.registry.hasComponent<TextComponent>(_uiEntity)) {
+        //         auto& text = ecs.registry.getComponent<TextComponent>(_uiEntity);
+        //         text.text = "HP: " + std::to_string(hp);
+        //     }
+        // } else {
+        //     if (ecs.registry.hasComponent<TextComponent>(_uiEntity)) {
+        //         auto& text = ecs.registry.getComponent<TextComponent>(_uiEntity);
+        //         text.text = "GAME OVER";
+        //     }
         }
     }
 }
