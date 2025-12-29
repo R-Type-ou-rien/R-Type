@@ -20,7 +20,7 @@
 #define FAILURE -1
 #define WINDOW_H 1000
 #define WINDOW_W 1000
-#define USER_FUNCTION_TYPE void(ECS& ecs, InputManager& inputs)
+#define USER_FUNCTION_TYPE void(ECS & ecs, InputManager & inputs)
 
 class ClientGameEngine {
    private:

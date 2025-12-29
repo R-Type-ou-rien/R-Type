@@ -3,7 +3,6 @@
 #include "Components/NetworkComponents.hpp"
 #include "Guid/Guid.hpp"
 
-
 Entity Registry::createEntity() {
     uint32_t entity_id = _nextId++;
 

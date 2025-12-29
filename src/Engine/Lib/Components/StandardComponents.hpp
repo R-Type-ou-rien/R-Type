@@ -39,7 +39,6 @@ struct PatternComponent {
     float time_elapsed = 0.0f;
 };
 
-
 struct ResourceStat {
     float current;
     float max;

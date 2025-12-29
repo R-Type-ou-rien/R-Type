@@ -7,7 +7,6 @@
 ClientGameEngine::ClientGameEngine(std::string window_name) : _window_manager(WINDOW_W, WINDOW_H, window_name) {}
 
 int ClientGameEngine::init() {
-
     _ecs.systems.addSystem<BackgroundSystem>();
     _ecs.systems.addSystem<SpawnSystem>();
     _ecs.systems.addSystem<RenderSystem>();

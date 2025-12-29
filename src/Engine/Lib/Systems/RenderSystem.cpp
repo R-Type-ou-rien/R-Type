@@ -42,9 +42,10 @@ void RenderSystem::drawText(const TextComponent& textComp, const system_context&
         }
         _fontLoaded = true;
     }
-    
-    if (!_fontLoaded) return;
-    
+
+    if (!_fontLoaded)
+        return;
+
     sf::Text text(_font);
     text.setString(textComp.text);
     text.setCharacterSize(textComp.characterSize);
@@ -52,7 +53,6 @@ void RenderSystem::drawText(const TextComponent& textComp, const system_context&
     text.setPosition({textComp.x, textComp.y});
     context.window.draw(text);
 }
-
 
 void RenderSystem::drawEntity(const transform_component_s& transform, sprite2D_component_s& spriteData,
                               const system_context& context) {
@@ -65,8 +65,7 @@ void RenderSystem::drawEntity(const transform_component_s& transform, sprite2D_c
     if (spriteData.is_animated && !spriteData.frames.empty()) {
         int frameIndex = spriteData.current_animation_frame;
         const rect& frame = spriteData.frames[frameIndex];
-        sprite.setTextureRect(sf::IntRect({int(frame.x), int(frame.y)},
-                                            {int(frame.width), int(frame.height)}));
+        sprite.setTextureRect(sf::IntRect({int(frame.x), int(frame.y)}, {int(frame.width), int(frame.height)}));
         spriteData.lastUpdateTime += context.dt;
         if (spriteData.lastUpdateTime >= spriteData.animation_speed) {
             if (spriteData.reverse_animation && spriteData.current_animation_frame <= 0) {
@@ -95,4 +94,3 @@ void RenderSystem::drawEntity(const transform_component_s& transform, sprite2D_c
     context.window.draw(sprite);
     return;
 }
- 

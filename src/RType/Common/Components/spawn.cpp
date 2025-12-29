@@ -15,7 +15,8 @@ void EnemySpawnSystem::update(Registry& registry, system_context context) {
 
     auto& entities = registry.getEntities<transform_component_s>();
     for (auto entity : entities) {
-        if (!registry.hasComponent<TagComponent>(entity)) continue;
+        if (!registry.hasComponent<TagComponent>(entity))
+            continue;
         auto& tags = registry.getComponent<TagComponent>(entity);
         bool is_enemy = false;
         for (const auto& tag : tags.tags) {
@@ -24,7 +25,8 @@ void EnemySpawnSystem::update(Registry& registry, system_context context) {
                 break;
             }
         }
-        if (!is_enemy) continue;
+        if (!is_enemy)
+            continue;
 
         auto& transform = registry.getComponent<transform_component_s>(entity);
         if (transform.x < -100.0f) {

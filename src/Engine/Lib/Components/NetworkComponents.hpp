@@ -24,7 +24,6 @@ struct ActionPacket {
     ActionState action_state;
 };
 
-
 /*
     template <typename T>
     network::message<T>& operator<<(network::message<T>& msg, const ComponentPacket& packet) {

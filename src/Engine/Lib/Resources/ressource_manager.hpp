@@ -11,8 +11,9 @@
 template <typename Resource>
 class ResourceManager {
    private:
-    SlotMap<Resource> _ressourceStorage;
-    std::unordered_map<std::string, handle_t<Resource>> _loaded_data;
+    SlotMap<Resource> _ressourceStorage;                                 // both
+    std::unordered_map<std::string, handle_t<Resource>> _loaded_data;    // both
+    std::unordered_map<uint32_t, handle_t<Resource>> _loaded_hash_data;  // client
 
    public:
     handle_t<Resource> load_resource(const std::string& ressource_name, const Resource& ressource_data) {

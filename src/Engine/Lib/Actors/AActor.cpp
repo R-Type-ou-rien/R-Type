@@ -128,7 +128,7 @@ void AActor::setTextureBoss(const std::string pathname) {
         sprite.frames.push_back({260, i * 143, 260, 143});
         sprite.frames.push_back({0, i * 143, 260, 143});
     }
-    
+
     if (_ecs._textureManager.is_loaded(pathname)) {
         sprite.handle = _ecs._textureManager.get_handle(pathname).value();
     } else {

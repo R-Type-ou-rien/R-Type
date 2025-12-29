@@ -43,7 +43,6 @@ class DynamicActor : public AActor {
 
     std::vector<std::pair<float, float>> getPattern();
 
-
     void setPatternActive(bool state);
 
     bool getPatternActiveState();

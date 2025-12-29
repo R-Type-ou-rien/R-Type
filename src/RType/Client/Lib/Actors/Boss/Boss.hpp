@@ -13,15 +13,15 @@
 #include "../../../../Common/Components/shooter.hpp"
 
 #ifndef BOSS_HPP_
-    #define BOSS_HPP_
+#define BOSS_HPP_
 
 class Boss : public DynamicActor {
-    public:
-        Boss(ECS& ecs);
-        ~Boss();
+   public:
+    Boss(ECS& ecs);
+    ~Boss();
 
-    protected:
-    private:
+   protected:
+   private:
 };
 
 #include <string>
@@ -63,6 +63,5 @@ class AI : public DynamicActor {
 
     void takeDamage(int damage);
 };
-
 
 #endif /* !BOSS_HPP_ */

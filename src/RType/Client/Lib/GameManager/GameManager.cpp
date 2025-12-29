@@ -66,7 +66,8 @@ void GameManager::init(ECS& ecs, InputManager& inputs) {
     //_uiEntity = ecs.registry.createEntity();
     // ecs.registry.addComponent<TextComponent>(
     //     _uiEntity,
-    //     {"HP: 100", "/usr/share/fonts/liberation-mono-fonts/LiberationMono-Regular.ttf", 30, sf::Color::White, 10, 10});
+    //     {"HP: 100", "/usr/share/fonts/liberation-mono-fonts/LiberationMono-Regular.ttf", 30, sf::Color::White, 10,
+    //     10});
 
     return;
 }
@@ -150,15 +151,15 @@ void GameManager::update(ECS& ecs, InputManager& inputs) {
         Entity player_id = _player->getId();
         if (ecs.registry.hasComponent<HealthComponent>(player_id)) {
             int hp = _player->getCurrentHealth();
-        //     if (ecs.registry.hasComponent<TextComponent>(_uiEntity)) {
-        //         auto& text = ecs.registry.getComponent<TextComponent>(_uiEntity);
-        //         text.text = "HP: " + std::to_string(hp);
-        //     }
-        // } else {
-        //     if (ecs.registry.hasComponent<TextComponent>(_uiEntity)) {
-        //         auto& text = ecs.registry.getComponent<TextComponent>(_uiEntity);
-        //         text.text = "GAME OVER";
-        //     }
+            //     if (ecs.registry.hasComponent<TextComponent>(_uiEntity)) {
+            //         auto& text = ecs.registry.getComponent<TextComponent>(_uiEntity);
+            //         text.text = "HP: " + std::to_string(hp);
+            //     }
+            // } else {
+            //     if (ecs.registry.hasComponent<TextComponent>(_uiEntity)) {
+            //         auto& text = ecs.registry.getComponent<TextComponent>(_uiEntity);
+            //         text.text = "GAME OVER";
+            //     }
         }
     }
 }
