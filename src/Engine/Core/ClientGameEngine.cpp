@@ -23,12 +23,12 @@ int ClientGameEngine::init() {
     return 0;
 }
 
-void ClientGameEngine::setUserFunction(std::function<USER_FUNCTION_TYPE> user_function) {
+void ClientGameEngine::setUserFunction(std::function<USER_FUNCTION_SIGNATURE> user_function) {
     _function = user_function;
     return;
 }
 
-void ClientGameEngine::setInitFunction(std::function<USER_FUNCTION_TYPE> user_function) {
+void ClientGameEngine::setInitFunction(std::function<USER_FUNCTION_SIGNATURE> user_function) {
     _init_function = user_function;
     return;
 }
