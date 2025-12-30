@@ -49,6 +49,7 @@ class Server : public network::ServerInterface<GameEvents> {
                                  network::message<GameEvents> msg);
     void OnClientLeaveLobby(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
     void OnClientNewLobby(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
+    void onClientSendText(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
 
     // Pre-Game event handlers
     void onClientStartGame(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);

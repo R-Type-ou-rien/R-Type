@@ -39,6 +39,9 @@ void Server::OnMessage(std::shared_ptr<Connection<GameEvents>> client, message<G
             if (_clientStates[client] == ClientState::WAITING_UDP_PING)
                 _clientStates[client] = ClientState::CONNECTED;
             break;
+        case GameEvents::C_TEAM_CHAT:
+            onClientSendText(client, msg);
+            break;
         default:
             _toGameMessages.push({msg.header.id, msg.header.user_id, msg});
             break;
@@ -356,6 +359,19 @@ void Server::onClientUnready(std::shared_ptr<Connection<GameEvents>> client, mes
         if (lobby.HasPlayer(client->GetID())) {
             _clientStates[client] = ClientState::IN_LOBBY;
             AddMessageToLobby(GameEvents::S_CANCEL_READY_BROADCAST, lobby.GetID(), client->GetID());
+            break;
+        }
+    }
+}
+
+void Server::onClientSendText(std::shared_ptr<Connection<GameEvents>> client, message<GameEvents> msg) {
+    if (_clientStates[client] != ClientState::IN_LOBBY)
+        return;
+    for (Lobby<GameEvents>& lobby : _lobbys) {
+        if (lobby.HasPlayer(client->GetID())) {
+            if (lobby.GetState() == Lobby<GameEvents>::State::IN_GAME)
+                return;
+            AddMessageToLobby(GameEvents::S_TEAM_CHAT, lobby.GetID(), client->GetID());
             break;
         }
     }
