@@ -42,7 +42,11 @@
 
 .cache
 
+# Builds from cmake compilation
 build
+build-client
+build-server
+
 .vscode
 R-type
 
