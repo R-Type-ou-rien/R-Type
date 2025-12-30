@@ -7,11 +7,8 @@
 #include "InputAction.hpp"
 #include "InputState.hpp"
 
-enum ResourceAction {
-    LOAD,
-    DELETE
-};
- 
+enum ResourceAction { LOAD, DELETE };
+
 enum PacketResourceType {
     TEXTURE,
     SOUND,
