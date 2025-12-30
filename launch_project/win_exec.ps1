@@ -2,36 +2,43 @@ if (Test-Path .\vcpkg) {
     git submodule update --init --recursive
 }
 
-if ($args[0] -eq "clean" -and (Test-Path .\vcpkg)) {
-    cmake --build build --target clean
-    if (Test-Path .\build) {
-        Remove-Item -Recurse -Force .\build
-    }
-    if (Test-Path .\Debug) {
-        Remove-Item -Recurse -Force .\Debug
-    }
-    if (Test-Path .\Release) {
-        Remove-Item -Recurse -Force .\Release
-    }
-    if (Test-Path .\r-type-client.exe) {
-        Remove-Item -Force .\r-type-client.exe
-    }
-    if (Test-Path .\r-type-server.exe) {
-        Remove-Item -Force .\r-type-server.exe
-    }
+if ($args[0] -eq "clean") {
+    Write-Host "--- Cleaning all builds ---"
+    Remove-Item -Recurse -Force -ErrorAction SilentlyContinue .\build-client, .\build-server, .\build, .\Debug, .\Release
+    Remove-Item -Force -ErrorAction SilentlyContinue .\r-type-client.exe, .\r-type-server.exe
     exit
 }
 
-if (-not (Test-Path .\build)) {
-    cmake -B build -DCMAKE_BUILD_TYPE=Debug
+function Build-Client {
+    Write-Host "--- Building Client ---"
+    cmake -B build-client -DBUILD_SERVER=OFF
+    cmake --build build-client --config Release -v
+    if (Test-Path .\Release\r-type-client.exe) {
+        Copy-Item .\Release\r-type-client.exe . -Force
+    }
 }
 
-cmake --build build --config Release -v
-
-if (Test-Path .\Release\r-type-client.exe) {
-    Copy-Item .\Release\r-type-client.exe .
+function Build-Server {
+    Write-Host "--- Building Server ---"
+    cmake -B build-server -DBUILD_SERVER=ON
+    cmake --build build-server --config Release -v
+    if (Test-Path .\Release\r-type-server.exe) {
+        Copy-Item .\Release\r-type-server.exe . -Force
+    }
 }
 
-if (Test-Path .\Debug\r-type-client.exe) {
-    Copy-Item .\Debug\r-type-client.exe .
+if ($args.Count -eq 0) {
+    Build-Client
+    Build-Server
+}
+elseif ($args[0] -eq "client") {
+    Build-Client
+}
+elseif ($args[0] -eq "server") {
+    Build-Server
+}
+else {
+    Write-Host "Unknown argument: $($args[0])"
+    Write-Host "Usage: .\win_exec.ps1 [client|server|clean]"
+    exit 1
 }
