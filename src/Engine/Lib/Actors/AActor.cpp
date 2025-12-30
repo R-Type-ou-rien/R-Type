@@ -112,7 +112,7 @@ void AActor::setTextureEnemy(const std::string pathname) {
     if (_ecs._textureManager.is_loaded(pathname)) {
         sprite.handle = _ecs._textureManager.get_handle(pathname).value();
     } else {
-        sprite.handle = _ecs._textureManager.load_resource(pathname, sf::Texture(pathname));
+        sprite.handle = _ecs._textureManager.load(pathname, sf::Texture(pathname));
     }
     _ecs.registry.addComponent<sprite2D_component_s>(_id, sprite);
     return;
@@ -132,7 +132,7 @@ void AActor::setTextureBoss(const std::string pathname) {
     if (_ecs._textureManager.is_loaded(pathname)) {
         sprite.handle = _ecs._textureManager.get_handle(pathname).value();
     } else {
-        sprite.handle = _ecs._textureManager.load_resource(pathname, sf::Texture(pathname));
+        sprite.handle = _ecs._textureManager.load(pathname, sf::Texture(pathname));
     }
     _ecs.registry.addComponent<sprite2D_component_s>(_id, sprite);
     return;
@@ -148,7 +148,7 @@ void AActor::setTexture(const std::string pathname) {
     if (_ecs._textureManager.is_loaded(pathname)) {
         sprite.handle = _ecs._textureManager.get_handle(pathname).value();
     } else {
-        sprite.handle = _ecs._textureManager.load_resource(pathname, sf::Texture(pathname));
+        sprite.handle = _ecs._textureManager.load(pathname, sf::Texture(pathname));
     }
     _ecs.registry.addComponent<sprite2D_component_s>(_id, sprite);
     return;

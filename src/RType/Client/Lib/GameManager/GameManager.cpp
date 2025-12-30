@@ -31,7 +31,7 @@ void GameManager::init(ECS& ecs, InputManager& inputs) {
         if (ecs._textureManager.is_loaded(bgPath)) {
             bg.texture_handle = ecs._textureManager.get_handle(bgPath).value();
         } else {
-            bg.texture_handle = ecs._textureManager.load_resource(bgPath, sf::Texture(bgPath));
+            bg.texture_handle = ecs._textureManager.load(bgPath, sf::Texture(bgPath));
         }
 
         ecs.registry.addComponent<BackgroundComponent>(bgEntity, bg);

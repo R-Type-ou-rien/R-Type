@@ -56,7 +56,7 @@ void RenderSystem::drawText(const TextComponent& textComp, const system_context&
 
 void RenderSystem::drawEntity(const transform_component_s& transform, sprite2D_component_s& spriteData,
                               const system_context& context) {
-    if (!context.texture_manager.has_resource(spriteData.handle))
+    if (!context.texture_manager.has(spriteData.handle))
         return;
 
     sf::Texture& texture = context.texture_manager.get_resource(spriteData.handle).value().get();

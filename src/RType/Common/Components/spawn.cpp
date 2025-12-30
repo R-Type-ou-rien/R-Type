@@ -75,7 +75,7 @@ void EnemySpawnSystem::spawnBoss(Registry& registry, system_context context) {
     registry.addComponent<TeamComponent>(boss_id, {TeamComponent::ENEMY});
     registry.addComponent<DamageOnCollision>(boss_id, {20});
 
-    handle_t<sf::Texture> handle = context.texture_manager.load_resource(
+    handle_t<sf::Texture> handle = context.texture_manager.load(
         "content/sprites/r-typesheet30.gif", sf::Texture("content/sprites/r-typesheet30.gif"));
 
     sprite2D_component_s sprite_info;
@@ -125,7 +125,7 @@ void EnemySpawnSystem::spawnEnemy(Registry& registry, system_context context, fl
     shooter.last_shot = 0.0f;
     registry.addComponent<ShooterComponent>(enemy_id, shooter);
 
-    handle_t<sf::Texture> handle = context.texture_manager.load_resource(
+    handle_t<sf::Texture> handle = context.texture_manager.load(
         "content/sprites/r-typesheet42.gif", sf::Texture("content/sprites/r-typesheet42.gif"));
 
     sprite2D_component_s sprite_info;
