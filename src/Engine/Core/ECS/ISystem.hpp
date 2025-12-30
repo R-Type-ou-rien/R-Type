@@ -13,10 +13,11 @@
 #include "Registry/registry.hpp"
 #include "InputManager.hpp"
 #include "ressource_manager.hpp"
+#include "ResourceConfig.hpp"
 
 struct system_context {
     float dt;
-    ResourceManager<sf::Texture>& texture_manager;
+    ResourceManager<TextureAsset>& texture_manager;
     sf::RenderWindow& window;
     InputManager& input;
 };
