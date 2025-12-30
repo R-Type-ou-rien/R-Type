@@ -1,9 +1,22 @@
+#pragma once
+
 #include <cstdint>
 #include <string>
 #include <vector>
 #include <random>
 #include "InputAction.hpp"
 #include "InputState.hpp"
+
+enum ResourceAction {
+    LOAD,
+    DELETE
+};
+ 
+enum PacketResourceType {
+    TEXTURE,
+    SOUND,
+    MUSIC,
+};
 
 struct NetworkIdentity {
     static constexpr std::string_view name = "NetworkIdentityComponent";
@@ -22,6 +35,13 @@ struct ActionPacket {
     static constexpr std::string_view name = "ActionPacket";
     Action action_name;
     ActionState action_state;
+};
+
+struct ResourcePacket {
+    static constexpr std::string_view name = "ResourcePacket";
+    std::vector<std::string> resources_source;
+    ResourceAction action;
+    PacketResourceType type;
 };
 
 /*
