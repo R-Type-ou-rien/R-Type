@@ -16,7 +16,7 @@ int ClientGameEngine::init() {
     _ecs.systems.addSystem<PatternSystem>();
 
     if (_init_function)
-        _init_function(_ecs, input_manager);
+        _init_function(_ecs, input_manager, _texture_manager);
 
     // if mode local
     _ecs.systems.addSystem<PhysicsSystem>();
@@ -46,7 +46,7 @@ void ClientGameEngine::handleEvent() {
 
 int ClientGameEngine::run() {
     sf::Clock clock;
-    system_context context = {0, _ecs._textureManager, _window_manager.getWindow(), input_manager};
+    system_context context = {0, _texture_manager, _window_manager.getWindow(), input_manager};
 
     this->init();
     while (_window_manager.isOpen()) {
@@ -54,7 +54,7 @@ int ClientGameEngine::run() {
         handleEvent();
         _window_manager.clear();
         if (_function)
-            _function(_ecs, input_manager);
+            _function(_ecs, input_manager, _texture_manager);
         _ecs.update(context);
         _window_manager.display();
     }

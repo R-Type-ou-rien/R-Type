@@ -11,7 +11,7 @@
 #include "Components/StandardComponents.hpp"
 #include "registry.hpp"
 
-AActor::AActor(ECS& ecs, const std::string name) : _ecs(ecs), _id(_ecs.registry.createEntity()) {
+AActor::AActor(ECS& ecs, ResourceManager<TextureAsset>& textures, const std::string name) : _ecs(ecs), _textures(textures), _id(_ecs.registry.createEntity()) {
     std::vector<std::string> tag_init;
     BoxCollisionComponent collision;
 
@@ -109,10 +109,10 @@ void AActor::setTextureEnemy(const std::string pathname) {
     for (float i = 0; i < 8; i++)
         sprite.frames.push_back({i * 32, 34, 34, 34});
 
-    if (_ecs._textureManager.is_loaded(pathname)) {
-        sprite.handle = _ecs._textureManager.get_handle(pathname).value();
+    if (_textures.is_loaded(pathname)) {
+        sprite.handle = _textures.get_handle(pathname).value();
     } else {
-        sprite.handle = _ecs._textureManager.load(pathname, sf::Texture(pathname));
+        sprite.handle = _textures.load(pathname, sf::Texture(pathname));
     }
     _ecs.registry.addComponent<sprite2D_component_s>(_id, sprite);
     return;
@@ -129,10 +129,10 @@ void AActor::setTextureBoss(const std::string pathname) {
         sprite.frames.push_back({0, i * 143, 260, 143});
     }
 
-    if (_ecs._textureManager.is_loaded(pathname)) {
-        sprite.handle = _ecs._textureManager.get_handle(pathname).value();
+    if (_textures.is_loaded(pathname)) {
+        sprite.handle = _textures.get_handle(pathname).value();
     } else {
-        sprite.handle = _ecs._textureManager.load(pathname, sf::Texture(pathname));
+        sprite.handle = _textures.load(pathname, sf::Texture(pathname));
     }
     _ecs.registry.addComponent<sprite2D_component_s>(_id, sprite);
     return;
@@ -145,10 +145,10 @@ void AActor::setTexture(const std::string pathname) {
     sprite.dimension = {0, 0, 0, 0};
     sprite.z_index = 0;
 
-    if (_ecs._textureManager.is_loaded(pathname)) {
-        sprite.handle = _ecs._textureManager.get_handle(pathname).value();
+    if (_textures.is_loaded(pathname)) {
+        sprite.handle = _textures.get_handle(pathname).value();
     } else {
-        sprite.handle = _ecs._textureManager.load(pathname, sf::Texture(pathname));
+        sprite.handle = _textures.load(pathname, sf::Texture(pathname));
     }
     _ecs.registry.addComponent<sprite2D_component_s>(_id, sprite);
     return;

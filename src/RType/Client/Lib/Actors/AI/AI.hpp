@@ -9,7 +9,7 @@
 
 class AI : public DynamicActor {
    public:
-    AI(ECS& ecs, std::pair<float, float> pos);
+    AI(ECS& ecs, std::pair<float, float> pos, ResourceManager<TextureAsset>& textures);
 
     void setProjectileType(ShooterComponent::ProjectileType type);
 

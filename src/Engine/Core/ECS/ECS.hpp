@@ -10,8 +10,8 @@
 #include <optional>
 #include <string>
 
-#include <SFML/Graphics.hpp>
-#include <SFML/Graphics/Texture.hpp>
+// #include <SFML/Graphics.hpp>
+// #include <SFML/Graphics/Texture.hpp>
 
 #include "ISystem.hpp"
 #include "InputSystem.hpp"
@@ -27,6 +27,6 @@ class ECS {
    public:
     Registry registry;
     SystemManager systems;
-    ResourceManager<sf::Texture> _textureManager;
+    // ResourceManager<sf::Texture> _textureManager;
     // InputManager input;
 };

@@ -10,7 +10,7 @@
 
 class Player : public DynamicActor {
    public:
-    Player(ECS& ecs, std::pair<float, float> pos);
+    Player(ECS& ecs, std::pair<float, float> pos, ResourceManager<TextureAsset>& textures);
 
     void setProjectileType(ShooterComponent::ProjectileType type);
 

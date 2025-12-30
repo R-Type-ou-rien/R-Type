@@ -13,7 +13,7 @@ class GameManager {
 
    public:
     GameManager();
-    void init(ECS& ecs, InputManager& inputs);
-    void update(ECS& ecs, InputManager& inputs);
+    void init(ECS& ecs, InputManager& inputs, ResourceManager<TextureAsset>& textures);
+    void update(ECS& ecs, InputManager& inputs, ResourceManager<TextureAsset>& textures);
     void loadInputSetting(InputManager& inputs);
 };

@@ -7,13 +7,13 @@
 
 #pragma once
 
-#include <SFML/Graphics/RenderWindow.hpp>
-#include <SFML/Graphics/Texture.hpp>
-
 #include "Registry/registry.hpp"
+#include "ResourceConfig.hpp"
+
+#ifdef CLIENT_BUILD
+#include <SFML/Graphics/RenderWindow.hpp>
 #include "InputManager.hpp"
 #include "ressource_manager.hpp"
-#include "ResourceConfig.hpp"
 
 struct system_context {
     float dt;
@@ -21,6 +21,11 @@ struct system_context {
     sf::RenderWindow& window;
     InputManager& input;
 };
+#else // Pour le SERVER_BUILD
+struct system_context {
+    float dt;
+};
+#endif
 
 class ISystem {
    public:

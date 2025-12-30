@@ -33,8 +33,13 @@ int main() {
     ClientGameEngine cl;
     GameManager gm;
 
-    cl.setInitFunction([&gm](ECS& ecs, InputManager& inputs) { gm.init(ecs, inputs); });
-    cl.setUserFunction([&gm](ECS& ecs, InputManager& inputs) { gm.update(ecs, inputs); });
+    cl.setInitFunction([&gm](ECS& ecs, InputManager& inputs, ResourceManager<TextureAsset>& textures)
+        { gm.init(ecs, inputs, textures); }
+    );
+
+    cl.setUserFunction([&gm](ECS& ecs, InputManager& inputs, ResourceManager<TextureAsset>& textures)
+        { gm.update(ecs, inputs, textures); }
+    );
     cl.run();
     return 0;
 }

@@ -3,7 +3,7 @@
 #include <functional>
 #include <string>
 
-#include <SFML/Graphics/Texture.hpp>
+// #include <SFML/Graphics/Texture.hpp>
 
 #include "ECS/ECS.hpp"
 #include "ECS/ISystem.hpp"
@@ -12,6 +12,7 @@
 #include "PhysicsSystem.hpp"
 #include "RenderSystem.hpp"
 #include "BackgroundSystem.hpp"
+#include "ResourceConfig.hpp"
 #include "SpawnSystem.hpp"
 #include "WindowManager.hpp"
 #include "ressource_manager.hpp"
@@ -20,13 +21,14 @@
 #define FAILURE -1
 #define WINDOW_H 1000
 #define WINDOW_W 1000
-#define USER_FUNCTION_SIGNATURE void(ECS & ecs, InputManager & inputs)
+#define USER_FUNCTION_SIGNATURE void(ECS & ecs, InputManager & inputs, ResourceManager<TextureAsset>& texture_manager)
 
 class ClientGameEngine {
    private:
     ECS _ecs;
     WindowManager _window_manager;
     InputManager input_manager;
+    ResourceManager<TextureAsset> _texture_manager;
     std::function<USER_FUNCTION_SIGNATURE> _function;
     std::function<USER_FUNCTION_SIGNATURE> _init_function;
     // client network class

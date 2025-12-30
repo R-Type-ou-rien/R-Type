@@ -13,7 +13,7 @@
 
 GameManager::GameManager() {}
 
-void GameManager::init(ECS& ecs, InputManager& inputs) {
+void GameManager::init(ECS& ecs, InputManager& inputs, ResourceManager<TextureAsset>& textures) {
     ecs.systems.addSystem<ShooterSystem>();
     ecs.systems.addSystem<Damage>();
     ecs.systems.addSystem<HealthSystem>();
@@ -28,15 +28,15 @@ void GameManager::init(ECS& ecs, InputManager& inputs) {
         bg.x_offset = 0.f;
         bg.scroll_speed = 60.f;  // pixels per second, adjust if needed
 
-        if (ecs._textureManager.is_loaded(bgPath)) {
-            bg.texture_handle = ecs._textureManager.get_handle(bgPath).value();
+        if (textures.is_loaded(bgPath)) {
+            bg.texture_handle = textures.get_handle(bgPath).value();
         } else {
-            bg.texture_handle = ecs._textureManager.load(bgPath, sf::Texture(bgPath));
+            bg.texture_handle = textures.load(bgPath, sf::Texture(bgPath));
         }
 
         ecs.registry.addComponent<BackgroundComponent>(bgEntity, bg);
     }
-    _player = std::make_unique<Player>(ecs, std::pair<float, float>{100.f, 300.f});
+    _player = std::make_unique<Player>(ecs, std::pair<float, float>{100.f, 300.f}, textures);
     _player->setTexture("content/sprites/r-typesheet42.gif");
     _player->setTextureDimension(rect{0, 0, 32, 16});
     _player->setFireRate(0.5);
@@ -47,7 +47,7 @@ void GameManager::init(ECS& ecs, InputManager& inputs) {
     _player->addCollisionTag("GROUND");
 
     loadInputSetting(inputs);
-    auto enemy = std::make_unique<AI>(ecs, std::pair<float, float>(600.f, 200.f));
+    auto enemy = std::make_unique<AI>(ecs, std::pair<float, float>(600.f, 200.f), textures);
     enemy->setTextureEnemy("content/sprites/r-typesheet8.gif");
     enemy->setPatternType(PatternComponent::SINUSOIDAL);
     enemy->setLifePoint(10);
@@ -146,7 +146,7 @@ void GameManager::loadInputSetting(InputManager& inputs) {
     });
 }
 
-void GameManager::update(ECS& ecs, InputManager& inputs) {
+void GameManager::update(ECS& ecs, InputManager& inputs, ResourceManager<TextureAsset> &textures) {
     if (_player) {
         Entity player_id = _player->getId();
         if (ecs.registry.hasComponent<HealthComponent>(player_id)) {

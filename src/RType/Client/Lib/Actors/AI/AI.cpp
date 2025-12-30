@@ -2,7 +2,7 @@
 #include "src/RType/Common/Components/damage.hpp"
 #include "src/RType/Common/Components/health.hpp"
 
-AI::AI(ECS& ecs, std::pair<float, float> pos) : DynamicActor(ecs, false, "AI") {
+AI::AI(ECS& ecs, std::pair<float, float> pos, ResourceManager<TextureAsset>& textures) : DynamicActor(ecs, false, textures, "AI") {
     ResourceStat lifepoint;
     lifepoint.max = 100;
     lifepoint.current = 100;
