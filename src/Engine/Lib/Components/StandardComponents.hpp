@@ -38,7 +38,6 @@ struct PatternComponent {
     float time_elapsed = 0.0f;
 };
 
-
 struct ResourceStat {
     float current;
     float max;
@@ -104,7 +103,6 @@ struct TextComponent {
 };
 
 using ActionCallback = std::function<void(Registry& registry, system_context context, Entity current_entity)>;
-
 
 struct ActionScript {
     std::unordered_map<Action, ActionCallback> actionOnPressed;

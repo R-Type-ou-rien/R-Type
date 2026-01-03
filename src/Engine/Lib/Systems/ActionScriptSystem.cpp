@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <iostream>
+#include <vector>
 
 #include "Components/StandardComponents.hpp"
 #include "registry.hpp"
@@ -29,5 +30,4 @@ void ActionScriptSystem::update(Registry& registry, system_context context) {
             }
         }
     }
-    return;
 }

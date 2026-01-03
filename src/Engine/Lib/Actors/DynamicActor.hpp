@@ -1,5 +1,7 @@
 #include <string>
+#include <unordered_map>
 #include <utility>
+#include <vector>
 #include "AActor.hpp"
 #include "InputAction.hpp"
 
@@ -42,7 +44,6 @@ class DynamicActor : public AActor {
     void setPatternType(PatternComponent::PatternType type);
 
     std::vector<std::pair<float, float>> getPattern();
-
 
     void setPatternActive(bool state);
 

@@ -128,7 +128,7 @@ void AActor::setTextureBoss(const std::string pathname) {
         sprite.frames.push_back({260, i * 143, 260, 143});
         sprite.frames.push_back({0, i * 143, 260, 143});
     }
-    
+
     if (_ecs._textureManager.is_loaded(pathname)) {
         sprite.handle = _ecs._textureManager.get_handle(pathname).value();
     } else {
@@ -215,7 +215,6 @@ void AActor::setCollisionTags(std::vector<std::string> tags) {
 
 void AActor::addCollisionTag(const std::string tag) {
     std::vector<std::string>& tags = _ecs.registry.getComponent<BoxCollisionComponent>(_id).tagCollision;
-    ;
 
     tags.push_back(tag);
     return;
@@ -236,5 +235,4 @@ void AActor::emptyCollisionTags() {
     std::vector<std::string>& tags = _ecs.registry.getComponent<BoxCollisionComponent>(_id).tagCollision;
 
     tags.clear();
-    return;
 }

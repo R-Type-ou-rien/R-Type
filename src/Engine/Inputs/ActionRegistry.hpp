@@ -15,7 +15,7 @@ class ActionRegistry {
    public:
     const Action& registerAction(const std::string& name);
 
-    std::vector<Action>& getActions(void) { return this->_actions; };
+    std::vector<Action>& getActions(void) { return this->_actions; }
 
     bool exists(const std::string& name) const;
 

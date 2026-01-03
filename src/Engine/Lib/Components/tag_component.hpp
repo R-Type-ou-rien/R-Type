@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include "registry.hpp"
 
 struct CollidedEntity {

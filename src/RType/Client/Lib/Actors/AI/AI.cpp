@@ -1,4 +1,5 @@
 #include "AI.hpp"
+#include <utility>
 #include "src/RType/Common/Components/damage.hpp"
 #include "src/RType/Common/Components/health.hpp"
 
@@ -99,9 +100,7 @@ void AI::setCurrentHealth(int health) {
     }
 }
 
-void AI::takeDamage(int damage)
-
-{
+void AI::takeDamage(int damage) {
     HealthComponent& comp = _ecs.registry.getComponent<HealthComponent>(_id);
 
     comp.current_hp -= damage;

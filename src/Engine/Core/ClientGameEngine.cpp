@@ -1,3 +1,5 @@
+#include <string>
+
 #include "ClientGameEngine.hpp"
 #include "CollisionSystem.hpp"
 #include "ActionScriptSystem.hpp"

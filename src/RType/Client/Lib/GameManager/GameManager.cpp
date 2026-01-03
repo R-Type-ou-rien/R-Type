@@ -3,6 +3,7 @@
 #include <memory>
 #include <ostream>
 #include <algorithm>
+#include <string>
 #include <utility>
 #include "src/RType/Common/Components/health.hpp"
 #include "src/RType/Common/Components/shooter.hpp"

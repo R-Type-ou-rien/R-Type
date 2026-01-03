@@ -6,8 +6,7 @@
 */
 
 #ifndef SCORESYSTEM_HPP_
-    #define SCORESYSTEM_HPP_
-
+#define SCORESYSTEM_HPP_
 
 #include "../../../Engine/Core/ECS/ISystem.hpp"
 #include "../../../Engine/Core/ECS/Registry/registry.hpp"
@@ -20,14 +19,14 @@ struct AddScoreComponent {
     int points = 0;
 };
 
-class ScoreSystem  : public ISystem {
-    public:
-        ScoreSystem() = default;
-        ~ScoreSystem() = default;
+class ScoreSystem : public ISystem {
+   public:
+    ScoreSystem() = default;
+    ~ScoreSystem() = default;
 
-        void update(Registry& registry, system_context context) override;
-    private:
+    void update(Registry& registry, system_context context) override;
 
+   private:
 };
 
 #endif /* !SCORESYSTEM_HPP_ */

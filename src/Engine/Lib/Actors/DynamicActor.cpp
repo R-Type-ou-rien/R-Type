@@ -1,6 +1,7 @@
 #include "DynamicActor.hpp"
 
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -164,8 +165,7 @@ void DynamicActor::setPattern(std::vector<std::pair<float, float>> way_points) {
     return;
 }
 
-void DynamicActor::setPatternType(PatternComponent::PatternType type)
-{
+void DynamicActor::setPatternType(PatternComponent::PatternType type) {
     if (_playable)
         return;
     PatternComponent& comp = _ecs.registry.getComponent<PatternComponent>(_id);
@@ -174,9 +174,7 @@ void DynamicActor::setPatternType(PatternComponent::PatternType type)
     return;
 }
 
-std::vector<std::pair<float, float>> DynamicActor::getPattern()
-
-{
+std::vector<std::pair<float, float>> DynamicActor::getPattern() {
     if (_playable)
         return std::vector<std::pair<float, float>>();
     PatternComponent comp = _ecs.registry.getComponent<PatternComponent>(_id);
