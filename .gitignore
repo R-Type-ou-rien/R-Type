@@ -43,6 +43,7 @@
 .cache
 
 build
+cmake-build-debug/
 .vscode
 R-type
 

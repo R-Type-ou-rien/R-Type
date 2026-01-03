@@ -9,6 +9,7 @@
 #include "../NetworkInterface/Connection.hpp"
 #include "../NetworkInterface/ServerInterface.hpp"
 #include "../Network.hpp"
+#include "NetworkManager/ServerNetworkManager.hpp"
 
 #define DATABASE_FILE "rtype.db"
 #define ALPHA_NUMERIC "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -72,7 +73,8 @@ class Server : public network::ServerInterface<GameEvents> {
                 msg << data;
                 msg.header.id = event;
                 msg.header.size = msg.size();
-                if (std::find(_udpEvents.begin(), _udpEvents.end(), event) != _udpEvents.end()) {
+
+                if (_networkManager.isUdpEvent(event)) {
                     MessageClientUDP(client, msg);
                 } else {
                     MessageClient(client, msg);
@@ -109,13 +111,7 @@ class Server : public network::ServerInterface<GameEvents> {
     std::unordered_map<std::shared_ptr<network::Connection<GameEvents>>, ClientState> _clientStates;
     std::unordered_map<std::shared_ptr<network::Connection<GameEvents>>, std::string> _clientUsernames;
 
-    std::vector<GameEvents> _udpEvents = {
-        GameEvents::S_SNAPSHOT,
-        GameEvents::C_INPUT,
-
-        GameEvents::C_VOICE_PACKET,
-        GameEvents::S_VOICE_RELAY,
-    };
+    ServerNetworkManager _networkManager;
 
     std::queue<coming_message> _toGameMessages;
 

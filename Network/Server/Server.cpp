@@ -8,6 +8,13 @@
 using namespace network;
 
 void Server::OnMessage(std::shared_ptr<Connection<GameEvents>> client, message<GameEvents>& msg) {
+    auto validation = _networkManager.validateClientPacket(msg.header.id, msg);
+    if (!validation.isValid()) {
+        std::cerr << "[SERVER] Packet validation failed for client " << client->GetID() << ": "
+                  << validation.errorMessage << "\n";
+        return;
+    }
+
     switch (msg.header.id) {
         case GameEvents::C_REGISTER:
             std::cout << "[SERVER] Register\n";
@@ -63,7 +70,7 @@ bool Server::OnClientConnect(std::shared_ptr<Connection<GameEvents>> client) {
 
     // Confirmation connection (TOUJOURS PAS UN COMMENTAIRE DE GEMINI OU AUTRE)
     std::cout << "[DEBUG] OnClientConnect: Send ID\n";
-    AddMessageToPlayer(GameEvents::S_SEND_ID, client->GetID(), 0);
+    AddMessageToPlayer(GameEvents::S_SEND_ID, client->GetID(), client->GetID());
     // Demander un paquet UDP pour save le endpint  udp (eh vsy j'ai meme pas besoin de parler la)
     std::cout << "[DEBUG] OnClientConnect: Confirm UDP\n";
     AddMessageToPlayer(GameEvents::S_CONFIRM_UDP, client->GetID(), 0);

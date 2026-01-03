@@ -1,9 +1,11 @@
 #pragma once
 
 #include <cstdint>
+#include <iostream>
 
 #include "../NetworkInterface/ClientInterface.hpp"
 #include "../Network.hpp"
+#include "NetworkManager/NetworkManager.hpp"
 
 #define TOKEN_FILENAME ".secrettoken"
 
@@ -22,10 +24,29 @@ class Client : public ClientInterface<GameEvents> {
     void AddMessageToServer(GameEvents event, uint32_t id, const T& data) {
         network::message<GameEvents> msg;
         msg << data;
+        SendValidatedMessage(event, msg);
+    }
+
+    void AddMessageToServer(GameEvents event, uint32_t id) {
+        network::message<GameEvents> msg;
+        SendValidatedMessage(event, msg);
+    }
+
+   private:
+    template <typename T>
+    void SendValidatedMessage(GameEvents event, network::message<T>& msg) {
         msg.header.id = event;
         msg.header.user_id = _id;
         msg.header.size = msg.size();
-        if (std::find(_udpEvents.begin(), _udpEvents.end(), event) != _udpEvents.end()) {
+
+        // Validate packet before sending
+        auto validation = _networkManager.validateServerPacket(event, msg);
+        if (!validation.isValid()) {
+            std::cerr << "[CLIENT] Packet validation failed: " << validation.errorMessage << std::endl;
+            return;
+        }
+
+        if (_networkManager.isUdpEvent(event)) {
             SendUdp(msg);
         } else {
             Send(msg);
@@ -34,12 +55,6 @@ class Client : public ClientInterface<GameEvents> {
 
    private:
     uint32_t _id = 0;
-    std::vector<GameEvents> _udpEvents = {
-        GameEvents::S_SNAPSHOT,
-        GameEvents::C_INPUT,
-
-        GameEvents::C_VOICE_PACKET,
-        GameEvents::S_VOICE_RELAY,
-    };
+    NetworkManager _networkManager;
 };
 }  // namespace network
