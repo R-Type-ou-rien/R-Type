@@ -18,6 +18,7 @@ class Client : public ClientInterface<GameEvents> {
 
     void LoginServer(std::string username, std::string password);
     void LoginServerToken();
+    void LoginAnonymous();
     void RegisterServer(std::string username, std::string password);
 
     template <typename T>

@@ -122,12 +122,17 @@ int main(int argc, char* argv[]) {
                 std::cout << "Usage: register <username> <password>\n";
             }
         } else if (command == "login") {
-            std::string user, pass;
-            if (ss >> user >> pass) {
-                client.LoginServer(user, pass);
+            std::string username, password;
+            // Try to read username and password. If fail, Assume anonymous
+            std::string lineRest;
+            std::getline(ss, lineRest);
+            std::stringstream ss2(lineRest);
+            if (ss2 >> username >> password) {
+                client.LoginServer(username, password);
                 std::cout << "[CMD] Login sent.\n";
             } else {
-                std::cout << "Usage: login <username> <password>\n";
+                client.LoginAnonymous();
+                std::cout << "[CMD] Anonymous login sent.\n";
             }
         } else if (command == "create") {
             std::string lobbyName;

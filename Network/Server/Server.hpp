@@ -44,6 +44,8 @@ class Server : public network::ServerInterface<GameEvents> {
     void OnClientRegister(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
     void OnClientLogin(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
     void OnClientLoginToken(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
+    void OnClientLoginAnonymous(std::shared_ptr<network::Connection<GameEvents>> client,
+                                network::message<GameEvents> msg);
     void OnClientListLobby(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
     void OnClientJoinLobby(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
     void OnClientJoinRandomLobby(std::shared_ptr<network::Connection<GameEvents>> client,

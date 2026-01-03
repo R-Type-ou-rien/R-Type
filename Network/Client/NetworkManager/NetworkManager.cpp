@@ -10,15 +10,16 @@ NetworkManager::NetworkManager() {
 }
 
 void NetworkManager::initializeValidClientEvents() {
-    _validClientEvents = {C_PING_SERVER, C_REGISTER,    C_LOGIN,      C_LOGIN_TOKEN,        C_DISCONNECT,
-                          C_CONFIRM_UDP, C_LIST_ROOMS,  C_JOIN_ROOM,  C_JOINT_RANDOM_LOBBY, C_ROOM_LEAVE,
-                          C_NEW_LOBBY,   C_READY,       C_GAME_START, C_CANCEL_READY,       C_INPUT,
-                          C_TEAM_CHAT,   C_VOICE_PACKET};
+    _validClientEvents = {C_PING_SERVER, C_REGISTER,    C_LOGIN,       C_LOGIN_TOKEN, C_LOGIN_ANONYMOUS,
+                          C_DISCONNECT,  C_CONFIRM_UDP, C_LIST_ROOMS,  C_JOIN_ROOM,   C_JOINT_RANDOM_LOBBY,
+                          C_ROOM_LEAVE,  C_NEW_LOBBY,   C_READY,       C_GAME_START,  C_CANCEL_READY,
+                          C_INPUT,       C_TEAM_CHAT,   C_VOICE_PACKET};
 }
 
 void NetworkManager::initializeTcpEvents() {
-    _tcpEvents = {C_PING_SERVER, C_REGISTER,  C_LOGIN, C_LOGIN_TOKEN, C_DISCONNECT,   C_LIST_ROOMS, C_JOIN_ROOM,
-                  C_ROOM_LEAVE,  C_NEW_LOBBY, C_READY, C_GAME_START,  C_CANCEL_READY, C_TEAM_CHAT};
+    _tcpEvents = {C_PING_SERVER, C_REGISTER,   C_LOGIN,        C_LOGIN_TOKEN, C_LOGIN_ANONYMOUS,
+                  C_DISCONNECT,  C_LIST_ROOMS, C_JOIN_ROOM,    C_ROOM_LEAVE,  C_NEW_LOBBY,
+                  C_READY,       C_GAME_START, C_CANCEL_READY, C_TEAM_CHAT};
 }
 
 void NetworkManager::initializeUdpEvents() {
@@ -29,6 +30,7 @@ void NetworkManager::initializePayloadConstraints() {
     _payloadConstraints[C_REGISTER] = {sizeof(network::connection_info), sizeof(network::connection_info)};
     _payloadConstraints[C_LOGIN] = {sizeof(network::connection_info), sizeof(network::connection_info)};
     _payloadConstraints[C_LOGIN_TOKEN] = {sizeof(uint32_t) + 1, 256};
+    _payloadConstraints[C_LOGIN_ANONYMOUS] = {0, 0};
     _payloadConstraints[C_JOIN_ROOM] = {sizeof(uint32_t), sizeof(uint32_t)};
     _payloadConstraints[C_ROOM_LEAVE] = {sizeof(uint32_t), sizeof(uint32_t)};
     _payloadConstraints[C_NEW_LOBBY] = {sizeof(uint32_t) + 1, 128};
