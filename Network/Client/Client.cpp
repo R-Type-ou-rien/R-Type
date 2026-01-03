@@ -32,6 +32,10 @@ void network::Client::LoginServer(std::string username, std::string password) {
     AddMessageToServer(GameEvents::C_LOGIN, 0, info);
 }
 
+void network::Client::LoginAnonymous() {
+    AddMessageToServer(GameEvents::C_LOGIN_ANONYMOUS, 0);
+}
+
 void network::Client::RegisterServer(std::string username, std::string password) {
     connection_info info;
     std::strncpy(info.username, username.c_str(), 32);

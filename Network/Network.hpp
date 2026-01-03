@@ -22,6 +22,7 @@ enum class GameEvents : uint32_t {
     S_REGISTER_KO,
     C_LOGIN,
     C_LOGIN_TOKEN,
+    C_LOGIN_ANONYMOUS,
     S_INVALID_TOKEN,
     S_LOGIN_OK,
     S_LOGIN_KO,
