@@ -19,13 +19,16 @@ class ClientInterface {
 
             _connection = std::make_unique<Connection<T>>(Connection<T>::owner::client, _context,
                                                           asio::ip::tcp::socket(_context), _qMessagesIn, _socketUDP);
-            _connection->SetUDPEndpoint(_serverUDPEndpoint);
-
             _connection->ConnectToServer(endpoints);
 
             _serverUDPEndpoint = asio::ip::udp::endpoint(endpoints.begin()->endpoint().address(), port);
+            std::cout << "[CLIENT_DEBUG] Resolved Server UDP Endpoint: " << _serverUDPEndpoint << "\n";
+            _connection->SetUDPEndpoint(_serverUDPEndpoint);
 
             _socketUDP.open(asio::ip::udp::v4());
+            _socketUDP.bind(asio::ip::udp::endpoint(asio::ip::udp::v4(), 0));
+            std::cout << "[CLIENT_DEBUG] UDP Socket bound to local port: " << _socketUDP.local_endpoint().port()
+                      << "\n";
 
             ReceiveUDP();
 

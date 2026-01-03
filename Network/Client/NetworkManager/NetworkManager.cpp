@@ -10,51 +10,19 @@ NetworkManager::NetworkManager() {
 }
 
 void NetworkManager::initializeValidClientEvents() {
-    _validClientEvents = {
-        C_PING_SERVER,
-        C_REGISTER,
-        C_LOGIN,
-        C_LOGIN_TOKEN,
-        C_DISCONNECT,
-        C_CONFIRM_UDP,
-        C_LIST_ROOMS,
-        C_JOIN_ROOM,
-        C_JOINT_RANDOM_LOBBY,
-        C_ROOM_LEAVE,
-        C_NEW_LOBBY,
-        C_READY,
-        C_GAME_START,
-        C_CANCEL_READY,
-        C_INPUT,
-        C_TEAM_CHAT,
-        C_VOICE_PACKET
-    };
+    _validClientEvents = {C_PING_SERVER, C_REGISTER,    C_LOGIN,      C_LOGIN_TOKEN,        C_DISCONNECT,
+                          C_CONFIRM_UDP, C_LIST_ROOMS,  C_JOIN_ROOM,  C_JOINT_RANDOM_LOBBY, C_ROOM_LEAVE,
+                          C_NEW_LOBBY,   C_READY,       C_GAME_START, C_CANCEL_READY,       C_INPUT,
+                          C_TEAM_CHAT,   C_VOICE_PACKET};
 }
 
 void NetworkManager::initializeTcpEvents() {
-    _tcpEvents = {
-        C_PING_SERVER,
-        C_REGISTER,
-        C_LOGIN,
-        C_LOGIN_TOKEN,
-        C_DISCONNECT,
-        C_LIST_ROOMS,
-        C_JOIN_ROOM,
-        C_ROOM_LEAVE,
-        C_NEW_LOBBY,
-        C_READY,
-        C_GAME_START,
-        C_CANCEL_READY,
-        C_TEAM_CHAT
-    };
+    _tcpEvents = {C_PING_SERVER, C_REGISTER,  C_LOGIN, C_LOGIN_TOKEN, C_DISCONNECT,   C_LIST_ROOMS, C_JOIN_ROOM,
+                  C_ROOM_LEAVE,  C_NEW_LOBBY, C_READY, C_GAME_START,  C_CANCEL_READY, C_TEAM_CHAT};
 }
 
 void NetworkManager::initializeUdpEvents() {
-    _udpEvents = {
-        C_INPUT,
-        C_CONFIRM_UDP,
-        C_VOICE_PACKET
-    };
+    _udpEvents = {C_INPUT, C_CONFIRM_UDP, C_VOICE_PACKET};
 }
 
 void NetworkManager::initializePayloadConstraints() {

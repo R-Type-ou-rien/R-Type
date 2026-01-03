@@ -16,6 +16,7 @@ include_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}/Client
         ${CMAKE_CURRENT_SOURCE_DIR}/Client/NetworkManager
         ${CMAKE_CURRENT_SOURCE_DIR}/Server
+        ${CMAKE_CURRENT_SOURCE_DIR}/Server/NetworkManager
 )
 
 # Common sources for Network Library
@@ -36,6 +37,8 @@ set(NETWORK_SOURCES
         Client/NetworkManager/NetworkManager.hpp
         Server/Server.cpp
         Server/Server.hpp
+        Server/NetworkManager/ServerNetworkManager.cpp
+        Server/NetworkManager/ServerNetworkManager.hpp
 )
 
 add_library(NetworkLib STATIC ${NETWORK_SOURCES})

@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
                 std::cout << "Usage: create <lobby_name>\n";
             }
         } else if (command == "list") {
-            client.AddMessageToServer(GameEvents::C_LIST_ROOMS, 0, NULL);
+            client.AddMessageToServer(GameEvents::C_LIST_ROOMS, 0);
             std::cout << "[CMD] List Rooms sent.\n";
         } else if (command == "join") {
             uint32_t id;
@@ -151,7 +151,7 @@ int main(int argc, char* argv[]) {
                 std::cout << "Usage: join <lobby_id>\n";
             }
         } else if (command == "leave") {
-            client.AddMessageToServer(GameEvents::C_ROOM_LEAVE, 0, NULL);
+            client.AddMessageToServer(GameEvents::C_ROOM_LEAVE, 0);
             std::cout << "[CMD] Leave Room sent.\n";
         }
     }
