@@ -87,9 +87,9 @@ void RenderSystem::drawEntity(const transform_component_s& transform, sprite2D_c
             spriteData.lastUpdateTime = 0.f;
         }
     } else if (spriteData.dimension.width > 0 && spriteData.dimension.height > 0) {
-        sprite.setTextureRect(sf::IntRect(
-            {static_cast<int>(spriteData.dimension.x), static_cast<int>(spriteData.dimension.y)},
-            {static_cast<int>(spriteData.dimension.width), static_cast<int>(spriteData.dimension.height)}));
+        sprite.setTextureRect(
+            sf::IntRect({static_cast<int>(spriteData.dimension.x), static_cast<int>(spriteData.dimension.y)},
+                        {static_cast<int>(spriteData.dimension.width), static_cast<int>(spriteData.dimension.height)}));
     }
     sprite.setPosition({transform.x, transform.y});
     sprite.setScale({transform.scale_x, transform.scale_y});

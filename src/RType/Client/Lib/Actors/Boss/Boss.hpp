@@ -25,4 +25,3 @@ class Boss : public DynamicActor {
 };
 
 #endif /* !BOSS_HPP_ */
-
