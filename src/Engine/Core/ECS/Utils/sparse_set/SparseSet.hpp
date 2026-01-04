@@ -1,122 +1,164 @@
 #include <cstddef>
 #include <iostream>
+#include <iterator>
 #include <ostream>
 #include <vector>
+#include "Components/NetworkComponents.hpp"
+#include "Hash/Hash.hpp"
+#include "ResourceConfig.hpp"
+#include "Context.hpp"
+
 
 #ifndef SPARSE_HPP
+#define SPARSE_HPP
+
 
 class ISparseSet {
    public:
     virtual ~ISparseSet() = default;
     virtual void removeId(std::size_t Entity) = 0;
     virtual bool has(std::size_t Entity) const = 0;
+    virtual std::vector<std::size_t> getUpdatedEntities() = 0;
+    virtual ComponentPacket createPacket(uint32_t entity, SerializationContext& context) = 0;
+    virtual void markAllUpdated() = 0;
 };
 
 template <typename data_type>
 class SparseSet : public ISparseSet {
    private:
-    /**
-        A vector containing the index of the data in the dense vector at the id position.
-        The index equal -1 if their is no data
-    */
     std::vector<int> _sparse;
-
-    /** A vector containing the data stored contigously */
     std::vector<data_type> _dense;
-
-    /**
-        A vector containing id at their data index positions.
-        The id are stored contigously
-    */
     std::vector<std::size_t> _reverse_dense;
+    std::vector<bool> _dirty_dense;
 
    public:
-    /**
-        A function to add a new data to the given id
-        @param std::size_t id
-    */
-    void addID(std::size_t id, const data_type& data) {
-        if (id >= _sparse.size()) {
-            _sparse.resize(id + 1, -1);
-        }
-        if (_sparse[id] != -1) {
-            _dense[_sparse[id]] = data;
-            return;
-        }
-        _sparse[id] = _dense.size();
-        _dense.push_back(data);
-        _reverse_dense.push_back(id);
-        return;
-    }
-
-    /**
-        A function to remove a data from the given id
-        @param std::size_t id
-    */
-    void removeId(std::size_t id) override {
-        if (!has(id)) {
-            std::cerr << "Error: removeId: " << id << " does not have any components from this type." << std::endl;
-            return;
-        }
-        std::size_t indexToRemove = _sparse[id];
-        std::size_t lastIndex = _dense.size() - 1;
-        if (indexToRemove != lastIndex) {
-            data_type lastData = _dense[lastIndex];
-            std::size_t lastEntity = _reverse_dense[lastIndex];
-
-            _dense[indexToRemove] = lastData;
-            _reverse_dense[indexToRemove] = lastEntity;
-            _sparse[lastEntity] = indexToRemove;
-        }
-        _sparse[id] = -1;
-        _dense.pop_back();
-        _reverse_dense.pop_back();
-        std::cout << "Component from entity " << id << " successfully removed." << std::endl;
-        return;
-    }
-
-    /**
-        A function to check if an id has a data
-    */
-    bool has(std::size_t id) const override {
-        if (id < _sparse.size() && _sparse[id] > -1)
-            return true;
-        return false;
-    }
-
-    /**
-        A function to get the data of a given id
-        @param std::size_t id
-        @return The function returns reference to the corresponding data
-    */
-    data_type& getDataFromId(std::size_t id) {
-        if (!has(id)) {
-            throw std::runtime_error("Entity does not have component!");
-        }
-        return _dense[_sparse[id]];
-    }
-
-    // /**
-    //     A function to get the id of a given data
-    //     @param data_type data
-    //     @return The function returns the corresponding id
-    // */
-    // std::size_t getIdFromData(data_type data) const
-    // {
-    //     return _reverse_dense[data];
-    // }
-
-    /**
-        A function to get the data's list stored
-        @return The function returns the dense vector
-    */
-    std::vector<data_type>& getDataList() { return _dense; }
-
-    /**
-        A function to get the id's list stored
-        @return The function returns the _reverse_dense vector
-    */
-    std::vector<std::size_t>& getIdList() { return _reverse_dense; }
+    void addID(std::size_t id, const data_type& data);
+    void removeId(std::size_t id) override;
+    bool has(std::size_t id) const override;
+    data_type& getDataFromId(std::size_t id);
+    const data_type& getConstDataFromId(std::size_t id);
+    std::vector<data_type>& getDataList();
+    std::vector<std::size_t>& getIdList();
+    std::vector<std::size_t> getUpdatedEntities() override;
+    ComponentPacket createPacket(uint32_t entity, SerializationContext& context) override;
+    void markAllUpdated() override;
 };
+
+template<typename data_type>
+void SparseSet<data_type>::addID(std::size_t id, const data_type& data) {
+    if (id >= _sparse.size()) {
+        _sparse.resize(id + 1, -1);
+    }
+    if (_sparse[id] != -1) {
+        _dense[_sparse[id]] = data;
+        _dirty_dense[_sparse[id]] = true;
+        return;
+    }
+    _sparse[id] = _dense.size();
+    _dense.push_back(data);
+    _dirty_dense.push_back(true);
+    _reverse_dense.push_back(id);
+    return;
+}
+
+template<typename data_type>
+void SparseSet<data_type>::removeId(std::size_t id) {
+    if (!has(id)) {
+        std::cerr << "Error: removeId: " << id << " does not have any components from this type." << std::endl;
+        return;
+    }
+    std::size_t indexToRemove = _sparse[id];
+    std::size_t lastIndex = _dense.size() - 1;
+    if (indexToRemove != lastIndex) {
+        data_type lastData = _dense[lastIndex];
+        std::size_t lastEntity = _reverse_dense[lastIndex];
+
+        _dense[indexToRemove] = lastData;
+        _reverse_dense[indexToRemove] = lastEntity;
+        _sparse[lastEntity] = indexToRemove;
+        _dirty_dense[indexToRemove] = _dirty_dense[lastIndex];
+    }
+    _sparse[id] = -1;
+    _dense.pop_back();
+    _dirty_dense.pop_back();
+    _reverse_dense.pop_back();
+    std::cout << "Component from entity " << id << " successfully removed." << std::endl;
+    return;
+}
+
+template<typename data_type>
+bool SparseSet<data_type>::has(std::size_t id) const {
+    if (id < _sparse.size() && _sparse[id] > -1)
+        return true;
+    return false;
+}
+
+template<typename data_type>
+data_type& SparseSet<data_type>::getDataFromId(std::size_t id) {
+    if (!has(id)) {
+        throw std::runtime_error("Entity does not have component!");
+    }
+    return _dense[_sparse[id]];
+}
+
+template<typename data_type>
+const data_type& SparseSet<data_type>::getConstDataFromId(std::size_t id) {
+    if (!has(id)) {
+        throw std::runtime_error("Entity does not have component!");
+    }
+    return _dense[_sparse[id]];
+}
+
+template<typename data_type>
+std::vector<data_type>& SparseSet<data_type>::getDataList() { return _dense; }
+
+template<typename data_type>
+std::vector<std::size_t>& SparseSet<data_type>::getIdList() { return _reverse_dense; }
+
+template<typename data_type>
+std::vector<std::size_t> SparseSet<data_type>::getUpdatedEntities()
+{
+    std::vector<std::size_t> updated_entities;
+
+    for (std::size_t i = 0; i < _dirty_dense.size(); ++i) {
+        if (_dirty_dense[i]) {
+            updated_entities.push_back(_reverse_dense[i]);
+            _dirty_dense[i] = false;
+        }
+    }
+    return updated_entities;
+}
+
+template<typename data_type>
+void SparseSet<data_type>::markAllUpdated()
+{
+    for (std::size_t i = 0; i < _dirty_dense.size(); ++i) {
+        _dirty_dense[i] = true;
+    }
+}
+
+#include <type_traits>
+#include "Components/serialize/serialize.hpp"
+#include "Components/serialize/StandardComponents_serialize.hpp"
+#include "Components/serialize/tag_component_serialize.hpp"
+#include "Components/StandardComponents.hpp"
+
+template<typename data_type>
+ComponentPacket SparseSet<data_type>::createPacket(uint32_t entity, SerializationContext& context)
+{
+    ComponentPacket packet;
+    packet.entity_guid = entity;
+    data_type& comp = getDataFromId(entity);
+
+    packet.component_type = Hash::fnv1a(data_type::name);
+
+    // trouver un autre moyen de check (exemple: verifier s'il y a un handle)
+    if constexpr (std::is_same_v<data_type, sprite2D_component_s> || std::is_same_v<data_type, BackgroundComponent>) {
+        serialize::serialize(packet.data, comp, context.textureManager);
+    } else {
+        serialize::serialize(packet.data, comp);
+    }    
+    return packet;
+}
 
 #endif

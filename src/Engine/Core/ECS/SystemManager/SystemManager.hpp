@@ -1,10 +1,3 @@
-/*
-** EPITECH PROJECT, 2025
-** R-Type
-** File description:
-** SystemManager.hpp
-*/
-
 #pragma once
 
 #include <memory>

@@ -1,6 +1,6 @@
 #include <vector>
 #include "damage.hpp"
-#include "src/ecs/common/box_collision/box_collision.hpp"
+#include "Components/StandardComponents.hpp"
 
 #include "health.hpp"
 // #include "collision.hpp"

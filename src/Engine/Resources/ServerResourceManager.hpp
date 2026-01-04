@@ -4,6 +4,7 @@
 #include <type_traits>
 #include <vector>
 #include "Components/NetworkComponents.hpp"
+#include "ResourceConfig.hpp"
 #include "ResourceManagerBase.hpp"
 
 template <typename ResourceType>
@@ -41,6 +42,15 @@ class ServerResourceManager : public ResourceManagerBase<ServerResourceManager<R
             packet.resources_source.push_back(source);
         _resources_to_load.clear();
         packet.action = ResourceAction::LOAD;
+        if constexpr (std::is_same<ResourceType, TextureAsset>::value) {
+            packet.type = PacketResourceType::TEXTURE;
+        }
+        // if constexpr (std::is_same<ResourceType, >::value) {
+        //     packet.type = PacketResourceType::MUSIC;
+        // }
+        // if constexpr (std::is_same<ResourceType, >::value) {
+        //     packet.type = PacketResourceType::SOUND;
+        // }
         return packet;
     }
 
@@ -51,8 +61,14 @@ class ServerResourceManager : public ResourceManagerBase<ServerResourceManager<R
             packet.resources_source.push_back(source);
         _resources_to_delete.clear();
         packet.action = ResourceAction::DELETE;
-        // if constexpr (std::is_same<typename, typename>) {
-
+        if constexpr (std::is_same<ResourceType, TextureAsset>::value) {
+            packet.type = PacketResourceType::TEXTURE;
+        }
+        // if constexpr (std::is_same<ResourceType, >::value) {
+        //     packet.type = PacketResourceType::MUSIC;
+        // }
+        // if constexpr (std::is_same<ResourceType, >::value) {
+        //     packet.type = PacketResourceType::SOUND;
         // }
         return packet;
     }

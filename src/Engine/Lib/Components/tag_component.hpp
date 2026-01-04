@@ -1,8 +1,9 @@
 #pragma once
 
-#include "registry.hpp"
+#include <vector>
+#include "EcsType.hpp"
 
 struct CollidedEntity {
-    static constexpr std::string_view name = "CollidedEntity";
+    static constexpr auto name = "CollidedEntity";
     std::vector<Entity> tags;
 };

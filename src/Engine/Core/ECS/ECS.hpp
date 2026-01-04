@@ -27,6 +27,4 @@ class ECS {
    public:
     Registry registry;
     SystemManager systems;
-    // ResourceManager<sf::Texture> _textureManager;
-    // InputManager input;
 };

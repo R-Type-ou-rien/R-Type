@@ -55,7 +55,7 @@ class AActor {
 
     void setAnimation(bool state);
 
-    bool isAnimmated();
+    bool isAnimated();
 
     void setAnimationSpeed(float speed);
 

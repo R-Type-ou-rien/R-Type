@@ -18,3 +18,8 @@ void Registry::destroyEntity(Entity id) {
     _deadEntities.push_back(id);
     return;
 }
+
+Pool_storage& Registry::getComponentPools()
+{
+    return _pools;
+}

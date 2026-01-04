@@ -19,7 +19,7 @@ void RenderSystem::update(Registry& registry, system_context context) {
         if (registry.hasComponent<transform_component_s>(entity)) {
             if (!registry.hasComponent<sprite2D_component_s>(entity))
                 continue;
-            transform_component_s& transform = registry.getComponent<transform_component_s>(entity);
+            const transform_component_s& transform = registry.getConstComponent<transform_component_s>(entity);
             sprite2D_component_s& spriteData = registry.getComponent<sprite2D_component_s>(entity);
             drawEntity(transform, spriteData, context);
         }
@@ -27,7 +27,7 @@ void RenderSystem::update(Registry& registry, system_context context) {
 
     const auto& textIds = registry.getEntities<TextComponent>();
     for (Entity entity : textIds) {
-        auto& textComp = registry.getComponent<TextComponent>(entity);
+        auto& textComp = registry.getConstComponent<TextComponent>(entity);
         drawText(textComp, context);
     }
 

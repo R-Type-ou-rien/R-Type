@@ -11,7 +11,7 @@ void Damage::update(Registry& registry, system_context context) {
     for (auto attacker : attackers) {
         if (!registry.hasComponent<BoxCollisionComponent>(attacker))
             continue;
-        auto& collider = registry.getComponent<BoxCollisionComponent>(attacker);
+        auto& collider = registry.getConstComponent<BoxCollisionComponent>(attacker);
 
         if (collider.collision.tags.empty()) {
             continue;
@@ -19,7 +19,7 @@ void Damage::update(Registry& registry, system_context context) {
 
         for (auto& hit : collider.collision.tags) {
             Entity hit_id = hit;
-            auto& dmg = registry.getComponent<DamageOnCollision>(attacker);
+            auto& dmg = registry.getConstComponent<DamageOnCollision>(attacker);
 
             if (!registry.hasComponent<HealthComponent>(hit_id))
                 continue;
@@ -27,8 +27,8 @@ void Damage::update(Registry& registry, system_context context) {
             auto& health = registry.getComponent<HealthComponent>(hit_id);
 
             if (registry.hasComponent<TeamComponent>(attacker) && registry.hasComponent<TeamComponent>(hit_id)) {
-                auto& teamA = registry.getComponent<TeamComponent>(attacker);
-                auto& teamB = registry.getComponent<TeamComponent>(hit_id);
+                auto& teamA = registry.getConstComponent<TeamComponent>(attacker);
+                auto& teamB = registry.getConstComponent<TeamComponent>(hit_id);
                 if (teamA.team == teamB.team)
                     continue;
             }

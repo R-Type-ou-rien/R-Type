@@ -10,7 +10,7 @@
 void ActionScriptSystem::update(Registry& registry, system_context context) {
     std::vector<size_t> entities = registry.getEntities<ActionScript>();
     for (auto entity : entities) {
-        ActionScript& script = registry.getComponent<ActionScript>(entity);
+        const ActionScript& script = registry.getConstComponent<ActionScript>(entity);
         for (auto& [action_name, function] : script.actionOnPressed) {
             if (context.input.isJustPressed(action_name)) {
                 function(registry, context, entity);

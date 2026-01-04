@@ -9,13 +9,15 @@
 #include <typeinfo>
 
 #include "sparse_set/SparseSet.hpp"
+#include "EcsType.hpp"
 
-using Entity = uint32_t;
+
+using Pool_storage = std::unordered_map<std::type_index, std::unique_ptr<ISparseSet>>;
 
 class Registry {
    private:
     Entity _nextId = 0;
-    std::unordered_map<std::type_index, std::unique_ptr<ISparseSet>> _pools;
+    Pool_storage _pools;
     std::vector<Entity> _deadEntities;
 
    public:
@@ -69,13 +71,24 @@ class Registry {
     }
 
     /**
-        A function to get the component of an entity
+        A function to get the reference from a component of an entity.
+        The function add a dirty flag on the component so it can be send
         @param Entity entity
         @return The function returns a reference to a component
     */
     template <typename Component>
     Component& getComponent(Entity entity) {
         return getPool<Component>().getDataFromId(entity);
+    }
+
+    /**
+        A function to get the component of an entity
+        @param Entity entity
+        @return The function returns a reference to a component
+    */
+    template <typename Component>
+    const Component& getConstComponent(Entity entity) {
+        return getPool<Component>().getConstDataFromId(entity);
     }
 
     /**
@@ -113,4 +126,7 @@ class Registry {
     std::vector<std::size_t>& getEntities() {
         return getPool<Component>().getIdList();
     }
+
+    Pool_storage& getComponentPools();
+
 };

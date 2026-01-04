@@ -36,6 +36,14 @@ class ResourceManagerBase {
         return std::nullopt;
     }
 
+    virtual std::optional<std::string> get_name(handle_t<ResourceType> handle) {
+        for (auto& it : this->_loaded_resource) {
+            if (it.second == handle)
+                return it.first;
+        }
+        return std::nullopt;
+    }
+
     void remove(handle_t<ResourceType> handle) { static_cast<Derived*>(this)->remove(handle); }
 
     std::vector<ResourceType> get_all() { return this->_resource_storage.get_data_list(); }

@@ -27,19 +27,19 @@ void DynamicActor::addResourceStat(const std::string res_name, ResourceStat& res
 }
 
 float DynamicActor::getMaxResourceStat(const std::string name) {
-    ResourceComponent comp = _ecs.registry.getComponent<ResourceComponent>(_id);
+    ResourceComponent comp = _ecs.registry.getConstComponent<ResourceComponent>(_id);
 
     return comp.resources[name].max;
 }
 
 float DynamicActor::getCurrentResourceStat(const std::string name) {
-    ResourceComponent comp = _ecs.registry.getComponent<ResourceComponent>(_id);
+    ResourceComponent comp = _ecs.registry.getConstComponent<ResourceComponent>(_id);
 
     return comp.resources[name].current;
 }
 
 float DynamicActor::getRegenResourceStat(const std::string name) {
-    ResourceComponent comp = _ecs.registry.getComponent<ResourceComponent>(_id);
+    ResourceComponent comp = _ecs.registry.getConstComponent<ResourceComponent>(_id);
 
     return comp.resources[name].regenRate;
 }
@@ -66,7 +66,7 @@ void DynamicActor::setRegenResourceStat(const std::string res_name, float regen)
 }
 
 bool DynamicActor::hasResource(const std::string name) {
-    ResourceComponent& comp = _ecs.registry.getComponent<ResourceComponent>(_id);
+    const ResourceComponent& comp = _ecs.registry.getConstComponent<ResourceComponent>(_id);
 
     return comp.resources.find(name) != comp.resources.end();
 }
@@ -90,7 +90,7 @@ void DynamicActor::setVelocity(std::pair<float, float> velocity) {
 }
 
 std::pair<float, float> DynamicActor::getvelocity() {
-    Velocity2D comp = _ecs.registry.getComponent<Velocity2D>(_id);
+    Velocity2D comp = _ecs.registry.getConstComponent<Velocity2D>(_id);
 
     return std::pair<float, float>(comp.vx, comp.vy);
 }
@@ -138,19 +138,19 @@ void DynamicActor::removeActionCallbackOnReleased(Action action_name) {
 }
 
 std::unordered_map<Action, ActionCallback> DynamicActor::getActionCallbackOnPressed() {
-    ActionScript comp = _ecs.registry.getComponent<ActionScript>(_id);
+    ActionScript comp = _ecs.registry.getConstComponent<ActionScript>(_id);
 
     return comp.actionOnPressed;
 }
 
 std::unordered_map<Action, ActionCallback> DynamicActor::getActionCallbackPressed() {
-    ActionScript comp = _ecs.registry.getComponent<ActionScript>(_id);
+    ActionScript comp = _ecs.registry.getConstComponent<ActionScript>(_id);
 
     return comp.actionPressed;
 }
 
 std::unordered_map<Action, ActionCallback> DynamicActor::getActionCallbackOnReleased() {
-    ActionScript comp = _ecs.registry.getComponent<ActionScript>(_id);
+    ActionScript comp = _ecs.registry.getConstComponent<ActionScript>(_id);
 
     return comp.actionOnReleased;
 }
@@ -178,7 +178,7 @@ std::vector<std::pair<float, float>> DynamicActor::getPattern()
 {
     if (_playable)
         return std::vector<std::pair<float, float>>();
-    PatternComponent comp = _ecs.registry.getComponent<PatternComponent>(_id);
+    PatternComponent comp = _ecs.registry.getConstComponent<PatternComponent>(_id);
 
     return comp.waypoints;
 }
@@ -195,7 +195,7 @@ void DynamicActor::setPatternActive(bool state) {
 bool DynamicActor::getPatternActiveState() {
     if (_playable)
         return false;
-    PatternComponent comp = _ecs.registry.getComponent<PatternComponent>(_id);
+    PatternComponent comp = _ecs.registry.getConstComponent<PatternComponent>(_id);
 
     return comp.is_active;
 }
@@ -212,7 +212,7 @@ void DynamicActor::setPatternLoop(bool state) {
 bool DynamicActor::getPatternLoopState() {
     if (_playable)
         return false;
-    PatternComponent comp = _ecs.registry.getComponent<PatternComponent>(_id);
+    PatternComponent comp = _ecs.registry.getConstComponent<PatternComponent>(_id);
 
     return comp.loop;
 }
@@ -229,7 +229,7 @@ void DynamicActor::setPatternSpeed(float speed) {
 float DynamicActor::getPatternSpeed() {
     if (_playable)
         return -1;
-    PatternComponent& comp = _ecs.registry.getComponent<PatternComponent>(_id);
+    PatternComponent comp = _ecs.registry.getConstComponent<PatternComponent>(_id);
 
     return comp.speed;
 }

@@ -16,26 +16,26 @@ enum PacketResourceType {
 };
 
 struct NetworkIdentity {
-    static constexpr std::string_view name = "NetworkIdentityComponent";
+    static constexpr auto name = "NetworkIdentityComponent";
     uint32_t guid;
     uint32_t owner_user_id;
 };
 
 struct ComponentPacket {
-    static constexpr std::string_view name = "ComponentPacket";
+    static constexpr auto name = "ComponentPacket";
     uint32_t entity_guid;
     uint32_t component_type;
     std::vector<uint8_t> data;
 };
 
 struct ActionPacket {
-    static constexpr std::string_view name = "ActionPacket";
+    static constexpr auto name = "ActionPacket";
     Action action_name;
     ActionState action_state;
 };
 
 struct ResourcePacket {
-    static constexpr std::string_view name = "ResourcePacket";
+    static constexpr auto name = "ResourcePacket";
     std::vector<std::string> resources_source;
     ResourceAction action;
     PacketResourceType type;

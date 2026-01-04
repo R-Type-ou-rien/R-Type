@@ -17,14 +17,14 @@ void BoxCollision::update(Registry& registry, system_context context) {
             continue;
         if (!registry.hasComponent<TagComponent>(entity_a))
             continue;
-        auto& transform_a = registry.getComponent<transform_component_s>(entity_a);
+        auto& transform_a = registry.getConstComponent<transform_component_s>(entity_a);
         auto& collision_comp = registry.getComponent<BoxCollisionComponent>(entity_a);
         for (auto entity_b : entities) {
             if (entity_a == entity_b)  // check if its the same entity
                 continue;
             if (!registry.hasComponent<TagComponent>(entity_b))  // check if the entity has a transform
                 continue;
-            if (!hasTagToCollide(collision_comp, registry.getComponent<TagComponent>(entity_b)))
+            if (!hasTagToCollide(collision_comp, registry.getConstComponent<TagComponent>(entity_b)))
                 continue;
             if (!registry.hasComponent<transform_component_s>(entity_b))  // check if the entity has a transform
                 continue;
@@ -32,9 +32,9 @@ void BoxCollision::update(Registry& registry, system_context context) {
                 continue;
             if (!registry.hasComponent<sprite2D_component_s>(entity_b))
                 continue;
-            auto& transform_b = registry.getComponent<transform_component_s>(entity_b);
-            auto& sprite_a = registry.getComponent<sprite2D_component_s>(entity_a);
-            auto& sprite_b = registry.getComponent<sprite2D_component_s>(entity_b);
+            auto& transform_b = registry.getConstComponent<transform_component_s>(entity_b);
+            auto& sprite_a = registry.getConstComponent<sprite2D_component_s>(entity_a);
+            auto& sprite_b = registry.getConstComponent<sprite2D_component_s>(entity_b);
             if (checkSize(transform_a, transform_b, {sprite_a.dimension.height, sprite_a.dimension.width},
                           {sprite_b.dimension.height, sprite_b.dimension.width})) {
                 collision_comp.collision.tags.push_back(entity_b);
@@ -58,7 +58,7 @@ bool BoxCollision::checkSize(const transform_component_s a, const transform_comp
     return colision_x && colision_y;
 }
 
-bool BoxCollision::hasTagToCollide(BoxCollisionComponent entity_a, TagComponent entity_b) {
+bool BoxCollision::hasTagToCollide(BoxCollisionComponent entity_a, const TagComponent& entity_b) {
     if (entity_a.tagCollision.empty()) {
         return false;
     }
