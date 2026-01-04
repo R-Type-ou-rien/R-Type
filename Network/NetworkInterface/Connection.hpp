@@ -126,9 +126,13 @@ class Connection : public std::enable_shared_from_this<Connection<T>> {
         std::memcpy(Buffer.data(), &msg.header, sizeof(msg.header));
         if (!msg.body.empty())
             std::memcpy(Buffer.data() + sizeof(msg.header), msg.body.data(), msg.body.size());
-        _udpSocket.async_send_to(asio::buffer(Buffer.data(), Buffer.size()), _udpRemoteEndpoint,
+
+        auto send_buffer = asio::buffer(Buffer.data(), Buffer.size());
+        _udpSocket.async_send_to(send_buffer, _udpRemoteEndpoint,
                                  [this, Buffer = std::move(Buffer)](std::error_code ec, std::size_t bytes_sent) {
                                      if (!ec) {
+                                         std::cout << "[CLIENT_DEBUG] Sent " << bytes_sent << " bytes to "
+                                                   << _udpRemoteEndpoint << "\n";
                                          if (!_udpMessagesOut.empty()) {
                                              WriteUDP();
                                          }
@@ -150,10 +154,12 @@ class Connection : public std::enable_shared_from_this<Connection<T>> {
                                      _socket.close();
                                      return;
                                  }
+
                                  if (_msgTemporaryIn.header.size > 0) {
                                      _msgTemporaryIn.body.resize(_msgTemporaryIn.header.size);
                                      ReadBody();
                                  } else {
+                                     _msgTemporaryIn.body.clear();
                                      AddToIncomingMessageQueue();
                                  }
                              } else {

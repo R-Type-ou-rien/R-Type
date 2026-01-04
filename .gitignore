@@ -44,6 +44,7 @@
 
 # Builds from cmake compilation
 build
+cmake-build-debug/
 build-client
 build-server
 

@@ -8,6 +8,13 @@
 using namespace network;
 
 void Server::OnMessage(std::shared_ptr<Connection<GameEvents>> client, message<GameEvents>& msg) {
+    auto validation = _networkManager.validateClientPacket(msg.header.id, msg);
+    if (!validation.isValid()) {
+        std::cerr << "[SERVER] Packet validation failed for client " << client->GetID() << ": "
+                  << validation.errorMessage << "\n";
+        return;
+    }
+
     switch (msg.header.id) {
         case GameEvents::C_REGISTER:
             std::cout << "[SERVER] Register\n";
@@ -18,6 +25,9 @@ void Server::OnMessage(std::shared_ptr<Connection<GameEvents>> client, message<G
             break;
         case GameEvents::C_LOGIN_TOKEN:
             OnClientLoginToken(client, msg);
+            break;
+        case GameEvents::C_LOGIN_ANONYMOUS:
+            OnClientLoginAnonymous(client, msg);
             break;
         case GameEvents::C_LIST_ROOMS:
             OnClientListLobby(client, msg);
@@ -38,6 +48,9 @@ void Server::OnMessage(std::shared_ptr<Connection<GameEvents>> client, message<G
             std::cout << "[SERVER] Confirm UDP\n";
             if (_clientStates[client] == ClientState::WAITING_UDP_PING)
                 _clientStates[client] = ClientState::CONNECTED;
+            break;
+        case GameEvents::C_TEAM_CHAT:
+            onClientSendText(client, msg);
             break;
         default:
             _toGameMessages.push({msg.header.id, msg.header.user_id, msg});
@@ -60,7 +73,7 @@ bool Server::OnClientConnect(std::shared_ptr<Connection<GameEvents>> client) {
 
     // Confirmation connection (TOUJOURS PAS UN COMMENTAIRE DE GEMINI OU AUTRE)
     std::cout << "[DEBUG] OnClientConnect: Send ID\n";
-    AddMessageToPlayer(GameEvents::S_SEND_ID, client->GetID(), 0);
+    AddMessageToPlayer(GameEvents::S_SEND_ID, client->GetID(), client->GetID());
     // Demander un paquet UDP pour save le endpint  udp (eh vsy j'ai meme pas besoin de parler la)
     std::cout << "[DEBUG] OnClientConnect: Confirm UDP\n";
     AddMessageToPlayer(GameEvents::S_CONFIRM_UDP, client->GetID(), 0);
@@ -153,6 +166,23 @@ void Server::OnClientLoginToken(std::shared_ptr<Connection<GameEvents>> client, 
     _clientUsernames[client] = _database.GetNameById(userID);
     _clientStates[client] = ClientState::LOGGED_IN;
     AddMessageToPlayer(GameEvents::S_LOGIN_OK, client->GetID(), NULL);
+}
+
+void Server::OnClientLoginAnonymous(std::shared_ptr<Connection<GameEvents>> client, message<GameEvents> msg) {
+    if (_clientStates[client] != ClientState::CONNECTED) {
+        AddMessageToPlayer(GameEvents::ASK_UDP, client->GetID(), NULL);
+        return;
+    }
+
+    std::string guestName = "Guest_" + std::to_string(client->GetID());
+    _clientUsernames[client] = guestName;
+    _clientStates[client] = ClientState::LOGGED_IN;
+
+    std::cout << "[SERVER] Anonymous login for client " << client->GetID() << " as " << guestName << "\n";
+
+    // Send empty token
+    char token[32] = {0};
+    AddMessageToPlayer(GameEvents::S_LOGIN_OK, client->GetID(), token);
 }
 
 void Server::OnClientListLobby(std::shared_ptr<Connection<GameEvents>> client, message<GameEvents> msg) {
@@ -356,6 +386,19 @@ void Server::onClientUnready(std::shared_ptr<Connection<GameEvents>> client, mes
         if (lobby.HasPlayer(client->GetID())) {
             _clientStates[client] = ClientState::IN_LOBBY;
             AddMessageToLobby(GameEvents::S_CANCEL_READY_BROADCAST, lobby.GetID(), client->GetID());
+            break;
+        }
+    }
+}
+
+void Server::onClientSendText(std::shared_ptr<Connection<GameEvents>> client, message<GameEvents> msg) {
+    if (_clientStates[client] != ClientState::IN_LOBBY)
+        return;
+    for (Lobby<GameEvents>& lobby : _lobbys) {
+        if (lobby.HasPlayer(client->GetID())) {
+            if (lobby.GetState() == Lobby<GameEvents>::State::IN_GAME)
+                return;
+            AddMessageToLobby(GameEvents::S_TEAM_CHAT, lobby.GetID(), client->GetID());
             break;
         }
     }

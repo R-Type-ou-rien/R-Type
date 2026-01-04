@@ -9,6 +9,7 @@
 #include "../NetworkInterface/Connection.hpp"
 #include "../NetworkInterface/ServerInterface.hpp"
 #include "../Network.hpp"
+#include "NetworkManager/ServerNetworkManager.hpp"
 
 #define DATABASE_FILE "rtype.db"
 #define ALPHA_NUMERIC "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -43,12 +44,15 @@ class Server : public network::ServerInterface<GameEvents> {
     void OnClientRegister(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
     void OnClientLogin(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
     void OnClientLoginToken(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
+    void OnClientLoginAnonymous(std::shared_ptr<network::Connection<GameEvents>> client,
+                                network::message<GameEvents> msg);
     void OnClientListLobby(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
     void OnClientJoinLobby(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
     void OnClientJoinRandomLobby(std::shared_ptr<network::Connection<GameEvents>> client,
                                  network::message<GameEvents> msg);
     void OnClientLeaveLobby(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
     void OnClientNewLobby(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
+    void onClientSendText(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
 
     // Pre-Game event handlers
     void onClientStartGame(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
@@ -71,7 +75,8 @@ class Server : public network::ServerInterface<GameEvents> {
                 msg << data;
                 msg.header.id = event;
                 msg.header.size = msg.size();
-                if (std::find(_udpEvents.begin(), _udpEvents.end(), event) != _udpEvents.end()) {
+
+                if (_networkManager.isUdpEvent(event)) {
                     MessageClientUDP(client, msg);
                 } else {
                     MessageClient(client, msg);
@@ -108,13 +113,7 @@ class Server : public network::ServerInterface<GameEvents> {
     std::unordered_map<std::shared_ptr<network::Connection<GameEvents>>, ClientState> _clientStates;
     std::unordered_map<std::shared_ptr<network::Connection<GameEvents>>, std::string> _clientUsernames;
 
-    std::vector<GameEvents> _udpEvents = {
-        GameEvents::S_SNAPSHOT,
-        GameEvents::C_INPUT,
-
-        GameEvents::C_VOICE_PACKET,
-        GameEvents::S_VOICE_RELAY,
-    };
+    ServerNetworkManager _networkManager;
 
     std::queue<coming_message> _toGameMessages;
 

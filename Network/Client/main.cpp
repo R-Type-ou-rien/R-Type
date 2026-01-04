@@ -121,12 +121,17 @@ int main(int argc, char* argv[]) {
                 std::cout << "Usage: register <username> <password>\n";
             }
         } else if (command == "login") {
-            std::string user, pass;
-            if (ss >> user >> pass) {
-                client.LoginServer(user, pass);
+            std::string username, password;
+            // Try to read username and password. If fail, Assume anonymous
+            std::string lineRest;
+            std::getline(ss, lineRest);
+            std::stringstream ss2(lineRest);
+            if (ss2 >> username >> password) {
+                client.LoginServer(username, password);
                 std::cout << "[CMD] Login sent.\n";
             } else {
-                std::cout << "Usage: login <username> <password>\n";
+                client.LoginAnonymous();
+                std::cout << "[CMD] Anonymous login sent.\n";
             }
         } else if (command == "create") {
             std::string lobbyName;
@@ -139,7 +144,7 @@ int main(int argc, char* argv[]) {
                 std::cout << "Usage: create <lobby_name>\n";
             }
         } else if (command == "list") {
-            client.AddMessageToServer(GameEvents::C_LIST_ROOMS, 0, NULL);
+            client.AddMessageToServer(GameEvents::C_LIST_ROOMS, 0);
             std::cout << "[CMD] List Rooms sent.\n";
         } else if (command == "join") {
             uint32_t id;
@@ -150,7 +155,7 @@ int main(int argc, char* argv[]) {
                 std::cout << "Usage: join <lobby_id>\n";
             }
         } else if (command == "leave") {
-            client.AddMessageToServer(GameEvents::C_ROOM_LEAVE, 0, NULL);
+            client.AddMessageToServer(GameEvents::C_ROOM_LEAVE, 0);
             std::cout << "[CMD] Leave Room sent.\n";
         }
     }
