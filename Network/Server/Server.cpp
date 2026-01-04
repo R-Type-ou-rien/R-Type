@@ -26,6 +26,9 @@ void Server::OnMessage(std::shared_ptr<Connection<GameEvents>> client, message<G
         case GameEvents::C_LOGIN_TOKEN:
             OnClientLoginToken(client, msg);
             break;
+        case GameEvents::C_LOGIN_ANONYMOUS:
+            OnClientLoginAnonymous(client, msg);
+            break;
         case GameEvents::C_LIST_ROOMS:
             OnClientListLobby(client, msg);
             break;
@@ -163,6 +166,23 @@ void Server::OnClientLoginToken(std::shared_ptr<Connection<GameEvents>> client, 
     _clientUsernames[client] = _database.GetNameById(userID);
     _clientStates[client] = ClientState::LOGGED_IN;
     AddMessageToPlayer(GameEvents::S_LOGIN_OK, client->GetID(), NULL);
+}
+
+void Server::OnClientLoginAnonymous(std::shared_ptr<Connection<GameEvents>> client, message<GameEvents> msg) {
+    if (_clientStates[client] != ClientState::CONNECTED) {
+        AddMessageToPlayer(GameEvents::ASK_UDP, client->GetID(), NULL);
+        return;
+    }
+
+    std::string guestName = "Guest_" + std::to_string(client->GetID());
+    _clientUsernames[client] = guestName;
+    _clientStates[client] = ClientState::LOGGED_IN;
+
+    std::cout << "[SERVER] Anonymous login for client " << client->GetID() << " as " << guestName << "\n";
+
+    // Send empty token
+    char token[32] = {0};
+    AddMessageToPlayer(GameEvents::S_LOGIN_OK, client->GetID(), token);
 }
 
 void Server::OnClientListLobby(std::shared_ptr<Connection<GameEvents>> client, message<GameEvents> msg) {
