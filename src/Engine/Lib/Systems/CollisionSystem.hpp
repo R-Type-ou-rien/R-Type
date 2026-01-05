@@ -14,5 +14,5 @@ class BoxCollision : public ISystem {
    private:
     bool checkSize(const transform_component_s a, const transform_component_s b, std::pair<float, float> size,
                    std::pair<float, float> size_b);
-    bool hasTagToCollide(BoxCollisionComponent entity_a, TagComponent entity_b);
+    bool hasTagToCollide(BoxCollisionComponent entity_a, const TagComponent& entity_b);
 };

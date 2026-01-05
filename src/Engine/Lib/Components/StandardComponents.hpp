@@ -7,11 +7,12 @@
 
 #pragma once
 
-#include <SFML/Graphics/Rect.hpp>
-#include <SFML/Graphics/Texture.hpp>
-#include <SFML/System/String.hpp>
-#include <SFML/Window/Joystick.hpp>
-#include <SFML/Window/Keyboard.hpp>
+// #include <SFML/Graphics/Rect.hpp>
+// #include <SFML/Graphics/Texture.hpp>
+#include <SFML/Graphics/Color.hpp>
+// #include <SFML/System/String.hpp>
+// #include <SFML/Window/Joystick.hpp>
+// #include <SFML/Window/Keyboard.hpp>
 #include <functional>
 #include <map>
 #include <string>
@@ -21,11 +22,14 @@
 
 #include "Components/tag_component.hpp"
 #include "ECS/Utils/slot_map/slot_map.hpp"
-#include "ISystem.hpp"
+#include "Context.hpp"
 #include "InputAction.hpp"
-#include "registry.hpp"
+#include "ResourceConfig.hpp"
 
+class Registry;
+/**  Comment: Split les components par 'context' d'utilisation ?? ex: visuel, sonore, physic etc...*/
 struct PatternComponent {
+    static constexpr auto name = "PatternComponent";
     enum PatternType { WAYPOINT, STRAIGHT, SINUSOIDAL };
     PatternType type = WAYPOINT;
     std::vector<std::pair<float, float>> waypoints;
@@ -38,7 +42,6 @@ struct PatternComponent {
     float time_elapsed = 0.0f;
 };
 
-
 struct ResourceStat {
     float current;
     float max;
@@ -46,11 +49,13 @@ struct ResourceStat {
 };
 
 struct ResourceComponent {
+    static constexpr auto name = "ResourceComponent";
     std::map<std::string, ResourceStat> resources;
     std::map<std::string, std::function<void()>> empty_effects;
 };
 
 struct transform_component_s {
+    static constexpr auto name = "TransformComponent";
     float x;
     float y;
     float scale_x = 1.0;
@@ -59,6 +64,7 @@ struct transform_component_s {
 };
 
 struct Velocity2D {
+    static constexpr auto name = "Velocity2DComponent";
     float vx;
     float vy;
 };
@@ -71,13 +77,15 @@ struct rect {
 };
 
 struct BoxCollisionComponent {
+    static constexpr auto name = "CollisionComponent";
     CollidedEntity collision;
     std::vector<std::string> tagCollision;
     std::function<void(Registry& registry, system_context context, Entity current_entity)> callbackOnCollide;
 };
 
 struct sprite2D_component_s {
-    handle_t<sf::Texture> handle;
+    static constexpr auto name = "Sprite2DComponent";
+    handle_t<TextureAsset> handle;
     rect dimension = {0.0f, 0.0f, 0.0f, 0.0f};
     bool is_animated = false;
     std::vector<rect> frames;
@@ -91,10 +99,12 @@ struct sprite2D_component_s {
 };
 
 struct TagComponent {
+    static constexpr auto name = "TagComponent";
     std::vector<std::string> tags;
 };
 
 struct TextComponent {
+    static constexpr auto name = "TextComponent";
     std::string text;
     std::string fontPath;
     unsigned int characterSize = 24;
@@ -105,33 +115,37 @@ struct TextComponent {
 
 using ActionCallback = std::function<void(Registry& registry, system_context context, Entity current_entity)>;
 
-
 struct ActionScript {
+    static constexpr auto name = "ActionEffectComponent";
     std::unordered_map<Action, ActionCallback> actionOnPressed;
     std::unordered_map<Action, ActionCallback> actionOnReleased;
     std::unordered_map<Action, ActionCallback> actionPressed;
 };
 
-struct Shooter {
-    sf::Keyboard::Key shootKey;
-    float projectileSpeed;
-    float projectileLifetime;
-    float fireRate;                 // tirs par seconde
-    float timeSinceLastShot = 0.f;  // état interne, géré par le système
-};
+// struct Shooter {
+//     static constexpr auto name = "ShooterComponent";
+//     sf::Keyboard::Key shootKey;
+//     float projectileSpeed;
+//     float projectileLifetime;
+//     float fireRate;                 // tirs par seconde
+//     float timeSinceLastShot = 0.f;  // état interne, géré par le système
+// };
 
 struct Projectile {
+    static constexpr auto name = "ProjectileComponent";
     float lifetime;
 };
 
 struct Scroll {
+    static constexpr auto name = "ScrollComponent";
     float scroll_speed_x;
     float scroll_speed_y;
     bool is_paused;
 };
 
 struct BackgroundComponent {
-    handle_t<sf::Texture> texture_handle;
+    static constexpr auto name = "BackgroundComponent";
+    handle_t<TextureAsset> texture_handle;
     float x_offset = 0.f;
     float scroll_speed = 0.f;
 };

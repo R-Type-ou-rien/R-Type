@@ -7,19 +7,8 @@
 
 #pragma once
 
-#include <SFML/Graphics/RenderWindow.hpp>
-#include <SFML/Graphics/Texture.hpp>
-
 #include "Registry/registry.hpp"
-#include "InputManager.hpp"
-#include "ressource_manager.hpp"
-
-struct system_context {
-    float dt;
-    ResourceManager<sf::Texture>& texture_manager;
-    sf::RenderWindow& window;
-    InputManager& input;
-};
+#include "Context.hpp"
 
 class ISystem {
    public:

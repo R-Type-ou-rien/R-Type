@@ -7,11 +7,11 @@
 
 #pragma once
 
-#include <SFML/Window/Keyboard.hpp>
+// #include <SFML/Window/Keyboard.hpp>
 
 #include "Components/StandardComponents.hpp"
 #include "ISystem.hpp"
-#include "InputManager.hpp"
+#include "InputConfig.hpp"
 
 class InputSystem : public ISystem {
    public:

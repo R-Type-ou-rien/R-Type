@@ -10,7 +10,7 @@ class DynamicActor : public AActor {
     bool _playable;
 
    public:
-    DynamicActor(ECS& ecs, bool playable, const std::string name = "DynamicActor");
+    DynamicActor(ECS& ecs, bool playable, ResourceManager<TextureAsset>& textures, const std::string name = "DynamicActor");
 
     void addResourceStat(const std::string res_name, ResourceStat& resource);
 
@@ -42,7 +42,6 @@ class DynamicActor : public AActor {
     void setPatternType(PatternComponent::PatternType type);
 
     std::vector<std::pair<float, float>> getPattern();
-
 
     void setPatternActive(bool state);
 

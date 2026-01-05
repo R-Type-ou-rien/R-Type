@@ -1,0 +1,49 @@
+/*
+** EPITECH PROJECT, 2025
+** R-Type
+** File description:
+** Boss
+*/
+
+#include <string>
+#include <utility>
+#include "DynamicActor.hpp"
+#include "Components/StandardComponents.hpp"
+#include "../../../../Common/Components/team_component.hpp"
+#include "../../../../Common/Components/shooter.hpp"
+
+#ifndef BOSS_HPP_
+#define BOSS_HPP_
+
+class Boss : public DynamicActor {
+   public:
+    Boss(ECS& ecs, std::pair<float, float> pos, ResourceManager<TextureAsset>& textures);
+
+    void setProjectileType(ShooterComponent::ProjectileType type);
+
+    ShooterComponent::ProjectileType getProjectileType();
+
+    void setShootingState(bool state);
+
+    bool isShooting();
+
+    void setFireRate(double fire_rate);
+
+    double getFireRate();
+
+    void setTeam(TeamComponent::Team team);
+
+    TeamComponent::Team getTeam();
+
+    void setLifePoint(int lifePoint);
+
+    int getCurrentHealth();
+
+    int getMaxHealth();
+
+    void setCurrentHealth(int health);
+
+    void takeDamage(int damage);
+};
+
+#endif /* !BOSS_HPP_ */

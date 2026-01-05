@@ -1,6 +1,5 @@
 #include "AActor.hpp"
 
-#include <SFML/Graphics/Texture.hpp>
 #include <algorithm>
 #include <iostream>
 #include <ostream>
@@ -9,17 +8,16 @@
 #include <vector>
 
 #include "Components/StandardComponents.hpp"
+#include "ResourceConfig.hpp"
 #include "registry.hpp"
 
-AActor::AActor(ECS& ecs, const std::string name) : _ecs(ecs), _id(_ecs.registry.createEntity()) {
+AActor::AActor(ECS& ecs, ResourceManager<TextureAsset>& textures, const std::string name) : _ecs(ecs), _textures(textures), _id(_ecs.registry.createEntity()) {
     std::vector<std::string> tag_init;
     BoxCollisionComponent collision;
 
     tag_init.insert(tag_init.cbegin(), name);
     _ecs.registry.addComponent<TagComponent>(_id, {tag_init});
-
     _ecs.registry.addComponent<transform_component_s>(_id, {0, 0});
-
     _ecs.registry.addComponent<BoxCollisionComponent>(_id, collision);
     return;
 }
@@ -33,7 +31,7 @@ Entity AActor::getId() {
 }
 
 std::vector<std::string> AActor::getTags() {
-    return _ecs.registry.getComponent<TagComponent>(_id).tags;
+    return _ecs.registry.getConstComponent<TagComponent>(_id).tags;
 }
 
 void AActor::setTags(const std::vector<std::string> tags) {
@@ -58,7 +56,7 @@ void AActor::removeTag(const std::string tag) {
 }
 
 std::pair<float, float> AActor::getPosition() {
-    transform_component_s& comp = _ecs.registry.getComponent<transform_component_s>(_id);
+    transform_component_s comp = _ecs.registry.getConstComponent<transform_component_s>(_id);
 
     return std::pair<float, float>(comp.x, comp.y);
 }
@@ -72,7 +70,7 @@ void AActor::setPosition(std::pair<float, float> pos) {
 }
 
 float AActor::getRotation() {
-    transform_component_s comp = _ecs.registry.getComponent<transform_component_s>(_id);
+    transform_component_s comp = _ecs.registry.getConstComponent<transform_component_s>(_id);
 
     return comp.rotation;
 }
@@ -93,7 +91,7 @@ void AActor::setScale(std::pair<float, float> scale) {
 }
 
 std::pair<float, float> AActor::getScale() {
-    transform_component_s comp = _ecs.registry.getComponent<transform_component_s>(_id);
+    transform_component_s comp = _ecs.registry.getConstComponent<transform_component_s>(_id);
 
     return std::pair<float, float>(comp.scale_x, comp.scale_y);
 }
@@ -109,10 +107,10 @@ void AActor::setTextureEnemy(const std::string pathname) {
     for (float i = 0; i < 8; i++)
         sprite.frames.push_back({i * 32, 34, 34, 34});
 
-    if (_ecs._textureManager.is_loaded(pathname)) {
-        sprite.handle = _ecs._textureManager.get_handle(pathname).value();
+    if (_textures.is_loaded(pathname)) {
+        sprite.handle = _textures.get_handle(pathname).value();
     } else {
-        sprite.handle = _ecs._textureManager.load_resource(pathname, sf::Texture(pathname));
+        sprite.handle = _textures.load(pathname, TextureAsset(pathname));
     }
     _ecs.registry.addComponent<sprite2D_component_s>(_id, sprite);
     return;
@@ -128,11 +126,11 @@ void AActor::setTextureBoss(const std::string pathname) {
         sprite.frames.push_back({260, i * 143, 260, 143});
         sprite.frames.push_back({0, i * 143, 260, 143});
     }
-    
-    if (_ecs._textureManager.is_loaded(pathname)) {
-        sprite.handle = _ecs._textureManager.get_handle(pathname).value();
+
+    if (_textures.is_loaded(pathname)) {
+        sprite.handle = _textures.get_handle(pathname).value();
     } else {
-        sprite.handle = _ecs._textureManager.load_resource(pathname, sf::Texture(pathname));
+        sprite.handle = _textures.load(pathname, TextureAsset(pathname));
     }
     _ecs.registry.addComponent<sprite2D_component_s>(_id, sprite);
     return;
@@ -145,12 +143,18 @@ void AActor::setTexture(const std::string pathname) {
     sprite.dimension = {0, 0, 0, 0};
     sprite.z_index = 0;
 
-    if (_ecs._textureManager.is_loaded(pathname)) {
-        sprite.handle = _ecs._textureManager.get_handle(pathname).value();
+    if (_textures.is_loaded(pathname)) {
+        sprite.handle = _textures.get_handle(pathname).value();
     } else {
-        sprite.handle = _ecs._textureManager.load_resource(pathname, sf::Texture(pathname));
+        sprite.handle = _textures.load(pathname, TextureAsset(pathname));
     }
-    _ecs.registry.addComponent<sprite2D_component_s>(_id, sprite);
+
+    if (_ecs.registry.hasComponent<sprite2D_component_s>(_id)) {
+        sprite2D_component_s& comp = _ecs.registry.getComponent<sprite2D_component_s>(_id);
+        comp = sprite;
+    } else {
+        _ecs.registry.addComponent<sprite2D_component_s>(_id, sprite);
+    }
     return;
 }
 
@@ -162,7 +166,7 @@ void AActor::setTextureDimension(rect dimension) {
 }
 
 rect AActor::getDimension() {
-    sprite2D_component_s comp = _ecs.registry.getComponent<sprite2D_component_s>(_id);
+    sprite2D_component_s comp = _ecs.registry.getConstComponent<sprite2D_component_s>(_id);
 
     return comp.dimension;
 }
@@ -174,8 +178,8 @@ void AActor::setAnimation(bool state) {
     return;
 }
 
-bool AActor::isAnimmated() {
-    sprite2D_component_s comp = _ecs.registry.getComponent<sprite2D_component_s>(_id);
+bool AActor::isAnimated() {
+    sprite2D_component_s comp = _ecs.registry.getConstComponent<sprite2D_component_s>(_id);
 
     return comp.is_animated;
 }
@@ -188,7 +192,7 @@ void AActor::setAnimationSpeed(float speed) {
 }
 
 float AActor::getAnimationSpeed() {
-    sprite2D_component_s comp = _ecs.registry.getComponent<sprite2D_component_s>(_id);
+    sprite2D_component_s comp = _ecs.registry.getConstComponent<sprite2D_component_s>(_id);
 
     return comp.animation_speed;
 }
@@ -201,7 +205,7 @@ void AActor::setDisplayLayer(int layer) {
 }
 
 int AActor::getDisplayLayer() {
-    sprite2D_component_s comp = _ecs.registry.getComponent<sprite2D_component_s>(_id);
+    sprite2D_component_s comp = _ecs.registry.getConstComponent<sprite2D_component_s>(_id);
 
     return comp.z_index;
 }
