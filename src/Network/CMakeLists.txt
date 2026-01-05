@@ -8,16 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Threads REQUIRED)
 find_package(asio CONFIG REQUIRED)
 
-include_directories(
-        ${CMAKE_CURRENT_SOURCE_DIR}
-        ${CMAKE_CURRENT_SOURCE_DIR}/NetworkInterface
-        ${CMAKE_CURRENT_SOURCE_DIR}/Database
-        ${CMAKE_CURRENT_SOURCE_DIR}/Lobby
-        ${CMAKE_CURRENT_SOURCE_DIR}/Client
-        ${CMAKE_CURRENT_SOURCE_DIR}/Client/NetworkManager
-        ${CMAKE_CURRENT_SOURCE_DIR}/Server
-        ${CMAKE_CURRENT_SOURCE_DIR}/Server/NetworkManager
-)
+# include_directories removed in favor of target based approach below
 
 # Common sources for Network Library
 set(NETWORK_SOURCES
@@ -42,6 +33,17 @@ set(NETWORK_SOURCES
 )
 
 add_library(NetworkLib STATIC ${NETWORK_SOURCES})
+
+target_include_directories(NetworkLib PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/NetworkInterface
+        ${CMAKE_CURRENT_SOURCE_DIR}/Database
+        ${CMAKE_CURRENT_SOURCE_DIR}/Lobby
+        ${CMAKE_CURRENT_SOURCE_DIR}/Client
+        ${CMAKE_CURRENT_SOURCE_DIR}/Client/NetworkManager
+        ${CMAKE_CURRENT_SOURCE_DIR}/Server
+        ${CMAKE_CURRENT_SOURCE_DIR}/Server/NetworkManager
+)
 
 # PUBLIC pour que les exécutables héritent des includes d'asio
 target_link_libraries(NetworkLib

@@ -4,6 +4,7 @@
 #include "health.hpp"
 #include "shooter.hpp"
 #include "team_component.hpp"
+#include "charged_shot.hpp"
 
 void Damage::update(Registry& registry, system_context context) {
     auto& attackers = registry.getEntities<DamageOnCollision>();
@@ -44,8 +45,18 @@ void Damage::update(Registry& registry, system_context context) {
             }
 
             if (registry.hasComponent<ProjectileComponent>(attacker)) {
-                registry.destroyEntity(attacker);
-                break;
+                if (registry.hasComponent<PenetratingProjectile>(attacker)) {
+                    auto& penetrating = registry.getComponent<PenetratingProjectile>(attacker);
+                    penetrating.current_penetrations++;
+                    
+                    if (penetrating.current_penetrations >= penetrating.max_penetrations) {
+                        registry.destroyEntity(attacker);
+                        break;
+                    }
+                } else {
+                    registry.destroyEntity(attacker);
+                    break;
+                }
             }
         }
     }
