@@ -4,6 +4,7 @@
 #include "../Actors/Player/Player.hpp"
 #include "../Actors/AI/AI.hpp"
 #include "ECS.hpp"
+#include "GameEngineBase.hpp"
 
 class GameManager {
    private:
@@ -13,7 +14,7 @@ class GameManager {
 
    public:
     GameManager();
-    void init(ECS& ecs, InputManager& inputs, ResourceManager<TextureAsset>& textures);
-    void update(ECS& ecs, InputManager& inputs, ResourceManager<TextureAsset>& textures);
+    void init(Environment& env, InputManager& inputs);
+    void update(Environment& env, InputManager& inputs);
     void loadInputSetting(InputManager& inputs);
 };

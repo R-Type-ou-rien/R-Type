@@ -7,7 +7,7 @@
 #include "InputState.hpp"
 #include "ActionRegistry.hpp"
 
-template<class Derived>
+template <class Derived>
 class InputManagerBase {
    public:
     void bindAction(Action action, const InputBinding& binding) {
@@ -46,11 +46,7 @@ class InputManagerBase {
         return st.pressed && st.holdTime >= threshold;
     }
 
-    const ActionState& getState(Action action) const
-    {
-        return _states.at(action);
-    }
-
+    const ActionState& getState(Action action) const { return _states.at(action); }
 
    protected:
     ActionRegistry _actionRegistry;

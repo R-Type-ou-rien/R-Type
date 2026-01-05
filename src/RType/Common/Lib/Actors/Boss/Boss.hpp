@@ -17,7 +17,7 @@
 
 class Boss : public DynamicActor {
    public:
-    Boss(ECS& ecs, std::pair<float, float> pos, ResourceManager<TextureAsset>& textures);
+    Boss(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<float, float> pos);
 
     void setProjectileType(ShooterComponent::ProjectileType type);
 

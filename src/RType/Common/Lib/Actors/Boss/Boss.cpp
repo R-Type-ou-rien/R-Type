@@ -9,7 +9,8 @@
 #include "src/RType/Common/Components/damage.hpp"
 #include "src/RType/Common/Components/health.hpp"
 
-Boss::Boss(ECS& ecs, std::pair<float, float> pos, ResourceManager<TextureAsset>& textures) : DynamicActor(ecs, false, textures, "AI") {
+Boss::Boss(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<float, float> pos)
+    : DynamicActor(ecs, false, textures, "AI") {
     ResourceStat lifepoint;
     lifepoint.max = 100;
     lifepoint.current = 100;

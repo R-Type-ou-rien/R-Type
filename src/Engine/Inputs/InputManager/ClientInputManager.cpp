@@ -1,8 +1,7 @@
 #include "ClientInputManager.hpp"
 #include "InputBinding.hpp"
 
-bool ClientInputManager::isBindingActive(const InputBinding& b) const
-{
+bool ClientInputManager::isBindingActive(const InputBinding& b) const {
     switch (b.device) {
         case InputDeviceType::Keyboard:
             return sf::Keyboard::isKeyPressed(b.key);
@@ -31,8 +30,7 @@ bool ClientInputManager::isBindingActive(const InputBinding& b) const
     return false;
 }
 
-void ClientInputManager::update(float dt)
-{
+void ClientInputManager::update(float dt) {
     if (!_hasFocus) {
         for (auto& [action, state] : _states) {
             state.pressed = false;

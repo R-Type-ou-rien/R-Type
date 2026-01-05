@@ -4,6 +4,7 @@
 #include "CollisionSystem.hpp"
 #include "ActionScriptSystem.hpp"
 #include "Components/StandardComponents.hpp"
+#include "GameEngineBase.hpp"
 #include "PatternSystem/PatternSystem.hpp"
 #include "SpawnSystem.hpp"
 
@@ -13,12 +14,6 @@ int ClientGameEngine::init() {
     _ecs.systems.addSystem<BackgroundSystem>();
     _ecs.systems.addSystem<RenderSystem>();
     _ecs.systems.addSystem<InputSystem>(input_manager);
-    
-    
-    
-
-    if (_init_function)
-        _init_function(_ecs, input_manager, _texture_manager);
 
     // if mode local or prediction (?)
     _ecs.systems.addSystem<PhysicsSystem>();
@@ -42,9 +37,12 @@ void ClientGameEngine::handleEvent() {
 
 int ClientGameEngine::run() {
     system_context context = {0, _texture_manager, _window_manager.getWindow(), input_manager};
+    auto last_time = std::chrono::high_resolution_clock::now();
+    Environment env(_ecs, _texture_manager, EnvMode::STANDALONE);
 
     this->init();
-    auto last_time = std::chrono::high_resolution_clock::now();
+    if (_init_function)
+        _init_function(env, input_manager);
     while (_window_manager.isOpen()) {
         auto now = std::chrono::high_resolution_clock::now();
         context.dt = std::chrono::duration_cast<std::chrono::milliseconds>(now - last_time).count() / 1000.0f;
@@ -52,7 +50,7 @@ int ClientGameEngine::run() {
         handleEvent();
         _window_manager.clear();
         if (_loop_function)
-            _loop_function(_ecs, input_manager, _texture_manager);
+            _loop_function(env, input_manager);
         _ecs.update(context);
         _window_manager.display();
     }

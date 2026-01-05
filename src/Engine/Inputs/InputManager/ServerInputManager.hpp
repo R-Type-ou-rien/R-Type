@@ -2,7 +2,7 @@
 #include "InputManagerBase.hpp"
 
 class ServerInputManager : public InputManagerBase<ServerInputManager> {
-    public:
-        void update(float dt) {}
-        int updateActionFromPacket(ActionPacket packet);
+   public:
+    void update(float dt) {}
+    int updateActionFromPacket(ActionPacket packet);
 };

@@ -4,6 +4,8 @@
 #include <ostream>
 #include <algorithm>
 #include <utility>
+#include "ECS.hpp"
+#include "GameEngineBase.hpp"
 #include "InputConfig.hpp"
 #include "ResourceConfig.hpp"
 #include "src/RType/Common/Components/health.hpp"
@@ -14,61 +16,64 @@
 
 GameManager::GameManager() {}
 
-void GameManager::init(ECS& ecs, InputManager& inputs, ResourceManager<TextureAsset>& textures) {
+void GameManager::init(Environment& env, InputManager& inputs) {
+    ECS& ecs = env.getECS();
+
     ecs.systems.addSystem<ShooterSystem>();
     ecs.systems.addSystem<Damage>();
     ecs.systems.addSystem<HealthSystem>();
     ecs.systems.addSystem<PatternSystem>();
     ecs.systems.addSystem<EnemySpawnSystem>();
 
-    {
+    if (!env.isServer()) {
         const std::string bgPath = "content/sprites/background-R-Type.png";
         Entity bgEntity = ecs.registry.createEntity();
-
         BackgroundComponent bg{};
         bg.x_offset = 0.f;
         bg.scroll_speed = 60.f;  // pixels per second, adjust if needed
-
-        if (textures.is_loaded(bgPath)) {
-            bg.texture_handle = textures.get_handle(bgPath).value();
-        } else {
-            bg.texture_handle = textures.load(bgPath, TextureAsset(bgPath));
-        }
-
+        bg.texture_handle = env.loadTexture(bgPath);
         ecs.registry.addComponent<BackgroundComponent>(bgEntity, bg);
     }
-    _player = std::make_unique<Player>(ecs, std::pair<float, float>{100.f, 300.f}, textures);
-    _player->setTexture("content/sprites/r-typesheet42.gif");
-    _player->setTextureDimension(rect{0, 0, 32, 16});
-    _player->setFireRate(0.5);
-    _player->setLifePoint(100);
-    _player->addCollisionTag("AI");
-    _player->addCollisionTag("ENEMY_PROJECTILE");
-    _player->addCollisionTag("ITEM");
-    _player->addCollisionTag("GROUND");
+    _player = env.spawn<Player>(SpawnPolicy::PREDICTED, std::pair<float, float>{100.f, 300.f});
+
+    if (_player) {
+        _player->setTexture("content/sprites/r-typesheet42.gif");
+        _player->setTextureDimension(rect{0, 0, 32, 16});
+        _player->setFireRate(0.5);
+        _player->setLifePoint(100);
+        _player->addCollisionTag("AI");
+        _player->addCollisionTag("ENEMY_PROJECTILE");
+        _player->addCollisionTag("ITEM");
+        _player->addCollisionTag("GROUND");
+    }
 
     loadInputSetting(inputs);
-    auto enemy = std::make_unique<AI>(ecs, std::pair<float, float>(600.f, 200.f), textures);
-    enemy->setTextureEnemy("content/sprites/r-typesheet8.gif");
-    enemy->setPatternType(PatternComponent::SINUSOIDAL);
-    enemy->setLifePoint(10);
-    enemy->setCurrentHealth(10);
-    enemy->addCollisionTag("FRIENDLY_PROJECTILE");
-    enemy->addCollisionTag("PLAYER");
-    _ennemies.push_back(std::move(enemy));
+    auto enemy = env.spawn<AI>(SpawnPolicy::AUTHORITATIVE, std::pair<float, float>(600.f, 200.f));
 
-    Entity spawner = ecs.registry.createEntity();
-    EnemySpawnComponent spawn_comp; 
-    spawn_comp.spawn_interval = 5.0f;
-    spawn_comp.enemies_per_wave = 3;
-    spawn_comp.is_active = true;
-    ecs.registry.addComponent<EnemySpawnComponent>(spawner, spawn_comp);
+    if (enemy) {
+        enemy->setTextureEnemy("content/sprites/r-typesheet8.gif");
+        enemy->setPatternType(PatternComponent::SINUSOIDAL);
+        enemy->setLifePoint(10);
+        enemy->setCurrentHealth(10);
+        enemy->addCollisionTag("FRIENDLY_PROJECTILE");
+        enemy->addCollisionTag("PLAYER");
+        _ennemies.push_back(std::move(enemy));
+    }
 
-    _uiEntity = ecs.registry.createEntity();
-    ecs.registry.addComponent<TextComponent>(
-        _uiEntity,
-        {"HP: 100", "content/open_dyslexic/OpenDyslexic-Regular.otf", 30, sf::Color::White, 10, 10});
+    if (!env.isClient()) {
+        Entity spawner = ecs.registry.createEntity();
+        EnemySpawnComponent spawn_comp;
+        spawn_comp.spawn_interval = 5.0f;
+        spawn_comp.enemies_per_wave = 3;
+        spawn_comp.is_active = true;
+        ecs.registry.addComponent<EnemySpawnComponent>(spawner, spawn_comp);
+    }
 
+    if (!env.isServer()) {
+        _uiEntity = ecs.registry.createEntity();
+        ecs.registry.addComponent<TextComponent>(
+            _uiEntity, {"HP: 100", "content/open_dyslexic/OpenDyslexic-Regular.otf", 30, sf::Color::White, 10, 10});
+    }
     return;
 }
 
@@ -142,28 +147,22 @@ void GameManager::loadInputSetting(InputManager& inputs) {
     _player->bindActionCallbackPressed("ecs", [](Registry& registry, system_context context, Entity entity) {
         // context.requested_scene = "ECSDebug";
     });
-
-    ecs.input.bindAction("ecs", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Escape});
-    std::cout << "Player id " << _player->getId() << std::endl;
-    _player->bindActionCallbackPressed("ecs", [](Registry& registry, system_context context, Entity entity) {
-        context.requested_scene = "ECSDebug";
-    });
 }
 
-void GameManager::update(ECS& ecs, InputManager& inputs, ResourceManager<TextureAsset> &textures) {
+void GameManager::update(Environment& env, InputManager& inputs) {
     if (_player) {
         Entity player_id = _player->getId();
-        if (ecs.registry.hasComponent<HealthComponent>(player_id)) {
+        if (env.getECS().registry.hasComponent<HealthComponent>(player_id)) {
             int hp = _player->getCurrentHealth();
-            //     if (ecs.registry.hasComponent<TextComponent>(_uiEntity)) {
-            //         auto& text = ecs.registry.getComponent<TextComponent>(_uiEntity);
-            //         text.text = "HP: " + std::to_string(hp);
-            //     }
-            // } else {
-            //     if (ecs.registry.hasComponent<TextComponent>(_uiEntity)) {
-            //         auto& text = ecs.registry.getComponent<TextComponent>(_uiEntity);
-            //         text.text = "GAME OVER";
-            //     }
+            if (env.getECS().registry.hasComponent<TextComponent>(_uiEntity)) {
+                auto& text = env.getECS().registry.getComponent<TextComponent>(_uiEntity);
+                text.text = "HP: " + std::to_string(hp);
+            }
+        } else {
+            if (env.getECS().registry.hasComponent<TextComponent>(_uiEntity)) {
+                auto& text = env.getECS().registry.getComponent<TextComponent>(_uiEntity);
+                text.text = "GAME OVER";
+            }
         }
     }
 }

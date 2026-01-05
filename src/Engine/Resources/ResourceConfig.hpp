@@ -9,9 +9,7 @@ using ResourceManager = ServerResourceManager<T>;
 
 struct TextureData {
     std::string pathname;
-    TextureData(std::string path) {
-        this->pathname = path;
-    }
+    TextureData(std::string path) { this->pathname = path; }
 };
 
 using TextureAsset = TextureData;

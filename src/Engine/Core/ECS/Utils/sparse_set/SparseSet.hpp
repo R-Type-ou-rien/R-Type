@@ -8,10 +8,8 @@
 #include "ResourceConfig.hpp"
 #include "Context.hpp"
 
-
 #ifndef SPARSE_HPP
 #define SPARSE_HPP
-
 
 class ISparseSet {
    public:
@@ -44,7 +42,7 @@ class SparseSet : public ISparseSet {
     void markAllUpdated() override;
 };
 
-template<typename data_type>
+template <typename data_type>
 void SparseSet<data_type>::addID(std::size_t id, const data_type& data) {
     if (id >= _sparse.size()) {
         _sparse.resize(id + 1, -1);
@@ -61,7 +59,7 @@ void SparseSet<data_type>::addID(std::size_t id, const data_type& data) {
     return;
 }
 
-template<typename data_type>
+template <typename data_type>
 void SparseSet<data_type>::removeId(std::size_t id) {
     if (!has(id)) {
         std::cerr << "Error: removeId: " << id << " does not have any components from this type." << std::endl;
@@ -86,14 +84,14 @@ void SparseSet<data_type>::removeId(std::size_t id) {
     return;
 }
 
-template<typename data_type>
+template <typename data_type>
 bool SparseSet<data_type>::has(std::size_t id) const {
     if (id < _sparse.size() && _sparse[id] > -1)
         return true;
     return false;
 }
 
-template<typename data_type>
+template <typename data_type>
 data_type& SparseSet<data_type>::getDataFromId(std::size_t id) {
     if (!has(id)) {
         throw std::runtime_error("Entity does not have component!");
@@ -101,7 +99,7 @@ data_type& SparseSet<data_type>::getDataFromId(std::size_t id) {
     return _dense[_sparse[id]];
 }
 
-template<typename data_type>
+template <typename data_type>
 const data_type& SparseSet<data_type>::getConstDataFromId(std::size_t id) {
     if (!has(id)) {
         throw std::runtime_error("Entity does not have component!");
@@ -109,15 +107,18 @@ const data_type& SparseSet<data_type>::getConstDataFromId(std::size_t id) {
     return _dense[_sparse[id]];
 }
 
-template<typename data_type>
-std::vector<data_type>& SparseSet<data_type>::getDataList() { return _dense; }
+template <typename data_type>
+std::vector<data_type>& SparseSet<data_type>::getDataList() {
+    return _dense;
+}
 
-template<typename data_type>
-std::vector<std::size_t>& SparseSet<data_type>::getIdList() { return _reverse_dense; }
+template <typename data_type>
+std::vector<std::size_t>& SparseSet<data_type>::getIdList() {
+    return _reverse_dense;
+}
 
-template<typename data_type>
-std::vector<std::size_t> SparseSet<data_type>::getUpdatedEntities()
-{
+template <typename data_type>
+std::vector<std::size_t> SparseSet<data_type>::getUpdatedEntities() {
     std::vector<std::size_t> updated_entities;
 
     for (std::size_t i = 0; i < _dirty_dense.size(); ++i) {
@@ -129,9 +130,8 @@ std::vector<std::size_t> SparseSet<data_type>::getUpdatedEntities()
     return updated_entities;
 }
 
-template<typename data_type>
-void SparseSet<data_type>::markAllUpdated()
-{
+template <typename data_type>
+void SparseSet<data_type>::markAllUpdated() {
     for (std::size_t i = 0; i < _dirty_dense.size(); ++i) {
         _dirty_dense[i] = true;
     }
@@ -143,9 +143,8 @@ void SparseSet<data_type>::markAllUpdated()
 #include "Components/serialize/tag_component_serialize.hpp"
 #include "Components/StandardComponents.hpp"
 
-template<typename data_type>
-ComponentPacket SparseSet<data_type>::createPacket(uint32_t entity, SerializationContext& context)
-{
+template <typename data_type>
+ComponentPacket SparseSet<data_type>::createPacket(uint32_t entity, SerializationContext& context) {
     ComponentPacket packet;
     packet.entity_guid = entity;
     data_type& comp = getDataFromId(entity);
@@ -157,7 +156,7 @@ ComponentPacket SparseSet<data_type>::createPacket(uint32_t entity, Serializatio
         serialize::serialize(packet.data, comp, context.textureManager);
     } else {
         serialize::serialize(packet.data, comp);
-    }    
+    }
     return packet;
 }
 

@@ -1,7 +1,8 @@
 #include "Player.hpp"
 #include "src/RType/Common/Components/health.hpp"
 
-Player::Player(ECS& ecs, std::pair<float, float> pos, ResourceManager<TextureAsset>& textures) : DynamicActor(ecs, true, textures, "PLAYER") {
+Player::Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<float, float> pos)
+    : DynamicActor(ecs, true, textures, "PLAYER") {
     ResourceStat lifepoint;
     lifepoint.max = 100;
     lifepoint.current = 100;

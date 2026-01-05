@@ -19,7 +19,6 @@ void Registry::destroyEntity(Entity id) {
     return;
 }
 
-Pool_storage& Registry::getComponentPools()
-{
+Pool_storage& Registry::getComponentPools() {
     return _pools;
 }
