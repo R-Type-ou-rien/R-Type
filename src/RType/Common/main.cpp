@@ -1,10 +1,6 @@
-#include <SFML/Graphics/Texture.hpp>
-#include <SFML/Window/Joystick.hpp>
-#include <SFML/Window/Keyboard.hpp>
 #include <iostream>
 #include <ostream>
 
-#include "GameEngineBase.hpp"
 #include "GameEngineConfig.hpp"
 #include "Components/StandardComponents.hpp"
 #include "Lib/GameManager/GameManager.hpp"
