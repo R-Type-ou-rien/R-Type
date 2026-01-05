@@ -63,6 +63,7 @@ test_scroll
 test_shooter
 test_spawn
 r-type-client
+r-type-server
 
 # CMake and Build Artifacts
 CMakeCache.txt
