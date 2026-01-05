@@ -33,4 +33,4 @@ target_include_directories(Engine PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources
 )
 
-target_link_libraries(Engine PUBLIC SFML::Graphics SFML::Window SFML::System)
+target_link_libraries(Engine PUBLIC SFML::Graphics SFML::Window SFML::System NetworkLib)
