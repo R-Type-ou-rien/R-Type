@@ -17,25 +17,7 @@
 
 class Boss : public DynamicActor {
    public:
-    Boss(ECS& ecs);
-    ~Boss();
-
-   protected:
-   private:
-};
-
-#include <string>
-#include <utility>
-#include "DynamicActor.hpp"
-#include "Components/StandardComponents.hpp"
-#include "../../../../Common/Components/team_component.hpp"
-#include "../../../../Common/Components/shooter.hpp"
-
-#pragma once
-
-class AI : public DynamicActor {
-   public:
-    AI(ECS& ecs, std::pair<float, float> pos);
+    Boss(ECS& ecs, std::pair<float, float> pos, ResourceManager<TextureAsset>& textures);
 
     void setProjectileType(ShooterComponent::ProjectileType type);
 
