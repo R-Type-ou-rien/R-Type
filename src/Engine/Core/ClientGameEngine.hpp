@@ -20,7 +20,6 @@
 #define FAILURE -1
 #define WINDOW_H 1000
 #define WINDOW_W 1000
-#define USER_FUNCTION_SIGNATURE void(ECS & ecs, InputManager & inputs, ResourceManager<TextureAsset>& texture_manager)
 
 class ClientGameEngine : public GameEngineBase<ClientGameEngine> {
    private:
@@ -31,6 +30,7 @@ class ClientGameEngine : public GameEngineBase<ClientGameEngine> {
     int run();
     explicit ClientGameEngine(std::string window_name = "Default Name");
     ~ClientGameEngine() {}
+
    private:
     void handleEvent();
 };

@@ -1,6 +1,3 @@
-#include <SFML/Graphics/Texture.hpp>
-#include <SFML/Window/Joystick.hpp>
-#include <SFML/Window/Keyboard.hpp>
 #include <iostream>
 #include <ostream>
 
@@ -17,13 +14,9 @@ int main() {
     GameEngine engine;
     GameManager gm;
 
-    engine.setInitFunction([&gm](ECS& ecs, InputManager& inputs, ResourceManager<TextureAsset>& textures)
-        { gm.init(ecs, inputs, textures); }
-    );
+    engine.setInitFunction([&gm](Environment& env, InputManager& inputs) { gm.init(env, inputs); });
 
-    engine.setLoopFunction([&gm](ECS& ecs, InputManager& inputs, ResourceManager<TextureAsset>& textures)
-        { gm.update(ecs, inputs, textures); }
-    );
+    engine.setLoopFunction([&gm](Environment& env, InputManager& inputs) { gm.update(env, inputs); });
     engine.run();
     return 0;
 }

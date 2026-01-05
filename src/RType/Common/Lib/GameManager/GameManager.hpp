@@ -4,6 +4,7 @@
 #include "../Actors/Player/Player.hpp"
 #include "../Actors/AI/AI.hpp"
 #include "ECS.hpp"
+#include "GameEngineBase.hpp"
 
 class GameManager {
    private:
@@ -16,19 +17,19 @@ class GameManager {
     std::vector<std::unique_ptr<AI>> _ennemies;
     Entity _uiEntity;
 
-    void initSystems(ECS& ecs);
-    void initBackground(ECS& ecs, ResourceManager<TextureAsset>& textures);
-    void initPlayer(ECS& ecs, ResourceManager<TextureAsset>& textures);
-    void initEnemies(ECS& ecs, ResourceManager<TextureAsset>& textures);
-    void initSpawner(ECS& ecs);
-    void initUI(ECS& ecs);
+    void initSystems(Environment& env);
+    void initBackground(Environment& env);
+    void initPlayer(Environment& env);
+    void initEnemies(Environment& env);
+    void initSpawner(Environment& env);
+    void initUI(Environment& env);
     void setupMovementControls(InputManager& inputs);
     void setupShootingControls(InputManager& inputs);
-    void updateUI(ECS& ecs);
+    void updateUI(Environment& env);
 
    public:
     GameManager();
-    void init(ECS& ecs, InputManager& inputs, ResourceManager<TextureAsset>& textures);
-    void update(ECS& ecs, InputManager& inputs, ResourceManager<TextureAsset>& textures);
+    void init(Environment& env, InputManager& inputs);
+    void update(Environment& env, InputManager& inputs);
     void loadInputSetting(InputManager& inputs);
 };

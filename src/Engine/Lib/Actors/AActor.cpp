@@ -11,7 +11,8 @@
 #include "ResourceConfig.hpp"
 #include "registry.hpp"
 
-AActor::AActor(ECS& ecs, ResourceManager<TextureAsset>& textures, const std::string name) : _ecs(ecs), _textures(textures), _id(_ecs.registry.createEntity()) {
+AActor::AActor(ECS& ecs, ResourceManager<TextureAsset>& textures, const std::string name)
+    : _ecs(ecs), _textures(textures), _id(_ecs.registry.createEntity()) {
     std::vector<std::string> tag_init;
     BoxCollisionComponent collision;
 

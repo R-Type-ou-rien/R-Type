@@ -13,14 +13,13 @@
 const float WORLD_WIDTH = 1920.0f;
 const float WORLD_HEIGHT = 1080.0f;
 
-
 void EnemySpawnSystem::update(Registry& registry, system_context context) {
     auto& spawners = registry.getEntities<EnemySpawnComponent>();
     float windowWidth = 0.0f;
 #if defined(CLIENT_BUILD)
-        windowWidth = static_cast<float>(context.window.getSize().x);
+    windowWidth = static_cast<float>(context.window.getSize().x);
 #else
-        windowWidth = WORLD_WIDTH;
+    windowWidth = WORLD_WIDTH;
 #endif
 
     auto& entities = registry.getEntities<transform_component_s>();
@@ -77,11 +76,11 @@ void EnemySpawnSystem::update(Registry& registry, system_context context) {
 void EnemySpawnSystem::spawnBoss(Registry& registry, system_context context) {
     Entity boss_id = registry.createEntity();
 #if defined(CLIENT_BUILD)
-        float windowWidth = static_cast<float>(context.window.getSize().x);
-        float windowHeight = static_cast<float>(context.window.getSize().y);
-        registry.addComponent<transform_component_s>(boss_id, {windowWidth - 200.0f, windowHeight / 2.0f - 50.0f});
+    float windowWidth = static_cast<float>(context.window.getSize().x);
+    float windowHeight = static_cast<float>(context.window.getSize().y);
+    registry.addComponent<transform_component_s>(boss_id, {windowWidth - 200.0f, windowHeight / 2.0f - 50.0f});
 #else
-        registry.addComponent<transform_component_s>(boss_id, {WORLD_WIDTH - 200.0f, WORLD_HEIGHT / 2.0f - 50.0f});
+    registry.addComponent<transform_component_s>(boss_id, {WORLD_WIDTH - 200.0f, WORLD_HEIGHT / 2.0f - 50.0f});
 #endif
     registry.addComponent<Velocity2D>(boss_id, {0.0f, 0.0f});
     registry.addComponent<HealthComponent>(boss_id, {100, 100, 0.0f, 1.0f});
@@ -89,7 +88,7 @@ void EnemySpawnSystem::spawnBoss(Registry& registry, system_context context) {
     registry.addComponent<DamageOnCollision>(boss_id, {20});
 
     handle_t<TextureAsset> handle = context.texture_manager.load("content/sprites/r-typesheet30.gif",
-                                                                TextureAsset("content/sprites/r-typesheet30.gif"));
+                                                                 TextureAsset("content/sprites/r-typesheet30.gif"));
 
     sprite2D_component_s sprite_info;
     sprite_info.handle = handle;
@@ -116,7 +115,7 @@ void EnemySpawnSystem::spawnEnemy(Registry& registry, system_context context, fl
     if (sine_pattern) {
         PatternComponent pattern;
         pattern.type = PatternComponent::SINUSOIDAL;
-        pattern.speed = 100.0f; // comment: pourquoi ne pas utiliser velocity ?
+        pattern.speed = 100.0f;  // comment: pourquoi ne pas utiliser velocity ?
         pattern.amplitude = 50.0f;
         pattern.frequency = 2.0f;
         pattern.is_active = true;
@@ -139,7 +138,7 @@ void EnemySpawnSystem::spawnEnemy(Registry& registry, system_context context, fl
     registry.addComponent<ShooterComponent>(enemy_id, shooter);
 
     handle_t<TextureAsset> handle = context.texture_manager.load("content/sprites/r-typesheet42.gif",
-                                                                TextureAsset("content/sprites/r-typesheet42.gif"));
+                                                                 TextureAsset("content/sprites/r-typesheet42.gif"));
 
     sprite2D_component_s sprite_info;
     sprite_info.handle = handle;

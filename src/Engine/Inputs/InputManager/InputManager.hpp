@@ -70,7 +70,6 @@
 // shootTrigger.axisSign = +1;
 // input.bindAction(Action::Shoot, shootTrigger);
 
-
 // ----------------------------------------------------------
 
 // sf::Clock clock;

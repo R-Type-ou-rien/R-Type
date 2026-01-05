@@ -3,8 +3,7 @@
 #include "ISystem.hpp"
 #include "registry.hpp"
 
-void ComponentSenderSystem::update(Registry& reg, system_context ctx)
-{
+void ComponentSenderSystem::update(Registry& reg, system_context ctx) {
     ComponentPacket packet;
     SerializationContext s_ctx = {ctx.texture_manager};
     auto& component_pools = reg.getComponentPools();

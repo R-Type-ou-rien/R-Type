@@ -6,7 +6,8 @@
 
 #include "Components/StandardComponents.hpp"
 
-DynamicActor::DynamicActor(ECS& ecs, bool playable, ResourceManager<TextureAsset>& textures, const std::string name) : AActor(ecs, textures, name), _playable(playable) {
+DynamicActor::DynamicActor(ECS& ecs, bool playable, ResourceManager<TextureAsset>& textures, const std::string name)
+    : AActor(ecs, textures, name), _playable(playable) {
     ResourceComponent resources;
 
     _ecs.registry.addComponent<ResourceComponent>(_id, resources);

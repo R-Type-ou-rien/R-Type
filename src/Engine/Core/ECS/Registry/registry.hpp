@@ -11,7 +11,6 @@
 #include "sparse_set/SparseSet.hpp"
 #include "EcsType.hpp"
 
-
 using Pool_storage = std::unordered_map<std::type_index, std::unique_ptr<ISparseSet>>;
 
 class Registry {
@@ -128,5 +127,4 @@ class Registry {
     }
 
     Pool_storage& getComponentPools();
-
 };

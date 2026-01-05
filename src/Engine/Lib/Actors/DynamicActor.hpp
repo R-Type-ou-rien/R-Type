@@ -10,7 +10,8 @@ class DynamicActor : public AActor {
     bool _playable;
 
    public:
-    DynamicActor(ECS& ecs, bool playable, ResourceManager<TextureAsset>& textures, const std::string name = "DynamicActor");
+    DynamicActor(ECS& ecs, bool playable, ResourceManager<TextureAsset>& textures,
+                 const std::string name = "DynamicActor");
 
     void addResourceStat(const std::string res_name, ResourceStat& resource);
 

@@ -65,7 +65,7 @@ void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::Proj
     registry.addComponent<DamageOnCollision>(id, {10});
 
     handle_t<TextureAsset> handle = context.texture_manager.load("content/sprites/r-typesheet1.gif",
-                                                                TextureAsset("content/sprites/r-typesheet1.gif"));
+                                                                 TextureAsset("content/sprites/r-typesheet1.gif"));
 
     sprite2D_component_s sprite_info;
     sprite_info.handle = handle;

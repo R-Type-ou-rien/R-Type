@@ -3,6 +3,8 @@
 #include <memory>
 #include <ostream>
 #include <utility>
+#include "ECS.hpp"
+#include "GameEngineBase.hpp"
 #include "InputConfig.hpp"
 #include "ResourceConfig.hpp"
 #include "src/RType/Common/Components/health.hpp"
@@ -14,7 +16,9 @@
 
 GameManager::GameManager() {}
 
-void GameManager::initSystems(ECS& ecs) {
+void GameManager::initSystems(Environment& env) {
+    auto& ecs = env.getECS();
+
     ecs.systems.addSystem<ShooterSystem>();
     ecs.systems.addSystem<Damage>();
     ecs.systems.addSystem<HealthSystem>();
@@ -22,74 +26,113 @@ void GameManager::initSystems(ECS& ecs) {
     ecs.systems.addSystem<EnemySpawnSystem>();
 }
 
-void GameManager::initBackground(ECS& ecs, ResourceManager<TextureAsset>& textures) {
-    const std::string bgPath = "content/sprites/background-R-Type.png";
-    Entity bgEntity = ecs.registry.createEntity();
+void GameManager::initBackground(Environment& env) {
+    /**
+        env.isServer() return true si c'est le server qui
+        'lit' ce code
+    */
+    if (!env.isServer()) {
+        const std::string bgPath = "content/sprites/background-R-Type.png";
+        auto& ecs = env.getECS();
+        Entity bgEntity = ecs.registry.createEntity();
 
-    BackgroundComponent bg{};
-    bg.x_offset = 0.f;
-    bg.scroll_speed = 60.f;
+        BackgroundComponent bg{};
+        bg.x_offset = 0.f;
+        bg.scroll_speed = 60.f;
 
-    if (textures.is_loaded(bgPath)) {
-        bg.texture_handle = textures.get_handle(bgPath).value();
-    } else {
-        bg.texture_handle = textures.load(bgPath, TextureAsset(bgPath));
+        bg.texture_handle = env.loadTexture(bgPath);
+
+        ecs.registry.addComponent<BackgroundComponent>(bgEntity, bg);
     }
-
-    ecs.registry.addComponent<BackgroundComponent>(bgEntity, bg);
 }
 
-void GameManager::initPlayer(ECS& ecs, ResourceManager<TextureAsset>& textures) {
-    _player = std::make_unique<Player>(ecs, std::pair<float, float>{PLAYER_START_X, PLAYER_START_Y}, textures);
-    _player->setTexture("content/sprites/r-typesheet42.gif");
-    _player->setTextureDimension(rect{0, 0, 32, 16});
-    _player->setFireRate(0.5);
-    _player->setLifePoint(PLAYER_MAX_HP);
+void GameManager::initPlayer(Environment& env) {
+    auto& ecs = env.getECS();
+    /**
+        Crée un actor en suivant la policy donné en parametre.
+
+        Ici PREDICTED signifie que le player est crée à la fois sur le serveur
+        et le client afin que le client puisse prédir les evenements liés au player
+    */
+    _player = env.spawn<Player>(SpawnPolicy::PREDICTED, std::pair<float, float>{PLAYER_START_X, PLAYER_START_Y});
+    if (_player) {
+        _player->setTexture("content/sprites/r-typesheet42.gif");
+        _player->setTextureDimension(rect{0, 0, 32, 16});
+        _player->setFireRate(0.5);
+        _player->setLifePoint(PLAYER_MAX_HP);
+        
+        _player->addCollisionTag("AI");
+        _player->addCollisionTag("ENEMY_PROJECTILE");
+        _player->addCollisionTag("ITEM");
+        _player->addCollisionTag("GROUND");
+        
+        ChargedShotComponent charged_shot;
+        charged_shot.min_charge_time = 0.5f;
+        charged_shot.max_charge_time = 2.0f;
+        ecs.registry.addComponent<ChargedShotComponent>(_player->getId(), charged_shot);
+    }
+}
+
+void GameManager::initEnemies(Environment& env) {
+    /**
+        Crée un actor en suivant la policy donné en parametre.
+
+        Ici AUTHORITATIVE signifie que l'enemy est crée sur le serveur
+        uniquement. Il n'existe donc pas lorsque le client 'lit' ce code
+        d'où le if (enemy)
+    */
+    auto enemy = env.spawn<AI>(SpawnPolicy::AUTHORITATIVE, std::pair<float, float>(600.f, 200.f));
+
+    if (enemy) {
+        enemy->setTextureEnemy("content/sprites/r-typesheet8.gif");
+        enemy->setPatternType(PatternComponent::SINUSOIDAL);
+        enemy->setLifePoint(10);
+        enemy->setCurrentHealth(10);
+        enemy->addCollisionTag("FRIENDLY_PROJECTILE");
+        enemy->addCollisionTag("PLAYER");
+        _ennemies.push_back(std::move(enemy));
+    }
+}
+
+void GameManager::initSpawner(Environment& env) {
+    auto& ecs = env.getECS();
+
+    /**
+        env.isClient() return true si c'est le client qui
+        'lit' ce code
+    */
+    if (!env.isClient()) {
+        Entity spawner = ecs.registry.createEntity();
+        EnemySpawnComponent spawn_comp;
+        spawn_comp.spawn_interval = 5.0f;
+        spawn_comp.enemies_per_wave = 3;
+        spawn_comp.is_active = true;
+        ecs.registry.addComponent<EnemySpawnComponent>(spawner, spawn_comp);
+    }
+}
+
+void GameManager::initUI(Environment& env) {
+    auto& ecs = env.getECS();
+
+    /**
+        env.isClient() return true si c'est le client qui
+        'lit' ce code (il existe le mode STANDALONE pour tout lancer en local)
+    */
+    if (!env.isServer()) {
+        _uiEntity = ecs.registry.createEntity();
+        ecs.registry.addComponent<TextComponent>(
+            _uiEntity, {"HP: 100", "content/open_dyslexic/OpenDyslexic-Regular.otf", 30, sf::Color::White, 10, 10});
+    }
+}
+
+void GameManager::init(Environment& env, InputManager& inputs) {
+    initSystems(env);
     
-    _player->addCollisionTag("AI");
-    _player->addCollisionTag("ENEMY_PROJECTILE");
-    _player->addCollisionTag("ITEM");
-    _player->addCollisionTag("GROUND");
-    
-    ChargedShotComponent charged_shot;
-    charged_shot.min_charge_time = 0.5f;
-    charged_shot.max_charge_time = 2.0f;
-    ecs.registry.addComponent<ChargedShotComponent>(_player->getId(), charged_shot);
-}
-
-void GameManager::initEnemies(ECS& ecs, ResourceManager<TextureAsset>& textures) {
-    auto enemy = std::make_unique<AI>(ecs, std::pair<float, float>(600.f, 200.f), textures);
-    enemy->setTextureEnemy("content/sprites/r-typesheet8.gif");
-    enemy->setPatternType(PatternComponent::SINUSOIDAL);
-    enemy->setLifePoint(10);
-    enemy->setCurrentHealth(10);
-    enemy->addCollisionTag("FRIENDLY_PROJECTILE");
-    enemy->addCollisionTag("PLAYER");
-    _ennemies.push_back(std::move(enemy));
-}
-
-void GameManager::initSpawner(ECS& ecs) {
-    Entity spawner = ecs.registry.createEntity();
-    EnemySpawnComponent spawn_comp;
-    spawn_comp.spawn_interval = 5.0f;
-    spawn_comp.enemies_per_wave = 3;
-    spawn_comp.is_active = true;
-    ecs.registry.addComponent<EnemySpawnComponent>(spawner, spawn_comp);
-}
-
-void GameManager::initUI(ECS& ecs) {
-    _uiEntity = ecs.registry.createEntity();
-    ecs.registry.addComponent<TextComponent>(
-        _uiEntity, {"HP: 100", "content/open_dyslexic/OpenDyslexic-Regular.otf", 30, sf::Color::White, 10, 10});
-
-void GameManager::init(ECS& ecs, InputManager& inputs, ResourceManager<TextureAsset>& textures) {
-    initSystems(ecs);
-    
-    initBackground(ecs, textures);
-    initPlayer(ecs, textures);
-    initEnemies(ecs, textures);
-    initSpawner(ecs);
-    initUI(ecs);
+    initBackground(env);
+    initPlayer(env);
+    initEnemies(env);
+    initSpawner(env);
+    initUI(env);
     
     loadInputSetting(inputs);
 }
@@ -172,44 +215,31 @@ void GameManager::setupShootingControls(InputManager& inputs) {
     });
 }
 
-void GameManager::update(ECS& ecs, InputManager& inputs, ResourceManager<TextureAsset>& textures) {
-    if (_player) {
-        Entity player_id = _player->getId();
-        if (ecs.registry.hasComponent<HealthComponent>(player_id)) {
-            int hp = _player->getCurrentHealth();
-            //     if (ecs.registry.hasComponent<TextComponent>(_uiEntity)) {
-            //         auto& text = ecs.registry.getComponent<TextComponent>(_uiEntity);
-            //         text.text = "HP: " + std::to_string(hp);
-            //     }
-            // } else {
-            //     if (ecs.registry.hasComponent<TextComponent>(_uiEntity)) {
-            //         auto& text = ecs.registry.getComponent<TextComponent>(_uiEntity);
-            //         text.text = "GAME OVER";
-            //     }
-        }
-}
-
 void GameManager::loadInputSetting(InputManager& inputs) {
     setupMovementControls(inputs);
     setupShootingControls(inputs);
 }
 
-void GameManager::updateUI(ECS& ecs) {
-    if (!_player || !ecs.registry.hasComponent<TextComponent>(_uiEntity)) {
-        return;
-    }
-    auto& text = ecs.registry.getComponent<TextComponent>(_uiEntity);
-    Entity player_id = _player->getId();
-    if (ecs.registry.hasComponent<HealthComponent>(player_id)) {
-        int hp = _player->getCurrentHealth();
-        text.text = "HP: " + std::to_string(hp);
-    } else {
-        text.text = "GAME OVER";
+void GameManager::updateUI(Environment& env) {
+    auto& ecs = env.getECS();
+
+    if (!env.isServer()) {
+        if (!_player || !ecs.registry.hasComponent<TextComponent>(_uiEntity)) {
+            return;
+        }
+        auto& text = ecs.registry.getComponent<TextComponent>(_uiEntity);
+        Entity player_id = _player->getId();
+        if (ecs.registry.hasComponent<HealthComponent>(player_id)) {
+            int hp = _player->getCurrentHealth();
+            text.text = "HP: " + std::to_string(hp);
+        } else {
+            text.text = "GAME OVER";
+        }
     }
 }
 
-void GameManager::update(ECS& ecs, InputManager& inputs, ResourceManager<TextureAsset>& textures) {
-    updateUI(ecs);
+void GameManager::update(Environment& env, InputManager& inputs) {
+    updateUI(env);
         // vagues d'ennemis
     // check de victoire/défaite
     // power-ups
