@@ -55,8 +55,14 @@ void PatternSystem::update(Registry& registry, system_context context) {
             }
         } else {
             if (distance != 0) {
-                transform.x += (dx / distance) * path.speed * dt;
-                transform.y += (dy / distance) * path.speed * dt;
+                float moveStep = path.speed * dt;
+                if (moveStep > distance) {
+                    transform.x = target.first;
+                    transform.y = target.second;
+                } else {
+                    transform.x += (dx / distance) * moveStep;
+                    transform.y += (dy / distance) * moveStep;
+                }
             }
         }
     }
