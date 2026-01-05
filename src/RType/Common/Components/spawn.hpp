@@ -4,6 +4,7 @@
 #include "registry.hpp"
 
 struct EnemySpawnComponent {
+    static constexpr auto name = "EnemySpawnComponent";
     float spawn_timer = 0.0f;
     float spawn_interval = 3.0f;
     float total_time = 0.0f;

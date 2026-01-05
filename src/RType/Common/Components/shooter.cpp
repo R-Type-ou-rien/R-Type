@@ -7,6 +7,7 @@
 
 #include "Components/StandardComponents.hpp"
 #include "ISystem.hpp"
+#include "ResourceConfig.hpp"
 #include "damage.hpp"
 #include "registry.hpp"
 #include "team_component.hpp"
@@ -62,8 +63,8 @@ void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::Proj
 
     registry.addComponent<DamageOnCollision>(id, {10});
 
-    handle_t<sf::Texture> handle = context.texture_manager.load_resource(
-        "content/sprites/r-typesheet1.gif", sf::Texture("content/sprites/r-typesheet1.gif"));
+    handle_t<TextureAsset> handle = context.texture_manager.load("content/sprites/r-typesheet1.gif",
+                                                                TextureAsset("content/sprites/r-typesheet1.gif"));
 
     sprite2D_component_s sprite_info;
     sprite_info.handle = handle;
@@ -96,16 +97,15 @@ void ShooterSystem::update(Registry& registry, system_context context) {
         }
         ShooterComponent& shooter = registry.getComponent<ShooterComponent>(id);
         shooter.last_shot += context.dt;
-        bool shoot = shooter.is_shooting || shooter.trigger_pressed;
-        if (!shoot)
+        if (!shooter.is_shooting)
             continue;
-        transform_component_s& pos = registry.getComponent<transform_component_s>(id);
-        TeamComponent& team = registry.getComponent<TeamComponent>(id);
+        const transform_component_s& pos = registry.getConstComponent<transform_component_s>(id);
+        const TeamComponent& team = registry.getConstComponent<TeamComponent>(id);
 
         if (shooter.last_shot >= shooter.fire_rate) {
             create_projectile(registry, shooter.type, team.team, pos, context);
             shooter.last_shot = 0.f;
         }
-        shooter.trigger_pressed = false;
+        shooter.is_shooting = false;
     }
 }

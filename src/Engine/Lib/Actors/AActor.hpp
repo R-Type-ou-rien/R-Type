@@ -9,10 +9,11 @@
 class AActor {
    protected:
     ECS& _ecs;
+    ResourceManager<TextureAsset>& _textures;
     Entity _id;
 
    public:
-    AActor(ECS& ecs, const std::string name);
+    AActor(ECS& ecs, ResourceManager<TextureAsset>& textures, const std::string name);
 
     virtual ~AActor();
 
@@ -54,7 +55,7 @@ class AActor {
 
     void setAnimation(bool state);
 
-    bool isAnimmated();
+    bool isAnimated();
 
     void setAnimationSpeed(float speed);
 

@@ -19,7 +19,7 @@ void RenderSystem::update(Registry& registry, system_context context) {
         if (registry.hasComponent<transform_component_s>(entity)) {
             if (!registry.hasComponent<sprite2D_component_s>(entity))
                 continue;
-            transform_component_s& transform = registry.getComponent<transform_component_s>(entity);
+            const transform_component_s& transform = registry.getConstComponent<transform_component_s>(entity);
             sprite2D_component_s& spriteData = registry.getComponent<sprite2D_component_s>(entity);
             drawEntity(transform, spriteData, context);
         }
@@ -27,7 +27,7 @@ void RenderSystem::update(Registry& registry, system_context context) {
 
     const auto& textIds = registry.getEntities<TextComponent>();
     for (Entity entity : textIds) {
-        auto& textComp = registry.getComponent<TextComponent>(entity);
+        auto& textComp = registry.getConstComponent<TextComponent>(entity);
         drawText(textComp, context);
     }
 
@@ -42,9 +42,10 @@ void RenderSystem::drawText(const TextComponent& textComp, const system_context&
         }
         _fontLoaded = true;
     }
-    
-    if (!_fontLoaded) return;
-    
+
+    if (!_fontLoaded)
+        return;
+
     sf::Text text(_font);
     text.setString(textComp.text);
     text.setCharacterSize(textComp.characterSize);
@@ -53,10 +54,9 @@ void RenderSystem::drawText(const TextComponent& textComp, const system_context&
     context.window.draw(text);
 }
 
-
 void RenderSystem::drawEntity(const transform_component_s& transform, sprite2D_component_s& spriteData,
                               const system_context& context) {
-    if (!context.texture_manager.has_resource(spriteData.handle))
+    if (!context.texture_manager.has(spriteData.handle))
         return;
 
     sf::Texture& texture = context.texture_manager.get_resource(spriteData.handle).value().get();
@@ -65,8 +65,7 @@ void RenderSystem::drawEntity(const transform_component_s& transform, sprite2D_c
     if (spriteData.is_animated && !spriteData.frames.empty()) {
         int frameIndex = spriteData.current_animation_frame;
         const rect& frame = spriteData.frames[frameIndex];
-        sprite.setTextureRect(sf::IntRect({int(frame.x), int(frame.y)},
-                                            {int(frame.width), int(frame.height)}));
+        sprite.setTextureRect(sf::IntRect({int(frame.x), int(frame.y)}, {int(frame.width), int(frame.height)}));
         spriteData.lastUpdateTime += context.dt;
         if (spriteData.lastUpdateTime >= spriteData.animation_speed) {
             if (spriteData.reverse_animation && spriteData.current_animation_frame <= 0) {
@@ -95,4 +94,3 @@ void RenderSystem::drawEntity(const transform_component_s& transform, sprite2D_c
     context.window.draw(sprite);
     return;
 }
- 
