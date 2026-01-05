@@ -19,13 +19,15 @@ target_include_directories(Engine PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/ECS/SystemManager
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/ECS
     ${CMAKE_CURRENT_SOURCE_DIR}/Core/ECS/Utils
+    ${CMAKE_CURRENT_SOURCE_DIR}/Inputs
+    ${CMAKE_CURRENT_SOURCE_DIR}/Graphics
     ${CMAKE_CURRENT_SOURCE_DIR}/Lib
     ${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems
     "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Actors"
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources
-    ${CMAKE_CURRENT_SOURCE_DIR}/Inputs
-    ${CMAKE_CURRENT_SOURCE_DIR}/Graphics
 )
+
+target_link_libraries(Engine PUBLIC SFML::Graphics SFML::Window SFML::System NetworkLib)
 
 find_package(SFML REQUIRED COMPONENTS Window Graphics)
 target_link_libraries(Engine PUBLIC SFML::Window SFML::Graphics)

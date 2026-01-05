@@ -4,20 +4,10 @@
 #include <string>
 #include <unordered_set>
 #include <unordered_map>
-#include <optional>
 #include <utility>
-#include <vector>
 
 #include "../../Network.hpp"
 #include "../../NetworkInterface/message.hpp"
-
-// Hash function for GameEvents enum class (required for unordered_set/map)
-namespace std {
-template <>
-struct hash<network::GameEvents> {
-    size_t operator()(network::GameEvents e) const noexcept { return static_cast<size_t>(e); }
-};
-}  // namespace std
 
 enum class PacketValidation : uint8_t {
     VALID,

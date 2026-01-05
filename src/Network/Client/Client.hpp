@@ -33,6 +33,8 @@ class Client : public ClientInterface<GameEvents> {
         SendValidatedMessage(event, msg);
     }
 
+    void AddMessageToServer(GameEvents event, network::message<GameEvents>& msg) { SendValidatedMessage(event, msg); }
+
    private:
     template <typename T>
     void SendValidatedMessage(GameEvents event, network::message<T>& msg) {

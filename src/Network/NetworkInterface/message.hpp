@@ -16,6 +16,7 @@ template <typename T>
 struct message_header {
     uint32_t magic_value = MAGIC_VALUE;
     uint32_t user_id = 0;
+    uint32_t tick = 0;
     T id{};
     uint32_t size = 0;
     message_header() : magic_value(MAGIC_VALUE) {}
@@ -46,6 +47,14 @@ struct message {
         std::memcpy(msg.body.data() + i, &data, sizeof(DataType));
         msg.header.size = (uint32_t)msg.size();
 
+        return msg;
+    }
+
+    friend message<T>& operator<<(message<T>& msg, const std::vector<uint8_t>& data) {
+        size_t i = msg.body.size();
+        msg.body.resize(msg.body.size() + data.size());
+        std::memcpy(msg.body.data() + i, data.data(), data.size());
+        msg.header.size = (uint32_t)msg.size();
         return msg;
     }
 
@@ -88,6 +97,7 @@ struct message {
 
         header.magic_value = swap_uint32(header.magic_value);
         header.user_id = swap_uint32(header.user_id);
+        header.tick = swap_uint32(header.tick);
         header.id = swap_t(header.id);
         header.size = swap_uint32(header.size);
     }

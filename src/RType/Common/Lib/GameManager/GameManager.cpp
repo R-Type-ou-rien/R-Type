@@ -2,7 +2,6 @@
 #include <iostream>
 #include <memory>
 #include <ostream>
-#include <algorithm>
 #include <utility>
 #include "InputConfig.hpp"
 #include "ResourceConfig.hpp"
@@ -71,7 +70,7 @@ void GameManager::initEnemies(ECS& ecs, ResourceManager<TextureAsset>& textures)
 
 void GameManager::initSpawner(ECS& ecs) {
     Entity spawner = ecs.registry.createEntity();
-    EnemySpawnComponent spawn_comp; 
+    EnemySpawnComponent spawn_comp;
     spawn_comp.spawn_interval = 5.0f;
     spawn_comp.enemies_per_wave = 3;
     spawn_comp.is_active = true;
@@ -81,10 +80,7 @@ void GameManager::initSpawner(ECS& ecs) {
 void GameManager::initUI(ECS& ecs) {
     _uiEntity = ecs.registry.createEntity();
     ecs.registry.addComponent<TextComponent>(
-        _uiEntity,
-        {"HP: 100", "content/open_dyslexic/OpenDyslexic-Regular.otf", 30, sf::Color::White, 10, 10}
-    );
-}
+        _uiEntity, {"HP: 100", "content/open_dyslexic/OpenDyslexic-Regular.otf", 30, sf::Color::White, 10, 10});
 
 void GameManager::init(ECS& ecs, InputManager& inputs, ResourceManager<TextureAsset>& textures) {
     initSystems(ecs);
@@ -174,6 +170,23 @@ void GameManager::setupShootingControls(InputManager& inputs) {
             }
         }
     });
+}
+
+void GameManager::update(ECS& ecs, InputManager& inputs, ResourceManager<TextureAsset>& textures) {
+    if (_player) {
+        Entity player_id = _player->getId();
+        if (ecs.registry.hasComponent<HealthComponent>(player_id)) {
+            int hp = _player->getCurrentHealth();
+            //     if (ecs.registry.hasComponent<TextComponent>(_uiEntity)) {
+            //         auto& text = ecs.registry.getComponent<TextComponent>(_uiEntity);
+            //         text.text = "HP: " + std::to_string(hp);
+            //     }
+            // } else {
+            //     if (ecs.registry.hasComponent<TextComponent>(_uiEntity)) {
+            //         auto& text = ecs.registry.getComponent<TextComponent>(_uiEntity);
+            //         text.text = "GAME OVER";
+            //     }
+        }
 }
 
 void GameManager::loadInputSetting(InputManager& inputs) {

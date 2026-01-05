@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
 
 #include "NetworkInterface/message.hpp"
 
@@ -8,7 +9,6 @@ namespace network {
 
 enum class GameEvents : uint32_t {
     NONE,
-
     ASK_UDP,
     ASK_LOG,
 
@@ -68,6 +68,16 @@ enum class GameEvents : uint32_t {
 
     S_RETURN_TO_LOBBY,
 };
+
+// Hash function for GameEvents enum class
+}  // namespace network
+namespace std {
+template <>
+struct hash<network::GameEvents> {
+    size_t operator()(network::GameEvents e) const noexcept { return static_cast<size_t>(e); }
+};
+}  // namespace std
+namespace network {
 
 struct coming_message {
     GameEvents id;

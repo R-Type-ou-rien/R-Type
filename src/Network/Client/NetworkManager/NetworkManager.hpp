@@ -6,20 +6,9 @@
 #include <unordered_map>
 #include <optional>
 #include <utility>
-#include <vector>
 
 #include "Network.hpp"
 #include "NetworkInterface/message.hpp"
-
-// Hash function for GameEvents enum class (required for unordered_set/map)
-namespace std {
-    template<>
-    struct hash<network::GameEvents> {
-        size_t operator()(network::GameEvents e) const noexcept {
-            return static_cast<size_t>(e);
-        }
-    };
-}
 
 enum class PackageValidation : uint8_t {
     VALID,
@@ -34,13 +23,11 @@ struct ValidationResult {
     PackageValidation status;
     std::string errorMessage;
 
-    bool isValid() const {
-        return status == PackageValidation::VALID;
-    }
+    bool isValid() const { return status == PackageValidation::VALID; }
 };
 
 class NetworkManager {
-public:
+   public:
     NetworkManager();
     ~NetworkManager() = default;
 
@@ -60,15 +47,14 @@ public:
 
         // Check magic value integrity
         if (msg.header.magic_value != MAGIC_VALUE) {
-            return {PackageValidation::INVALID,
-                    "Invalid magic value in packet header"};
+            return {PackageValidation::INVALID, "Invalid magic value in packet header"};
         }
 
         // Check header size matches body size
         if (msg.header.size != msg.body.size()) {
-            return {PackageValidation::INVALID_PAYLOAD_SIZE,
-                    "Header size (" + std::to_string(msg.header.size) +
-                    ") does not match body size (" + std::to_string(msg.body.size()) + ")"};
+            return {PackageValidation::INVALID_PAYLOAD_SIZE, "Header size (" + std::to_string(msg.header.size) +
+                                                                 ") does not match body size (" +
+                                                                 std::to_string(msg.body.size()) + ")"};
         }
 
         // Validate payload constraints for specific events
@@ -104,7 +90,7 @@ public:
      */
     std::optional<size_t> getMaxPayloadSize(network::GameEvents event) const;
 
-private:
+   private:
     std::unordered_set<network::GameEvents> _validClientEvents;
     std::unordered_set<network::GameEvents> _tcpEvents;
     std::unordered_set<network::GameEvents> _udpEvents;
@@ -121,15 +107,15 @@ private:
             size_t maxSize = constraints->second.second;
 
             if (msg.body.size() < minSize) {
-                return {PackageValidation::INVALID_PAYLOAD_SIZE,
-                        "Payload too small for event. Expected at least " + std::to_string(minSize) +
-                        " bytes, got " + std::to_string(msg.body.size())};
+                return {PackageValidation::INVALID_PAYLOAD_SIZE, "Payload too small for event. Expected at least " +
+                                                                     std::to_string(minSize) + " bytes, got " +
+                                                                     std::to_string(msg.body.size())};
             }
 
             if (maxSize > 0 && msg.body.size() > maxSize) {
-                return {PackageValidation::INVALID_PAYLOAD_SIZE,
-                        "Payload too large for event. Expected at most " + std::to_string(maxSize) +
-                        " bytes, got " + std::to_string(msg.body.size())};
+                return {PackageValidation::INVALID_PAYLOAD_SIZE, "Payload too large for event. Expected at most " +
+                                                                     std::to_string(maxSize) + " bytes, got " +
+                                                                     std::to_string(msg.body.size())};
             }
         }
 
