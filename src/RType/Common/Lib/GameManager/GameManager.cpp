@@ -142,6 +142,12 @@ void GameManager::loadInputSetting(InputManager& inputs) {
     _player->bindActionCallbackPressed("ecs", [](Registry& registry, system_context context, Entity entity) {
         // context.requested_scene = "ECSDebug";
     });
+
+    ecs.input.bindAction("ecs", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Escape});
+    std::cout << "Player id " << _player->getId() << std::endl;
+    _player->bindActionCallbackPressed("ecs", [](Registry& registry, system_context context, Entity entity) {
+        context.requested_scene = "ECSDebug";
+    });
 }
 
 void GameManager::update(ECS& ecs, InputManager& inputs, ResourceManager<TextureAsset> &textures) {
