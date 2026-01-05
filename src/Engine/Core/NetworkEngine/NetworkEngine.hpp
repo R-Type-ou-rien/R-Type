@@ -17,7 +17,7 @@ class NetworkEngine {
 
     using EventType = network::GameEvents;
 
-    NetworkEngine(NetworkRole role, std::variant<network::Server*, network::Client*> networkInstance);
+    NetworkEngine(NetworkRole role, uint16_t port = 0, int timeout = 30);
     ~NetworkEngine() = default;
 
     bool transmitEvent(EventType type, const std::vector<uint8_t>& data, uint32_t tick = -1, uint32_t targetId = -1);
@@ -26,7 +26,7 @@ class NetworkEngine {
 
    private:
     NetworkRole _role;
-    std::variant<network::Server*, network::Client*> _networkInstance;
+    std::variant<std::shared_ptr<network::Server>, std::shared_ptr<network::Client>> _networkInstance;
 
     std::map<uint32_t, uint32_t> _lastPacketTickMap;
     std::map<EventType, std::vector<std::vector<uint8_t>>> _processedEvents;

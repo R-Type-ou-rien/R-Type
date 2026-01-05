@@ -1,12 +1,19 @@
 #include "NetworkEngine.hpp"
 #include <cstdint>
+#include <memory>  // Added for std::shared_ptr
 #include "../../Lib/Components/NetworkComponents.hpp"
 
 namespace engine {
 namespace core {
 
-NetworkEngine::NetworkEngine(NetworkRole role, std::variant<network::Server*, network::Client*> networkInstance)
-    : _role(role), _networkInstance(networkInstance) {}
+NetworkEngine::NetworkEngine(NetworkRole role, uint16_t port, int timeout) : _role(role) {
+    if (role == NetworkRole::SERVER) {
+        _networkInstance = std::make_shared<network::Server>(port, timeout);
+        std::get<std::shared_ptr<network::Server>>(_networkInstance)->Start();
+    } else {
+        _networkInstance = std::make_shared<network::Client>();
+    }
+}
 
 bool NetworkEngine::isUdpEvent(EventType type) {
     switch (type) {
@@ -27,13 +34,13 @@ void NetworkEngine::processIncomingPackets(uint32_t tick) {
         network::coming_message msg;
         bool hasMsg = false;
 
-        if (std::holds_alternative<network::Server*>(_networkInstance)) {
-            auto server = std::get<network::Server*>(_networkInstance);
+        if (std::holds_alternative<std::shared_ptr<network::Server>>(_networkInstance)) {
+            auto server = std::get<std::shared_ptr<network::Server>>(_networkInstance);
             msg = server->ReadIncomingMessage();
             if (msg.id != network::GameEvents::NONE)
                 hasMsg = true;
         } else {
-            auto client = std::get<network::Client*>(_networkInstance);
+            auto client = std::get<std::shared_ptr<network::Client>>(_networkInstance);
             msg = client->ReadIncomingMessage();
             if (msg.id != network::GameEvents::NONE)
                 hasMsg = true;
@@ -45,12 +52,16 @@ void NetworkEngine::processIncomingPackets(uint32_t tick) {
         uint32_t guid = msg.msg.header.user_id;
 
         if (isUdpEvent(msg.id)) {
+            // Check if body is large enough to contain GUID (at least 4 bytes)
             if (msg.msg.body.size() < sizeof(uint32_t)) {
                 continue;
             }
 
             uint32_t packetTick = msg.msg.header.tick;
 
+            // User requested casting to ComponentPacket
+            // We interpret the start of the body as the struct.
+            // Note: This assumes the struct layout matches the sender's serialization.
             ComponentPacket* packet = reinterpret_cast<ComponentPacket*>(msg.msg.body.data());
             uint32_t guid = packet->entity_guid;
             if (packetTick <= _lastPacketTickMap[guid]) {
@@ -79,11 +90,11 @@ bool NetworkEngine::transmitEvent(EventType type, const std::vector<uint8_t>& da
         msg.header.size = data.size();
         msg.header.tick = tick;
 
-        if (std::holds_alternative<network::Server*>(_networkInstance)) {
-            auto server = std::get<network::Server*>(_networkInstance);
+        if (std::holds_alternative<std::shared_ptr<network::Server>>(_networkInstance)) {
+            auto server = std::get<std::shared_ptr<network::Server>>(_networkInstance);
             server->AddMessageToPlayer(type, targetId, msg);
         } else {
-            auto client = std::get<network::Client*>(_networkInstance);
+            auto client = std::get<std::shared_ptr<network::Client>>(_networkInstance);
             client->AddMessageToServer(type, msg);
         }
     } catch (const std::exception& e) {
