@@ -1,15 +1,16 @@
 #include <string>
 #include <utility>
 #include "DynamicActor.hpp"
+#include "ECS.hpp"
 #include "Components/StandardComponents.hpp"
-#include "../../../../Common/Components/team_component.hpp"
-#include "../../../../Common/Components/shooter.hpp"
+#include "../../Components/team_component.hpp"
+#include "../../Systems/shooter.hpp"
 
 #pragma once
 
-class AI : public DynamicActor {
+class Player : public DynamicActor {
    public:
-    AI(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<float, float> pos);
+    Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<float, float> pos);
 
     void setProjectileType(ShooterComponent::ProjectileType type);
 

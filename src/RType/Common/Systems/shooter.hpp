@@ -3,7 +3,7 @@
 #include "Components/StandardComponents.hpp"
 #include "ISystem.hpp"
 #include "registry.hpp"
-#include "team_component.hpp"
+#include "../Components/team_component.hpp"
 
 struct ShooterComponent {
     static constexpr auto name = "ShooterComponent";

@@ -1,9 +1,9 @@
 #include <vector>
 #include "damage.hpp"
 #include "Components/StandardComponents.hpp"
+#include "score.hpp"
 
 #include "health.hpp"
-// #include "collision.hpp"
 
 void HealthSystem::update(Registry& registry, system_context context) {
     auto& entities = registry.getEntities<HealthComponent>();
@@ -22,6 +22,11 @@ void HealthSystem::update(Registry& registry, system_context context) {
     }
     for (auto dead_entity : dead_entities) {
         if (registry.hasComponent<HealthComponent>(dead_entity)) {
+            // Ajouter le score si l'entité a une valeur de score
+            if (registry.hasComponent<ScoreValueComponent>(dead_entity)) {
+                auto& score_value = registry.getConstComponent<ScoreValueComponent>(dead_entity);
+                ScoreSystem::addScore(registry, score_value.value);
+            }
             registry.destroyEntity(dead_entity);
         }
     }

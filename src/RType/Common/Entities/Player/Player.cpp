@@ -1,5 +1,5 @@
 #include "Player.hpp"
-#include "src/RType/Common/Components/health.hpp"
+#include "src/RType/Common/Systems/health.hpp"
 
 Player::Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<float, float> pos)
     : DynamicActor(ecs, true, textures, "PLAYER") {

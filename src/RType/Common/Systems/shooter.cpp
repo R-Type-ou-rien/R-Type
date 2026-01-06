@@ -10,8 +10,8 @@
 #include "ResourceConfig.hpp"
 #include "damage.hpp"
 #include "registry.hpp"
-#include "team_component.hpp"
-#include "charged_shot.hpp"
+#include "../Components/team_component.hpp"
+#include "../Components/charged_shot.hpp"
 
 Velocity2D ShooterSystem::get_projectile_speed(ShooterComponent::ProjectileType type, TeamComponent::Team team) {
     Velocity2D vel = {0, 0};
@@ -19,16 +19,16 @@ Velocity2D ShooterSystem::get_projectile_speed(ShooterComponent::ProjectileType 
 
     switch (type) {
         case ShooterComponent::NORMAL:
-            speed = 500;
+            speed = 700;
             break;
         case ShooterComponent::CHARG:
-            speed = 7;
+            speed = 800;
             break;
         case ShooterComponent::RED:
-            speed = 10;
+            speed = 650;
             break;
         case ShooterComponent::BLUE:
-            speed = 10;
+            speed = 650;
             break;
     }
     vel.vx = speed;
@@ -47,22 +47,24 @@ void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::Proj
 
     TagComponent tags;
     if (team == TeamComponent::ALLY) {
-        tags.tags.push_back("ENEMY_PROJECTILE");
+        tags.tags.push_back("FRIENDLY_PROJECTILE");
     } else {
-        tags.tags.push_back("PLAYER_PROJECTILE");
+        tags.tags.push_back("ENEMY_PROJECTILE");
     }
 
     registry.addComponent<ProjectileComponent>(id, {id});
 
     registry.addComponent<TeamComponent>(id, {team});
 
-    registry.addComponent<transform_component_s>(id, {(pos.x + 32), (pos.y + 8)});
+    // Position ajustée selon l'équipe
+    float offset_x = (team == TeamComponent::ALLY) ? 50.0f : -20.0f;
+    registry.addComponent<transform_component_s>(id, {(pos.x + offset_x), (pos.y + 20)});
 
     registry.addComponent<Velocity2D>(id, speed);
 
     registry.addComponent<TagComponent>(id, tags);
 
-    registry.addComponent<DamageOnCollision>(id, {10});
+    registry.addComponent<DamageOnCollision>(id, {30});
 
     handle_t<TextureAsset> handle = context.texture_manager.load("content/sprites/r-typesheet1.gif",
                                                                  TextureAsset("content/sprites/r-typesheet1.gif"));
@@ -71,7 +73,8 @@ void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::Proj
     sprite_info.handle = handle;
     sprite_info.animation_speed = 0;
     sprite_info.current_animation_frame = 0;
-    sprite_info.dimension = {230, 103, 17, 13};
+    // Projectile plus visible (32x14 au lieu de 17x13)
+    sprite_info.dimension = {232, 103, 32, 14};
     sprite_info.z_index = 1;
 
     registry.addComponent<sprite2D_component_s>(id, sprite_info);
@@ -90,29 +93,30 @@ void ShooterSystem::create_charged_projectile(Registry& registry, TeamComponent:
                                              transform_component_s pos, system_context context, float charge_ratio) {
     int id = registry.createEntity();
     
-    Velocity2D speed = {600, 0};
+    Velocity2D speed = {700, 0};
     if (team == TeamComponent::ENEMY) {
         speed.vx = -speed.vx;
     }
 
     TagComponent tags;
     if (team == TeamComponent::ALLY) {
-        tags.tags.push_back("ENEMY_PROJECTILE");
+        tags.tags.push_back("FRIENDLY_PROJECTILE");
     } else {
-        tags.tags.push_back("PLAYER_PROJECTILE");
+        tags.tags.push_back("ENEMY_PROJECTILE");
     }
 
     registry.addComponent<ProjectileComponent>(id, {id});
     registry.addComponent<TeamComponent>(id, {team});
-    registry.addComponent<transform_component_s>(id, {(pos.x + 32), (pos.y + 8)});
+    registry.addComponent<transform_component_s>(id, {(pos.x + 50), (pos.y)});
     registry.addComponent<Velocity2D>(id, speed);
     registry.addComponent<TagComponent>(id, tags);
     
-    int damage = static_cast<int>(30 + (70 * charge_ratio));
+    int damage = static_cast<int>(50 + (150 * charge_ratio));
     registry.addComponent<DamageOnCollision>(id, {damage});
     
     registry.addComponent<PenetratingProjectile>(id, {});
 
+    // Utiliser r-typesheet1.gif qui a les projectiles (zone avec énergie)
     handle_t<TextureAsset> handle = context.texture_manager.load("content/sprites/r-typesheet1.gif",
                                                                 TextureAsset("content/sprites/r-typesheet1.gif"));
 
@@ -120,14 +124,15 @@ void ShooterSystem::create_charged_projectile(Registry& registry, TeamComponent:
     sprite_info.handle = handle;
     sprite_info.animation_speed = 0;
     sprite_info.current_animation_frame = 0;
+    // Sprite de projectile d'énergie (plus gros selon la charge)
     if (charge_ratio >= 0.8f) {
-        sprite_info.dimension = {232, 120, 31, 13};
+        sprite_info.dimension = {263, 120, 64, 56};  // Gros tir chargé
     } else if (charge_ratio >= 0.5f) {
-        sprite_info.dimension = {265, 120, 32, 14};
+        sprite_info.dimension = {263, 120, 48, 42};  // Tir moyen
     } else {
-        sprite_info.dimension = {200, 120, 30, 12};
+        sprite_info.dimension = {263, 120, 32, 28};  // Petit tir chargé
     }
-    sprite_info.z_index = 1;
+    sprite_info.z_index = 2;
 
     registry.addComponent<sprite2D_component_s>(id, sprite_info);
 
