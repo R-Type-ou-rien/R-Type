@@ -2,19 +2,30 @@
 #include "ResourceConfig.hpp"
 #include "slot_map/slot_map.hpp"
 
-enum class SpawnPolicy { AUTHORITATIVE, PREDICTED, LOCAL_ONLY };
+namespace engine { namespace core { class NetworkEngine; } }
 
-enum class EnvMode { SERVER, CLIENT, STANDALONE };
+enum class SpawnPolicy {
+    AUTHORITATIVE,
+    PREDICTED,
+    LOCAL_ONLY
+};
+
+enum class EnvMode {
+    SERVER,
+    CLIENT,
+    STANDALONE
+};
 
 class Environment {
    private:
     ECS& _ecs;
     ResourceManager<TextureAsset>& _textures;
+    engine::core::NetworkEngine& _network;
     EnvMode _mode;
 
    public:
-    Environment(ECS& ecs, ResourceManager<TextureAsset>& textures, EnvMode mode)
-        : _ecs(ecs), _textures(textures), _mode(mode) {}
+    Environment(ECS& ecs, ResourceManager<TextureAsset>& textures, engine::core::NetworkEngine& network, EnvMode mode)
+        : _ecs(ecs), _textures(textures), _network(network), _mode(mode) {}
 
     handle_t<TextureAsset> loadTexture(const std::string& path) {
         if (!_textures.is_loaded(path)) {
@@ -52,6 +63,8 @@ class Environment {
     bool isServer() const { return (_mode == EnvMode::SERVER); }
 
     bool isClient() const { return (_mode == EnvMode::CLIENT); }
+
+    bool isStandalone() const { return (_mode == EnvMode::STANDALONE); }
 
     ECS& getECS() { return _ecs; }
 };

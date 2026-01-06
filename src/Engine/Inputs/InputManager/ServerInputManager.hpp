@@ -3,6 +3,6 @@
 
 class ServerInputManager : public InputManagerBase<ServerInputManager> {
    public:
-    void update(float dt) {}
+    // void update(float dt) {}
     int updateActionFromPacket(ActionPacket packet);
 };

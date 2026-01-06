@@ -3,6 +3,7 @@
 #include <functional>
 #include <string>
 
+#include "Components/NetworkComponents.hpp"
 #include "ECS/ECS.hpp"
 #include "GameEngineBase.hpp"
 #include "SpawnSystem.hpp"
@@ -19,9 +20,16 @@
 #define FAILURE -1
 
 class ServerGameEngine : public GameEngineBase<ServerGameEngine> {
+    public:
+        static constexpr bool IsServer = true;
+
    public:
     int init();
     int run();
     explicit ServerGameEngine();
     ~ServerGameEngine() = default;
+
+    private:
+        void processNetworkEvents();
+        void updateActions(ActionPacket& packet);
 };

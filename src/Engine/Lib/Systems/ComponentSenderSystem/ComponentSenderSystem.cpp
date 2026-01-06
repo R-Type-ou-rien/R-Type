@@ -1,9 +1,12 @@
 #include "ComponentSenderSystem.hpp"
 #include "Context.hpp"
 #include "ISystem.hpp"
+#include "Network.hpp"
 #include "registry.hpp"
 
 void ComponentSenderSystem::update(Registry& reg, system_context ctx) {
+
+    
     ComponentPacket packet;
     SerializationContext s_ctx = {ctx.texture_manager};
     auto& component_pools = reg.getComponentPools();
@@ -21,6 +24,7 @@ void ComponentSenderSystem::update(Registry& reg, system_context ctx) {
         for (auto entity : updated_components) {
             packet = pool->createPacket(entity, s_ctx);
             packet.entity_guid = reg.getConstComponent<NetworkIdentity>(entity).guid;
+            // ctx.network.transmitEvent(network::GameEvents::S_SNAPSHOT, packet, ctx.tick, );
             // for (auto& player : players) {
             //     if (!server.IsClientReady(player))
             //         continue;

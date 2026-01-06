@@ -5,17 +5,21 @@
 
 #if defined(SERVER_BUILD)
 #include "ServerResourceManager.hpp"
+#include "NetworkEngine/NetworkEngine.hpp"
 struct system_context {
     float dt;
+    uint32_t tick;
     ResourceManager<TextureAsset>& texture_manager;
     InputManager& input;
+    engine::core::NetworkEngine& network;
 };
+
 #elif defined(CLIENT_BUILD)
 #include "ClientResourceManager.hpp"
 #include <SFML/Graphics/RenderWindow.hpp>
-#include "InputConfig.hpp"
 struct system_context {
     float dt;
+    uint32_t tick;
     ResourceManager<TextureAsset>& texture_manager;
     sf::RenderWindow& window;
     InputManager& input;

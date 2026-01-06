@@ -82,26 +82,12 @@ std::map<NetworkEngine::EventType, std::vector<std::vector<uint8_t>>> NetworkEng
     return events;
 }
 
-bool NetworkEngine::transmitEvent(EventType type, const std::vector<uint8_t>& data, uint32_t tick, uint32_t targetId) {
-    try {
-        network::message<network::GameEvents> msg;
-        msg.header.id = type;
-        msg.body = data;
-        msg.header.size = data.size();
-        msg.header.tick = tick;
+void NetworkEngine::setPort(uint16_t port)
+{
+}
 
-        if (std::holds_alternative<std::shared_ptr<network::Server>>(_networkInstance)) {
-            auto server = std::get<std::shared_ptr<network::Server>>(_networkInstance);
-            server->AddMessageToPlayer(type, targetId, msg);
-        } else {
-            auto client = std::get<std::shared_ptr<network::Client>>(_networkInstance);
-            client->AddMessageToServer(type, msg);
-        }
-    } catch (const std::exception& e) {
-        std::cerr << "Error transmitting event: " << e.what() << std::endl;
-        return false;
-    }
-    return true;
+void NetworkEngine::setTimeout(int timeout)
+{
 }
 
 }  // namespace core

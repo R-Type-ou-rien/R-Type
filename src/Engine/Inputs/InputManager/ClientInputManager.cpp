@@ -1,5 +1,8 @@
 #include "ClientInputManager.hpp"
+#include <cstdint>
+#include "Components/NetworkComponents.hpp"
 #include "InputBinding.hpp"
+#include "Network.hpp"
 
 bool ClientInputManager::isBindingActive(const InputBinding& b) const {
     switch (b.device) {
@@ -30,7 +33,8 @@ bool ClientInputManager::isBindingActive(const InputBinding& b) const {
     return false;
 }
 
-void ClientInputManager::update(float dt) {
+void ClientInputManager::update(engine::core::NetworkEngine& network, uint32_t tick, uint32_t dt) {
+    
     if (!_hasFocus) {
         for (auto& [action, state] : _states) {
             state.pressed = false;
@@ -64,7 +68,19 @@ void ClientInputManager::update(float dt) {
             }
             st.holdTime = 0.f;
         }
-
         st.pressed = down;
+
+        createActionPacket(action, st, network);
     }
+}
+
+void ClientInputManager::createActionPacket(Action name, ActionState state, engine::core::NetworkEngine& network)
+{
+    ActionPacket packet;
+
+    packet.action_name = name;
+    packet.action_state = state;
+
+    // network.transmitEvent(network::GameEvents::C_INPUT, packet, tick, uint32_t targetId);
+    return;
 }

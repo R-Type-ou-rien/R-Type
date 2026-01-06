@@ -3,8 +3,6 @@
 #include <functional>
 #include <string>
 
-// #include <SFML/Graphics/Texture.hpp>
-
 #include "ECS/ECS.hpp"
 #include "ECS/ISystem.hpp"
 #include "GameEngineBase.hpp"
@@ -25,6 +23,9 @@ class ClientGameEngine : public GameEngineBase<ClientGameEngine> {
    private:
     WindowManager _window_manager;
 
+    public:
+        static constexpr bool IsServer = false;
+
    public:
     int init();
     int run();
@@ -33,4 +34,5 @@ class ClientGameEngine : public GameEngineBase<ClientGameEngine> {
 
    private:
     void handleEvent();
+    void processNetworkEvents();
 };

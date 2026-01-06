@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 file(GLOB_RECURSE CORE_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/Core/ECS/*.cpp"
-    # "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/*.cpp"
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/NetworkEngine/*cpp
     "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Actors/*.cpp"
 )
 
@@ -49,6 +49,8 @@ if (BUILD_SERVER)
         "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/ResourceSystem.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Core/ServerGameEngine.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Inputs/ActionRegistry.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/Inputs/InputManager/ServerInputManager.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/Inputs/InputManager/InputManagerBase.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Inputs/InputState.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Inputs/InputAction.cpp"
     )
@@ -61,7 +63,7 @@ else()
     target_link_libraries(Engine PUBLIC SFML::System)
 
     file(GLOB_RECURSE CLIENT_SOURCES
-        "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/ActionScriptSystem.cpp" # comment: a retirer
+        "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/ActionScriptSystem.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/BackgroundSystem.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/RenderSystem.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/InputSystem.cpp"
