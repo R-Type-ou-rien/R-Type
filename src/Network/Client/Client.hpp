@@ -14,6 +14,7 @@ class Client : public ClientInterface<GameEvents> {
    public:
     void PingServer();
 
+    Client(std::string host, uint16_t port = 4040) { Connect(host, port); };
     coming_message ReadIncomingMessage();
 
     void LoginServer(std::string username, std::string password);

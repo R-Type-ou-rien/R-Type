@@ -6,12 +6,12 @@
 namespace engine {
 namespace core {
 
-NetworkEngine::NetworkEngine(NetworkRole role, uint16_t port, int timeout) : _role(role) {
+NetworkEngine::NetworkEngine(NetworkRole role, std::string host, uint16_t port, int timeout) : _role(role) {
     if (role == NetworkRole::SERVER) {
         _networkInstance = std::make_shared<network::Server>(port, timeout);
         std::get<std::shared_ptr<network::Server>>(_networkInstance)->Start();
     } else {
-        _networkInstance = std::make_shared<network::Client>();
+        _networkInstance = std::make_shared<network::Client>(host, port);
     }
 }
 
@@ -82,13 +82,9 @@ std::map<NetworkEngine::EventType, std::vector<std::vector<uint8_t>>> NetworkEng
     return events;
 }
 
-void NetworkEngine::setPort(uint16_t port)
-{
-}
+void NetworkEngine::setPort(uint16_t port) {}
 
-void NetworkEngine::setTimeout(int timeout)
-{
-}
+void NetworkEngine::setTimeout(int timeout) {}
 
 }  // namespace core
 }  // namespace engine

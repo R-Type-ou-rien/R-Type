@@ -31,7 +31,7 @@ class Server : public network::ServerInterface<GameEvents> {
     };
 
    public:
-    Server(uint16_t nPort, int timeout_seconds)
+    Server(uint16_t nPort = 4040, int timeout_seconds = 5)
         : network::ServerInterface<GameEvents>(nPort), _timeout_seconds(timeout_seconds) {};
 
    protected:
