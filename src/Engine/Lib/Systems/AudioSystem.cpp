@@ -39,7 +39,6 @@ void AudioSystem::update(Registry& registry, system_context context) {
 
         if (audio.assigned_sound_index == -1) {
             if (audio.play_on_start) {
-                // Essayer de charger comme un son (SoundBuffer)
                 if (context.sound_manager.is_loaded(audio.sound_name)) {
                     auto handleOpt = context.sound_manager.get_handle(audio.sound_name);
                     if (handleOpt) {
@@ -56,14 +55,13 @@ void AudioSystem::update(Registry& registry, system_context context) {
                         }
                     }
                 }
-                // Sinon, essayer de charger comme une musique (Music)
                 else if (context.music_manager.is_loaded(audio.sound_name)) {
                      auto handleOpt = context.music_manager.get_handle(audio.sound_name);
                      if (handleOpt) {
                          auto pathOpt = context.music_manager.get_resource(*handleOpt);
                          if (pathOpt) {
                              if (_bgMusic.openFromFile(pathOpt->get())) {
-                                 _bgMusic.setLooping(audio.loop); // Correction: setLoop -> setLooping
+                                 _bgMusic.setLooping(audio.loop);
                                  _bgMusic.play();
                                  audio.assigned_sound_index = -2;
                              } else {
@@ -77,7 +75,7 @@ void AudioSystem::update(Registry& registry, system_context context) {
 
         if (!audio.loop && audio.assigned_sound_index != -1) {
             if (audio.assigned_sound_index == -2) {
-                if (_bgMusic.getStatus() == sf::SoundSource::Status::Stopped) { // Correction: sf::Music::Stopped -> sf::SoundSource::Status::Stopped
+                if (_bgMusic.getStatus() == sf::SoundSource::Status::Stopped) {
                      if (audio.destroy_entity_on_finish) {
                         entities_to_destroy.push_back(entity);
                     } else {

@@ -71,7 +71,6 @@ class Environment {
                 }
             }
 
-            // Load sounds
             if (data.contains("sounds") && data["sounds"].is_array()) {
                 for (const auto& sound : data["sounds"]) {
                     if (sound.contains("name") && sound.contains("path")) {
@@ -81,7 +80,6 @@ class Environment {
                 }
             }
 
-            // Load music
             if (data.contains("music") && data["music"].is_array()) {
                 for (const auto& music : data["music"]) {
                     if (music.contains("name") && music.contains("path")) {
