@@ -64,8 +64,8 @@ void GameManager::initPlayer(Environment& env) {
     _player = env.spawn<Player>(SpawnPolicy::PREDICTED, std::pair<float, float>{start_x, start_y});
     if (_player) {
         _player->setTexture(_player_config.sprite_path.value());
-        _player->setTextureDimension(rect{_player_config.sprite_x.value(), _player_config.sprite_y.value(), 
-                                          _player_config.sprite_w.value(), _player_config.sprite_h.value()});
+        _player->setTextureDimension(rect{static_cast<float>(_player_config.sprite_x.value()), static_cast<float>(_player_config.sprite_y.value()), 
+                                          static_cast<float>(_player_config.sprite_w.value()), static_cast<float>(_player_config.sprite_h.value())});
         _player->setFireRate(_player_config.fire_rate.value());
         _player->setLifePoint(_player_config.hp.value());
         
