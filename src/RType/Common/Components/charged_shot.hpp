@@ -7,6 +7,8 @@ struct ChargedShotComponent {
     float charge_time = 0.0f;
     float min_charge_time = 0.5f;
     float max_charge_time = 2.0f;
+
+    int charging_sound_entity = -1;
 };
 
 struct PenetratingProjectile {

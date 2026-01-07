@@ -127,7 +127,11 @@ void GameManager::initUI(Environment& env) {
 
 void GameManager::init(Environment& env, InputManager& inputs) {
     initSystems(env);
-    
+
+    env.loadSound("shoot", "content/sounds/shoot.wav");
+    env.loadSound("charg_start", "content/sounds/charge_start.wav");
+    env.loadSound("charg_loop", "content/sounds/charge_loop.wav");
+
     initBackground(env);
     initPlayer(env);
     initEnemies(env);

@@ -21,6 +21,7 @@ class GameEngineBase {
     ECS _ecs;
     InputManager input_manager;
     ResourceManager<TextureAsset> _texture_manager;
+    ResourceManager<SoundAsset> _sound_manager;
     std::function<USER_FUNCTION_SIGNATURE> _loop_function;
     std::function<USER_FUNCTION_SIGNATURE> _init_function;
     // client network class

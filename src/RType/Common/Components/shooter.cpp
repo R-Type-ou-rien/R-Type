@@ -12,6 +12,7 @@
 #include "registry.hpp"
 #include "team_component.hpp"
 #include "charged_shot.hpp"
+#include "Components/AudioComponent.hpp"
 
 Velocity2D ShooterSystem::get_projectile_speed(ShooterComponent::ProjectileType type, TeamComponent::Team team) {
     Velocity2D vel = {0, 0};
@@ -83,6 +84,15 @@ void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::Proj
     } else {
         collision.tagCollision.push_back("PLAYER");
     }
+
+#if defined(CLIENT_BUILD)
+    int soundEntity = registry.createEntity();
+    AudioSourceComponent audio;
+    audio.sound_name = "shoot";
+    audio.play_on_start = true;
+    registry.addComponent<AudioSourceComponent>(soundEntity, audio);
+#endif
+
     return;
 }
 
@@ -158,6 +168,22 @@ void ShooterSystem::update(Registry& registry, system_context context) {
             
             if (shooter.trigger_pressed && shooter.is_shooting) {
                 charged.is_charging = true;
+
+#if defined(CLIENT_BUILD)
+                if (charged.charging_sound_entity == -1) {
+                    int soundEntity = registry.createEntity();
+                    AudioSourceComponent audio;
+                    audio.sound_name = "charg_start";
+                    audio.play_on_start = true;
+                    audio.loop = false;
+                    audio.next_sound_name = "charg_loop";
+                    audio.next_sound_loop = true;
+
+                    registry.addComponent<AudioSourceComponent>(soundEntity, audio);
+                    charged.charging_sound_entity = soundEntity;
+                }
+#endif
+
                 charged.charge_time += context.dt;
                 if (charged.charge_time > charged.max_charge_time) {
                     charged.charge_time = charged.max_charge_time;
@@ -168,7 +194,17 @@ void ShooterSystem::update(Registry& registry, system_context context) {
             if (!shooter.trigger_pressed && charged.is_charging) {
                 const transform_component_s& pos = registry.getConstComponent<transform_component_s>(id);
                 const TeamComponent& team = registry.getConstComponent<TeamComponent>(id);
-                
+
+#if defined(CLIENT_BUILD)
+                if (charged.charging_sound_entity != -1) {
+                    if (registry.hasComponent<AudioSourceComponent>(charged.charging_sound_entity)) {
+                        auto& audio = registry.getComponent<AudioSourceComponent>(charged.charging_sound_entity);
+                        audio.stop_requested = true;
+                    }
+                    charged.charging_sound_entity = -1;
+                }
+#endif
+
                 if (charged.charge_time >= charged.min_charge_time && shooter.last_shot >= shooter.fire_rate) {
                     float charge_ratio = (charged.charge_time - charged.min_charge_time) / 
                                         (charged.max_charge_time - charged.min_charge_time);
