@@ -3,8 +3,8 @@
 #include "CollisionSystem.hpp"
 #include "health.hpp"
 #include "shooter.hpp"
-#include "team_component.hpp"
-#include "charged_shot.hpp"
+#include "../Components/team_component.hpp"
+#include "../Components/charged_shot.hpp"
 
 void Damage::update(Registry& registry, system_context context) {
     auto& attackers = registry.getEntities<DamageOnCollision>();

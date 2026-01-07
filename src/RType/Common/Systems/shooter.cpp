@@ -10,8 +10,8 @@
 #include "ResourceConfig.hpp"
 #include "damage.hpp"
 #include "registry.hpp"
-#include "team_component.hpp"
-#include "charged_shot.hpp"
+#include "../Components/team_component.hpp"
+#include "../Components/charged_shot.hpp"
 
 Velocity2D ShooterSystem::get_projectile_speed(ShooterComponent::ProjectileType type, TeamComponent::Team team) {
     Velocity2D vel = {0, 0};

@@ -2,8 +2,8 @@
 
 #include "ISystem.hpp"
 #include "registry.hpp"
-#include "config.hpp"
-#include "../Mobs/mob_spawner.hpp"
+#include "../Components/config.hpp"
+#include "../Entities/Mobs/mob_spawner.hpp"
 #include <map>
 #include <string>
 #include <vector>
@@ -19,8 +19,6 @@ struct EnemySpawnComponent {
     float boss_intro_timer = 0.0f;
     int wave_count = 0;
     bool is_active = true;
-    
-    // Seed pour le random (pas de static)
     unsigned int random_seed = 0;
     int random_state = 0;
 };
