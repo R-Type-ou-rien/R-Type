@@ -61,6 +61,7 @@ class Server : public network::ServerInterface<GameEvents> {
 
    public:
     coming_message ReadIncomingMessage();
+    void setTimeout(int timeout) { _timeout_seconds = timeout; };
 
     template <typename T>
     void AddMessageToPlayer(GameEvents event, uint32_t id, const T& data) {

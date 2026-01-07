@@ -75,12 +75,12 @@ bool Server::OnClientConnect(std::shared_ptr<Connection<GameEvents>> client) {
     std::cout << "[DEBUG] OnClientConnect: Send ID\n";
     AddMessageToPlayer(GameEvents::S_SEND_ID, client->GetID(), client->GetID());
     // Demander un paquet UDP pour save le endpint  udp (eh vsy j'ai meme pas besoin de parler la)
+    network::message<GameEvents> msg;
     std::cout << "[DEBUG] OnClientConnect: Confirm UDP\n";
-    AddMessageToPlayer(GameEvents::S_CONFIRM_UDP, client->GetID(), 0);
+    msg << client->GetID();
+    AddMessageToPlayer(GameEvents::S_CONFIRM_UDP, client->GetID(), msg);
 
     // Envoi du message de connection au game (bON POUR CA L'AUTOCOMPLETION DE L'IDE A UN PEU AIDER)
-    network::message<GameEvents> msg;
-    msg << 0;
     std::cout << "[DEBUG] OnClientConnect: Push to game\n";
     _toGameMessages.push({GameEvents::C_CONNECTION, client->GetID(), msg});
 

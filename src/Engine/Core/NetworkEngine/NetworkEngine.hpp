@@ -44,17 +44,16 @@ class NetworkEngine {
         return true;
     }
 
-    void setPort(uint16_t port);
     void setTimeout(int timeout);
     void processIncomingPackets(uint32_t tick);
-    std::map<EventType, std::vector<std::vector<uint8_t>>> getPendingEvents();
+    std::map<EventType, network::message<EventType>> getPendingEvents();
 
    private:
     NetworkRole _role;
     std::variant<std::shared_ptr<network::Server>, std::shared_ptr<network::Client>> _networkInstance;
 
     std::map<uint32_t, uint32_t> _lastPacketTickMap;
-    std::map<EventType, std::vector<std::vector<uint8_t>>> _processedEvents;
+    std::map<EventType, network::message<EventType>> _processedEvents;
 
     bool isUdpEvent(EventType type);
 };
