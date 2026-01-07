@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #if defined(SERVER_BUILD)
 
 template <typename ResourceType>
@@ -9,11 +11,12 @@ using ResourceManager = ServerResourceManager<T>;
 
 struct TextureData {
     std::string pathname;
+    TextureData() = default;
     TextureData(std::string path) { this->pathname = path; }
 };
 
 using TextureAsset = TextureData;
-using SoundAsset = TextureData; // On server, sound is just a path/data too
+using SoundAsset = TextureData;  // On server, sound is just a path/data too
 
 #elif defined(CLIENT_BUILD)
 
@@ -27,6 +30,7 @@ using ResourceManager = ClientResourceManager<T>;
 
 using TextureAsset = sf::Texture;
 using SoundAsset = sf::SoundBuffer;
+using MusicAsset = std::string;
 
 #else
 #error "You must compile with -DSERVER_BUILD or -DCLIENT_BUILD"

@@ -9,6 +9,7 @@ struct system_context {
     float dt;
     ResourceManager<TextureAsset>& texture_manager;
     ResourceManager<SoundAsset>& sound_manager;
+    ResourceManager<MusicAsset>& music_manager;
     InputManager& input;
 };
 #elif defined(CLIENT_BUILD)
@@ -19,6 +20,7 @@ struct system_context {
     float dt;
     ResourceManager<TextureAsset>& texture_manager;
     ResourceManager<SoundAsset>& sound_manager;
+    ResourceManager<MusicAsset>& music_manager;
     sf::RenderWindow& window;
     InputManager& input;
 };

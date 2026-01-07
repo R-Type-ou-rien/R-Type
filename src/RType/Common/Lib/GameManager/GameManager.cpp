@@ -60,12 +60,12 @@ void GameManager::initPlayer(Environment& env) {
         _player->setTextureDimension(rect{0, 0, 32, 16});
         _player->setFireRate(0.5);
         _player->setLifePoint(PLAYER_MAX_HP);
-        
+
         _player->addCollisionTag("AI");
         _player->addCollisionTag("ENEMY_PROJECTILE");
         _player->addCollisionTag("ITEM");
         _player->addCollisionTag("GROUND");
-        
+
         ChargedShotComponent charged_shot;
         charged_shot.min_charge_time = 0.5f;
         charged_shot.max_charge_time = 2.0f;
@@ -128,16 +128,14 @@ void GameManager::initUI(Environment& env) {
 void GameManager::init(Environment& env, InputManager& inputs) {
     initSystems(env);
 
-    env.loadSound("shoot", "content/sounds/shoot.wav");
-    env.loadSound("charg_start", "content/sounds/charge_start.wav");
-    env.loadSound("charg_loop", "content/sounds/charge_loop.wav");
+    env.loadGameResources("content/config/r-type.json");
 
     initBackground(env);
     initPlayer(env);
     initEnemies(env);
     initSpawner(env);
     initUI(env);
-    
+
     loadInputSetting(inputs);
 }
 
@@ -192,7 +190,6 @@ void GameManager::setupMovementControls(InputManager& inputs) {
 }
 
 void GameManager::setupShootingControls(InputManager& inputs) {
-
     // Tir
     inputs.bindAction("shoot", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Space});
     _player->bindActionCallbackPressed("shoot", [](Registry& registry, system_context context, Entity entity) {
@@ -206,7 +203,7 @@ void GameManager::setupShootingControls(InputManager& inputs) {
         if (registry.hasComponent<ShooterComponent>(entity)) {
             auto& shoot = registry.getComponent<ShooterComponent>(entity);
             shoot.trigger_pressed = false;
-            
+
             if (registry.hasComponent<ChargedShotComponent>(entity)) {
                 auto& charged = registry.getComponent<ChargedShotComponent>(entity);
                 if (!charged.is_charging) {
@@ -244,7 +241,7 @@ void GameManager::updateUI(Environment& env) {
 
 void GameManager::update(Environment& env, InputManager& inputs) {
     updateUI(env);
-        // vagues d'ennemis
+    // vagues d'ennemis
     // check de victoire/défaite
     // power-ups
 }

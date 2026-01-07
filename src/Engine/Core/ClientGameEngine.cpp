@@ -7,7 +7,7 @@
 #include "GameEngineBase.hpp"
 #include "PatternSystem/PatternSystem.hpp"
 #include "SpawnSystem.hpp"
-#include "AudioSystem.hpp" // AJOUT
+#include "AudioSystem.hpp"
 
 ClientGameEngine::ClientGameEngine(std::string window_name) : _window_manager(WINDOW_W, WINDOW_H, window_name) {}
 
@@ -38,9 +38,10 @@ void ClientGameEngine::handleEvent() {
 }
 
 int ClientGameEngine::run() {
-    system_context context = {0, _texture_manager, _sound_manager, _window_manager.getWindow(), input_manager};
+    system_context context = {
+        0, _texture_manager, _sound_manager, _music_manager, _window_manager.getWindow(), input_manager};
     auto last_time = std::chrono::high_resolution_clock::now();
-    Environment env(_ecs, _texture_manager, _sound_manager, EnvMode::STANDALONE);
+    Environment env(_ecs, _texture_manager, _sound_manager, _music_manager, EnvMode::STANDALONE);
 
     this->init();
     if (_init_function)

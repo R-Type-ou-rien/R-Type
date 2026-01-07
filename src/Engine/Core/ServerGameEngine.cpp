@@ -18,9 +18,9 @@ int ServerGameEngine::init() {
 }
 
 int ServerGameEngine::run() {
-    system_context ctx = {0, _texture_manager, _sound_manager, input_manager};
+    system_context ctx = {0, _texture_manager, _sound_manager, _music_manager, input_manager};
     auto last_time = std::chrono::high_resolution_clock::now();
-    Environment env(_ecs, _texture_manager, _sound_manager, EnvMode::SERVER);
+    Environment env(_ecs, _texture_manager, _sound_manager, _music_manager, EnvMode::SERVER);
 
     init();
     if (_init_function)

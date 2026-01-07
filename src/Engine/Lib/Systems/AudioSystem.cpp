@@ -57,7 +57,6 @@ void AudioSystem::update(Registry& registry, system_context context) {
 
         if (!audio.loop && audio.assigned_sound_index != -1) {
             if (_soundPool[audio.assigned_sound_index]->getStatus() == sf::Sound::Status::Stopped) {
-
                 if (!audio.next_sound_name.empty()) {
                     audio.sound_name = audio.next_sound_name;
                     audio.loop = audio.next_sound_loop;

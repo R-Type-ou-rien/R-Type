@@ -27,7 +27,8 @@ target_include_directories(Engine PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources
 )
 
-target_link_libraries(Engine PUBLIC SFML::Graphics SFML::Window SFML::System NetworkLib)
+find_package(nlohmann_json CONFIG REQUIRED)
+target_link_libraries(Engine PUBLIC SFML::Graphics SFML::Window SFML::System NetworkLib nlohmann_json::nlohmann_json)
 
 find_package(SFML REQUIRED COMPONENTS Window Graphics)
 target_link_libraries(Engine PUBLIC SFML::Window SFML::Graphics)

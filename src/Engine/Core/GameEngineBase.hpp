@@ -22,9 +22,9 @@ class GameEngineBase {
     InputManager input_manager;
     ResourceManager<TextureAsset> _texture_manager;
     ResourceManager<SoundAsset> _sound_manager;
+    ResourceManager<MusicAsset> _music_manager;
     std::function<USER_FUNCTION_SIGNATURE> _loop_function;
     std::function<USER_FUNCTION_SIGNATURE> _init_function;
-    // client network class
 
    public:
     explicit GameEngineBase() {}
@@ -36,11 +36,9 @@ class GameEngineBase {
 
     void setLoopFunction(std::function<USER_FUNCTION_SIGNATURE> user_function) {
         _loop_function = user_function;
-        return;
     }
 
     void setInitFunction(std::function<USER_FUNCTION_SIGNATURE> user_function) {
         _init_function = user_function;
-        return;
     }
 };
