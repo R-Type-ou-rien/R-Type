@@ -28,6 +28,15 @@
 
 class Registry;
 /**  Comment: Split les components par 'context' d'utilisation ?? ex: visuel, sonore, physic etc...*/
+struct StateComponent {
+    static constexpr auto name = "StateComponent";
+
+    enum State { IDLE, MOVE, ATTACK, DYING, DEAD, SPAWNING };
+
+    State state = IDLE;
+    float stateTime = 0.0f;  // Time elapsed in the current state (useful for animations)
+};
+
 struct PatternComponent {
     static constexpr auto name = "PatternComponent";
     enum PatternType { WAYPOINT, STRAIGHT, SINUSOIDAL };

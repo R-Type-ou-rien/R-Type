@@ -42,6 +42,19 @@ inline PatternComponent deserialize_pattern_component(const std::vector<uint8_t>
     return component;
 }
 
+/** State Component */
+inline void serialize(std::vector<uint8_t>& buffer, const StateComponent& component) {
+    serialize(buffer, component.state);
+    serialize(buffer, component.stateTime);
+}
+
+inline StateComponent deserialize_state_component(const std::vector<uint8_t>& buffer, size_t& offset) {
+    StateComponent component;
+    component.state = deserialize<StateComponent::State>(buffer, offset);
+    component.stateTime = deserialize<float>(buffer, offset);
+    return component;
+}
+
 /** Resource Component */
 inline void serialize(std::vector<uint8_t>& buffer, const ResourceStat& stat) {
     serialize(buffer, stat.current);
