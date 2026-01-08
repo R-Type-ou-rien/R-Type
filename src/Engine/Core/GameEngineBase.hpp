@@ -11,6 +11,9 @@
 #include "Context.hpp"
 #include "Environment/Environment.hpp"
 
+#include "Scene/SceneManager.hpp"
+#include "Scene/LevelConfig.hpp"
+
 #define SUCCESS 0
 #define FAILURE -1
 #define USER_FUNCTION_SIGNATURE void(Environment & env, InputManager & inputs)
@@ -19,6 +22,7 @@ template <class Derived>
 class GameEngineBase {
    protected:
     ECS _ecs;
+    SceneManager _scene_manager;
     InputManager input_manager;
     ResourceManager<TextureAsset> _texture_manager;
     std::function<USER_FUNCTION_SIGNATURE> _loop_function;
@@ -26,12 +30,14 @@ class GameEngineBase {
     // client network class
 
    public:
-    explicit GameEngineBase() {}
+    explicit GameEngineBase() : _scene_manager(_ecs.registry) {}
     ~GameEngineBase() = default;
 
     int init() { return static_cast<Derived*>(this)->init(); }
 
     int run() { return static_cast<Derived*>(this)->run(); }
+
+    SceneManager& getSceneManager() { return _scene_manager; }
 
     void setLoopFunction(std::function<USER_FUNCTION_SIGNATURE> user_function) {
         _loop_function = user_function;
