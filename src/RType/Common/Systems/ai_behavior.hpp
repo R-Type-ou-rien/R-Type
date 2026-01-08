@@ -28,18 +28,18 @@ struct WorldBoundsComponent {
 };
 
 class AIBehaviorSystem : public ISystem {
-public:
+   public:
     AIBehaviorSystem() = default;
     ~AIBehaviorSystem() = default;
     void update(Registry& registry, system_context context) override;
-    
-private:
+
+   private:
     void updateFollowPlayer(Registry& registry, system_context context, Entity enemy, Entity player);
     void updateShootAtPlayer(Registry& registry, Entity enemy, Entity player);
 };
 
 class BoundsSystem : public ISystem {
-public:
+   public:
     BoundsSystem() = default;
     ~BoundsSystem() = default;
     void update(Registry& registry, system_context context) override;

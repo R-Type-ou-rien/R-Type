@@ -19,30 +19,32 @@ struct EnemySpawnComponent {
     float boss_intro_timer = 0.0f;
     int wave_count = 0;
     bool is_active = true;
-    
+
     // Seed pour le random (pas de static)
     unsigned int random_seed = 0;
     int random_state = 0;
 };
 
 class EnemySpawnSystem : public ISystem {
-public:
+   public:
     EnemySpawnSystem();
     ~EnemySpawnSystem() = default;
     void update(Registry& registry, system_context context) override;
 
-private:
+   private:
     void loadConfigs();
     void spawnEnemy(Registry& registry, system_context context, float x, float y, const std::string& enemy_type);
     void spawnBoss(Registry& registry, system_context context);
     void spawnObstacle(Registry& registry, system_context context, float x, float y);
-    void handleObstacles(Registry& registry, system_context context, EnemySpawnComponent& spawn_comp, float windowWidth, float windowHeight);
+    void handleObstacles(Registry& registry, system_context context, EnemySpawnComponent& spawn_comp, float windowWidth,
+                         float windowHeight);
     bool handleBossSpawn(Registry& registry, system_context context, EnemySpawnComponent& spawn_comp);
-    void spawnWave(Registry& registry, system_context context, EnemySpawnComponent& spawn_comp, float windowWidth, float windowHeight);
-    
+    void spawnWave(Registry& registry, system_context context, EnemySpawnComponent& spawn_comp, float windowWidth,
+                   float windowHeight);
+
     int getRandomInt(EnemySpawnComponent& comp, int min, int max);
     float getRandomFloat(EnemySpawnComponent& comp, float min, float max);
-    
+
     std::map<std::string, EntityConfig> _enemy_configs;
     EntityConfig _boss_config;
     GameConfig _game_config;

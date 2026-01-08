@@ -15,11 +15,11 @@ struct ScoreValueComponent {
 };
 
 class ScoreSystem : public ISystem {
-public:
+   public:
     ScoreSystem() = default;
     ~ScoreSystem() = default;
     void update(Registry& registry, system_context context) override;
-    
+
     static void addScore(Registry& registry, int points);
     static int getScore(Registry& registry);
 };

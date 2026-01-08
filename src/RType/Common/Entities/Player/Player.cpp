@@ -1,5 +1,7 @@
 #include "Player.hpp"
 #include "src/RType/Common/Systems/health.hpp"
+#include "src/RType/Common/Systems/damage.hpp"
+#include "CollisionSystem.hpp"
 
 Player::Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<float, float> pos)
     : DynamicActor(ecs, true, textures, "PLAYER") {
@@ -13,6 +15,12 @@ Player::Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<floa
     _ecs.registry.addComponent<TeamComponent>(_id, {TeamComponent::Team::ALLY});
     _ecs.registry.addComponent<ShooterComponent>(_id, {});
     _ecs.registry.addComponent<HealthComponent>(_id, {100, 100});
+
+    BoxCollisionComponent player_collision;
+    player_collision.tagCollision.push_back("ENEMY_PROJECTILE");
+    player_collision.tagCollision.push_back("AI");
+    player_collision.tagCollision.push_back("OBSTACLE");
+    _ecs.registry.addComponent<BoxCollisionComponent>(_id, player_collision);
 }
 
 void Player::setProjectileType(ShooterComponent::ProjectileType type) {

@@ -3,6 +3,7 @@
 #include "ResourceConfig.hpp"
 #include "../../Systems/damage.hpp"
 #include "../../Systems/health.hpp"
+#include "../../Systems/animation_helper.hpp"
 #include "../../Systems/shooter.hpp"
 #include "../../Components/team_component.hpp"
 #include "../../Systems/ai_behavior.hpp"
@@ -24,6 +25,21 @@ void ShooterSpawner::spawn(Registry& registry, system_context context, float x, 
     shooter.is_shooting = true;
     shooter.fire_rate = config.fire_rate.value_or(1.0f);
     shooter.last_shot = 0.0f;
+    shooter.projectile_damage = config.projectile_damage.value_or(15);
+
+    if (config.shoot_pattern.has_value()) {
+        std::string pattern = config.shoot_pattern.value();
+        if (pattern == "AIM_PLAYER") {
+            shooter.pattern = ShooterComponent::AIM_PLAYER;
+        } else if (pattern == "SPREAD") {
+            shooter.pattern = ShooterComponent::SPREAD;
+        } else {
+            shooter.pattern = ShooterComponent::STRAIGHT;
+        }
+    } else {
+        shooter.pattern = ShooterComponent::STRAIGHT;
+    }
+
     registry.addComponent<ShooterComponent>(id, shooter);
 
     AIBehaviorComponent behavior;
@@ -31,15 +47,28 @@ void ShooterSpawner::spawn(Registry& registry, system_context context, float x, 
     behavior.follow_player = false;
     registry.addComponent<AIBehaviorComponent>(id, behavior);
 
-    handle_t<TextureAsset> handle = context.texture_manager.load(config.sprite_path.value(), TextureAsset(config.sprite_path.value()));
+    handle_t<TextureAsset> handle =
+        context.texture_manager.load(config.sprite_path.value(), TextureAsset(config.sprite_path.value()));
 
     sprite2D_component_s sprite_info;
     sprite_info.handle = handle;
-    sprite_info.dimension = {static_cast<float>(config.sprite_x.value()), static_cast<float>(config.sprite_y.value()), 
+    sprite_info.dimension = {static_cast<float>(config.sprite_x.value()), static_cast<float>(config.sprite_y.value()),
                              static_cast<float>(config.sprite_w.value()), static_cast<float>(config.sprite_h.value())};
-    
+
     sprite_info.z_index = 1;
     registry.addComponent<sprite2D_component_s>(id, sprite_info);
+
+    int num_frames = config.animation_frames.value_or(1);
+    float anim_speed = config.animation_speed.value_or(0.1f);
+    if (num_frames > 1) {
+        AnimationHelper::setupHorizontalAnimation(registry, id, config, num_frames, anim_speed);
+    }
+
+    if (config.scale.has_value()) {
+        auto& transform = registry.getComponent<transform_component_s>(id);
+        transform.scale_x = config.scale.value();
+        transform.scale_y = config.scale.value();
+    }
 
     BoxCollisionComponent collision;
     collision.tagCollision.push_back("FRIENDLY_PROJECTILE");
