@@ -1,0 +1,15 @@
+{
+  "textures": [
+    { "path": "content/sprites/background-R-Type.png" },
+    { "path": "content/sprites/r-typesheet42.gif" },
+    { "path": "content/sprites/r-typesheet8.gif" }
+  ],
+  "sounds": [
+    { "name": "shoot", "path": "content/sounds/shoot.wav" },
+    { "name": "charg_start", "path": "content/sounds/charg_start.wav" },
+    { "name": "charg_loop", "path": "content/sounds/charge_loop.wav" }
+  ],
+  "music": [
+    { "name": "theme", "path": "content/music/theme_1.wav" }
+  ]
+}

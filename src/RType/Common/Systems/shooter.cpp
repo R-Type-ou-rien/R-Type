@@ -86,6 +86,16 @@ void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::Proj
     } else {
         collision.tagCollision.push_back("PLAYER");
     }
+
+    if (team == TeamComponent::ALLY) {
+        AudioSourceComponent audio;
+        audio.sound_name = "shoot";
+        audio.play_on_start = true;
+        audio.loop = false;
+        audio.destroy_entity_on_finish = false;
+        registry.addComponent<AudioSourceComponent>(id, audio);
+    }
+
     return;
 }
 
@@ -143,6 +153,15 @@ void ShooterSystem::create_charged_projectile(Registry& registry, TeamComponent:
     } else {
         collision.tagCollision.push_back("PLAYER");
     }
+
+    if (team == TeamComponent::ALLY) {
+        AudioSourceComponent audio;
+        audio.sound_name = "shoot";
+        audio.play_on_start = true;
+        audio.loop = false;
+        audio.destroy_entity_on_finish = false;
+        registry.addComponent<AudioSourceComponent>(id, audio);
+    }
 }
 
 void ShooterSystem::update(Registry& registry, system_context context) {
@@ -162,6 +181,17 @@ void ShooterSystem::update(Registry& registry, system_context context) {
             ChargedShotComponent& charged = registry.getComponent<ChargedShotComponent>(id);
             
             if (shooter.trigger_pressed && shooter.is_shooting) {
+                if (!charged.is_charging) {
+                    AudioSourceComponent audio;
+                    audio.sound_name = "charg_start";
+                    audio.play_on_start = true;
+                    audio.loop = false;
+                    audio.next_sound_name = "charg_loop";
+                    audio.next_sound_loop = true;
+                    audio.destroy_entity_on_finish = false; // Le joueur ne doit pas être détruit
+                    registry.addComponent<AudioSourceComponent>(id, audio);
+                }
+
                 charged.is_charging = true;
                 charged.charge_time += context.dt;
                 if (charged.charge_time > charged.max_charge_time) {
@@ -171,6 +201,12 @@ void ShooterSystem::update(Registry& registry, system_context context) {
             }
             
             if (!shooter.trigger_pressed && charged.is_charging) {
+                if (registry.hasComponent<AudioSourceComponent>(id)) {
+                    auto& audio = registry.getComponent<AudioSourceComponent>(id);
+                    audio.stop_requested = true;
+                    // Le composant sera supprimé par l'AudioSystem, on pourra en remettre un pour le tir
+                }
+
                 const transform_component_s& pos = registry.getConstComponent<transform_component_s>(id);
                 const TeamComponent& team = registry.getConstComponent<TeamComponent>(id);
                 

@@ -12,12 +12,25 @@ GameManager::GameManager() {
 void GameManager::init(Environment& env, InputManager& inputs) {
     initSystems(env);
     
+    env.loadGameResources("content/config/r-type.json");
+
     initBackground(env);
     initBounds(env);
     initPlayer(env);
     initSpawner(env);
     initUI(env);
     
+    if (!env.isServer()) {
+        auto& ecs = env.getECS();
+        Entity musicEntity = ecs.registry.createEntity();
+        AudioSourceComponent music;
+        music.sound_name = "theme";
+        music.play_on_start = true;
+        music.loop = true;
+        music.destroy_entity_on_finish = false;
+        ecs.registry.addComponent<AudioSourceComponent>(musicEntity, music);
+    }
+
     loadInputSetting(inputs);
 }
 
