@@ -38,11 +38,32 @@ Velocity2D ShooterSystem::get_projectile_speed(ShooterComponent::ProjectileType 
 
 void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::ProjectileType type,
                                       TeamComponent::Team team, transform_component_s pos, system_context context) {
+    create_projectile_with_pattern(registry, type, team, pos, context, ShooterComponent::STRAIGHT, 0.0f, 0.0f, 30);
+}
+
+void ShooterSystem::create_projectile_with_pattern(Registry& registry, ShooterComponent::ProjectileType type,
+                                                   TeamComponent::Team team, transform_component_s pos,
+                                                   system_context context, ShooterComponent::ShootPattern pattern,
+                                                   float target_x, float target_y, int projectile_damage) {
     int id = registry.createEntity();
     Velocity2D speed = get_projectile_speed(type, team);
 
-    if (team == TeamComponent::ENEMY) {
-        speed.vx = -speed.vx;
+    // Calculer la direction en fonction du pattern
+    if (pattern == ShooterComponent::AIM_PLAYER && team == TeamComponent::ENEMY) {
+        // Calculer la direction vers le joueur
+        float dx = target_x - pos.x;
+        float dy = target_y - pos.y;
+        float distance = std::sqrt(dx * dx + dy * dy);
+
+        if (distance > 0) {
+            float projectile_speed = std::sqrt(speed.vx * speed.vx + speed.vy * speed.vy);
+            speed.vx = (dx / distance) * projectile_speed;
+            speed.vy = (dy / distance) * projectile_speed;
+        }
+    } else if (team == TeamComponent::ENEMY) {
+        // Tir droit pour les ennemis
+        speed.vx = -std::abs(speed.vx);
+        speed.vy = 0;
     }
 
     TagComponent tags;
@@ -64,10 +85,12 @@ void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::Proj
 
     registry.addComponent<TagComponent>(id, tags);
 
-    registry.addComponent<DamageOnCollision>(id, {30});
+    // Utiliser les dégâts passés en paramètre
+    registry.addComponent<DamageOnCollision>(id, {projectile_damage});
 
-    handle_t<TextureAsset> handle = context.texture_manager.load("content/sprites/r-typesheet1.gif",
-                                                                 TextureAsset("content/sprites/r-typesheet1.gif"));
+    handle_t<TextureAsset> handle =
+        context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet1.gif",
+                                     TextureAsset("src/RType/Common/content/sprites/r-typesheet1.gif"));
 
     sprite2D_component_s sprite_info;
     sprite_info.handle = handle;
@@ -78,6 +101,18 @@ void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::Proj
     sprite_info.z_index = 1;
 
     registry.addComponent<sprite2D_component_s>(id, sprite_info);
+
+    // Appliquer une transformation pour les projectiles ennemis
+    auto& projectile_transform = registry.getComponent<transform_component_s>(id);
+    if (team == TeamComponent::ENEMY) {
+        // Retourner le sprite horizontalement pour les tirs ennemis
+        projectile_transform.scale_x = -1.5f;  // Flip horizontal + scale
+        projectile_transform.scale_y = 1.5f;   // Scale vertical pour visibilit\u00e9
+    } else {
+        // Garder normal pour les tirs alli\u00e9s mais augmenter l\u00e9g\u00e8rement la taille
+        projectile_transform.scale_x = 1.5f;
+        projectile_transform.scale_y = 1.5f;
+    }
 
     registry.addComponent<BoxCollisionComponent>(id, {});
     BoxCollisionComponent& collision = registry.getComponent<BoxCollisionComponent>(id);
@@ -99,10 +134,10 @@ void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::Proj
     return;
 }
 
-void ShooterSystem::create_charged_projectile(Registry& registry, TeamComponent::Team team,
-                                             transform_component_s pos, system_context context, float charge_ratio) {
+void ShooterSystem::create_charged_projectile(Registry& registry, TeamComponent::Team team, transform_component_s pos,
+                                              system_context context, float charge_ratio) {
     int id = registry.createEntity();
-    
+
     Velocity2D speed = {700, 0};
     if (team == TeamComponent::ENEMY) {
         speed.vx = -speed.vx;
@@ -120,15 +155,16 @@ void ShooterSystem::create_charged_projectile(Registry& registry, TeamComponent:
     registry.addComponent<transform_component_s>(id, {(pos.x + 50), (pos.y)});
     registry.addComponent<Velocity2D>(id, speed);
     registry.addComponent<TagComponent>(id, tags);
-    
+
     int damage = static_cast<int>(50 + (150 * charge_ratio));
     registry.addComponent<DamageOnCollision>(id, {damage});
-    
+
     registry.addComponent<PenetratingProjectile>(id, {});
 
     // Utiliser r-typesheet1.gif qui a les projectiles (zone avec énergie)
-    handle_t<TextureAsset> handle = context.texture_manager.load("content/sprites/r-typesheet1.gif",
-                                                                TextureAsset("content/sprites/r-typesheet1.gif"));
+    handle_t<TextureAsset> handle =
+        context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet1.gif",
+                                     TextureAsset("src/RType/Common/content/sprites/r-typesheet1.gif"));
 
     sprite2D_component_s sprite_info;
     sprite_info.handle = handle;
@@ -167,6 +203,32 @@ void ShooterSystem::create_charged_projectile(Registry& registry, TeamComponent:
 void ShooterSystem::update(Registry& registry, system_context context) {
     auto& shootersIds = registry.getEntities<ShooterComponent>();
 
+    // Trouver le joueur pour les tirs visant le joueur
+    Entity player_entity = -1;
+    float player_x = 0.0f, player_y = 0.0f;
+    auto& teams = registry.getEntities<TeamComponent>();
+    for (auto entity : teams) {
+        auto& team = registry.getConstComponent<TeamComponent>(entity);
+        if (team.team == TeamComponent::ALLY) {
+            if (registry.hasComponent<TagComponent>(entity)) {
+                auto& tags = registry.getConstComponent<TagComponent>(entity);
+                for (const auto& tag : tags.tags) {
+                    if (tag == "PLAYER") {
+                        player_entity = entity;
+                        if (registry.hasComponent<transform_component_s>(entity)) {
+                            auto& player_pos = registry.getConstComponent<transform_component_s>(entity);
+                            player_x = player_pos.x;
+                            player_y = player_pos.y;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+        if (player_entity != -1)
+            break;
+    }
+
     for (auto id : shootersIds) {
         if (!registry.hasComponent<transform_component_s>(id)) {
             continue;
@@ -176,10 +238,10 @@ void ShooterSystem::update(Registry& registry, system_context context) {
         }
         ShooterComponent& shooter = registry.getComponent<ShooterComponent>(id);
         shooter.last_shot += context.dt;
-        
+
         if (registry.hasComponent<ChargedShotComponent>(id)) {
             ChargedShotComponent& charged = registry.getComponent<ChargedShotComponent>(id);
-            
+
             if (shooter.trigger_pressed && shooter.is_shooting) {
                 if (!charged.is_charging) {
                     AudioSourceComponent audio;
@@ -199,7 +261,7 @@ void ShooterSystem::update(Registry& registry, system_context context) {
                 }
                 continue;
             }
-            
+
             if (!shooter.trigger_pressed && charged.is_charging) {
                 if (registry.hasComponent<AudioSourceComponent>(id)) {
                     auto& audio = registry.getComponent<AudioSourceComponent>(id);
@@ -209,35 +271,69 @@ void ShooterSystem::update(Registry& registry, system_context context) {
 
                 const transform_component_s& pos = registry.getConstComponent<transform_component_s>(id);
                 const TeamComponent& team = registry.getConstComponent<TeamComponent>(id);
-                
+
                 if (charged.charge_time >= charged.min_charge_time && shooter.last_shot >= shooter.fire_rate) {
-                    float charge_ratio = (charged.charge_time - charged.min_charge_time) / 
-                                        (charged.max_charge_time - charged.min_charge_time);
+                    float charge_ratio = (charged.charge_time - charged.min_charge_time) /
+                                         (charged.max_charge_time - charged.min_charge_time);
                     charge_ratio = std::min(1.0f, charge_ratio);
                     create_charged_projectile(registry, team.team, pos, context, charge_ratio);
                     shooter.last_shot = 0.f;
-                } 
-                else if (charged.charge_time < charged.min_charge_time && shooter.last_shot >= shooter.fire_rate) {
+                } else if (charged.charge_time < charged.min_charge_time && shooter.last_shot >= shooter.fire_rate) {
                     create_projectile(registry, shooter.type, team.team, pos, context);
                     shooter.last_shot = 0.f;
                 }
-                
+
                 charged.is_charging = false;
                 charged.charge_time = 0.0f;
                 shooter.is_shooting = false;
                 continue;
             }
         }
-        
+
         if (!shooter.is_shooting)
             continue;
         const transform_component_s& pos = registry.getConstComponent<transform_component_s>(id);
         const TeamComponent& team = registry.getConstComponent<TeamComponent>(id);
 
+        // Ne pas tirer si l'ennemi est hors écran (à gauche ou à droite)
+        if (team.team == TeamComponent::ENEMY) {
+            const float WORLD_WIDTH = 1920.0f;
+            if (pos.x < -100.0f || pos.x > WORLD_WIDTH + 100.0f) {
+                continue;  // Skip le tir pour les ennemis hors écran
+            }
+        }
+
         if (shooter.last_shot >= shooter.fire_rate) {
-            create_projectile(registry, shooter.type, team.team, pos, context);
+            // Utiliser le pattern de tir approprié
+            int proj_damage = shooter.projectile_damage;
+            if (shooter.pattern == ShooterComponent::SPREAD && team.team == TeamComponent::ENEMY) {
+                // Tir en éventail (3 projectiles)
+                create_projectile_with_pattern(registry, shooter.type, team.team, pos, context,
+                                               ShooterComponent::STRAIGHT, 0, 0, proj_damage);
+
+                transform_component_s pos_up = pos;
+                pos_up.y -= 20;
+                create_projectile_with_pattern(registry, shooter.type, team.team, pos_up, context,
+                                               ShooterComponent::STRAIGHT, 0, -200, proj_damage);
+
+                transform_component_s pos_down = pos;
+                pos_down.y += 20;
+                create_projectile_with_pattern(registry, shooter.type, team.team, pos_down, context,
+                                               ShooterComponent::STRAIGHT, 0, 200, proj_damage);
+            } else if (shooter.pattern == ShooterComponent::AIM_PLAYER && player_entity != -1) {
+                // Viser le joueur
+                create_projectile_with_pattern(registry, shooter.type, team.team, pos, context,
+                                               ShooterComponent::AIM_PLAYER, player_x, player_y, proj_damage);
+            } else {
+                // Tir droit
+                create_projectile_with_pattern(registry, shooter.type, team.team, pos, context,
+                                               ShooterComponent::STRAIGHT, 0, 0, proj_damage);
+            }
             shooter.last_shot = 0.f;
         }
-        shooter.is_shooting = false;
+        // Ne désactiver le tir que pour les alliés (joueur)
+        if (team.team == TeamComponent::ALLY) {
+            shooter.is_shooting = false;
+        }
     }
 }

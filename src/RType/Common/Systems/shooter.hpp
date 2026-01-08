@@ -8,11 +8,14 @@
 struct ShooterComponent {
     static constexpr auto name = "ShooterComponent";
     enum ProjectileType { NORMAL, CHARG, RED, BLUE };
+    enum ShootPattern { STRAIGHT, AIM_PLAYER, SPREAD };  // Nouveau : pattern de tir
     ProjectileType type = NORMAL;
+    ShootPattern pattern = STRAIGHT;  // Pattern par défaut
     bool is_shooting = false;
     bool trigger_pressed = false;
     double fire_rate = 0.f;
     double last_shot = 1000.0f;
+    int projectile_damage = 30;  // Dégâts des projectiles de cette entité
 };
 
 struct ProjectileComponent {
@@ -30,6 +33,10 @@ class ShooterSystem : public ISystem {
     Velocity2D get_projectile_speed(ShooterComponent::ProjectileType type, TeamComponent::Team team);
     void create_projectile(Registry& registry, ShooterComponent::ProjectileType type, TeamComponent::Team team,
                            transform_component_s pos, system_context context);
-    void create_charged_projectile(Registry& registry, TeamComponent::Team team,
-                                   transform_component_s pos, system_context context, float charge_ratio);
+    void create_projectile_with_pattern(Registry& registry, ShooterComponent::ProjectileType type,
+                                        TeamComponent::Team team, transform_component_s pos, system_context context,
+                                        ShooterComponent::ShootPattern pattern, float target_x, float target_y,
+                                        int projectile_damage);
+    void create_charged_projectile(Registry& registry, TeamComponent::Team team, transform_component_s pos,
+                                   system_context context, float charge_ratio);
 };

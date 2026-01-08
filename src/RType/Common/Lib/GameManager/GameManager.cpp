@@ -3,16 +3,14 @@
 #include "GameEngineBase.hpp"
 
 GameManager::GameManager() {
-    _player_config = ConfigLoader::loadEntityConfig(
-        "content/config/player.cfg", 
-        ConfigLoader::getRequiredPlayerFields()
-    );
+    _player_config = ConfigLoader::loadEntityConfig("src/RType/Common/content/config/player.cfg",
+                                                    ConfigLoader::getRequiredPlayerFields());
 }
 
 void GameManager::init(Environment& env, InputManager& inputs) {
     initSystems(env);
     
-    env.loadGameResources("content/config/r-type.json");
+    env.loadGameResources("src/RType/Common/content/config/r-type.json");
 
     initBackground(env);
     initBounds(env);

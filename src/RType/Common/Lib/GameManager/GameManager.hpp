@@ -5,18 +5,20 @@
 #include "ECS.hpp"
 #include "GameEngineBase.hpp"
 #include "src/RType/Common/Components/config.hpp"
+#include "src/RType/Common/Components/game_timer.hpp"
 
 class GameManager {
    private:
     std::unique_ptr<Player> _player;
     Entity _uiEntity;
     Entity _scoreEntity;
+    Entity _timerEntity;
     Entity _gameStateEntity;
     Entity _boundsEntity;
     Entity _scoreTrackerEntity;
     bool _gameOver = false;
     bool _victory = false;
-    
+
     EntityConfig _player_config;
 
     void initSystems(Environment& env);

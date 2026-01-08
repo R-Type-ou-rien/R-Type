@@ -156,7 +156,7 @@ struct BackgroundComponent {
 //     float interval = 2.0f;
 //     float elapsed = 0.0f;
 
-//     std::string sprite_path = "content/sprites/r-typesheet8.gif";
+//     std::string sprite_path = "src/RType/Common/content/sprites/r-typesheet8.gif";
 //     rect frame {0, 0, 32, 32};
 
 //     float scale_x = 2.0f;
