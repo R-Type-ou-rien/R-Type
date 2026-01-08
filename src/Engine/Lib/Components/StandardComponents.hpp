@@ -25,6 +25,7 @@
 #include "Context.hpp"
 #include "InputAction.hpp"
 #include "ResourceConfig.hpp"
+#include "Components/AudioComponent.hpp"
 
 class Registry;
 /**  Comment: Split les components par 'context' d'utilisation ?? ex: visuel, sonore, physic etc...*/

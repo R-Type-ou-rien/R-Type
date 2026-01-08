@@ -1,0 +1,15 @@
+{
+  "textures": [
+    { "path": "src/RType/Common/content/sprites/background-R-Type.png" },
+    { "path": "src/RType/Common/content/sprites/r-typesheet42.gif" },
+    { "path": "src/RType/Common/content/sprites/r-typesheet8.gif" }
+  ],
+  "sounds": [
+    { "name": "shoot", "path": "src/RType/Common/content/sounds/shoot.wav" },
+    { "name": "charg_start", "path": "src/RType/Common/content/sounds/charg_start.wav" },
+    { "name": "charg_loop", "path": "src/RType/Common/content/sounds/charg_loop.wav" }
+  ],
+  "music": [
+    { "name": "theme", "path": "src/RType/Common/content/music/theme_1.wav" }
+  ]
+}
