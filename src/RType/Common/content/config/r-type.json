@@ -1,15 +1,90 @@
 {
   "textures": [
-    { "path": "src/RType/Common/content/sprites/background-R-Type.png" },
-    { "path": "src/RType/Common/content/sprites/r-typesheet42.gif" },
-    { "path": "src/RType/Common/content/sprites/r-typesheet8.gif" }
+    {
+      "path": "src/RType/Common/content/sprites/background-R-Type.png"
+    },
+    {
+      "path": "src/RType/Common/content/sprites/r-typesheet42.gif"
+    },
+    {
+      "path": "src/RType/Common/content/sprites/r-typesheet8.gif"
+    }
   ],
   "sounds": [
-    { "name": "shoot", "path": "src/RType/Common/content/sounds/shoot.wav" },
-    { "name": "charg_start", "path": "src/RType/Common/content/sounds/charg_start.wav" },
-    { "name": "charg_loop", "path": "src/RType/Common/content/sounds/charg_loop.wav" }
+    {
+      "name": "shoot",
+      "path": "src/RType/Common/content/sounds/shoot.wav"
+    },
+    {
+      "name": "charg_start",
+      "path": "src/RType/Common/content/sounds/charg_start.wav"
+    },
+    {
+      "name": "charg_loop",
+      "path": "src/RType/Common/content/sounds/charg_loop.wav"
+    }
   ],
   "music": [
-    { "name": "theme", "path": "src/RType/Common/content/music/theme_1.wav" }
+    {
+      "name": "theme",
+      "path": "src/RType/Common/content/music/theme_1.wav"
+    }
+  ],
+  "entities": [
+    {
+      "name": "PlayButton",
+      "components": {
+        "Transform": {
+          "x": 800,
+          "y": 500,
+          "scale_x": 1.0,
+          "scale_y": 1.0
+        },
+        "Sprite2D": {
+          "texture": "src/RType/Common/content/sprites/r-typesheet42.gif",
+          "frame": [
+            0,
+            0,
+            100,
+            50
+          ],
+          "z_index": 50
+        },
+        "Clickable": {
+          "width": 100,
+          "height": 50
+        },
+        "Button": {
+          "action": "START_GAME",
+          "normalFrame": [
+            0,
+            0,
+            100,
+            50
+          ],
+          "hoverFrame": [
+            0,
+            50,
+            100,
+            50
+          ],
+          "pressedFrame": [
+            0,
+            100,
+            100,
+            50
+          ]
+        },
+        "Text": {
+          "text": "PLAY",
+          "font": "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf",
+          "size": 30,
+          "color": "white",
+          "offset_x": 20,
+          "offset_y": 10,
+          "z_index": 51
+        }
+      }
+    }
   ]
 }

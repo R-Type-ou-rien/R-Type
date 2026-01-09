@@ -107,11 +107,37 @@ struct TagComponent {
 struct TextComponent {
     static constexpr auto name = "TextComponent";
     std::string text;
-    std::string fontPath;
+    std::string fontPath = "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf";
     unsigned int characterSize = 24;
     sf::Color color = sf::Color::White;
     float x;
     float y;
+    int z_index = 100;
+};
+
+struct ClickableComponent {
+    static constexpr auto name = "ClickableComponent";
+    rect bounds;  // x, y are relative to entity position if parented, or absolute? Let's assume absolute for simplicity
+                  // or handled by system.
+    bool isHovered = false;
+    bool isClicked = false;
+};
+
+struct ButtonComponent {
+    static constexpr auto name = "ButtonComponent";
+    enum State { NORMAL, HOVER, PRESSED, DISABLED };
+    State state = NORMAL;
+
+    std::string normalTexturePath;
+    rect normalFrame;
+
+    std::string hoverTexturePath;
+    rect hoverFrame;
+
+    std::string pressedTexturePath;
+    rect pressedFrame;
+
+    std::string actionName;  // e.g., "START_GAME"
 };
 
 using ActionCallback = std::function<void(Registry& registry, system_context context, Entity current_entity)>;

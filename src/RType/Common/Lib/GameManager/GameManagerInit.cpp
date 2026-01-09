@@ -13,6 +13,8 @@
 #include "src/RType/Common/Systems/score.hpp"
 #include "src/RType/Common/Systems/animation_helper.hpp"
 #include "src/Engine/Lib/Systems/PatternSystem/PatternSystem.hpp"
+#include "src/RType/Common/Systems/UISystem.hpp"
+#include "src/RType/Common/Lib/UI/UILoader.hpp"
 
 void GameManager::initSystems(Environment& env) {
     auto& ecs = env.getECS();
@@ -25,6 +27,16 @@ void GameManager::initSystems(Environment& env) {
     ecs.systems.addSystem<AIBehaviorSystem>();
     ecs.systems.addSystem<BoundsSystem>();
     ecs.systems.addSystem<ScoreSystem>();
+
+    // UI System
+    auto uiSystem = ecs.systems.addSystem<UISystem>();
+    if (uiSystem) {
+        uiSystem->bindAction("START_GAME", []() { std::cout << "START_GAME Action Executed!" << std::endl; });
+        uiSystem->bindAction("EXIT_GAME", []() {
+            std::cout << "EXIT_GAME Action Executed!" << std::endl;
+            exit(0);
+        });
+    }
 }
 
 void GameManager::initBackground(Environment& env) {
@@ -113,6 +125,8 @@ void GameManager::initUI(Environment& env) {
     auto& ecs = env.getECS();
 
     if (!env.isServer()) {
+        UILoader::loadUI(env, "src/RType/Common/content/config/r-type.json");
+
         // HP UI
         _uiEntity = ecs.registry.createEntity();
         ecs.registry.addComponent<TextComponent>(

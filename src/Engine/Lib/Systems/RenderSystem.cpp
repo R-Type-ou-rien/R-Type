@@ -28,13 +28,22 @@ void RenderSystem::update(Registry& registry, system_context context) {
     const auto& textIds = registry.getEntities<TextComponent>();
     for (Entity entity : textIds) {
         auto& textComp = registry.getConstComponent<TextComponent>(entity);
-        drawText(textComp, context);
+        float x = textComp.x;
+        float y = textComp.y;
+
+        if (registry.hasComponent<transform_component_s>(entity)) {
+            const auto& transform = registry.getConstComponent<transform_component_s>(entity);
+            x += transform.x;
+            y += transform.y;
+        }
+
+        drawText(textComp, context, x, y);
     }
 
     return;
 }
 
-void RenderSystem::drawText(const TextComponent& textComp, const system_context& context) {
+void RenderSystem::drawText(const TextComponent& textComp, const system_context& context, float x, float y) {
     if (!_fontLoaded) {
         if (!_font.openFromFile(textComp.fontPath)) {
             std::cerr << "Failed to load font: " << textComp.fontPath << std::endl;
@@ -50,7 +59,7 @@ void RenderSystem::drawText(const TextComponent& textComp, const system_context&
     text.setString(textComp.text);
     text.setCharacterSize(textComp.characterSize);
     text.setFillColor(textComp.color);
-    text.setPosition({textComp.x, textComp.y});
+    text.setPosition({x, y});
     context.window.draw(text);
 }
 

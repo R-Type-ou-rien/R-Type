@@ -11,8 +11,11 @@ class SystemManager {
     explicit SystemManager(Registry& registry) : _registry(registry) {}
 
     template <typename T, typename... Args>
-    void addSystem(Args&&... args) {
-        _systems.push_back(std::make_unique<T>(std::forward<Args>(args)...));
+    T* addSystem(Args&&... args) {
+        auto sys = std::make_unique<T>(std::forward<Args>(args)...);
+        T* ptr = sys.get();
+        _systems.push_back(std::move(sys));
+        return ptr;
     }
 
     void updateAll(system_context context);
