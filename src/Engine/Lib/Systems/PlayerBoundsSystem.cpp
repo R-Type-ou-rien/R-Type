@@ -2,11 +2,18 @@
 #include "Components/StandardComponents.hpp"
 
 void PlayerBoundsSystem::update(Registry& registry, system_context context) {
-    auto& bounds_entities = registry.getEntities<WorldBoundsComponent>();
-    if (bounds_entities.empty())
-        return;
+    const float windowWidth = static_cast<float>(context.window.getSize().x);
+    const float windowHeight = static_cast<float>(context.window.getSize().y);
 
-    auto& bounds = registry.getConstComponent<WorldBoundsComponent>(bounds_entities[0]);
+    float min_x = 0.0f;
+    float min_y = 0.0f;
+
+    auto& bounds_entities = registry.getEntities<WorldBoundsComponent>();
+    if (!bounds_entities.empty()) {
+        auto& bounds = registry.getConstComponent<WorldBoundsComponent>(bounds_entities[0]);
+        min_x = bounds.min_x;
+        min_y = bounds.min_y;
+    }
 
     auto& tagged_entities = registry.getEntities<TagComponent>();
     for (auto entity : tagged_entities) {
@@ -48,13 +55,13 @@ void PlayerBoundsSystem::update(Registry& registry, system_context context) {
         float actual_width = sprite_w * std::abs(scale_x);
         float actual_height = sprite_h * std::abs(scale_y);
 
-        if (transform.x < bounds.min_x)
-            transform.x = bounds.min_x;
-        if (transform.x > bounds.max_x - actual_width)
-            transform.x = bounds.max_x - actual_width;
-        if (transform.y < bounds.min_y)
-            transform.y = bounds.min_y;
-        if (transform.y > bounds.max_y - actual_height)
-            transform.y = bounds.max_y - actual_height;
+        if (transform.x < min_x)
+            transform.x = min_x;
+        if (transform.x > windowWidth - actual_width)
+            transform.x = windowWidth - actual_width;
+        if (transform.y < min_y)
+            transform.y = min_y;
+        if (transform.y > windowHeight - actual_height)
+            transform.y = windowHeight - actual_height;
     }
 }

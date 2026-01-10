@@ -54,8 +54,6 @@ void GameManager::initBounds(Environment& env) {
     WorldBoundsComponent bounds;
     bounds.min_x = 0.0f;
     bounds.min_y = 0.0f;
-    bounds.max_x = 1920.0f;
-    bounds.max_y = 1080.0f;
 
     ecs.registry.addComponent<WorldBoundsComponent>(_boundsEntity, bounds);
 }
