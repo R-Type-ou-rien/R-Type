@@ -16,9 +16,11 @@ class ISparseSet {
     virtual ~ISparseSet() = default;
     virtual void removeId(std::size_t Entity) = 0;
     virtual bool has(std::size_t Entity) const = 0;
+    virtual void markAsDirty(std::size_t id) = 0;
     virtual std::vector<std::size_t> getUpdatedEntities() = 0;
     virtual ComponentPacket createPacket(uint32_t entity, SerializationContext& context) = 0;
     virtual void markAllUpdated() = 0;
+    virtual void clearUpdatedEntities() = 0; 
 };
 
 template <typename data_type>
@@ -33,6 +35,7 @@ class SparseSet : public ISparseSet {
     void addID(std::size_t id, const data_type& data);
     void removeId(std::size_t id) override;
     bool has(std::size_t id) const override;
+    void markAsDirty(std::size_t id) override;
     data_type& getDataFromId(std::size_t id);
     const data_type& getConstDataFromId(std::size_t id);
     std::vector<data_type>& getDataList();
@@ -40,6 +43,7 @@ class SparseSet : public ISparseSet {
     std::vector<std::size_t> getUpdatedEntities() override;
     ComponentPacket createPacket(uint32_t entity, SerializationContext& context) override;
     void markAllUpdated() override;
+    void clearUpdatedEntities() override;
 };
 
 template <typename data_type>
@@ -118,6 +122,13 @@ std::vector<std::size_t>& SparseSet<data_type>::getIdList() {
 }
 
 template <typename data_type>
+void SparseSet<data_type>::markAsDirty(std::size_t id) {
+    if (has(id)) {
+        _dirty_dense[_sparse[id]] = true;
+    }
+}
+
+template <typename data_type>
 std::vector<std::size_t> SparseSet<data_type>::getUpdatedEntities() {
     std::vector<std::size_t> updated_entities;
 
@@ -136,6 +147,13 @@ void SparseSet<data_type>::markAllUpdated() {
         _dirty_dense[i] = true;
     }
 }
+
+template <typename data_type>
+void SparseSet<data_type>::clearUpdatedEntities()
+{
+    _dirty_dense.clear();
+}
+
 
 #include <type_traits>
 #include "Components/serialize/serialize.hpp"

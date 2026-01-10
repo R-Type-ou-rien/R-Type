@@ -11,9 +11,11 @@
 #include "Components/StandardComponents.hpp"
 #include "GameEngineBase.hpp"
 #include "Hash/Hash.hpp"
+#include "Network.hpp"
 #include "NetworkEngine/NetworkEngine.hpp"
 #include "PatternSystem/PatternSystem.hpp"
 #include "SpawnSystem.hpp"
+#include "Components/health.hpp"
 
 ClientGameEngine::ClientGameEngine(std::string window_name)
 : _window_manager(WINDOW_W, WINDOW_H, window_name)
@@ -22,23 +24,25 @@ ClientGameEngine::ClientGameEngine(std::string window_name)
 }
 
 int ClientGameEngine::init() {
+    _network->transmitEvent<int>(network::GameEvents::C_LOGIN_ANONYMOUS, 0, 0, 0);
     registerNetworkComponent<transform_component_s>();
     registerNetworkComponent<Velocity2D>();
     registerNetworkComponent<sprite2D_component_s>();
     registerNetworkComponent<BackgroundComponent>();
     registerNetworkComponent<ResourceComponent>();
     registerNetworkComponent<TextComponent>();
+    registerNetworkComponent<HealthComponent>();
 
     _ecs.systems.addSystem<BackgroundSystem>();
     _ecs.systems.addSystem<RenderSystem>();
     //_ecs.systems.addSystem<InputSystem>(input_manager);
 
     // if mode local or prediction (?)
-    _ecs.systems.addSystem<PhysicsSystem>();
-    _ecs.systems.addSystem<BoxCollision>();
-    _ecs.systems.addSystem<ActionScriptSystem>();
-    _ecs.systems.addSystem<PatternSystem>();
-    _ecs.systems.addSystem<SpawnSystem>();
+    // _ecs.systems.addSystem<PhysicsSystem>();
+    // _ecs.systems.addSystem<BoxCollision>();
+    // _ecs.systems.addSystem<ActionScriptSystem>();
+    // _ecs.systems.addSystem<PatternSystem>();
+    // _ecs.systems.addSystem<SpawnSystem>();
     return 0;
 }
 
@@ -58,9 +62,12 @@ void ClientGameEngine::processNetworkEvents() {
     auto pending = _network->getPendingEvents();
 
     if (pending.count(network::GameEvents::S_SNAPSHOT)) {
-        ComponentPacket packet;
-        for (auto data : pending[network::GameEvents::S_SNAPSHOT]) {
-            std::memcpy(&packet, data.data(), sizeof(ComponentPacket));
+        // std::cout << "COMPONENT RECEIVED" << std::endl;
+        auto& snapshot_packets = pending.at(network::GameEvents::S_SNAPSHOT);
+        for (const auto& msg : snapshot_packets) {
+            auto mutable_msg = msg;
+            ComponentPacket packet;
+            mutable_msg >> packet;
             processComponentPacket(packet.entity_guid, packet.component_type, packet.data);
         }
     }
@@ -68,13 +75,23 @@ void ClientGameEngine::processNetworkEvents() {
     if (pending.count(network::GameEvents::S_VOICE_RELAY)) {
         std::cout << "Vocal replay not implemented" << std::endl; 
     }
+
+    if (pending.count(network::GameEvents::S_ASSIGN_PLAYER_ENTITY)) {
+        auto& msgs = pending.at(network::GameEvents::S_ASSIGN_PLAYER_ENTITY);
+        for (auto& msg : msgs) {
+            network::AssignPlayerEntityPacket packet;
+            msg >> packet;
+            _localPlayerEntity = packet.entityId;
+            std::cout << "CLIENT: Assigned player entity " << packet.entityId << std::endl;
+        }
+    }
 }
 
 
 int ClientGameEngine::run() {
-    system_context context = {0, _currentTick, _texture_manager, _window_manager.getWindow(), input_manager};
+    system_context context = {0, _currentTick, _texture_manager, _window_manager.getWindow(), input_manager, server_id};
     auto last_time = std::chrono::high_resolution_clock::now();
-    Environment env(_ecs, _texture_manager, *_network, EnvMode::STANDALONE);
+    Environment env(_ecs, _texture_manager, *_network, EnvMode::CLIENT);
 
     this->init();
     if (_init_function)
@@ -85,9 +102,12 @@ int ClientGameEngine::run() {
         context.dt = std::chrono::duration_cast<std::chrono::milliseconds>(now - last_time).count() / 1000.0f;
         last_time = now;
 
+        if (context.server_id == 0)
+            context.server_id = server_id;
+
         handleEvent();
         processNetworkEvents();
-        input_manager.update(*_network, _currentTick, context.dt);
+        input_manager.update(*_network, _currentTick, context);
         _window_manager.clear();
 
         if (_loop_function)

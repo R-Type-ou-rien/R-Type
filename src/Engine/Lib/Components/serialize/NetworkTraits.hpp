@@ -30,6 +30,13 @@ namespace serialize {
     };
 
     template <>
+    struct ComponentTraits<HealthComponent> {
+        static HealthComponent deserialize(const std::vector<uint8_t>& buffer, size_t& offset, ResourceManager<TextureAsset>&) {
+            return deserialize_health_component(buffer, offset);
+        }
+    };
+
+    template <>
     struct ComponentTraits<ResourceComponent> {
         static ResourceComponent deserialize(const std::vector<uint8_t>& buffer, size_t& offset, ResourceManager<TextureAsset>&) {
             return deserialize_resource_component(buffer, offset);

@@ -51,6 +51,7 @@ enum class GameEvents : uint32_t {
     C_GAME_START,
     S_GAME_START,
     S_GAME_START_KO,
+    S_ASSIGN_PLAYER_ENTITY,
     C_CANCEL_READY,
     S_CANCEL_READY_BROADCAST,
 
@@ -113,6 +114,10 @@ struct lobby_in_info {
     std::vector<uint32_t> id_player;
 
     uint32_t nbPlayers;
+};
+
+struct AssignPlayerEntityPacket {
+    uint32_t entityId;
 };
 
 }  // namespace network

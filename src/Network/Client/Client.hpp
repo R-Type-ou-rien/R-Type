@@ -22,6 +22,8 @@ class Client : public ClientInterface<GameEvents> {
     void LoginAnonymous();
     void RegisterServer(std::string username, std::string password);
 
+    uint32_t getId() const { return _id; }
+
     template <typename T>
     void AddMessageToServer(GameEvents event, uint32_t id, const T& data) {
         network::message<GameEvents> msg;

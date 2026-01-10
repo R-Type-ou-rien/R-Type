@@ -47,30 +47,33 @@ void NetworkEngine::processIncomingPackets(uint32_t tick) {
         if (!hasMsg)
             break;
 
-        uint32_t guid = msg.msg.header.user_id;
+        uint32_t user_guid = msg.msg.header.user_id;
 
         if (isUdpEvent(msg.id)) {
-            if (msg.msg.body.size() < sizeof(uint32_t)) {
-                continue;
-            }
-
             uint32_t packetTick = msg.msg.header.tick;
+            uint32_t sequence_guid = user_guid;
 
-            ComponentPacket* packet = reinterpret_cast<ComponentPacket*>(msg.msg.body.data());
-            uint32_t guid = packet->entity_guid;
-            if (packetTick <= _lastPacketTickMap[guid]) {
+            if (msg.id == network::GameEvents::S_SNAPSHOT) {
+                if (msg.msg.body.size() < sizeof(ComponentPacket)) {
+                    continue;
+                }
+                ComponentPacket* packet = reinterpret_cast<ComponentPacket*>(msg.msg.body.data());
+                sequence_guid = packet->entity_guid;
+            }
+
+            if (_lastPacketTickMap.count(sequence_guid) && packetTick <= _lastPacketTickMap[sequence_guid]) {
                 continue;
             }
-            _lastPacketTickMap[guid] = packetTick;
-            _processedEvents[msg.id] = msg.msg;
+            _lastPacketTickMap[sequence_guid] = packetTick;
+            _processedEvents[msg.id].push_back(msg.msg);
 
         } else {
-            _processedEvents[msg.id] = msg.msg;
+            _processedEvents[msg.id].push_back(msg.msg);
         }
     }
 }
 
-std::map<NetworkEngine::EventType, network::message<NetworkEngine::EventType>> NetworkEngine::getPendingEvents() {
+std::map<NetworkEngine::EventType, std::vector<network::message<NetworkEngine::EventType>>> NetworkEngine::getPendingEvents() {
     auto events = _processedEvents;
     _processedEvents.clear();
     return events;
@@ -81,6 +84,14 @@ void NetworkEngine::setTimeout(int timeout) {
         auto server = std::get<std::shared_ptr<network::Server>>(_networkInstance);
         server->setTimeout(timeout);
     }
+}
+
+uint32_t NetworkEngine::getClientId() const {
+    if (std::holds_alternative<std::shared_ptr<network::Client>>(_networkInstance)) {
+        auto client = std::get<std::shared_ptr<network::Client>>(_networkInstance);
+        return client->getId();
+    }
+    return 0;
 }
 
 }  // namespace core

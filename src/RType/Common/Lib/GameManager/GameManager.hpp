@@ -1,10 +1,12 @@
+#pragma once // Use pragma once for modern C++
+
 #include <memory>
 #include <vector>
-#include <SFML/System/Clock.hpp>
-#include "../Actors/Player/Player.hpp"
-#include "../Actors/AI/AI.hpp"
 #include "ECS.hpp"
 #include "GameEngineBase.hpp"
+#include "GameEngineConfig.hpp"
+#include "ServerGameEngine.hpp" // Required for lobby access
+#include "InputConfig.hpp"
 
 class GameManager {
    private:
@@ -13,23 +15,27 @@ class GameManager {
     static constexpr float PLAYER_START_Y = 300.0f;
     static constexpr int PLAYER_MAX_HP = 100;
     
-    std::unique_ptr<Player> _player;
-    std::vector<std::unique_ptr<AI>> _ennemies;
     Entity _uiEntity;
+    
+    uint32_t _requiredPlayers;
+    bool _gameStarted = false;
 
-    void initSystems(Environment& env);
-    void initBackground(Environment& env);
-    void initPlayer(Environment& env);
-    void initEnemies(Environment& env);
-    void initSpawner(Environment& env);
-    void initUI(Environment& env);
-    void setupMovementControls(InputManager& inputs);
-    void setupShootingControls(InputManager& inputs);
-    void updateUI(Environment& env);
+    // The init methods will now take the engine itself
+    void initSystems(GameEngine& engine);
+    void initBackground(GameEngine& engine);
+    void initPlayers(GameEngine& engine); // Takes server engine to access lobbies
+    void initEnemies(GameEngine& engine);
+    void initSpawner(GameEngine& engine);
+    void initUI(GameEngine& engine);
+    void updateUI(GameEngine& engine);
 
    public:
-    GameManager();
-    void init(Environment& env, InputManager& inputs);
-    void update(Environment& env, InputManager& inputs);
+    explicit GameManager(uint32_t requiredPlayers = 1);
+
+    // Main methods now take the engine
+    void init(GameEngine& engine, InputManager& inputs);
+    void update(GameEngine& engine, InputManager& inputs);
+    
+    bool isGameReady(GameEngine& engine);
     void loadInputSetting(InputManager& inputs);
 };

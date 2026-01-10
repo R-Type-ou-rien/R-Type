@@ -11,11 +11,10 @@
 #include "ResourceConfig.hpp"
 #include "Context.hpp"
 #include "Components/serialize/NetworkTraits.hpp"
-#include "Environment/Environment.hpp"
 
 #define SUCCESS 0
 #define FAILURE -1
-#define USER_FUNCTION_SIGNATURE void(Environment & env, InputManager & inputs)
+#define USER_FUNCTION_SIGNATURE void(Derived& engine, InputManager & inputs)
 #define DESERIALIZER_FUNCTION std::function<void(Registry&, Entity, const std::vector<uint8_t>&)>
 
 template <class Derived>
@@ -96,6 +95,11 @@ class GameEngineBase {
     void clearNetworkState() {
         _networkToLocalEntity.clear();
     }
+
+    ECS& getECS() { return _ecs; }
+    ResourceManager<TextureAsset>& getTextureManager() { return _texture_manager; }
+    InputManager& getInputManager() { return input_manager; }
+    engine::core::NetworkEngine& getNetwork() { return *_network; }
 
 protected:
     void processNetworkEvents() { static_cast<Derived*>(this)->processNetworkEvents(); }

@@ -1,8 +1,9 @@
 #pragma once
 
 #include "Components/StandardComponents.hpp"
-#include "serialize.hpp"
 #include "ResourceConfig.hpp"
+#include "serialize.hpp"
+#include "../../../../RType/Common/Components/health.hpp"
 
 namespace serialize {
 
@@ -39,6 +40,19 @@ inline PatternComponent deserialize_pattern_component(const std::vector<uint8_t>
     component.amplitude = deserialize<float>(buffer, offset);
     component.frequency = deserialize<float>(buffer, offset);
     component.time_elapsed = deserialize<float>(buffer, offset);
+    return component;
+}
+
+/** Health Component */
+inline void serialize(std::vector<uint8_t>& buffer, const HealthComponent& component) {
+    serialize(buffer, component.max_hp);
+    serialize(buffer, component.current_hp);
+}
+
+inline HealthComponent deserialize_health_component(const std::vector<uint8_t>& buffer, size_t& offset) {
+    HealthComponent component;
+    component.max_hp = deserialize<int>(buffer, offset);
+    component.current_hp = deserialize<int>(buffer, offset);
     return component;
 }
 

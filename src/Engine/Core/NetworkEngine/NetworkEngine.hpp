@@ -22,13 +22,13 @@ class NetworkEngine {
     ~NetworkEngine() = default;
 
     template <typename Data>
-    bool transmitEvent(EventType type, Data data, uint32_t tick, uint32_t targetId) {
+    bool transmitEvent(EventType type, Data data, uint32_t tick, uint32_t targetId = 0) {
         try {
             network::message<network::GameEvents> msg;
             msg.header.id = type;
-            msg.header.size = data.size();
             msg.header.tick = tick;
             msg << data;
+            msg.header.size = msg.body.size();
 
             if (std::holds_alternative<std::shared_ptr<network::Server>>(_networkInstance)) {
                 auto server = std::get<std::shared_ptr<network::Server>>(_networkInstance);
@@ -46,14 +46,19 @@ class NetworkEngine {
 
     void setTimeout(int timeout);
     void processIncomingPackets(uint32_t tick);
-    std::map<EventType, network::message<EventType>> getPendingEvents();
+    std::map<EventType, std::vector<network::message<EventType>>> getPendingEvents();
+    uint32_t getClientId() const;
+
+    std::variant<std::shared_ptr<network::Server>, std::shared_ptr<network::Client>>& getNetworkInstance() {
+        return _networkInstance;
+    }
 
    private:
     NetworkRole _role;
     std::variant<std::shared_ptr<network::Server>, std::shared_ptr<network::Client>> _networkInstance;
 
     std::map<uint32_t, uint32_t> _lastPacketTickMap;
-    std::map<EventType, network::message<EventType>> _processedEvents;
+    std::map<EventType, std::vector<network::message<EventType>>> _processedEvents;
 
     bool isUdpEvent(EventType type);
 };

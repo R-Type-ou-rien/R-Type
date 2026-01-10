@@ -1,6 +1,7 @@
 #include "ClientInputManager.hpp"
 #include <cstdint>
 #include "Components/NetworkComponents.hpp"
+#include "Context.hpp"
 #include "InputBinding.hpp"
 #include "Network.hpp"
 
@@ -33,7 +34,7 @@ bool ClientInputManager::isBindingActive(const InputBinding& b) const {
     return false;
 }
 
-void ClientInputManager::update(engine::core::NetworkEngine& network, uint32_t tick, uint32_t dt) {
+void ClientInputManager::update(engine::core::NetworkEngine& network, uint32_t tick, system_context& ctx) {
     
     if (!_hasFocus) {
         for (auto& [action, state] : _states) {
@@ -61,7 +62,7 @@ void ClientInputManager::update(engine::core::NetworkEngine& network, uint32_t t
         st.justReleased = (wasPressed && !down);
 
         if (down) {
-            st.holdTime += dt;
+            st.holdTime += ctx.dt;
         } else {
             if (wasPressed) {
                 st.lastReleaseHoldTime = st.holdTime;
@@ -70,17 +71,17 @@ void ClientInputManager::update(engine::core::NetworkEngine& network, uint32_t t
         }
         st.pressed = down;
 
-        createActionPacket(action, st, network);
+        createActionPacket(action, st, network, ctx);
     }
 }
 
-void ClientInputManager::createActionPacket(Action name, ActionState state, engine::core::NetworkEngine& network)
+void ClientInputManager::createActionPacket(Action name, ActionState state, engine::core::NetworkEngine& network, system_context& ctx)
 {
     ActionPacket packet;
 
     packet.action_name = name;
     packet.action_state = state;
 
-    // network.transmitEvent(network::GameEvents::C_INPUT, packet, tick, uint32_t targetId);
+    network.transmitEvent(network::GameEvents::C_INPUT, packet, ctx.tick);
     return;
 }
