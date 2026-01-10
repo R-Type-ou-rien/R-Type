@@ -2,6 +2,7 @@
 #include <ctime>
 #include <iostream>
 #include <vector>
+#include <string>
 #include "Components/StandardComponents.hpp"
 #include "../Entities/Mobs/all_mobs.hpp"
 #include "../Components/game_timer.hpp"

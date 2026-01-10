@@ -39,6 +39,7 @@ file(GLOB_RECURSE COMMON_SYSTEM_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/PhysicsSystem.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/ScrollSystem.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/SpawnSystem.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/PlayerBoundsSystem.cpp"
 )
 
 if (BUILD_SERVER)

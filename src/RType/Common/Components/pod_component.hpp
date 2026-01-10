@@ -2,20 +2,22 @@
 
 #include "registry.hpp"
 
-enum class PodState {
-    FLOATING,
-    ATTACHED,
-    DETACHED
-};
+enum class PodState { FLOATING, ATTACHED, DETACHED };
 
 struct PodComponent {
-    static constexpr auto name = "PodComponent"; // constexpr c'est pour qu'il doit connu au moment de la compilation
+    static constexpr auto name = "PodComponent";  // constexpr c'est pour qu'il doit connu au moment de la compilation
 
     PodState state = PodState::FLOATING;
     Entity owner_id = -1;
     float auto_fire_rate = 0.6f;
     float last_shot_time = 0.0f;
     int projectile_damage = 15;
+
+    // Floating movement parameters
+    float float_time = 0.0f;
+    float wave_amplitude = 50.0f;  // Amplitude of vertical wave
+    float wave_frequency = 2.0f;   // Speed of wave oscillation
+    float base_y = 0.0f;           // Original Y position for wave calculation
 };
 
 struct PlayerPodComponent {

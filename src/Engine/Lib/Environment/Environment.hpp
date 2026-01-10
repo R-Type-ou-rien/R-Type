@@ -18,7 +18,8 @@ class Environment {
     EnvMode _mode;
 
    public:
-    Environment(ECS& ecs, ResourceManager<TextureAsset>& textures, ResourceManager<SoundAsset>& sounds, ResourceManager<MusicAsset>& musics, EnvMode mode)
+    Environment(ECS& ecs, ResourceManager<TextureAsset>& textures, ResourceManager<SoundAsset>& sounds,
+                ResourceManager<MusicAsset>& musics, EnvMode mode)
         : _ecs(ecs), _textures(textures), _sounds(sounds), _musics(musics), _mode(mode) {}
 
     handle_t<TextureAsset> loadTexture(const std::string& path) {

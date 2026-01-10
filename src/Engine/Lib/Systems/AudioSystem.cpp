@@ -54,21 +54,20 @@ void AudioSystem::update(Registry& registry, system_context context) {
                             sound.play();
                         }
                     }
-                }
-                else if (context.music_manager.is_loaded(audio.sound_name)) {
-                     auto handleOpt = context.music_manager.get_handle(audio.sound_name);
-                     if (handleOpt) {
-                         auto pathOpt = context.music_manager.get_resource(*handleOpt);
-                         if (pathOpt) {
-                             if (_bgMusic.openFromFile(pathOpt->get())) {
-                                 _bgMusic.setLooping(audio.loop);
-                                 _bgMusic.play();
-                                 audio.assigned_sound_index = -2;
-                             } else {
-                                 std::cerr << "[AUDIO] Failed to open music: " << pathOpt->get() << std::endl;
-                             }
-                         }
-                     }
+                } else if (context.music_manager.is_loaded(audio.sound_name)) {
+                    auto handleOpt = context.music_manager.get_handle(audio.sound_name);
+                    if (handleOpt) {
+                        auto pathOpt = context.music_manager.get_resource(*handleOpt);
+                        if (pathOpt) {
+                            if (_bgMusic.openFromFile(pathOpt->get())) {
+                                _bgMusic.setLooping(audio.loop);
+                                _bgMusic.play();
+                                audio.assigned_sound_index = -2;
+                            } else {
+                                std::cerr << "[AUDIO] Failed to open music: " << pathOpt->get() << std::endl;
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -76,15 +75,13 @@ void AudioSystem::update(Registry& registry, system_context context) {
         if (!audio.loop && audio.assigned_sound_index != -1) {
             if (audio.assigned_sound_index == -2) {
                 if (_bgMusic.getStatus() == sf::SoundSource::Status::Stopped) {
-                     if (audio.destroy_entity_on_finish) {
+                    if (audio.destroy_entity_on_finish) {
                         entities_to_destroy.push_back(entity);
                     } else {
                         components_to_remove.push_back(entity);
                     }
                 }
-            }
-            else if (_soundPool[audio.assigned_sound_index]->getStatus() == sf::Sound::Status::Stopped) {
-
+            } else if (_soundPool[audio.assigned_sound_index]->getStatus() == sf::Sound::Status::Stopped) {
                 if (!audio.next_sound_name.empty()) {
                     audio.sound_name = audio.next_sound_name;
                     audio.loop = audio.next_sound_loop;

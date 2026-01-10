@@ -11,7 +11,6 @@ struct WorldBoundsComponent {
     float min_y = 0.0f;
 };
 
-
 class PlayerBoundsSystem : public ISystem {
    public:
     PlayerBoundsSystem() = default;
