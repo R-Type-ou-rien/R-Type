@@ -2,6 +2,7 @@
 #include "ECS.hpp"
 #include "InputConfig.hpp"
 #include "src/RType/Common/Components/charged_shot.hpp"
+#include "src/RType/Common/Components/pod_component.hpp"
 
 void GameManager::setupMovementControls(InputManager& inputs) {
     float player_speed = _player_config.speed.value();
@@ -85,7 +86,20 @@ void GameManager::setupShootingControls(InputManager& inputs) {
     });
 }
 
+void GameManager::setupPodControls(InputManager& inputs) {
+    inputs.bindAction("toggle_pod", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::E});
+    _player->bindActionCallbackPressed("toggle_pod", [](Registry& registry, system_context context, Entity entity) {
+        if (registry.hasComponent<PlayerPodComponent>(entity)) {
+            auto& player_pod = registry.getComponent<PlayerPodComponent>(entity);
+            if (player_pod.has_pod) {
+                player_pod.detach_requested = true;
+            }
+        }
+    });
+}
+
 void GameManager::loadInputSetting(InputManager& inputs) {
     setupMovementControls(inputs);
     setupShootingControls(inputs);
+    setupPodControls(inputs);
 }

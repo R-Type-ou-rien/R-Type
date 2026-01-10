@@ -29,6 +29,7 @@ class GameManager {
     void initBounds(Environment& env);
     void setupMovementControls(InputManager& inputs);
     void setupShootingControls(InputManager& inputs);
+    void setupPodControls(InputManager& inputs);
     void updateUI(Environment& env);
     void checkGameState(Environment& env);
     void displayGameOver(Environment& env, bool victory);
