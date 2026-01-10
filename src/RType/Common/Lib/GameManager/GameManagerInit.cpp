@@ -12,7 +12,9 @@
 #include "src/RType/Common/Systems/ai_behavior.hpp"
 #include "src/RType/Common/Systems/score.hpp"
 #include "src/RType/Common/Systems/animation_helper.hpp"
+#include "src/RType/Common/Systems/pod_system.hpp"
 #include "src/Engine/Lib/Systems/PatternSystem/PatternSystem.hpp"
+#include "src/Engine/Lib/Systems/PlayerBoundsSystem.hpp"
 
 void GameManager::initSystems(Environment& env) {
     auto& ecs = env.getECS();
@@ -22,8 +24,10 @@ void GameManager::initSystems(Environment& env) {
     ecs.systems.addSystem<HealthSystem>();
     ecs.systems.addSystem<PatternSystem>();
     ecs.systems.addSystem<EnemySpawnSystem>();
+    ecs.systems.addSystem<PodSystem>();
     ecs.systems.addSystem<AIBehaviorSystem>();
     ecs.systems.addSystem<BoundsSystem>();
+    ecs.systems.addSystem<PlayerBoundsSystem>();
     ecs.systems.addSystem<ScoreSystem>();
 }
 
@@ -90,6 +94,13 @@ void GameManager::initPlayer(Environment& env) {
         charged_shot.min_charge_time = 0.5f;
         charged_shot.max_charge_time = 2.0f;
         ecs.registry.addComponent<ChargedShotComponent>(_player->getId(), charged_shot);
+
+        PlayerPodComponent player_pod;
+        player_pod.has_pod = false;
+        player_pod.pod_entity = -1;
+        player_pod.pod_attached = false;
+        player_pod.last_known_hp = _player_config.hp.value();
+        ecs.registry.addComponent<PlayerPodComponent>(_player->getId(), player_pod);
     }
 }
 
@@ -106,6 +117,14 @@ void GameManager::initSpawner(Environment& env) {
         spawn_comp.spawn_interval = 2.0f;
         spawn_comp.is_active = true;
         ecs.registry.addComponent<EnemySpawnComponent>(spawner, spawn_comp);
+
+        Entity pod_spawner = ecs.registry.createEntity();
+        PodSpawnComponent pod_spawn_comp;
+        pod_spawn_comp.spawn_interval = 15.0f;
+        pod_spawn_comp.min_spawn_interval = 10.0f;
+        pod_spawn_comp.max_spawn_interval = 20.0f;
+        pod_spawn_comp.can_spawn = true;
+        ecs.registry.addComponent<PodSpawnComponent>(pod_spawner, pod_spawn_comp);
     }
 }
 
