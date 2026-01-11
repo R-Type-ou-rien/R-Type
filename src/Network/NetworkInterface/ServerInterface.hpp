@@ -216,12 +216,20 @@ class ServerInterface {
             nMessageCount++;
         }
 
+        bool bInvalidClientExists = false;
         for (auto& client : _deqConnections) {
             if (!client->IsConnected()) {
                 OnClientDisconnect(client);
+                client.reset();
+                bInvalidClientExists = true;
                 continue;
             }
             // client->ResetTimeout();
+        }
+
+        if (bInvalidClientExists) {
+            _deqConnections.erase(std::remove(_deqConnections.begin(), _deqConnections.end(), nullptr),
+                                  _deqConnections.end());
         }
     }
 

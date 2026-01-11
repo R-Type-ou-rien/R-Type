@@ -2,11 +2,7 @@
 
 #include "ISystem.hpp"
 #include "registry.hpp"
-
-struct DamageOnCollision {
-    static constexpr auto name = "DamageOnCollision";
-    int damage_value;
-};
+#include "damage_component.hpp"
 
 class Damage : public ISystem {
    public:

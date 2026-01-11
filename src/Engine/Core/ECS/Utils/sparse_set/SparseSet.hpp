@@ -20,7 +20,7 @@ class ISparseSet {
     virtual std::vector<std::size_t> getUpdatedEntities() = 0;
     virtual ComponentPacket createPacket(uint32_t entity, SerializationContext& context) = 0;
     virtual void markAllUpdated() = 0;
-    virtual void clearUpdatedEntities() = 0; 
+    virtual void clearUpdatedEntities() = 0;
 };
 
 template <typename data_type>
@@ -149,11 +149,11 @@ void SparseSet<data_type>::markAllUpdated() {
 }
 
 template <typename data_type>
-void SparseSet<data_type>::clearUpdatedEntities()
-{
-    _dirty_dense.clear();
+void SparseSet<data_type>::clearUpdatedEntities() {
+    for (std::size_t i = 0; i < _dirty_dense.size(); ++i) {
+        _dirty_dense[i] = false;
+    }
 }
-
 
 #include <type_traits>
 #include "Components/serialize/serialize.hpp"

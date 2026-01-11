@@ -8,8 +8,12 @@
 #include "GameEngineBase.hpp"
 #include "Network.hpp"
 #include "NetworkEngine/NetworkEngine.hpp"
-
-
+#include "Components/StandardComponents.hpp"
+#include "../../RType/Common/Components/health.hpp"
+#include "../../RType/Common/Components/spawn.hpp"
+#include "../../RType/Common/Components/shooter.hpp"
+#include "../../RType/Common/Components/charged_shot.hpp"
+#include "../../RType/Common/Components/damage.hpp"
 
 ServerGameEngine::ServerGameEngine() {
     _network = std::make_unique<engine::core::NetworkEngine>(engine::core::NetworkEngine::NetworkRole::SERVER);
@@ -23,15 +27,26 @@ int ServerGameEngine::init() {
     _ecs.systems.addSystem<PatternSystem>();
     _ecs.systems.addSystem<PhysicsSystem>();
     _ecs.systems.addSystem<ComponentSenderSystem>();
+    _ecs.systems.addSystem<ActionScriptSystem>();
+    _ecs.systems.addSystem<Damage>();
 
-    // Player creation is now handled by the GameManager when the game is ready.
-    // No placeholder player is needed here.
+    registerNetworkComponent<sprite2D_component_s>();
+    registerNetworkComponent<transform_component_s>();
+    registerNetworkComponent<Velocity2D>();
+    registerNetworkComponent<BoxCollisionComponent>();
+    registerNetworkComponent<TagComponent>();
+    registerNetworkComponent<HealthComponent>();
+    registerNetworkComponent<EnemySpawnComponent>();
+    registerNetworkComponent<ShooterComponent>();
+    registerNetworkComponent<ChargedShotComponent>();
+    registerNetworkComponent<TextComponent>();
+    registerNetworkComponent<ResourceComponent>();
+    registerNetworkComponent<BackgroundComponent>();
 
     return SUCCESS;
 }
 
-void ServerGameEngine::processNetworkEvents()
-{
+void ServerGameEngine::processNetworkEvents() {
     _network->processIncomingPackets(_currentTick);
     auto pending = _network->getPendingEvents();
 
@@ -41,7 +56,7 @@ void ServerGameEngine::processNetworkEvents()
             uint32_t newClientId = msg.header.user_id;
             _lobbyManager.onClientConnected(newClientId);
             // Automatically join the default lobby for now. A real game would have lobby selection.
-             _lobbyManager.joinLobby(1, newClientId);
+            _lobbyManager.joinLobby(1, newClientId);
             std::cout << "SERVER: Client " << newClientId << " connected and joined lobby 1." << std::endl;
         }
     }
@@ -51,7 +66,7 @@ void ServerGameEngine::processNetworkEvents()
         for (const auto& msg : pending.at(network::GameEvents::C_DISCONNECT)) {
             uint32_t clientId = msg.header.user_id;
             _lobbyManager.onClientDisconnected(clientId);
-            _clientToEntityMap.erase(clientId); // Clean up entity mapping
+            _clientToEntityMap.erase(clientId);  // Clean up entity mapping
             std::cout << "SERVER: Client " << clientId << " disconnected." << std::endl;
         }
     }
@@ -67,18 +82,17 @@ void ServerGameEngine::processNetworkEvents()
     }
 }
 
-void ServerGameEngine::updateActions(ActionPacket& packet, uint32_t clientId)
-{
+void ServerGameEngine::updateActions(ActionPacket& packet, uint32_t clientId) {
     auto it = _clientToEntityMap.find(clientId);
-    
+
     input_manager.updateActionFromPacket(packet, clientId);
 }
 
 int ServerGameEngine::run() {
     system_context ctx = {0, _currentTick, _texture_manager, input_manager, *_network, {}, &_lobbyManager};
     auto last_time = std::chrono::high_resolution_clock::now();
-    
-    init(); 
+
+    init();
 
     if (_init_function)
         _init_function(*this, input_manager);
@@ -103,8 +117,11 @@ int ServerGameEngine::run() {
                 }
             }
         }
-            
+
         _ecs.update(ctx);
+
+        // Reset one-frame input flags (justPressed, justReleased) after processing
+        input_manager.resetFrameFlags();
 
         _currentTick++;
         std::this_thread::sleep_for(std::chrono::milliseconds(16));

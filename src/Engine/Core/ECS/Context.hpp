@@ -6,11 +6,10 @@
 
 #if defined(SERVER_BUILD)
 #include "ServerResourceManager.hpp"
-#include "NetworkEngine/NetworkEngine.hpp"
-
 namespace engine::core {
-    class LobbyManager;
-}
+class LobbyManager;
+class NetworkEngine;
+}  // namespace engine::core
 
 struct system_context {
     float dt;

@@ -28,6 +28,11 @@ bool NetworkEngine::isUdpEvent(EventType type) {
 }
 
 void NetworkEngine::processIncomingPackets(uint32_t tick) {
+    if (std::holds_alternative<std::shared_ptr<network::Server>>(_networkInstance)) {
+        auto server = std::get<std::shared_ptr<network::Server>>(_networkInstance);
+        server->Update(-1, false);
+    }
+
     while (true) {
         network::coming_message msg;
         bool hasMsg = false;
@@ -54,17 +59,16 @@ void NetworkEngine::processIncomingPackets(uint32_t tick) {
             uint32_t sequence_guid = user_guid;
 
             if (msg.id == network::GameEvents::S_SNAPSHOT) {
-                if (msg.msg.body.size() < sizeof(ComponentPacket)) {
+                auto temp_msg = msg.msg;
+                ComponentPacket temp_packet;
+                temp_msg >> temp_packet;
+                sequence_guid = temp_packet.entity_guid;
+
+                if (_lastPacketTickMap.count(sequence_guid) && packetTick < _lastPacketTickMap[sequence_guid]) {
                     continue;
                 }
-                ComponentPacket* packet = reinterpret_cast<ComponentPacket*>(msg.msg.body.data());
-                sequence_guid = packet->entity_guid;
+                _lastPacketTickMap[sequence_guid] = packetTick;
             }
-
-            if (_lastPacketTickMap.count(sequence_guid) && packetTick <= _lastPacketTickMap[sequence_guid]) {
-                continue;
-            }
-            _lastPacketTickMap[sequence_guid] = packetTick;
             _processedEvents[msg.id].push_back(msg.msg);
 
         } else {
@@ -73,7 +77,8 @@ void NetworkEngine::processIncomingPackets(uint32_t tick) {
     }
 }
 
-std::map<NetworkEngine::EventType, std::vector<network::message<NetworkEngine::EventType>>> NetworkEngine::getPendingEvents() {
+std::map<NetworkEngine::EventType, std::vector<network::message<NetworkEngine::EventType>>>
+NetworkEngine::getPendingEvents() {
     auto events = _processedEvents;
     _processedEvents.clear();
     return events;

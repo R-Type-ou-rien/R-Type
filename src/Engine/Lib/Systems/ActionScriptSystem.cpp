@@ -17,7 +17,7 @@ void ActionScriptSystem::update(Registry& registry, system_context context) {
         if (registry.hasComponent<NetworkIdentity>(entity)) {
             // Script on a networked entity. Check its owner.
             uint32_t ownerId = registry.getConstComponent<NetworkIdentity>(entity).ownerId;
-            if (ownerId != 0) { // It's owned by a player
+            if (ownerId != 0) {  // It's owned by a player
                 for (auto& [action_name, function] : script.actionOnPressed) {
                     if (context.input.isJustPressed(action_name, ownerId)) {
                         function(registry, context, entity);
@@ -56,7 +56,7 @@ void ActionScriptSystem::update(Registry& registry, system_context context) {
             }
         }
     }
-#else // CLIENT_BUILD
+#else  // CLIENT_BUILD
     auto entities = registry.getEntities<ActionScript>();
     for (auto entity : entities) {
         const ActionScript& script = registry.getConstComponent<ActionScript>(entity);

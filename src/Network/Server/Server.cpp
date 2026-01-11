@@ -82,6 +82,7 @@ bool Server::OnClientConnect(std::shared_ptr<Connection<GameEvents>> client) {
 
     // Envoi du message de connection au game (bON POUR CA L'AUTOCOMPLETION DE L'IDE A UN PEU AIDER)
     std::cout << "[DEBUG] OnClientConnect: Push to game\n";
+    msg.header.user_id = client->GetID();
     _toGameMessages.push({GameEvents::C_CONNECTION, client->GetID(), msg});
 
     _clientStates[client] = ClientState::WAITING_UDP_PING;

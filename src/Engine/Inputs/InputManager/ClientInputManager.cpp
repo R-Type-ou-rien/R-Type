@@ -35,7 +35,6 @@ bool ClientInputManager::isBindingActive(const InputBinding& b) const {
 }
 
 void ClientInputManager::update(engine::core::NetworkEngine& network, uint32_t tick, system_context& ctx) {
-    
     if (!_hasFocus) {
         for (auto& [action, state] : _states) {
             state.pressed = false;
@@ -71,12 +70,14 @@ void ClientInputManager::update(engine::core::NetworkEngine& network, uint32_t t
         }
         st.pressed = down;
 
-        createActionPacket(action, st, network, ctx);
+        if (st.justPressed || st.justReleased || st.pressed) {
+            createActionPacket(action, st, network, ctx);
+        }
     }
 }
 
-void ClientInputManager::createActionPacket(Action name, ActionState state, engine::core::NetworkEngine& network, system_context& ctx)
-{
+void ClientInputManager::createActionPacket(Action name, ActionState state, engine::core::NetworkEngine& network,
+                                            system_context& ctx) {
     ActionPacket packet;
 
     packet.action_name = name;

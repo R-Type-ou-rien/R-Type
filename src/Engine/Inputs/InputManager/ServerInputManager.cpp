@@ -37,3 +37,12 @@ const ActionState& ServerInputManager::getState(Action action, uint32_t client_i
 void ServerInputManager::removeClient(uint32_t client_id) {
     _client_states.erase(client_id);
 }
+
+void ServerInputManager::resetFrameFlags() {
+    for (auto& [client_id, actions] : _client_states) {
+        for (auto& [action_name, state] : actions) {
+            state.justPressed = false;
+            state.justReleased = false;
+        }
+    }
+}

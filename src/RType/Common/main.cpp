@@ -2,6 +2,7 @@
 #include <ostream>
 
 #include "GameEngineConfig.hpp"
+#include "NetworkEngine/NetworkEngine.hpp"
 #include "Components/StandardComponents.hpp"
 #include "Lib/GameManager/GameManager.hpp"
 

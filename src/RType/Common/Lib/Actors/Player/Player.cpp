@@ -13,6 +13,38 @@ Player::Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<floa
     _ecs.registry.addComponent<TeamComponent>(_id, {TeamComponent::Team::ALLY});
     _ecs.registry.addComponent<ShooterComponent>(_id, {});
     _ecs.registry.addComponent<HealthComponent>(_id, {100, 100});
+
+    // Movement Bindings
+    bindActionCallbackPressed("move_left", [this](Registry&, system_context, Entity) {
+        this->setVelocity({-200.0f, this->getvelocity().second});
+    });
+    bindActionCallbackOnReleased("move_left", [this](Registry&, system_context, Entity) {
+        this->setVelocity({0.0f, this->getvelocity().second});
+    });
+
+    bindActionCallbackPressed("move_right", [this](Registry&, system_context, Entity) {
+        this->setVelocity({200.0f, this->getvelocity().second});
+    });
+    bindActionCallbackOnReleased("move_right", [this](Registry&, system_context, Entity) {
+        this->setVelocity({0.0f, this->getvelocity().second});
+    });
+
+    bindActionCallbackPressed("move_up", [this](Registry&, system_context, Entity) {
+        this->setVelocity({this->getvelocity().first, -200.0f});
+    });
+    bindActionCallbackOnReleased(
+        "move_up", [this](Registry&, system_context, Entity) { this->setVelocity({this->getvelocity().first, 0.0f}); });
+
+    bindActionCallbackPressed("move_down", [this](Registry&, system_context, Entity) {
+        this->setVelocity({this->getvelocity().first, 200.0f});
+    });
+    bindActionCallbackOnReleased("move_down", [this](Registry&, system_context, Entity) {
+        this->setVelocity({this->getvelocity().first, 0.0f});
+    });
+
+    // Shooting
+    bindActionCallbackPressed("shoot", [this](Registry&, system_context, Entity) { this->setShootingState(true); });
+    bindActionCallbackOnReleased("shoot", [this](Registry&, system_context, Entity) { this->setShootingState(false); });
 }
 
 void Player::setProjectileType(ShooterComponent::ProjectileType type) {

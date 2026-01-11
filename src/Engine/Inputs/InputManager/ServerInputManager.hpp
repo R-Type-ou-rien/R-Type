@@ -12,6 +12,7 @@ class ServerInputManager : public InputManagerBase<ServerInputManager> {
     const ActionState& getState(Action action, uint32_t client_id) const;
 
     void removeClient(uint32_t client_id);
+    void resetFrameFlags();  // Must be called at end of each frame to reset justPressed/justReleased
 
    private:
     const ActionState& getClientState(Action action, uint32_t client_id) const;

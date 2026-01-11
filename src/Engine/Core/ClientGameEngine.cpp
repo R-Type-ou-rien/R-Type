@@ -2,43 +2,54 @@
 #include <chrono>
 #include <cstdint>
 #include <cstring>
-#include <ctime>
 #include <iostream>
 #include <ostream>
-#include "CollisionSystem.hpp"
-#include "ActionScriptSystem.hpp"
+
 #include "Components/NetworkComponents.hpp"
 #include "Components/StandardComponents.hpp"
-#include "GameEngineBase.hpp"
-#include "Hash/Hash.hpp"
 #include "Network.hpp"
 #include "NetworkEngine/NetworkEngine.hpp"
-#include "PatternSystem/PatternSystem.hpp"
-#include "SpawnSystem.hpp"
-#include "Components/health.hpp"
 
-ClientGameEngine::ClientGameEngine(std::string window_name)
-: _window_manager(WINDOW_W, WINDOW_H, window_name)
-{
+#include "../../../RType/Common/Components/health.hpp"
+#include "../../../RType/Common/Components/spawn.hpp"
+#include "../../../RType/Common/Components/shooter_component.hpp"
+#include "../../../RType/Common/Components/charged_shot.hpp"
+#include "../../../RType/Common/Components/team_component.hpp"
+#include "../../../RType/Common/Components/damage_component.hpp"
+#include "Components/StandardComponents.hpp"
+#include "Components/NetworkComponents.hpp"
+
+ClientGameEngine::ClientGameEngine(std::string window_name) : _window_manager(WINDOW_W, WINDOW_H, window_name) {
     _network = std::make_unique<engine::core::NetworkEngine>(engine::core::NetworkEngine::NetworkRole::CLIENT);
 }
 
 int ClientGameEngine::init() {
     _network->transmitEvent<int>(network::GameEvents::C_LOGIN_ANONYMOUS, 0, 0, 0);
+
+    registerNetworkComponent<sprite2D_component_s>();
     registerNetworkComponent<transform_component_s>();
     registerNetworkComponent<Velocity2D>();
-    registerNetworkComponent<sprite2D_component_s>();
-    registerNetworkComponent<BackgroundComponent>();
-    registerNetworkComponent<ResourceComponent>();
-    registerNetworkComponent<TextComponent>();
+    registerNetworkComponent<BoxCollisionComponent>();
+    registerNetworkComponent<TagComponent>();
     registerNetworkComponent<HealthComponent>();
+    registerNetworkComponent<EnemySpawnComponent>();
+    registerNetworkComponent<ShooterComponent>();
+    registerNetworkComponent<ChargedShotComponent>();
+    registerNetworkComponent<TextComponent>();
+    registerNetworkComponent<ResourceComponent>();
+    registerNetworkComponent<BackgroundComponent>();
+    registerNetworkComponent<PatternComponent>();
+    registerNetworkComponent<ProjectileComponent>();
+    registerNetworkComponent<TeamComponent>();
+    registerNetworkComponent<DamageOnCollision>();
+    registerNetworkComponent<NetworkIdentity>();
 
     _ecs.systems.addSystem<BackgroundSystem>();
     _ecs.systems.addSystem<RenderSystem>();
     //_ecs.systems.addSystem<InputSystem>(input_manager);
 
     // if mode local or prediction (?)
-    // _ecs.systems.addSystem<PhysicsSystem>();
+    _ecs.systems.addSystem<PhysicsSystem>();
     // _ecs.systems.addSystem<BoxCollision>();
     // _ecs.systems.addSystem<ActionScriptSystem>();
     // _ecs.systems.addSystem<PatternSystem>();
@@ -62,8 +73,8 @@ void ClientGameEngine::processNetworkEvents() {
     auto pending = _network->getPendingEvents();
 
     if (pending.count(network::GameEvents::S_SNAPSHOT)) {
-        // std::cout << "COMPONENT RECEIVED" << std::endl;
         auto& snapshot_packets = pending.at(network::GameEvents::S_SNAPSHOT);
+
         for (const auto& msg : snapshot_packets) {
             auto mutable_msg = msg;
             ComponentPacket packet;
@@ -73,7 +84,7 @@ void ClientGameEngine::processNetworkEvents() {
     }
 
     if (pending.count(network::GameEvents::S_VOICE_RELAY)) {
-        std::cout << "Vocal replay not implemented" << std::endl; 
+        std::cout << "Vocal replay not implemented" << std::endl;
     }
 
     if (pending.count(network::GameEvents::S_ASSIGN_PLAYER_ENTITY)) {
@@ -87,23 +98,21 @@ void ClientGameEngine::processNetworkEvents() {
     }
 }
 
-
 int ClientGameEngine::run() {
-    system_context context = {0, _currentTick, _texture_manager, _window_manager.getWindow(), input_manager, server_id};
+    system_context context = {0, _currentTick, _texture_manager, _window_manager.getWindow(), input_manager, _clientId};
     auto last_time = std::chrono::high_resolution_clock::now();
-    Environment env(_ecs, _texture_manager, *_network, EnvMode::CLIENT);
 
     this->init();
     if (_init_function)
-        _init_function(env, input_manager);
+        _init_function(*this, input_manager);
 
     while (_window_manager.isOpen()) {
         auto now = std::chrono::high_resolution_clock::now();
         context.dt = std::chrono::duration_cast<std::chrono::milliseconds>(now - last_time).count() / 1000.0f;
         last_time = now;
 
-        if (context.server_id == 0)
-            context.server_id = server_id;
+        if (context.player_id == 0)
+            context.player_id = _clientId;
 
         handleEvent();
         processNetworkEvents();
@@ -111,7 +120,7 @@ int ClientGameEngine::run() {
         _window_manager.clear();
 
         if (_loop_function)
-            _loop_function(env, input_manager);
+            _loop_function(*this, input_manager);
         _ecs.update(context);
 
         _window_manager.display();
