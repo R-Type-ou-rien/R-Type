@@ -115,21 +115,21 @@ void GameManager::initPlayers(GameEngine& engine) {
         charged_shot.max_charge_time = 2.0f;
         ecs.registry.addComponent<ChargedShotComponent>(newPlayer->getId(), charged_shot);
 
+        // Store the GUID before modifying the component to avoid reference issues
+        const uint32_t playerGuid = ecs.registry.getConstComponent<NetworkIdentity>(newPlayer->getId()).guid;
+
         NetworkIdentity& comp = ecs.registry.getComponent<NetworkIdentity>(newPlayer->getId());
         comp.ownerId = client.id;
 
         // Map the client ID to the entity ID for input handling
         clientToEntityMap[client.id] = newPlayer->getId();
-        std::cout << "GAME MANAGER: Created player entity " << newPlayer->getId() << " for client " << client.id
-                  << std::endl;
+        std::cout << "GAME MANAGER: Created player entity " << newPlayer->getId() << " (GUID: " << playerGuid
+                  << ") for client " << client.id << std::endl;
 
         // Notify the client which entity is theirs
-        network::message<network::GameEvents> msg;
-        msg.header.id = network::GameEvents::S_ASSIGN_PLAYER_ENTITY;
         network::AssignPlayerEntityPacket packet;
-        packet.entityId = newPlayer->getId();
-        msg << packet;
-        engine.getNetwork().transmitEvent(network::GameEvents::S_ASSIGN_PLAYER_ENTITY, msg, 0, client.id);
+        packet.entityId = playerGuid;
+        engine.getNetwork().transmitEvent(network::GameEvents::S_ASSIGN_PLAYER_ENTITY, packet, 0, client.id);
 
         // Store the player to keep it alive (destructor would destroy the entity)
         _actors.push_back(std::move(newPlayer));
@@ -168,21 +168,21 @@ void GameManager::checkNewPlayers(GameEngine& engine) {
             charged_shot.max_charge_time = 2.0f;
             ecs.registry.addComponent<ChargedShotComponent>(newPlayer->getId(), charged_shot);
 
+            // Store the GUID before modifying the component to avoid reference issues
+            const uint32_t playerGuid = ecs.registry.getConstComponent<NetworkIdentity>(newPlayer->getId()).guid;
+
             NetworkIdentity& comp = ecs.registry.getComponent<NetworkIdentity>(newPlayer->getId());
             comp.ownerId = client.id;
 
             // Map the client ID to the entity ID for input handling
             clientToEntityMap[client.id] = newPlayer->getId();
-            std::cout << "GAME MANAGER: Spawning player " << newPlayer->getId() << " for client " << client.id
-                      << std::endl;
+            std::cout << "GAME MANAGER: Spawning player " << newPlayer->getId() << " (GUID: " << playerGuid
+                      << ") for client " << client.id << std::endl;
 
             // Notify the client which entity is theirs
-            network::message<network::GameEvents> msg;
-            msg.header.id = network::GameEvents::S_ASSIGN_PLAYER_ENTITY;
             network::AssignPlayerEntityPacket packet;
-            packet.entityId = newPlayer->getId();
-            msg << packet;
-            engine.getNetwork().transmitEvent(network::GameEvents::S_ASSIGN_PLAYER_ENTITY, msg, 0, client.id);
+            packet.entityId = playerGuid;
+            engine.getNetwork().transmitEvent(network::GameEvents::S_ASSIGN_PLAYER_ENTITY, packet, 0, client.id);
 
             // Store the player to keep it alive
             _actors.push_back(std::move(newPlayer));
@@ -293,12 +293,16 @@ void GameManager::update(GameEngine& engine, InputManager& inputs) {
         // Game is running, update game state
         checkNewPlayers(serverEngine);
 
-        // FORCE REFRESH SPRITES (Temporary Fix for Invisible Ships / Packet Loss)
+        // FORCE REFRESH SPRITES AND HEALTH (Temporary Fix for Invisible Ships / Packet Loss)
         auto& ecs = engine.getECS();
         try {
-            auto& pool = ecs.registry.getPool<sprite2D_component_s>();
+            auto& spritePool = ecs.registry.getPool<sprite2D_component_s>();
+            auto& healthPool = ecs.registry.getPool<HealthComponent>();
             for (const auto& actor : _actors) {
-                pool.markAsDirty(actor->getId());
+                spritePool.markAsDirty(actor->getId());
+                if (ecs.registry.hasComponent<HealthComponent>(actor->getId())) {
+                    healthPool.markAsDirty(actor->getId());
+                }
             }
         } catch (...) {}
     } else {

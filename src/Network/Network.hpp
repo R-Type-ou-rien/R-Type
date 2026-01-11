@@ -120,4 +120,15 @@ struct AssignPlayerEntityPacket {
     uint32_t entityId;
 };
 
+// Serialization operators for AssignPlayerEntityPacket
+inline message<GameEvents>& operator<<(message<GameEvents>& msg, const AssignPlayerEntityPacket& packet) {
+    msg << packet.entityId;
+    return msg;
+}
+
+inline message<GameEvents>& operator>>(message<GameEvents>& msg, AssignPlayerEntityPacket& packet) {
+    msg >> packet.entityId;
+    return msg;
+}
+
 }  // namespace network

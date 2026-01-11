@@ -93,7 +93,6 @@ void ClientGameEngine::processNetworkEvents() {
             network::AssignPlayerEntityPacket packet;
             msg >> packet;
             _localPlayerEntity = packet.entityId;
-            std::cout << "CLIENT: Assigned player entity " << packet.entityId << std::endl;
         }
     }
 }

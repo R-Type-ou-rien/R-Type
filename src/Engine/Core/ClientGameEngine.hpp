@@ -29,8 +29,8 @@ class ClientGameEngine : public GameEngineBase<ClientGameEngine> {
     uint32_t _clientId = 0;
     std::optional<Entity> _localPlayerEntity;
 
-    public:
-        static constexpr bool IsServer = false;
+   public:
+    static constexpr bool IsServer = false;
 
    public:
     int init();
@@ -38,7 +38,17 @@ class ClientGameEngine : public GameEngineBase<ClientGameEngine> {
     explicit ClientGameEngine(std::string window_name = "Default Name");
     ~ClientGameEngine() {}
 
-    std::optional<Entity> getLocalPlayerEntity() const { return _localPlayerEntity; }
+    std::optional<Entity> getLocalPlayerEntity() const {
+        if (!_localPlayerEntity.has_value())
+            return std::nullopt;
+
+        // Convert network GUID to local entity ID
+        auto it = _networkToLocalEntity.find(_localPlayerEntity.value());
+        if (it != _networkToLocalEntity.end()) {
+            return it->second;
+        }
+        return std::nullopt;
+    }
 
    private:
     void handleEvent();

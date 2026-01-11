@@ -13,7 +13,6 @@
 #include "../../RType/Common/Components/spawn.hpp"
 #include "../../RType/Common/Components/shooter.hpp"
 #include "../../RType/Common/Components/charged_shot.hpp"
-#include "../../RType/Common/Components/damage.hpp"
 
 ServerGameEngine::ServerGameEngine() {
     _network = std::make_unique<engine::core::NetworkEngine>(engine::core::NetworkEngine::NetworkRole::SERVER);
@@ -22,13 +21,8 @@ ServerGameEngine::ServerGameEngine() {
 }
 
 int ServerGameEngine::init() {
-    // Order matters! Physics & Pattern update positions BEFORE collision detection
-    _ecs.systems.addSystem<PhysicsSystem>();
-    _ecs.systems.addSystem<PatternSystem>();
-    _ecs.systems.addSystem<BoxCollision>();
-    _ecs.systems.addSystem<Damage>();
-    _ecs.systems.addSystem<SpawnSystem>();
-    _ecs.systems.addSystem<ActionScriptSystem>();
+    // Systems are added in GameManager::initSystems()
+    // Only add server-specific systems here
     _ecs.systems.addSystem<ComponentSenderSystem>();
 
     registerNetworkComponent<sprite2D_component_s>();
