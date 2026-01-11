@@ -55,14 +55,19 @@ bool GameManager::isGameReady(GameEngine& engine) {
 
 void GameManager::initSystems(GameEngine& engine) {
     auto& ecs = engine.getECS();
+    // Order matters!
+    // 1. ShooterSystem creates projectiles
+    // 2. PhysicsSystem & PatternSystem update positions
+    // 3. BoxCollision detects collisions
+    // 4. Damage applies damage based on collisions
     ecs.systems.addSystem<ShooterSystem>();
+    ecs.systems.addSystem<PhysicsSystem>();
+    ecs.systems.addSystem<PatternSystem>();
+    ecs.systems.addSystem<BoxCollision>();
     ecs.systems.addSystem<Damage>();
     ecs.systems.addSystem<HealthSystem>();
-    ecs.systems.addSystem<PatternSystem>();
     ecs.systems.addSystem<EnemySpawnSystem>();
     ecs.systems.addSystem<ActionScriptSystem>();
-    ecs.systems.addSystem<PhysicsSystem>();
-    ecs.systems.addSystem<BoxCollision>();
 }
 
 void GameManager::initBackground(GameEngine& engine) {

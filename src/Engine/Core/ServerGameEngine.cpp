@@ -22,13 +22,14 @@ ServerGameEngine::ServerGameEngine() {
 }
 
 int ServerGameEngine::init() {
-    _ecs.systems.addSystem<BoxCollision>();
-    _ecs.systems.addSystem<SpawnSystem>();
-    _ecs.systems.addSystem<PatternSystem>();
+    // Order matters! Physics & Pattern update positions BEFORE collision detection
     _ecs.systems.addSystem<PhysicsSystem>();
-    _ecs.systems.addSystem<ComponentSenderSystem>();
-    _ecs.systems.addSystem<ActionScriptSystem>();
+    _ecs.systems.addSystem<PatternSystem>();
+    _ecs.systems.addSystem<BoxCollision>();
     _ecs.systems.addSystem<Damage>();
+    _ecs.systems.addSystem<SpawnSystem>();
+    _ecs.systems.addSystem<ActionScriptSystem>();
+    _ecs.systems.addSystem<ComponentSenderSystem>();
 
     registerNetworkComponent<sprite2D_component_s>();
     registerNetworkComponent<transform_component_s>();
