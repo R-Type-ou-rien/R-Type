@@ -9,8 +9,10 @@
 #include "src/RType/Common/Systems/shooter.hpp"
 #include "src/RType/Common/Systems/damage.hpp"
 #include "src/RType/Common/Systems/spawn.hpp"
+#include "src/RType/Common/Systems/wall_collision.hpp"
 #include "src/RType/Common/Components/charged_shot.hpp"
 #include "src/RType/Common/Components/status_display_components.hpp"
+#include "src/RType/Common/Components/terrain_component.hpp"
 #include "src/RType/Common/Systems/ai_behavior.hpp"
 #include "src/RType/Common/Systems/score.hpp"
 #include "src/RType/Common/Systems/animation_helper.hpp"
@@ -18,6 +20,8 @@
 #include "src/RType/Common/Systems/status_display.hpp"
 #include "src/Engine/Lib/Systems/PatternSystem/PatternSystem.hpp"
 #include "src/Engine/Lib/Systems/PlayerBoundsSystem.hpp"
+#include "src/Engine/Core/Scene/SceneLoader.hpp"
+#include "src/RType/Common/Scene/ScenePrefabs.hpp"
 
 void GameManager::initSystems(Environment& env) {
     auto& ecs = env.getECS();
@@ -27,6 +31,7 @@ void GameManager::initSystems(Environment& env) {
     ecs.systems.addSystem<HealthSystem>();
     ecs.systems.addSystem<PatternSystem>();
     ecs.systems.addSystem<EnemySpawnSystem>();
+    ecs.systems.addSystem<WallCollisionSystem>();
     ecs.systems.addSystem<PodSystem>();
     ecs.systems.addSystem<AIBehaviorSystem>();
     ecs.systems.addSystem<BoundsSystem>();
@@ -94,6 +99,7 @@ void GameManager::initPlayer(Environment& env) {
         _player->addCollisionTag("ENEMY_PROJECTILE");
         _player->addCollisionTag("OBSTACLE");
         _player->addCollisionTag("ITEM");
+        _player->addCollisionTag("WALL");
 
         ChargedShotComponent charged_shot;
         charged_shot.min_charge_time = 0.5f;
@@ -178,5 +184,21 @@ void GameManager::initUI(Environment& env) {
         scoreDisplay.x = 1650.0f;
         scoreDisplay.y = 1030.0f;
         ecs.registry.addComponent<ScoreDisplayComponent>(_scoreDisplayEntity, scoreDisplay);
+    }
+}
+
+void GameManager::initScene(Environment& env) {
+    auto& ecs = env.getECS();
+
+    _scene_manager = std::make_unique<SceneManager>(ecs.registry);
+
+    ScenePrefabs::registerAll(*_scene_manager, env.getTextureManager());
+
+    try {
+        LevelConfig level_config = SceneLoader::loadFromFile(_current_level_scene);
+        _scene_manager->loadScene(level_config);
+        std::cout << "GameManager: Loaded scene '" << level_config.name << "'" << std::endl;
+    } catch (const std::exception& e) {
+        std::cerr << "GameManager: Failed to load scene: " << e.what() << std::endl;
     }
 }

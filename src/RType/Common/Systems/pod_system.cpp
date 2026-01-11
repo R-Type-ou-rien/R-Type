@@ -13,6 +13,7 @@
 #include "shooter.hpp"
 #include "health.hpp"
 #include "../Components/charged_shot.hpp"
+#include "./animation_helper.hpp"
 
 bool PodSystem::allPlayersHavePods(Registry& registry) {
     auto& players = registry.getEntities<TagComponent>();
@@ -77,15 +78,14 @@ void PodSystem::spawnPod(Registry& registry, system_context context) {
 
     sprite2D_component_s sprite_info;
     sprite_info.handle = handle;
-    sprite_info.animation_speed = 0;
-    sprite_info.current_animation_frame = 0;
-    sprite_info.dimension = {3, 3, 32, 14};
     sprite_info.z_index = 2;
 
     registry.addComponent<sprite2D_component_s>(pod_id, sprite_info);
 
+    AnimationHelper::setupAnimation(registry, pod_id, 1.0f, 1.0f, 33.0f, 32.0f, 12, 0.15f, 1.0f);
+
     auto& transform = registry.getComponent<transform_component_s>(pod_id);
-    transform.scale_x = 5.0f;
+    transform.scale_x = 3.0f;
     transform.scale_y = 3.0f;
 
     std::cout << "[PodSystem] Pod spawned at (" << spawn_x << ", " << spawn_y << ")" << std::endl;
@@ -395,7 +395,6 @@ void PodSystem::createPodLaserProjectile(Registry& registry, system_context cont
                                          float angle, int damage) {
     Entity projectile_id = registry.createEntity();
 
-    // Calculate velocity based on angle
     float speed = 600.0f;
     float vx = std::cos(angle) * speed;
     float vy = std::sin(angle) * speed;
@@ -422,7 +421,7 @@ void PodSystem::createPodLaserProjectile(Registry& registry, system_context cont
     sprite_info.animation_speed = 0;
     sprite_info.current_animation_frame = 0;
     // a faire mettre les coordonées correctes du sprite laser circulaire du pod
-    sprite_info.dimension = {232, 103, 32, 14};  // Placeholder - à remplacer
+    sprite_info.dimension = {232, 103, 32, 14};
     sprite_info.z_index = 3;
 
     registry.addComponent<sprite2D_component_s>(projectile_id, sprite_info);
