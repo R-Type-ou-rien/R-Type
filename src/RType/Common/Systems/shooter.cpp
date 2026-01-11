@@ -233,19 +233,21 @@ void ShooterSystem::update(Registry& registry, system_context context) {
             ChargedShotComponent& charged = registry.getComponent<ChargedShotComponent>(id);
 
             if (shooter.trigger_pressed && shooter.is_shooting) {
-                if (!charged.is_charging) {
+                charged.is_charging = true;
+                charged.charge_time += context.dt;
+
+                if (charged.charge_time >= charged.min_charge_time &&
+                    !registry.hasComponent<AudioSourceComponent>(id)) {
                     AudioSourceComponent audio;
                     audio.sound_name = "charg_start";
                     audio.play_on_start = true;
                     audio.loop = false;
                     audio.next_sound_name = "charg_loop";
                     audio.next_sound_loop = true;
-                    audio.destroy_entity_on_finish = false;  // Le joueur ne doit pas être détruit
+                    audio.destroy_entity_on_finish = false;
                     registry.addComponent<AudioSourceComponent>(id, audio);
                 }
 
-                charged.is_charging = true;
-                charged.charge_time += context.dt;
                 if (charged.charge_time > charged.max_charge_time) {
                     charged.charge_time = charged.max_charge_time;
                 }

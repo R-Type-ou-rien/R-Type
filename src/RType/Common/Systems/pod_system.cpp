@@ -4,6 +4,7 @@
 #include <ctime>
 #include <iostream>
 #include <cstdlib>
+#include <vector>
 
 #include "../Components/pod_component.hpp"
 #include "Components/StandardComponents.hpp"
@@ -411,8 +412,7 @@ void PodSystem::createPodLaserProjectile(Registry& registry, system_context cont
     registry.addComponent<ProjectileComponent>(projectile_id, {static_cast<int>(projectile_id)});
     registry.addComponent<DamageOnCollision>(projectile_id, {damage});
 
-    // TODO: Replace with circular laser sprite
-    // This should be a circular/ring laser effect like in original R-Type
+    // a faire remplacer avec le sprite du laser circulaire du pod
     handle_t<TextureAsset> handle =
         context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet1.gif",
                                      TextureAsset("src/RType/Common/content/sprites/r-typesheet1.gif"));
@@ -421,8 +421,7 @@ void PodSystem::createPodLaserProjectile(Registry& registry, system_context cont
     sprite_info.handle = handle;
     sprite_info.animation_speed = 0;
     sprite_info.current_animation_frame = 0;
-    // TODO: Mettre les coordonnées du sprite du laser circulaire ici
-    // Le laser circulaire du pod est un effet d'énergie en forme d'anneau
+    // a faire mettre les coordonées correctes du sprite laser circulaire du pod
     sprite_info.dimension = {232, 103, 32, 14};  // Placeholder - à remplacer
     sprite_info.z_index = 3;
 
@@ -435,7 +434,7 @@ void PodSystem::createPodLaserProjectile(Registry& registry, system_context cont
     registry.addComponent<BoxCollisionComponent>(projectile_id, collision);
 
     AudioSourceComponent audio;
-    audio.sound_name = "pod_laser";  // TODO: Add this sound to resources
+    audio.sound_name = "pod_laser";  // a faire ajouter le son du tir de laser du pod
     audio.play_on_start = true;
     audio.loop = false;
     audio.destroy_entity_on_finish = false;

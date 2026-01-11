@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include "Components/tag_component.hpp"
 #include "serialize.hpp"
 

@@ -21,11 +21,9 @@ class SpawnTest : public ::testing::Test {
 };
 
 TEST_F(SpawnTest, TimerDecreases_NoSpawnYet) {
-    registry.addComponent(spawner, SpawnComponent{5.0,
-                                                  true,
-                                                  {TypeEntityComponent::ENEMY_BASIC},
-                                                  transform_component_s{100, 100},
-                                                  Velocity2D{0, 0}});
+    registry.addComponent(
+        spawner, SpawnComponent{
+                     5.0, true, {TypeEntityComponent::ENEMY_BASIC}, transform_component_s{100, 100}, Velocity2D{0, 0}});
 
     context.dt = 1.0f;
     spawnSys.update(registry, context);
@@ -46,12 +44,10 @@ TEST_F(SpawnTest, TimerDecreases_NoSpawnYet) {
 }
 
 TEST_F(SpawnTest, TimerZero_SpawnsEntityAndDestroysSpawner) {
-    registry.addComponent(spawner,
-                          SpawnComponent{0.5,
-                                         true,
-                                         {TypeEntityComponent::ENEMY_BASIC},
-                                         transform_component_s{500, 500},
-                                         Velocity2D{-10, 0}});
+    registry.addComponent(
+        spawner,
+        SpawnComponent{
+            0.5, true, {TypeEntityComponent::ENEMY_BASIC}, transform_component_s{500, 500}, Velocity2D{-10, 0}});
 
     context.dt = 1.0f;
     spawnSys.update(registry, context);

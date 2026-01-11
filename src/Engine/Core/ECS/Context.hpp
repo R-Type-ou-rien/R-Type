@@ -15,7 +15,6 @@ struct system_context {
 #elif defined(CLIENT_BUILD)
 #include "ClientResourceManager.hpp"
 #include <SFML/Graphics/RenderWindow.hpp>
-#include "InputConfig.hpp"
 struct system_context {
     float dt;
     ResourceManager<TextureAsset>& texture_manager;

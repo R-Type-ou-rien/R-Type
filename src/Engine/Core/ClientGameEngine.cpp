@@ -1,6 +1,7 @@
 #include "ClientGameEngine.hpp"
 #include <chrono>
 #include <ctime>
+#include <string>
 #include "CollisionSystem.hpp"
 #include "ActionScriptSystem.hpp"
 #include "Components/StandardComponents.hpp"
