@@ -25,24 +25,25 @@ wall=12000,800,1500,280,src/RType/Common/content/sprites/r-typesheet14.gif,false
 wall=12000,0,1500,300,src/RType/Common/content/sprites/r-typesheet14.gif,false
 
 # Turrets - Format: turret=x,y,fire_rate,shoot_pattern,sprite_path
+# Fire rate ajusté pour Super R-Type style (2-3 secondes entre tirs)
 [TURRET]
-turret=2200,850,1.5,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
-turret=2600,850,1.5,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
-turret=4200,870,1.0,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
-turret=6700,830,1.5,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
-turret=7000,830,2.0,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
-turret=9200,850,1.0,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=2200,850,2.5,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=2600,850,2.8,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=4200,870,2.2,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=6700,830,2.5,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=7000,830,3.0,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=9200,850,2.2,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
 
 # Ceiling turrets
-turret=2700,150,1.5,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
-turret=5200,180,1.0,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
-turret=5500,180,1.5,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
-turret=7700,200,1.0,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
-turret=10200,160,2.0,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=2700,150,2.5,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=5200,180,2.2,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=5500,180,2.8,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=7700,200,2.2,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=10200,160,3.0,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
 
 # Narrow passage turrets
-turret=12200,750,1.5,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
-turret=12600,750,1.0,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
-turret=13000,750,1.5,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
-turret=12400,300,1.0,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
-turret=12800,300,1.5,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=12200,750,2.5,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=12600,750,2.2,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=13000,750,2.5,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=12400,300,2.2,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=12800,300,2.8,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif

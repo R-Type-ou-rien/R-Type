@@ -26,7 +26,7 @@ void ShooterSpawner::spawn(Registry& registry, system_context context, float x, 
     shooter.is_shooting = true;
     shooter.fire_rate = config.fire_rate.value_or(1.0f);
     shooter.last_shot = 0.0f;
-    shooter.projectile_damage = config.projectile_damage.value_or(15);
+    shooter.projectile_damage = config.projectile_damage.value_or(1);
 
     if (config.shoot_pattern.has_value()) {
         std::string pattern = config.shoot_pattern.value();

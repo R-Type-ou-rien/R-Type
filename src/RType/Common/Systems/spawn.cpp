@@ -1,8 +1,11 @@
 #include "spawn.hpp"
 #include <ctime>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include <vector>
 #include <string>
+#include <algorithm>
 #include "Components/StandardComponents.hpp"
 #include "../Entities/Mobs/all_mobs.hpp"
 #include "../Components/game_timer.hpp"
@@ -12,6 +15,7 @@ const float WORLD_HEIGHT = 1080.0f;
 
 EnemySpawnSystem::EnemySpawnSystem() {
     loadConfigs();
+    loadScriptedSpawns("src/RType/Common/content/config/level1_spawns.cfg");
 }
 
 void EnemySpawnSystem::loadConfigs() {
@@ -98,21 +102,24 @@ void EnemySpawnSystem::update(Registry& registry, system_context context) {
 
         spawn_comp.total_time += context.dt;
 
-        // Obstacles avant le boss
         handleObstacles(registry, context, spawn_comp, windowWidth, windowHeight);
 
-        // Gestion du boss
         if (handleBossSpawn(registry, context, spawn_comp))
             continue;
 
         if (!spawn_comp.is_active)
             continue;
 
-        // Spawn des vagues normales
-        spawn_comp.spawn_timer += context.dt;
-        if (spawn_comp.spawn_timer >= _game_config.wave_interval.value()) {
-            spawn_comp.spawn_timer = 0.0f;
-            spawnWave(registry, context, spawn_comp, windowWidth, windowHeight);
+        // Handle scripted spawns (authentic R-Type level)
+        if (spawn_comp.use_scripted_spawns && _scripted_spawns_loaded) {
+            handleScriptedSpawns(registry, context, spawn_comp);
+        } else {
+            // Fallback to random wave spawns
+            spawn_comp.spawn_timer += context.dt;
+            if (spawn_comp.spawn_timer >= _game_config.wave_interval.value()) {
+                spawn_comp.spawn_timer = 0.0f;
+                spawnWave(registry, context, spawn_comp, windowWidth, windowHeight);
+            }
         }
     }
 }
@@ -231,5 +238,128 @@ void EnemySpawnSystem::spawnObstacle(Registry& registry, system_context context,
     if (spawner_it != _spawners.end()) {
         EntityConfig dummy;
         spawner_it->second->spawn(registry, context, x, y, dummy);
+    }
+}
+
+void EnemySpawnSystem::loadScriptedSpawns(const std::string& filepath) {
+    if (_scripted_spawns_loaded)
+        return;
+
+    std::ifstream file(filepath);
+    if (!file.is_open()) {
+        std::cerr << "[EnemySpawnSystem] Warning: Could not load scripted spawns from " << filepath << std::endl;
+        return;
+    }
+
+    std::string line;
+    while (std::getline(file, line)) {
+        // Skip comments and empty lines
+        if (line.empty() || line[0] == '#')
+            continue;
+
+        // Parse spawn line: spawn=time,type,x,y,count,spacing,formation,custom_speed,custom_hp
+        if (line.substr(0, 6) != "spawn=")
+            continue;
+
+        std::string data = line.substr(6);
+        std::stringstream ss(data);
+        std::string token;
+        std::vector<std::string> tokens;
+
+        while (std::getline(ss, token, ',')) {
+            tokens.push_back(token);
+        }
+
+        if (tokens.size() < 6) {
+            std::cerr << "[EnemySpawnSystem] Warning: Invalid spawn line: " << line << std::endl;
+            continue;
+        }
+
+        SpawnEvent event;
+        event.trigger_time = std::stof(tokens[0]);
+        event.enemy_type = tokens[1];
+        event.x_position = std::stof(tokens[2]);
+        event.y_position = std::stof(tokens[3]);
+        event.count = std::stoi(tokens[4]);
+        event.spacing = std::stof(tokens[5]);
+        event.formation = tokens.size() > 6 ? tokens[6] : "SINGLE";
+        event.custom_speed = tokens.size() > 7 ? std::stof(tokens[7]) : 0.0f;
+        event.custom_hp = tokens.size() > 8 ? std::stoi(tokens[8]) : 0;
+        event.executed = false;
+
+        _scripted_spawns.push_back(event);
+    }
+
+    // Sort by trigger time
+    std::sort(_scripted_spawns.begin(), _scripted_spawns.end(),
+              [](const SpawnEvent& a, const SpawnEvent& b) { return a.trigger_time < b.trigger_time; });
+
+    _scripted_spawns_loaded = true;
+    std::cout << "[EnemySpawnSystem] Loaded " << _scripted_spawns.size() << " scripted spawn events from " << filepath
+              << std::endl;
+}
+
+void EnemySpawnSystem::handleScriptedSpawns(Registry& registry, system_context context,
+                                            EnemySpawnComponent& spawn_comp) {
+    float current_time = spawn_comp.total_time;
+
+    for (auto& event : _scripted_spawns) {
+        if (event.executed)
+            continue;
+
+        if (current_time >= event.trigger_time) {
+            executeSpawnEvent(registry, context, event);
+            event.executed = true;
+        }
+    }
+}
+
+void EnemySpawnSystem::executeSpawnEvent(Registry& registry, system_context context, SpawnEvent& event) {
+    for (int i = 0; i < event.count; i++) {
+        float x = event.x_position;
+        float y = event.y_position;
+
+        // Apply formation offsets
+        if (event.formation == "LINE_HORIZONTAL") {
+            x += i * event.spacing;
+        } else if (event.formation == "LINE_VERTICAL") {
+            y += i * event.spacing;
+        } else if (event.formation == "V_FORMATION") {
+            x += i * event.spacing;
+            y += (i % 2 == 0 ? 1 : -1) * (i / 2 + 1) * (event.spacing / 2);
+        } else if (event.formation == "SNAKE") {
+            x += i * event.spacing;
+            y += (i % 2 == 0 ? 50 : -50);
+        }
+        // SINGLE formation: no offset
+
+        // Spawn with custom config if provided
+        if (event.custom_speed > 0 || event.custom_hp > 0) {
+            spawnEnemyWithConfig(registry, context, x, y, event.enemy_type, event.custom_speed, event.custom_hp);
+        } else {
+            spawnEnemy(registry, context, x, y, event.enemy_type);
+        }
+    }
+
+    std::cout << "[EnemySpawnSystem] Spawned " << event.count << " " << event.enemy_type << " at time "
+              << event.trigger_time << "s" << std::endl;
+}
+
+void EnemySpawnSystem::spawnEnemyWithConfig(Registry& registry, system_context context, float x, float y,
+                                            const std::string& enemy_type, float custom_speed, int custom_hp) {
+    auto it = _enemy_configs.find(enemy_type);
+    if (it == _enemy_configs.end())
+        return;
+
+    // Create a copy of the config with custom values
+    EntityConfig config = it->second;
+    if (custom_speed > 0)
+        config.speed = custom_speed;
+    if (custom_hp > 0)
+        config.hp = custom_hp;
+
+    auto spawner_it = _spawners.find(enemy_type);
+    if (spawner_it != _spawners.end()) {
+        spawner_it->second->spawn(registry, context, x, y, config);
     }
 }

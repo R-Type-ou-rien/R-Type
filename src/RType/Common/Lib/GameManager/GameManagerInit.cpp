@@ -102,8 +102,8 @@ void GameManager::initPlayer(Environment& env) {
         _player->addCollisionTag("WALL");
 
         ChargedShotComponent charged_shot;
-        charged_shot.min_charge_time = 0.5f;
-        charged_shot.max_charge_time = 2.0f;
+        charged_shot.medium_charge_threshold = 1.0f;  // 50% = yellow bar
+        charged_shot.max_charge_time = 2.0f;          // 100% = full red bar
         ecs.registry.addComponent<ChargedShotComponent>(_player->getId(), charged_shot);
 
         PlayerPodComponent player_pod;
@@ -159,30 +159,19 @@ void GameManager::initUI(Environment& env) {
         statusDisplay.is_initialized = true;
         ecs.registry.addComponent<StatusDisplayComponent>(_statusDisplayEntity, statusDisplay);
 
-        // Charge Bar (bottom center)
+        // Charge Bar (bottom center - section 2/3)
         _chargeBarEntity = ecs.registry.createEntity();
-        ChargeBarComponent chargeBar;
-        chargeBar.bar_width = 200.0f;
-        chargeBar.bar_height = 20.0f;
-        chargeBar.x = 860.0f;
-        chargeBar.y = 1030.0f;
+        ChargeBarComponent chargeBar;  // Utilise les valeurs par défaut du composant
         ecs.registry.addComponent<ChargeBarComponent>(_chargeBarEntity, chargeBar);
 
-        // Lives Display (bottom left)
+        // Lives Display (bottom left - section 1/3)
         _livesEntity = ecs.registry.createEntity();
-        LivesDisplayComponent livesDisplay;
-        livesDisplay.x = 50.0f;
-        livesDisplay.y = 1030.0f;
-        livesDisplay.icon_size = 32.0f;
-        livesDisplay.icon_spacing = 40.0f;
+        LivesDisplayComponent livesDisplay;  // Utilise les valeurs par défaut du composant
         ecs.registry.addComponent<LivesDisplayComponent>(_livesEntity, livesDisplay);
 
-        // Score Display (bottom right) - R-Type style with 7 zeros
+        // Score Display (bottom right - section 3/3) - R-Type style with 7 zeros
         _scoreDisplayEntity = ecs.registry.createEntity();
-        ScoreDisplayComponent scoreDisplay;
-        scoreDisplay.digit_count = 7;
-        scoreDisplay.x = 1650.0f;
-        scoreDisplay.y = 1030.0f;
+        ScoreDisplayComponent scoreDisplay;  // Utilise les valeurs par défaut du composant
         ecs.registry.addComponent<ScoreDisplayComponent>(_scoreDisplayEntity, scoreDisplay);
     }
 }

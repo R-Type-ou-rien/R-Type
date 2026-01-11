@@ -76,17 +76,28 @@ void PodSystem::spawnPod(Registry& registry, system_context context) {
         context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet3.gif",
                                      TextureAsset("src/RType/Common/content/sprites/r-typesheet3.gif"));
 
+    // Le sprite r-typesheet3.gif fait 205x18 pixels avec 6 frames
+    // 205 / 6 = 34.16, donc chaque frame fait 34x18 (avec 1px de padding entre frames)
+    constexpr float POD_FRAME_WIDTH = 34.0f;
+    constexpr float POD_FRAME_HEIGHT = 18.0f;
+    constexpr int POD_NUM_FRAMES = 6;
+    constexpr float POD_SCALE = 3.0f;
+
     sprite2D_component_s sprite_info;
     sprite_info.handle = handle;
     sprite_info.z_index = 2;
+    // Définir dimension pour le système de collision
+    sprite_info.dimension = {0.0f, 0.0f, POD_FRAME_WIDTH, POD_FRAME_HEIGHT};
 
     registry.addComponent<sprite2D_component_s>(pod_id, sprite_info);
 
-    AnimationHelper::setupAnimation(registry, pod_id, 1.0f, 1.0f, 33.0f, 32.0f, 12, 0.15f, 1.0f);
+    // Animation: 6 frames horizontales, start à (1,0) avec padding de 0
+    AnimationHelper::setupAnimation(registry, pod_id, 1.0f, 0.0f, POD_FRAME_WIDTH, POD_FRAME_HEIGHT, POD_NUM_FRAMES,
+                                    0.12f, 0.0f);
 
     auto& transform = registry.getComponent<transform_component_s>(pod_id);
-    transform.scale_x = 3.0f;
-    transform.scale_y = 3.0f;
+    transform.scale_x = POD_SCALE;
+    transform.scale_y = POD_SCALE;
 
     std::cout << "[PodSystem] Pod spawned at (" << spawn_x << ", " << spawn_y << ")" << std::endl;
 }
@@ -299,8 +310,8 @@ void PodSystem::handlePlayerDamage(Registry& registry, system_context context) {
 
             if (!registry.hasComponent<ChargedShotComponent>(player_entity)) {
                 ChargedShotComponent charged_shot;
-                charged_shot.min_charge_time = 0.5f;
-                charged_shot.max_charge_time = 2.0f;
+                charged_shot.medium_charge_threshold = 1.0f;  // 50% = yellow bar
+                charged_shot.max_charge_time = 2.0f;          // 100% = full red bar
                 registry.addComponent<ChargedShotComponent>(player_entity, charged_shot);
             }
 
@@ -348,8 +359,8 @@ void PodSystem::handlePodToggle(Registry& registry, system_context context) {
 
             if (!registry.hasComponent<ChargedShotComponent>(player_entity)) {
                 ChargedShotComponent charged_shot;
-                charged_shot.min_charge_time = 0.5f;
-                charged_shot.max_charge_time = 2.0f;
+                charged_shot.medium_charge_threshold = 1.0f;  // 50% = yellow bar
+                charged_shot.max_charge_time = 2.0f;          // 100% = full red bar
                 registry.addComponent<ChargedShotComponent>(player_entity, charged_shot);
             }
 
@@ -500,6 +511,14 @@ void PodSystem::handleDetachedPodShooting(Registry& registry, system_context con
 
 void PodSystem::update(Registry& registry, system_context context) {
     auto& spawners = registry.getEntities<PodSpawnComponent>();
+    if (spawners.empty()) {
+        static bool warned = false;
+        if (!warned) {
+            std::cout << "[PodSystem] WARNING: No PodSpawnComponent found! Pod spawning disabled." << std::endl;
+            warned = true;
+        }
+        return;
+    }
     for (auto spawner : spawners) {
         auto& spawn_comp = registry.getComponent<PodSpawnComponent>(spawner);
 

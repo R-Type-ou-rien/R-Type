@@ -112,7 +112,7 @@ class ScenePrefabs {
 
                 registry.addComponent<HealthComponent>(entity, {80, 80, 0.0f, 0.5f});
                 registry.addComponent<TeamComponent>(entity, {TeamComponent::ENEMY});
-                registry.addComponent<DamageOnCollision>(entity, {10});
+                registry.addComponent<DamageOnCollision>(entity, {1});
                 registry.addComponent<ScoreValueComponent>(entity, {100});
 
                 ShooterComponent shooter;
@@ -120,7 +120,7 @@ class ScenePrefabs {
                 shooter.is_shooting = true;
                 shooter.fire_rate = fire_rate;
                 shooter.last_shot = 0.0f;
-                shooter.projectile_damage = 15;
+                shooter.projectile_damage = 1;  // 1 damage per hit (player has 5 HP)
 
                 if (shoot_pattern == "AIM_PLAYER") {
                     shooter.pattern = ShooterComponent::AIM_PLAYER;
