@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <iostream>
 #include <ostream>
+#include <vector>
 
 #include "Components/StandardComponents.hpp"
 #include "registry.hpp"

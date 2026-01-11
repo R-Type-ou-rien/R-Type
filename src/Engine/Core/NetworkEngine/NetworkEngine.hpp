@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <variant>
+#include <memory>
 #include "../../../Network/Network.hpp"
 #include "../../../Network/Server/Server.hpp"
 #include "../../../Network/Client/Client.hpp"
@@ -17,7 +18,7 @@ class NetworkEngine {
 
     using EventType = network::GameEvents;
 
-    NetworkEngine(NetworkRole role, uint16_t port = 0, int timeout = 30);
+    explicit NetworkEngine(NetworkRole role, uint16_t port = 0, int timeout = 30);
     ~NetworkEngine() = default;
 
     bool transmitEvent(EventType type, const std::vector<uint8_t>& data, uint32_t tick = -1, uint32_t targetId = -1);

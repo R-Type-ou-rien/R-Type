@@ -1,3 +1,4 @@
+#include <string>
 #include "all_mobs.hpp"
 #include "Components/StandardComponents.hpp"
 #include "ResourceConfig.hpp"

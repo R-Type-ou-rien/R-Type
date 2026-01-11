@@ -4,6 +4,7 @@
 #include <ctime>
 #include <iostream>
 #include <cstdlib>
+#include <vector>
 
 #include "../Components/pod_component.hpp"
 #include "Components/StandardComponents.hpp"
@@ -12,6 +13,7 @@
 #include "shooter.hpp"
 #include "health.hpp"
 #include "../Components/charged_shot.hpp"
+#include "./animation_helper.hpp"
 
 bool PodSystem::allPlayersHavePods(Registry& registry) {
     auto& players = registry.getEntities<TagComponent>();
@@ -76,15 +78,14 @@ void PodSystem::spawnPod(Registry& registry, system_context context) {
 
     sprite2D_component_s sprite_info;
     sprite_info.handle = handle;
-    sprite_info.animation_speed = 0;
-    sprite_info.current_animation_frame = 0;
-    sprite_info.dimension = {3, 3, 32, 14};
     sprite_info.z_index = 2;
 
     registry.addComponent<sprite2D_component_s>(pod_id, sprite_info);
 
+    AnimationHelper::setupAnimation(registry, pod_id, 1.0f, 1.0f, 33.0f, 32.0f, 12, 0.15f, 1.0f);
+
     auto& transform = registry.getComponent<transform_component_s>(pod_id);
-    transform.scale_x = 5.0f;
+    transform.scale_x = 3.0f;
     transform.scale_y = 3.0f;
 
     std::cout << "[PodSystem] Pod spawned at (" << spawn_x << ", " << spawn_y << ")" << std::endl;
@@ -394,7 +395,6 @@ void PodSystem::createPodLaserProjectile(Registry& registry, system_context cont
                                          float angle, int damage) {
     Entity projectile_id = registry.createEntity();
 
-    // Calculate velocity based on angle
     float speed = 600.0f;
     float vx = std::cos(angle) * speed;
     float vy = std::sin(angle) * speed;
@@ -411,8 +411,7 @@ void PodSystem::createPodLaserProjectile(Registry& registry, system_context cont
     registry.addComponent<ProjectileComponent>(projectile_id, {static_cast<int>(projectile_id)});
     registry.addComponent<DamageOnCollision>(projectile_id, {damage});
 
-    // TODO: Replace with circular laser sprite
-    // This should be a circular/ring laser effect like in original R-Type
+    // a faire remplacer avec le sprite du laser circulaire du pod
     handle_t<TextureAsset> handle =
         context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet1.gif",
                                      TextureAsset("src/RType/Common/content/sprites/r-typesheet1.gif"));
@@ -421,9 +420,8 @@ void PodSystem::createPodLaserProjectile(Registry& registry, system_context cont
     sprite_info.handle = handle;
     sprite_info.animation_speed = 0;
     sprite_info.current_animation_frame = 0;
-    // TODO: Mettre les coordonnées du sprite du laser circulaire ici
-    // Le laser circulaire du pod est un effet d'énergie en forme d'anneau
-    sprite_info.dimension = {232, 103, 32, 14};  // Placeholder - à remplacer
+    // a faire mettre les coordonées correctes du sprite laser circulaire du pod
+    sprite_info.dimension = {232, 103, 32, 14};
     sprite_info.z_index = 3;
 
     registry.addComponent<sprite2D_component_s>(projectile_id, sprite_info);
@@ -435,7 +433,7 @@ void PodSystem::createPodLaserProjectile(Registry& registry, system_context cont
     registry.addComponent<BoxCollisionComponent>(projectile_id, collision);
 
     AudioSourceComponent audio;
-    audio.sound_name = "pod_laser";  // TODO: Add this sound to resources
+    audio.sound_name = "pod_laser";  // a faire ajouter le son du tir de laser du pod
     audio.play_on_start = true;
     audio.loop = false;
     audio.destroy_entity_on_finish = false;

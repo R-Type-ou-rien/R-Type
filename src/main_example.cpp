@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <unordered_map>
 #include "Engine/Core/ClientGameEngine.hpp"
 // main pour le scene manager
 

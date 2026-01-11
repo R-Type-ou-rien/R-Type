@@ -1,3 +1,4 @@
+#include <string>
 #include "GameManager.hpp"
 #include <iostream>
 #include <memory>
@@ -8,13 +9,19 @@
 #include "src/RType/Common/Systems/shooter.hpp"
 #include "src/RType/Common/Systems/damage.hpp"
 #include "src/RType/Common/Systems/spawn.hpp"
+#include "src/RType/Common/Systems/wall_collision.hpp"
 #include "src/RType/Common/Components/charged_shot.hpp"
+#include "src/RType/Common/Components/status_display_components.hpp"
+#include "src/RType/Common/Components/terrain_component.hpp"
 #include "src/RType/Common/Systems/ai_behavior.hpp"
 #include "src/RType/Common/Systems/score.hpp"
 #include "src/RType/Common/Systems/animation_helper.hpp"
 #include "src/RType/Common/Systems/pod_system.hpp"
+#include "src/RType/Common/Systems/status_display.hpp"
 #include "src/Engine/Lib/Systems/PatternSystem/PatternSystem.hpp"
 #include "src/Engine/Lib/Systems/PlayerBoundsSystem.hpp"
+#include "src/Engine/Core/Scene/SceneLoader.hpp"
+#include "src/RType/Common/Scene/ScenePrefabs.hpp"
 
 void GameManager::initSystems(Environment& env) {
     auto& ecs = env.getECS();
@@ -24,11 +31,16 @@ void GameManager::initSystems(Environment& env) {
     ecs.systems.addSystem<HealthSystem>();
     ecs.systems.addSystem<PatternSystem>();
     ecs.systems.addSystem<EnemySpawnSystem>();
+    ecs.systems.addSystem<WallCollisionSystem>();
     ecs.systems.addSystem<PodSystem>();
     ecs.systems.addSystem<AIBehaviorSystem>();
     ecs.systems.addSystem<BoundsSystem>();
     ecs.systems.addSystem<PlayerBoundsSystem>();
     ecs.systems.addSystem<ScoreSystem>();
+
+    if (!env.isServer()) {
+        ecs.systems.addSystem<StatusDisplaySystem>();
+    }
 }
 
 void GameManager::initBackground(Environment& env) {
@@ -87,6 +99,7 @@ void GameManager::initPlayer(Environment& env) {
         _player->addCollisionTag("ENEMY_PROJECTILE");
         _player->addCollisionTag("OBSTACLE");
         _player->addCollisionTag("ITEM");
+        _player->addCollisionTag("WALL");
 
         ChargedShotComponent charged_shot;
         charged_shot.min_charge_time = 0.5f;
@@ -130,27 +143,62 @@ void GameManager::initUI(Environment& env) {
     auto& ecs = env.getECS();
 
     if (!env.isServer()) {
-        // HP UI
-        _uiEntity = ecs.registry.createEntity();
-        ecs.registry.addComponent<TextComponent>(
-            _uiEntity,
-            {"HP: " + std::to_string(_player_config.hp.value()),
-             "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 28, sf::Color::White, 10, 10});
-
-        // Score UI
-        _scoreEntity = ecs.registry.createEntity();
-        ecs.registry.addComponent<TextComponent>(
-            _scoreEntity, {"Score: 0", "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 28,
-                           sf::Color::Yellow, 10, 50});
-
-        // Timer UI
+        // Timer UI (top left)
         _timerEntity = ecs.registry.createEntity();
         ecs.registry.addComponent<TextComponent>(
             _timerEntity, {"Time: 0s", "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 28,
-                           sf::Color::Cyan, 10, 90});
+                           sf::Color::Cyan, 10, 10});
 
         // Score tracker
         _scoreTrackerEntity = ecs.registry.createEntity();
         ecs.registry.addComponent<ScoreComponent>(_scoreTrackerEntity, {0, 0});
+
+        // Status Display Component (links player to UI)
+        _statusDisplayEntity = ecs.registry.createEntity();
+        StatusDisplayComponent statusDisplay;
+        statusDisplay.is_initialized = true;
+        ecs.registry.addComponent<StatusDisplayComponent>(_statusDisplayEntity, statusDisplay);
+
+        // Charge Bar (bottom center)
+        _chargeBarEntity = ecs.registry.createEntity();
+        ChargeBarComponent chargeBar;
+        chargeBar.bar_width = 200.0f;
+        chargeBar.bar_height = 20.0f;
+        chargeBar.x = 860.0f;
+        chargeBar.y = 1030.0f;
+        ecs.registry.addComponent<ChargeBarComponent>(_chargeBarEntity, chargeBar);
+
+        // Lives Display (bottom left)
+        _livesEntity = ecs.registry.createEntity();
+        LivesDisplayComponent livesDisplay;
+        livesDisplay.x = 50.0f;
+        livesDisplay.y = 1030.0f;
+        livesDisplay.icon_size = 32.0f;
+        livesDisplay.icon_spacing = 40.0f;
+        ecs.registry.addComponent<LivesDisplayComponent>(_livesEntity, livesDisplay);
+
+        // Score Display (bottom right) - R-Type style with 7 zeros
+        _scoreDisplayEntity = ecs.registry.createEntity();
+        ScoreDisplayComponent scoreDisplay;
+        scoreDisplay.digit_count = 7;
+        scoreDisplay.x = 1650.0f;
+        scoreDisplay.y = 1030.0f;
+        ecs.registry.addComponent<ScoreDisplayComponent>(_scoreDisplayEntity, scoreDisplay);
+    }
+}
+
+void GameManager::initScene(Environment& env) {
+    auto& ecs = env.getECS();
+
+    _scene_manager = std::make_unique<SceneManager>(ecs.registry);
+
+    ScenePrefabs::registerAll(*_scene_manager, env.getTextureManager());
+
+    try {
+        LevelConfig level_config = SceneLoader::loadFromFile(_current_level_scene);
+        _scene_manager->loadScene(level_config);
+        std::cout << "GameManager: Loaded scene '" << level_config.name << "'" << std::endl;
+    } catch (const std::exception& e) {
+        std::cerr << "GameManager: Failed to load scene: " << e.what() << std::endl;
     }
 }

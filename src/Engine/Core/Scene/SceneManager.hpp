@@ -4,6 +4,7 @@
 #include "../ECS/Registry/registry.hpp"
 #include <functional>
 #include <iostream>
+#include <string>
 #include <unordered_map>
 #include <any>
 
@@ -16,13 +17,13 @@ class SceneManager {
             // A faire
             if (props.count("texture")) {
                 // a faire}
-            };
+            }
         };
         _prefabs["Music"] = [](Registry& reg, Entity e, const std::unordered_map<std::string, std::any>& props) {
             // A faire
             if (props.count("track")) {
                 // a faire}
-            };
+            }
         };
     }
 

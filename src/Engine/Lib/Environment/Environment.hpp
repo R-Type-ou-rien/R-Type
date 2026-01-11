@@ -3,6 +3,9 @@
 #include "slot_map/slot_map.hpp"
 #include <iostream>
 #include <fstream>
+#include <string>
+#include <utility>
+#include <memory>
 #include <nlohmann/json.hpp>
 
 enum class SpawnPolicy { AUTHORITATIVE, PREDICTED, LOCAL_ONLY };
@@ -89,7 +92,6 @@ class Environment {
                     }
                 }
             }
-
         } catch (const nlohmann::json::parse_error& e) {
             std::cerr << "[ERROR] JSON parse error in " << jsonPath << ": " << e.what() << std::endl;
         }
@@ -126,4 +128,6 @@ class Environment {
     bool isClient() const { return (_mode == EnvMode::CLIENT); }
 
     ECS& getECS() { return _ecs; }
+
+    ResourceManager<TextureAsset>& getTextureManager() { return _textures; }
 };

@@ -5,6 +5,7 @@
 GameManager::GameManager() {
     _player_config = ConfigLoader::loadEntityConfig("src/RType/Common/content/config/player.cfg",
                                                     ConfigLoader::getRequiredPlayerFields());
+    _current_level_scene = "src/RType/Common/content/config/level1.scene";
 }
 
 void GameManager::init(Environment& env, InputManager& inputs) {
@@ -16,6 +17,7 @@ void GameManager::init(Environment& env, InputManager& inputs) {
     initBounds(env);
     initPlayer(env);
     initSpawner(env);
+    initScene(env);
     initUI(env);
 
     if (!env.isServer()) {

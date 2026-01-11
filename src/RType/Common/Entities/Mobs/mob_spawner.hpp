@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include "registry.hpp"
 #include "ISystem.hpp"
 #include "../../Components/config.hpp"
