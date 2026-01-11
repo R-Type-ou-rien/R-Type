@@ -19,8 +19,8 @@
 
 #define SUCCESS 0
 #define FAILURE -1
-#define WINDOW_H 1000
-#define WINDOW_W 1000
+#define WINDOW_H 1080
+#define WINDOW_W 1920
 
 class ClientGameEngine : public GameEngineBase<ClientGameEngine> {
    private:

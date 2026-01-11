@@ -45,9 +45,11 @@ void Server::OnMessage(std::shared_ptr<Connection<GameEvents>> client, message<G
             OnClientNewLobby(client, msg);
             break;
         case GameEvents::C_CONFIRM_UDP:
-            std::cout << "[SERVER] Confirm UDP\n";
+            std::cout << "[SERVER] Confirm UDP from client " << client->GetID() << "\n";
             if (_clientStates[client] == ClientState::WAITING_UDP_PING)
                 _clientStates[client] = ClientState::CONNECTED;
+            // Also forward to game engine so it can send the full game state
+            _toGameMessages.push({msg.header.id, client->GetID(), msg});
             break;
         case GameEvents::C_TEAM_CHAT:
             onClientSendText(client, msg);

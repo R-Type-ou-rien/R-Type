@@ -18,9 +18,11 @@ class ISparseSet {
     virtual bool has(std::size_t Entity) const = 0;
     virtual void markAsDirty(std::size_t id) = 0;
     virtual std::vector<std::size_t> getUpdatedEntities() = 0;
+    virtual std::vector<std::size_t>& getIdList() = 0;  // Returns all entity IDs that have this component
     virtual ComponentPacket createPacket(uint32_t entity, SerializationContext& context) = 0;
     virtual void markAllUpdated() = 0;
     virtual void clearUpdatedEntities() = 0;
+    virtual uint32_t getTypeHash() const = 0;  // Returns the hash of the component type
 };
 
 template <typename data_type>
@@ -44,6 +46,7 @@ class SparseSet : public ISparseSet {
     ComponentPacket createPacket(uint32_t entity, SerializationContext& context) override;
     void markAllUpdated() override;
     void clearUpdatedEntities() override;
+    uint32_t getTypeHash() const override { return Hash::fnv1a(data_type::name); }
 };
 
 template <typename data_type>
@@ -84,7 +87,7 @@ void SparseSet<data_type>::removeId(std::size_t id) {
     _dense.pop_back();
     _dirty_dense.pop_back();
     _reverse_dense.pop_back();
-    std::cout << "Component from entity " << id << " successfully removed." << std::endl;
+
     return;
 }
 

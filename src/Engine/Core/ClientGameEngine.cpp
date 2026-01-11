@@ -9,13 +9,15 @@
 #include "Components/StandardComponents.hpp"
 #include "Network.hpp"
 #include "NetworkEngine/NetworkEngine.hpp"
+#include "AudioSystem.hpp"
 
-#include "../../../RType/Common/Components/health.hpp"
+#include "../../../RType/Common/Systems/health.hpp"
 #include "../../../RType/Common/Components/spawn.hpp"
 #include "../../../RType/Common/Components/shooter_component.hpp"
 #include "../../../RType/Common/Components/charged_shot.hpp"
 #include "../../../RType/Common/Components/team_component.hpp"
 #include "../../../RType/Common/Components/damage_component.hpp"
+#include "../../../RType/Common/Components/game_timer.hpp"
 #include "Components/StandardComponents.hpp"
 #include "Components/NetworkComponents.hpp"
 
@@ -43,12 +45,15 @@ int ClientGameEngine::init() {
     registerNetworkComponent<TeamComponent>();
     registerNetworkComponent<DamageOnCollision>();
     registerNetworkComponent<NetworkIdentity>();
+    registerNetworkComponent<::GameTimerComponent>();
+    registerNetworkComponent<AudioSourceComponent>();
 
     _ecs.systems.addSystem<BackgroundSystem>();
     _ecs.systems.addSystem<RenderSystem>();
+    _ecs.systems.addSystem<AudioSystem>();
     //_ecs.systems.addSystem<InputSystem>(input_manager);
 
-    // if mode local or prediction (?)
+    // Physics and game logic handled by server - client only renders
     _ecs.systems.addSystem<PhysicsSystem>();
     // _ecs.systems.addSystem<BoxCollision>();
     // _ecs.systems.addSystem<ActionScriptSystem>();
@@ -83,6 +88,23 @@ void ClientGameEngine::processNetworkEvents() {
         }
     }
 
+    if (pending.count(network::GameEvents::S_ENTITY_DESTROY)) {
+        auto& destroy_packets = pending.at(network::GameEvents::S_ENTITY_DESTROY);
+        for (const auto& msg : destroy_packets) {
+            auto mutable_msg = msg;
+            uint32_t guid;
+            mutable_msg >> guid;
+
+            auto it = _networkToLocalEntity.find(guid);
+            if (it != _networkToLocalEntity.end()) {
+                Entity localId = it->second;
+                _ecs.registry.destroyEntity(localId);
+                _networkToLocalEntity.erase(it);
+                std::cout << "[CLIENT] Destroyed entity guid=" << guid << " localId=" << localId << std::endl;
+            }
+        }
+    }
+
     if (pending.count(network::GameEvents::S_VOICE_RELAY)) {
         std::cout << "Vocal replay not implemented" << std::endl;
     }
@@ -98,12 +120,21 @@ void ClientGameEngine::processNetworkEvents() {
 }
 
 int ClientGameEngine::run() {
-    system_context context = {0, _currentTick, _texture_manager, _window_manager.getWindow(), input_manager, _clientId};
+    system_context context = {0,
+                              _currentTick,
+                              _texture_manager,
+                              _sound_manager,
+                              _music_manager,
+                              _window_manager.getWindow(),
+                              input_manager,
+                              _clientId};
     auto last_time = std::chrono::high_resolution_clock::now();
+
+    Environment env(_ecs, _texture_manager, _sound_manager, _music_manager, EnvMode::CLIENT);
 
     this->init();
     if (_init_function)
-        _init_function(*this, input_manager);
+        _init_function(env, input_manager);
 
     while (_window_manager.isOpen()) {
         auto now = std::chrono::high_resolution_clock::now();
@@ -119,7 +150,7 @@ int ClientGameEngine::run() {
         _window_manager.clear();
 
         if (_loop_function)
-            _loop_function(*this, input_manager);
+            _loop_function(env, input_manager);
         _ecs.update(context);
 
         _window_manager.display();

@@ -64,6 +64,7 @@ enum class GameEvents : uint32_t {
     S_VOICE_RELAY,
 
     S_PLAYER_DEATH,
+    S_ENTITY_DESTROY,
     S_SCORE_UPDATE,
     S_GAME_OVER,
 

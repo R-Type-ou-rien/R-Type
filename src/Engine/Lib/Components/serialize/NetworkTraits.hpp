@@ -143,4 +143,14 @@ struct ComponentTraits<NetworkIdentity> {
     }
 };
 
+// GameTimerComponent (included via StandardComponents_serialize.hpp)
+
+template <>
+struct ComponentTraits<::GameTimerComponent> {
+    static ::GameTimerComponent deserialize(const std::vector<uint8_t>& buffer, size_t& offset,
+                                            ResourceManager<TextureAsset>&) {
+        return deserialize_game_timer_component(buffer, offset);
+    }
+};
+
 }  // namespace serialize

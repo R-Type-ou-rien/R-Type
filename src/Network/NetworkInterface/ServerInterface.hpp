@@ -240,12 +240,10 @@ class ServerInterface {
             asio::buffer(_udpMsgTemporaryIn.data(), _udpMsgTemporaryIn.size()), _udpEndpointTemporary,
             [this](std::error_code ec, std::size_t len) {
                 if (!ec && len > 0) {
-                    std::cout << "[DEBUG_UDP] Packet Received of size " << len << "\n";
                     network::message<T> msg;
 
                     if (len >= sizeof(network::message_header<T>)) {
                         std::memcpy(&msg.header, _udpMsgTemporaryIn.data(), sizeof(network::message_header<T>));
-                        std::cout << "[DEBUG_UDP] Header ID: " << msg.header.user_id << "\n";
 
                         if (msg.header.size > 0) {
                             if (len >= sizeof(network::message_header<T>) + msg.header.size) {
@@ -272,18 +270,16 @@ class ServerInterface {
                             if (client->GetID() == msg.header.user_id) {
                                 pClient = client;
                                 pClient->SetUDPEndpoint(_udpEndpointTemporary);
-                                std::cout << "[UDP] Client " << client->GetID()
-                                          << " endpoint confirmed: " << _udpEndpointTemporary << "\n";
+
                                 bClientFound = true;
                                 break;
                             }
                         }
 
                         if (bClientFound) {
-                            std::cout << "[UDP] Client Found! Pushing to queue.\n";
                             _MessagesIn.push_back({pClient, msg});
                         } else {
-                            std::cout << "[UDP] Erreur : Paquet reçu d'un client inconnu (ID: " << msg.header.user_id
+                            std::cout << "[UDP] Error: Packet received from unknown client (ID: " << msg.header.user_id
                                       << ").\n";
                         }
                     }

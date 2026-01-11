@@ -10,9 +10,9 @@ int main() {
     GameEngine engine;
     GameManager gm;
 
-    engine.setInitFunction([&gm](GameEngine& eng, InputManager& inputs) { gm.init(eng, inputs); });
+    engine.setInitFunction([&gm](Environment& env, InputManager& inputs) { gm.init(env, inputs); });
 
-    engine.setLoopFunction([&gm](GameEngine& eng, InputManager& inputs) { gm.update(eng, inputs); });
+    engine.setLoopFunction([&gm](Environment& env, InputManager& inputs) { gm.update(env, inputs); });
     engine.run();
     return 0;
 }

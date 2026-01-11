@@ -25,6 +25,7 @@
 #include "Context.hpp"
 #include "InputAction.hpp"
 #include "ResourceConfig.hpp"
+#include "Components/AudioComponent.hpp"
 
 class Registry;
 /**  Comment: Split les components par 'context' d'utilisation ?? ex: visuel, sonore, physic etc...*/
@@ -143,6 +144,10 @@ struct Scroll {
     bool is_paused;
 };
 
+struct PendingDestruction {
+    static constexpr auto name = "PendingDestruction";
+};
+
 struct BackgroundComponent {
     static constexpr auto name = "BackgroundComponent";
     handle_t<TextureAsset> texture_handle;
@@ -155,7 +160,7 @@ struct BackgroundComponent {
 //     float interval = 2.0f;
 //     float elapsed = 0.0f;
 
-//     std::string sprite_path = "content/sprites/r-typesheet8.gif";
+//     std::string sprite_path = "src/RType/Common/content/sprites/r-typesheet8.gif";
 //     rect frame {0, 0, 32, 32};
 
 //     float scale_x = 2.0f;

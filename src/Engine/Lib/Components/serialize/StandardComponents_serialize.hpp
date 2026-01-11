@@ -6,10 +6,37 @@
 #include "../../../../RType/Common/Components/damage_component.hpp"
 #include "../../../../RType/Common/Components/shooter_component.hpp"
 #include "../../../../RType/Common/Components/team_component.hpp"
-#include "../../../../RType/Common/Components/health.hpp"
+#include "../../../../RType/Common/Components/game_timer.hpp"
+#include "../../../../RType/Common/Systems/health.hpp"
 #include "Components/NetworkComponents.hpp"
+#include "Components/AudioComponent.hpp"
 
 namespace serialize {
+
+/** AudioSource Component */
+inline void serialize(std::vector<uint8_t>& buffer, const AudioSourceComponent& component) {
+    serialize(buffer, component.sound_name);
+    serialize(buffer, component.play_on_start);
+    serialize(buffer, component.loop);
+    serialize(buffer, component.destroy_entity_on_finish);
+}
+
+inline AudioSourceComponent deserialize_audio_source(const std::vector<uint8_t>& buffer, size_t& offset) {
+    AudioSourceComponent component;
+    try {
+        std::cout << "[AUDIO_DESERIALIZE] Start. Offset: " << offset << " BufferSize: " << buffer.size() << std::endl;
+        component.sound_name = deserialize<std::string>(buffer, offset);
+        std::cout << "[AUDIO_DESERIALIZE] SoundName: " << component.sound_name << std::endl;
+        component.play_on_start = deserialize<bool>(buffer, offset);
+        component.loop = deserialize<bool>(buffer, offset);
+        component.destroy_entity_on_finish = deserialize<bool>(buffer, offset);
+        std::cout << "[AUDIO_DESERIALIZE] Success. Play: " << component.play_on_start << std::endl;
+    } catch (const std::exception& e) {
+        std::cerr << "[AUDIO_DESERIALIZE] ERROR: " << e.what() << std::endl;
+        // Return mostly empty component to avoid blocking, but logging is key
+    }
+    return component;
+}
 
 /** Pattern Component */
 inline void serialize(std::vector<uint8_t>& buffer, const PatternComponent& component) {
@@ -172,6 +199,7 @@ inline sprite2D_component_s deserialize_sprite_2d_component(const std::vector<ui
     if (!name.empty()) {
         if (resourceManager.is_loaded(name)) {
             component.handle = resourceManager.get_handle(name).value();
+            std::cout << "[SPRITE_DESERIALIZE] Using existing texture: " << name << std::endl;
         } else {
             // Load the texture if not already loaded (critical for client-side rendering)
 #if defined(CLIENT_BUILD)
@@ -179,7 +207,6 @@ inline sprite2D_component_s deserialize_sprite_2d_component(const std::vector<ui
             std::string path = name;
             bool loaded = texture.loadFromFile(path);
             if (!loaded) {
-                std::cout << "Client: Failed to load from '" << path << "'. Trying '../" << path << "'" << std::endl;
                 path = "../" + name;
                 loaded = texture.loadFromFile(path);
             }
@@ -187,14 +214,20 @@ inline sprite2D_component_s deserialize_sprite_2d_component(const std::vector<ui
             if (!loaded) {
                 std::cerr << "Client: CRITICAL ERROR: Failed to load texture: " << name << " from any path."
                           << std::endl;
+            } else {
+                std::cout << "[SPRITE_DESERIALIZE] Loaded NEW texture: " << name << std::endl;
             }
             component.handle = resourceManager.load(name, texture);
 #else
             component.handle = resourceManager.load(name, TextureAsset(name));
 #endif
         }
+    } else {
+        std::cout << "[SPRITE_DESERIALIZE] WARNING: Empty texture name received!" << std::endl;
     }
     component.dimension = deserialize_rect(buffer, offset);
+    std::cout << "[SPRITE_DESERIALIZE] Dimension: x=" << component.dimension.x << " y=" << component.dimension.y
+              << " w=" << component.dimension.width << " h=" << component.dimension.height << std::endl;
     component.is_animated = deserialize<bool>(buffer, offset);
     uint32_t frames_size = deserialize<uint32_t>(buffer, offset);
     component.frames.resize(frames_size);
@@ -350,4 +383,17 @@ inline BackgroundComponent deserialize_background_component(const std::vector<ui
     component.scroll_speed = deserialize<float>(buffer, offset);
     return component;
 }
+
+/** Game Timer Component */
+
+inline void serialize(std::vector<uint8_t>& buffer, const ::GameTimerComponent& component) {
+    serialize(buffer, component.elapsed_time);
+}
+
+inline ::GameTimerComponent deserialize_game_timer_component(const std::vector<uint8_t>& buffer, size_t& offset) {
+    ::GameTimerComponent component;
+    component.elapsed_time = deserialize<float>(buffer, offset);
+    return component;
+}
+
 }  // namespace serialize

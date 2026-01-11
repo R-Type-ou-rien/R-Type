@@ -220,7 +220,6 @@ void AActor::setCollisionTags(std::vector<std::string> tags) {
 
 void AActor::addCollisionTag(const std::string tag) {
     std::vector<std::string>& tags = _ecs.registry.getComponent<BoxCollisionComponent>(_id).tagCollision;
-    ;
 
     tags.push_back(tag);
     return;

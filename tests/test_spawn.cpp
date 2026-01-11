@@ -21,29 +21,22 @@ class SpawnTest : public ::testing::Test {
 };
 
 TEST_F(SpawnTest, TimerDecreases_NoSpawnYet) {
-    // ARRANGE
-    registry.addComponent(spawner, SpawnComponent{5.0,  // 5 secondes avant spawn
-                                                  true,
-                                                  {TypeEntityComponent::ENEMY_BASIC},
-                                                  transform_component_s{100, 100},
-                                                  Velocity2D{0, 0}});
+    registry.addComponent(
+        spawner, SpawnComponent{
+                     5.0, true, {TypeEntityComponent::ENEMY_BASIC}, transform_component_s{100, 100}, Velocity2D{0, 0}});
 
-    // ACT
     context.dt = 1.0f;
     spawnSys.update(registry, context);
 
-    // ASSERT
     auto& spawn = registry.getComponent<SpawnComponent>(spawner);
     EXPECT_FLOAT_EQ(spawn.time_until_spawn, 4.0);
 
-    // CORRECTION ICI : On vérifie si la liste est vide, pas si ça crash
     bool hasEnemies = false;
     try {
         auto& enemies = registry.getEntities<TeamComponent>();
         if (!enemies.empty())
             hasEnemies = true;
     } catch (...) {
-        // Si ça throw, c'est que le pool n'existe pas, donc pas d'ennemis -> OK
         hasEnemies = false;
     }
 
@@ -51,20 +44,14 @@ TEST_F(SpawnTest, TimerDecreases_NoSpawnYet) {
 }
 
 TEST_F(SpawnTest, TimerZero_SpawnsEntityAndDestroysSpawner) {
-    // ARRANGE
-    registry.addComponent(spawner,
-                          SpawnComponent{0.5,  // 0.5 secondes avant spawn
-                                         true,
-                                         {TypeEntityComponent::ENEMY_BASIC},  // On veut spawner un ENNEMI BASIC
-                                         transform_component_s{500, 500},
-                                         Velocity2D{-10, 0}});
+    registry.addComponent(
+        spawner,
+        SpawnComponent{
+            0.5, true, {TypeEntityComponent::ENEMY_BASIC}, transform_component_s{500, 500}, Velocity2D{-10, 0}});
 
-    // ACT
-    context.dt = 1.0f;  // On avance de 1s (donc > 0.5s)
+    context.dt = 1.0f;
     spawnSys.update(registry, context);
 
-    // ASSERT
-    // 1. Le Spawner doit être détruit
     bool spawnerExists = true;
     try {
         registry.getComponent<SpawnComponent>(spawner);
@@ -73,17 +60,14 @@ TEST_F(SpawnTest, TimerZero_SpawnsEntityAndDestroysSpawner) {
     }
     EXPECT_FALSE(spawnerExists) << "L'entité Spawner doit être détruite après usage";
 
-    // 2. Une nouvelle entité doit exister
     auto& enemies = registry.getEntities<TeamComponent>();  // Les ennemis ont une Team
     ASSERT_EQ(enemies.size(), 1);
 
     Entity newEnemy = enemies[0];
 
-    // 3. Vérifier que la Factory a bien marché (Vérif des composants spécifiques à ENEMY_BASIC)
     EXPECT_EQ(registry.getComponent<TeamComponent>(newEnemy).team, TeamComponent::ENEMY);
     EXPECT_EQ(registry.getComponent<HealthComponent>(newEnemy).max_hp, 20);  // Basic = 20HP
 
-    // Vérifier que le transform du spawner a été copié
     auto& pos = registry.getComponent<transform_component_s>(newEnemy);
     EXPECT_FLOAT_EQ(pos.x, 500);
 }

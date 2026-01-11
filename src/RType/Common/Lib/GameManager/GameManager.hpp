@@ -1,43 +1,51 @@
-#pragma once  // Use pragma once for modern C++
+#pragma once
 
 #include <memory>
 #include <vector>
+#include <string>
+#include <SFML/System/Clock.hpp>
+#include "../../Entities/Player/Player.hpp"
 #include "ECS.hpp"
 #include "GameEngineBase.hpp"
-#include "GameEngineConfig.hpp"
-#include "ServerGameEngine.hpp"  // Required for lobby access
-#include "InputConfig.hpp"
-#include "AActor.hpp"  // Needed for unique_ptr<AActor> destruction
+#include "src/RType/Common/Components/config.hpp"
+#include "src/RType/Common/Components/game_timer.hpp"
+#include "src/Engine/Core/Scene/SceneManager.hpp"
 
 class GameManager {
    private:
-    static constexpr float PLAYER_SPEED = 100.0f;
-    static constexpr float PLAYER_START_X = 100.0f;
-    static constexpr float PLAYER_START_Y = 300.0f;
-    static constexpr int PLAYER_MAX_HP = 100;
+    std::unique_ptr<Player> _player;
+    std::unique_ptr<SceneManager> _scene_manager;
+    Entity _timerEntity;
+    Entity _gameStateEntity;
+    Entity _boundsEntity;
+    Entity _scoreTrackerEntity;
+    Entity _statusDisplayEntity;
+    Entity _chargeBarEntity;
+    Entity _livesEntity;
+    Entity _scoreDisplayEntity;
+    bool _gameOver = false;
+    bool _victory = false;
 
-    Entity _uiEntity;
+    EntityConfig _player_config;
+    std::string _current_level_scene;
 
-    uint32_t _requiredPlayers;
-    bool _gameStarted = false;
-
-    std::vector<std::unique_ptr<AActor>> _actors;
-
-    void initSystems(GameEngine& engine);
-    void initBackground(GameEngine& engine);
-    void initPlayers(GameEngine& engine);
-    void checkNewPlayers(GameEngine& engine);
-    void initEnemies(GameEngine& engine);
-    void initSpawner(GameEngine& engine);
-    void initUI(GameEngine& engine);
-    void updateUI(GameEngine& engine);
+    void initSystems(Environment& env);
+    void initBackground(Environment& env);
+    void initPlayer(Environment& env);
+    void initSpawner(Environment& env);
+    void initScene(Environment& env);
+    void initUI(Environment& env);
+    void initBounds(Environment& env);
+    void setupMovementControls(InputManager& inputs);
+    void setupShootingControls(InputManager& inputs);
+    void setupPodControls(InputManager& inputs);
+    void updateUI(Environment& env);
+    void checkGameState(Environment& env);
+    void displayGameOver(Environment& env, bool victory);
 
    public:
-    explicit GameManager(uint32_t requiredPlayers = 1);
-
-    void init(GameEngine& engine, InputManager& inputs);
-    void update(GameEngine& engine, InputManager& inputs);
-
-    bool isGameReady(GameEngine& engine);
+    GameManager();
+    void init(Environment& env, InputManager& inputs);
+    void update(Environment& env, InputManager& inputs);
     void loadInputSetting(InputManager& inputs);
 };

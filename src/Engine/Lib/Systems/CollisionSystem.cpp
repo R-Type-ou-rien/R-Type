@@ -2,6 +2,8 @@
 #include <iostream>
 #include <iterator>
 #include <ostream>
+#include <vector>
+#include <utility>
 #include "Components/StandardComponents.hpp"
 
 void BoxCollision::update(Registry& registry, system_context context) {

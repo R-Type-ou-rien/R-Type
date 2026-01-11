@@ -81,3 +81,4 @@ build_verify/
 # Network Test Executables
 r-type_server
 r-type_client_test
+.claude
