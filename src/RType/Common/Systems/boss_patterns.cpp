@@ -23,6 +23,14 @@ void BossPatternSystem::updateBossState(Registry& registry, system_context conte
     
     auto& boss = registry.getComponent<BossComponent>(boss_entity);
     
+    // Update damage flash timer
+    if (boss.damage_flash_timer > 0.0f) {
+        boss.damage_flash_timer -= context.dt;
+        if (boss.damage_flash_timer < 0.0f) {
+            boss.damage_flash_timer = 0.0f;
+        }
+    }
+    
     // Vérifier si le boss a un composant de santé
     if (!registry.hasComponent<HealthComponent>(boss_entity)) {
         std::cerr << "⚠️ WARNING: Boss has no HealthComponent!" << std::endl;

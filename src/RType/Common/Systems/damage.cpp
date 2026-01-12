@@ -4,6 +4,7 @@
 #include "shooter.hpp"
 #include "../Components/team_component.hpp"
 #include "../Components/charged_shot.hpp"
+#include "../Components/ai_behavior_component.hpp"
 
 void Damage::update(Registry& registry, system_context context) {
     auto& attackers = registry.getEntities<DamageOnCollision>();
@@ -43,6 +44,12 @@ void Damage::update(Registry& registry, system_context context) {
                 health.current_hp -= dmg.damage_value;
                 health.last_damage_time = health.invincibility_duration;
                 std::cout << "[Damage] Entity " << hit_id << " took " << dmg.damage_value << " damage, HP remaining: " << health.current_hp << std::endl;
+                
+                // Trigger boss damage flash
+                if (registry.hasComponent<BossComponent>(hit_id)) {
+                    auto& boss = registry.getComponent<BossComponent>(hit_id);
+                    boss.damage_flash_timer = boss.damage_flash_duration;
+                }
             }
 
             if (registry.hasComponent<TeamComponent>(attacker) && registry.hasComponent<TeamComponent>(hit_id)) {

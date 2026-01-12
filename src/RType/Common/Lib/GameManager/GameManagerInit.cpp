@@ -18,6 +18,7 @@
 #include "src/RType/Common/Systems/animation_helper.hpp"
 #include "src/RType/Common/Systems/powerup.hpp"
 #include "src/RType/Common/Systems/boss_patterns.hpp"
+#include "src/RType/Common/Systems/boss_tail.hpp"
 #include "src/RType/Common/Systems/projectile_cleanup.hpp"
 #include "src/RType/Common/Systems/pod_system.hpp"
 #include "src/RType/Common/Systems/status_display.hpp"
@@ -53,6 +54,7 @@ void GameManager::initSystems(Environment& env) {
         ecs.systems.addSystem<PodSystem>();
         ecs.systems.addSystem<AIBehaviorSystem>();
         ecs.systems.addSystem<BossPatternSystem>();  // Nouveau : Patterns complexes du boss
+        ecs.systems.addSystem<BossTailSystem>();  // Nouveau : Animation de la queue du boss
         ecs.systems.addSystem<BoundsSystem>();
         ecs.systems.addSystem<PlayerBoundsSystem>();
         ecs.systems.addSystem<ScoreSystem>();

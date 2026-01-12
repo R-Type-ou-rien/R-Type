@@ -57,4 +57,8 @@ struct BossComponent {
     // Dying sequence
     float death_timer = 0.0f;
     float death_duration = 3.0f;
+    
+    // Damage flash effect
+    float damage_flash_timer = 0.0f;
+    float damage_flash_duration = 0.1f;
 };

@@ -159,13 +159,24 @@ inline message<GameEvents>& operator<<(message<GameEvents>& msg, const GameOverP
 }
 
 inline message<GameEvents>& operator>>(message<GameEvents>& msg, GameOverPacket& packet) {
-    msg >> packet.victory;
-    msg >> packet.player_count;
-    for (uint32_t i = 0; i < packet.player_count && i < 8; i++) {
+    // CRITICAL: Message system is LIFO (Last In First Out)
+    // Must read in REVERSE order of serialization
+    
+    // Read players array in reverse (last one written is first one read)
+    for (int i = 7; i >= 0; i--) {
         msg >> packet.players[i].is_alive;
         msg >> packet.players[i].score;
         msg >> packet.players[i].client_id;
     }
+    
+    msg >> packet.player_count;
+    msg >> packet.victory;
+    
+    // Sécurité: limiter player_count à 8 maximum
+    if (packet.player_count > 8) {
+        packet.player_count = 8;
+    }
+    
     return msg;
 }
 

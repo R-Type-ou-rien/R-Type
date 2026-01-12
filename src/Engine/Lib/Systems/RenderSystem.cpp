@@ -10,6 +10,7 @@
 #include <SFML/Graphics/Texture.hpp>
 #include <iostream>
 #include <iterator>
+#include "../../../RType/Common/Components/ai_behavior_component.hpp"
 
 void RenderSystem::update(Registry& registry, system_context context) {
     auto& positions = registry.getView<transform_component_s>();
@@ -21,7 +22,7 @@ void RenderSystem::update(Registry& registry, system_context context) {
                 continue;
             const transform_component_s& transform = registry.getConstComponent<transform_component_s>(entity);
             sprite2D_component_s& spriteData = registry.getComponent<sprite2D_component_s>(entity);
-            drawEntity(transform, spriteData, context);
+            drawEntity(entity, transform, spriteData, registry, context);
         }
     }
 
@@ -54,8 +55,8 @@ void RenderSystem::drawText(const TextComponent& textComp, const system_context&
     context.window.draw(text);
 }
 
-void RenderSystem::drawEntity(const transform_component_s& transform, sprite2D_component_s& spriteData,
-                              const system_context& context) {
+void RenderSystem::drawEntity(Entity entity, const transform_component_s& transform, sprite2D_component_s& spriteData,
+                              Registry& registry, const system_context& context) {
     if (!context.texture_manager.has(spriteData.handle))
         return;
 
@@ -93,6 +94,15 @@ void RenderSystem::drawEntity(const transform_component_s& transform, sprite2D_c
     }
     sprite.setPosition({transform.x, transform.y});
     sprite.setScale({transform.scale_x, transform.scale_y});
+    
+    // Apply white flash effect for boss damage
+    if (registry.hasComponent<BossComponent>(entity)) {
+        auto& boss = registry.getConstComponent<BossComponent>(entity);
+        if (boss.damage_flash_timer > 0.0f) {
+            sprite.setColor(sf::Color::White);
+        }
+    }
+    
     context.window.draw(sprite);
     return;
 }
