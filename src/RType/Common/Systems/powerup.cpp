@@ -82,7 +82,9 @@ void PowerUpSystem::checkPowerUpCollisions(Registry& registry, system_context co
                 applyPowerUp(registry, player_entity, powerup.type, powerup.value, powerup.duration);
                 
                 // Détruire le power-up
-                registry.destroyEntity(powerup_entity);
+                if (!registry.hasComponent<PendingDestruction>(powerup_entity)) {
+                    registry.addComponent<PendingDestruction>(powerup_entity, {});
+                }
                 break;
             }
         }

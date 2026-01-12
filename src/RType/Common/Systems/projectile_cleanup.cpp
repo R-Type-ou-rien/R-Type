@@ -25,6 +25,8 @@ void ProjectileCleanupSystem::update(Registry& registry, system_context context)
 
     // Détruire les projectiles hors écran
     for (auto entity : to_destroy) {
-        registry.destroyEntity(entity);
+        if (!registry.hasComponent<PendingDestruction>(entity)) {
+            registry.addComponent<PendingDestruction>(entity, {});
+        }
     }
 }

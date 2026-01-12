@@ -60,13 +60,25 @@ Player::Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<floa
         if (registry.hasComponent<ShooterComponent>(entity)) {
             auto& shoot = registry.getComponent<ShooterComponent>(entity);
             shoot.trigger_pressed = false;
-            // Note: is_shooting will be handled by ShooterSystem for charged shots
-            // For normal shots, we might want to stop immediately, but let's leave it to the system logic
-            // which checks trigger_pressed for charging logic.
-            // However, if not charging, we should stop shooting.
-            // The ShooterSystem logic I wrote earlier handles this:
-            // if (!shooter.trigger_pressed && charged.is_charging) -> release charged shot
-            // if (!shooter.trigger_pressed && !charged.is_charging) -> stop shooting (eventually)
+
+            if (registry.hasComponent<ChargedShotComponent>(entity)) {
+                auto& charged = registry.getComponent<ChargedShotComponent>(entity);
+                if (!charged.is_charging) {
+                    shoot.is_shooting = false;
+                }
+            } else {
+                shoot.is_shooting = false;
+            }
+        }
+    });
+
+    // Pod Controls
+    bindActionCallbackPressed("toggle_pod", [this](Registry& registry, system_context, Entity entity) {
+        if (registry.hasComponent<PlayerPodComponent>(entity)) {
+            auto& player_pod = registry.getComponent<PlayerPodComponent>(entity);
+            if (player_pod.has_pod) {
+                player_pod.detach_requested = true;
+            }
         }
     });
 

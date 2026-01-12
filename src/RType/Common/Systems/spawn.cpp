@@ -180,7 +180,9 @@ void EnemySpawnSystem::update(Registry& registry, system_context context) {
 
     // Effectuer le nettoyage
     for (auto entity : to_cleanup) {
-        registry.destroyEntity(entity);
+        if (!registry.hasComponent<PendingDestruction>(entity)) {
+            registry.addComponent<PendingDestruction>(entity, {});
+        }
     }
 
     // Handle scripted spawns

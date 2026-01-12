@@ -1,6 +1,7 @@
 #include "GameManager.hpp"
 #include "ECS.hpp"
 #include "GameEngineBase.hpp"
+#include "src/Engine/Core/Scene/SceneLoader.hpp"
 
 GameManager::GameManager() {
     _player_config = ConfigLoader::loadEntityConfig("src/RType/Common/content/config/player.cfg",
@@ -13,6 +14,13 @@ void GameManager::init(Environment& env, InputManager& inputs) {
 
     env.loadGameResources("src/RType/Common/content/config/r-type.json");
 
+    LevelConfig level_config;
+    try {
+        level_config = SceneLoader::loadFromFile(_current_level_scene);
+    } catch (...) {
+        // Fallback or handle error
+    }
+
     initBackground(env);
     initBounds(env);
     initPlayer(env);
@@ -24,7 +32,7 @@ void GameManager::init(Environment& env, InputManager& inputs) {
         auto& ecs = env.getECS();
         Entity musicEntity = ecs.registry.createEntity();
         AudioSourceComponent music;
-        music.sound_name = "theme";
+        music.sound_name = level_config.music_track.empty() ? "theme" : level_config.music_track;
         music.play_on_start = true;
         music.loop = true;
         music.destroy_entity_on_finish = false;

@@ -20,6 +20,31 @@
 
 void StatusDisplaySystem::update(Registry& registry, system_context context) {
 #if defined(CLIENT_BUILD)
+    // Try to find the player entity if not already set in StatusDisplayComponent
+    auto& statusEntities = registry.getEntities<StatusDisplayComponent>();
+    if (!statusEntities.empty()) {
+        auto& status = registry.getComponent<StatusDisplayComponent>(statusEntities[0]);
+        if (status.player_entity == -1) {
+            auto& teams = registry.getEntities<TeamComponent>();
+            for (auto entity : teams) {
+                auto& team = registry.getConstComponent<TeamComponent>(entity);
+                if (team.team == TeamComponent::ALLY) {
+                    if (registry.hasComponent<TagComponent>(entity)) {
+                        auto& tags = registry.getConstComponent<TagComponent>(entity);
+                        for (const auto& tag : tags.tags) {
+                            if (tag == "PLAYER") {
+                                status.player_entity = entity;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (status.player_entity != -1)
+                    break;
+            }
+        }
+    }
+
     drawChargeBar(registry, context);
     drawLives(registry, context);
     drawScore(registry, context);

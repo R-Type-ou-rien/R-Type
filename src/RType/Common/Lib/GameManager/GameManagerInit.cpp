@@ -70,7 +70,18 @@ void GameManager::initSystems(Environment& env) {
 
 void GameManager::initBackground(Environment& env) {
     if (!env.isServer()) {
-        const std::string bgPath = "src/RType/Common/content/sprites/test.png";
+        LevelConfig level_config;
+        try {
+            level_config = SceneLoader::loadFromFile(_current_level_scene);
+        } catch (...) {
+            level_config.background_texture = "src/RType/Common/content/sprites/test.png";
+        }
+
+        std::string bgPath = level_config.background_texture;
+        if (bgPath.empty()) {
+            bgPath = "src/RType/Common/content/sprites/test.png";
+        }
+
         auto& ecs = env.getECS();
         Entity bgEntity = ecs.registry.createEntity();
 

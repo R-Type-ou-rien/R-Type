@@ -109,13 +109,28 @@ void ShooterSystem::create_projectile_with_pattern(Registry& registry, ShooterCo
         // Coordonnées des petites boules rouges/orange en bas du sprite du boss
         sprite_info.dimension = {200, 230, 12, 12};  // Petite boule rouge
     } else {
-        // Projectiles alliés : projectiles verts du joueur (r-typesheet1.gif)
+        // Projectiles alliés : projectiles du joueur (r-typesheet1.gif)
         handle_t<TextureAsset> handle =
             context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet1.gif",
                                          TextureAsset("src/RType/Common/content/sprites/r-typesheet1.gif"));
         sprite_info.handle = handle;
-        // Projectile plus visible (32x14 au lieu de 17x13)
-        sprite_info.dimension = {232, 103, 32, 14};
+
+        // 3 modes de tirs avec des sprites différents
+        switch (type) {
+            case ShooterComponent::RED:
+                // Laser rouge (r-typesheet1.gif)
+                sprite_info.dimension = {248, 84, 32, 14};
+                break;
+            case ShooterComponent::BLUE:
+                // Laser bleu (r-typesheet1.gif)
+                sprite_info.dimension = {248, 102, 32, 14};
+                break;
+            case ShooterComponent::NORMAL:
+            default:
+                // Projectile vert (par défaut)
+                sprite_info.dimension = {232, 103, 32, 14};
+                break;
+        }
     }
 
     registry.addComponent<sprite2D_component_s>(id, sprite_info);
