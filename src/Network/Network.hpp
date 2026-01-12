@@ -162,19 +162,20 @@ inline message<GameEvents>& operator>>(message<GameEvents>& msg, GameOverPacket&
     // CRITICAL: Message system is LIFO (Last In First Out)
     // Must read in REVERSE order of serialization
     
-    // Read players array in reverse (last one written is first one read)
-    for (int i = 7; i >= 0; i--) {
-        msg >> packet.players[i].is_alive;
-        msg >> packet.players[i].score;
-        msg >> packet.players[i].client_id;
-    }
-    
+    // Lire d'abord player_count et victory (en ordre inverse)
     msg >> packet.player_count;
     msg >> packet.victory;
     
     // Sécurité: limiter player_count à 8 maximum
     if (packet.player_count > 8) {
         packet.player_count = 8;
+    }
+    
+    // Lire UNIQUEMENT les joueurs qui ont été sérialisés (en ordre inverse)
+    for (int i = static_cast<int>(packet.player_count) - 1; i >= 0; i--) {
+        msg >> packet.players[i].is_alive;
+        msg >> packet.players[i].score;
+        msg >> packet.players[i].client_id;
     }
     
     return msg;
