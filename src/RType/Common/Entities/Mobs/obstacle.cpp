@@ -11,7 +11,7 @@ void ObstacleSpawner::spawn(Registry& registry, system_context context, float x,
     registry.addComponent<transform_component_s>(id, {x, y});
     registry.addComponent<Velocity2D>(id, {-120.0f, 0.0f}); 
     registry.addComponent<HealthComponent>(id, {150, 150, 0.0f, 0.0f});
-    registry.addComponent<DamageOnCollision>(id, {30}); 
+    registry.addComponent<DamageOnCollision>(id, {100});  // Mort instantanée
     std::string path = "src/RType/Common/content/sprites/wall-level1.gif";
 
     handle_t<TextureAsset> handle =

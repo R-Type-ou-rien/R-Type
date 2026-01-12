@@ -38,9 +38,11 @@ void Damage::update(Registry& registry, system_context context) {
 
             if (health.current_hp - dmg.damage_value <= 0) {
                 health.current_hp = 0;
+                std::cout << "[Damage] Entity " << hit_id << " killed by entity " << attacker << " (damage: " << dmg.damage_value << ")" << std::endl;
             } else {
                 health.current_hp -= dmg.damage_value;
                 health.last_damage_time = health.invincibility_duration;
+                std::cout << "[Damage] Entity " << hit_id << " took " << dmg.damage_value << " damage, HP remaining: " << health.current_hp << std::endl;
             }
 
             if (registry.hasComponent<TeamComponent>(attacker) && registry.hasComponent<TeamComponent>(hit_id)) {

@@ -132,4 +132,41 @@ inline message<GameEvents>& operator>>(message<GameEvents>& msg, AssignPlayerEnt
     return msg;
 }
 
+// Structure pour une entrée de score d'un joueur
+struct PlayerScore {
+    uint32_t client_id;
+    int32_t score;
+    bool is_alive;
+};
+
+// Structure pour le message S_GAME_OVER avec tous les scores
+struct GameOverPacket {
+    bool victory;  // true = victoire, false = défaite
+    uint32_t player_count;
+    PlayerScore players[8];  // Maximum 8 joueurs
+};
+
+// Serialization operators for GameOverPacket
+inline message<GameEvents>& operator<<(message<GameEvents>& msg, const GameOverPacket& packet) {
+    msg << packet.victory;
+    msg << packet.player_count;
+    for (uint32_t i = 0; i < packet.player_count && i < 8; i++) {
+        msg << packet.players[i].client_id;
+        msg << packet.players[i].score;
+        msg << packet.players[i].is_alive;
+    }
+    return msg;
+}
+
+inline message<GameEvents>& operator>>(message<GameEvents>& msg, GameOverPacket& packet) {
+    msg >> packet.victory;
+    msg >> packet.player_count;
+    for (uint32_t i = 0; i < packet.player_count && i < 8; i++) {
+        msg >> packet.players[i].is_alive;
+        msg >> packet.players[i].score;
+        msg >> packet.players[i].client_id;
+    }
+    return msg;
+}
+
 }  // namespace network

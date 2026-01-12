@@ -10,7 +10,9 @@
 #include "NetworkEngine/NetworkEngine.hpp"
 #include "Components/StandardComponents.hpp"
 #include "Components/serialize/StandardComponents_serialize.hpp"
+#include "Components/serialize/score_component_serialize.hpp"
 #include "../../RType/Common/Systems/health.hpp"
+#include "../../RType/Common/Systems/score.hpp"
 #include "../../RType/Common/Components/spawn.hpp"
 #include "../../RType/Common/Components/shooter_component.hpp"
 #include "../../RType/Common/Components/charged_shot.hpp"
@@ -58,6 +60,7 @@ int ServerGameEngine::init() {
     registerNetworkComponent<PlayerPodComponent>();
     registerNetworkComponent<AIBehaviorComponent>();
     registerNetworkComponent<BossComponent>();
+    registerNetworkComponent<ScoreComponent>();
 
     return SUCCESS;
 }
@@ -135,6 +138,13 @@ void ServerGameEngine::processNetworkEvents() {
                     player_pod.pod_attached = false;
                     player_pod.last_known_hp = 100;
                     _ecs.registry.addComponent<PlayerPodComponent>(newPlayer->getId(), player_pod);
+
+                    // Add ScoreComponent for individual player score tracking
+                    ScoreComponent playerScore;
+                    playerScore.current_score = 0;
+                    playerScore.high_score = 0;
+                    _ecs.registry.addComponent<ScoreComponent>(newPlayer->getId(), playerScore);
+                    std::cout << "SERVER: Added ScoreComponent to player " << newPlayer->getId() << std::endl;
 
                     // Store player
                     _players[newClientId] = newPlayer;

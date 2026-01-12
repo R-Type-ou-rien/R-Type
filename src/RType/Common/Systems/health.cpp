@@ -32,6 +32,9 @@ void HealthSystem::update(Registry& registry, system_context context) {
             if (registry.hasComponent<ScoreValueComponent>(dead_entity)) {
                 auto& score_value = registry.getConstComponent<ScoreValueComponent>(dead_entity);
                 ScoreSystem::addScore(registry, score_value.value);
+                std::cout << "[HealthSystem] Entity " << dead_entity << " died, adding score: " << score_value.value << std::endl;
+            } else {
+                std::cout << "[HealthSystem] Entity " << dead_entity << " died but has no ScoreValueComponent" << std::endl;
             }
             registry.addComponent<PendingDestruction>(dead_entity, {});
         }

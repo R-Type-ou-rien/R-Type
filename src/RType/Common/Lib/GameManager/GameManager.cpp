@@ -6,6 +6,11 @@ GameManager::GameManager() {
     _player_config = ConfigLoader::loadEntityConfig("src/RType/Common/content/config/player.cfg",
                                                     ConfigLoader::getRequiredPlayerFields());
     _current_level_scene = "src/RType/Common/content/config/level1.scene";
+    
+    // Réinitialiser les flags de jeu
+    _gameOver = false;
+    _victory = false;
+    _leaderboardDisplayed = false;
 }
 
 void GameManager::init(Environment& env, InputManager& inputs) {
