@@ -131,7 +131,7 @@ void GameManager::initPlayer(Environment& env) {
         _player->addCollisionTag("ENEMY_PROJECTILE");
         _player->addCollisionTag("OBSTACLE");
         _player->addCollisionTag("ITEM");
-        _player->addCollisionTag("POWERUP");  // Nouveau : pour collecter les power-ups
+tu         _player->addCollisionTag("POWERUP");  // Nouveau : pour collecter les power-ups
         _player->addCollisionTag("WALL");
 
         ChargedShotComponent charged_shot;
