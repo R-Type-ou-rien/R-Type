@@ -13,6 +13,7 @@ class GameManager {
     Entity _uiEntity;
     Entity _scoreEntity;
     Entity _timerEntity;
+    Entity _bossHPEntity;  // Nouvelle entité pour la vie du boss
     Entity _gameStateEntity;
     Entity _boundsEntity;
     Entity _scoreTrackerEntity;

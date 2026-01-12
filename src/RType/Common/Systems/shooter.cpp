@@ -88,26 +88,38 @@ void ShooterSystem::create_projectile_with_pattern(Registry& registry, ShooterCo
     // Utiliser les dégâts passés en paramètre
     registry.addComponent<DamageOnCollision>(id, {projectile_damage});
 
-    handle_t<TextureAsset> handle =
-        context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet1.gif",
-                                     TextureAsset("src/RType/Common/content/sprites/r-typesheet1.gif"));
-
     sprite2D_component_s sprite_info;
-    sprite_info.handle = handle;
     sprite_info.animation_speed = 0;
     sprite_info.current_animation_frame = 0;
-    // Projectile plus visible (32x14 au lieu de 17x13)
-    sprite_info.dimension = {232, 103, 32, 14};
-    sprite_info.z_index = 1;
+    sprite_info.z_index = 5;  // Au-dessus des autres sprites
+
+    // Différencier les sprites selon l'équipe
+    if (team == TeamComponent::ENEMY) {
+        // Projectiles ennemis : petites boules rouges du boss (r-typesheet30.gif)
+        handle_t<TextureAsset> handle =
+            context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet30.gif",
+                                         TextureAsset("src/RType/Common/content/sprites/r-typesheet30.gif"));
+        sprite_info.handle = handle;
+        // Coordonnées des petites boules rouges/orange en bas du sprite du boss
+        sprite_info.dimension = {200, 230, 12, 12};  // Petite boule rouge
+    } else {
+        // Projectiles alliés : projectiles verts du joueur (r-typesheet1.gif)
+        handle_t<TextureAsset> handle =
+            context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet1.gif",
+                                         TextureAsset("src/RType/Common/content/sprites/r-typesheet1.gif"));
+        sprite_info.handle = handle;
+        // Projectile plus visible (32x14 au lieu de 17x13)
+        sprite_info.dimension = {232, 103, 32, 14};
+    }
 
     registry.addComponent<sprite2D_component_s>(id, sprite_info);
 
     // Appliquer une transformation pour les projectiles ennemis
     auto& projectile_transform = registry.getComponent<transform_component_s>(id);
     if (team == TeamComponent::ENEMY) {
-        // Retourner le sprite horizontalement pour les tirs ennemis
-        projectile_transform.scale_x = -1.5f;  // Flip horizontal + scale
-        projectile_transform.scale_y = 1.5f;   // Scale vertical pour visibilit\u00e9
+        // Boules rouges ennemies : agrandir pour visibilit\u00e9 (pas de flip car c'est une boule)
+        projectile_transform.scale_x = 3.5f;  // Agrandir davantage pour être bien visible
+        projectile_transform.scale_y = 3.5f;  // Agrandir davantage pour être bien visible
     } else {
         // Garder normal pour les tirs alli\u00e9s mais augmenter l\u00e9g\u00e8rement la taille
         projectile_transform.scale_x = 1.5f;

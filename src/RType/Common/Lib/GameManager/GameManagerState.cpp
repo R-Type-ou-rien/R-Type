@@ -43,6 +43,49 @@ void GameManager::updateUI(Environment& env) {
                 timer_text.text = "Time: " + std::to_string(seconds) + "s";
             }
         }
+
+        // Update Boss HP (nouveau)
+        if (ecs.registry.hasComponent<TextComponent>(_bossHPEntity)) {
+            auto& boss_hp_text = ecs.registry.getComponent<TextComponent>(_bossHPEntity);
+            
+            // Chercher le boss
+            auto& entities = ecs.registry.getEntities<TagComponent>();
+            bool found_boss = false;
+            
+            for (auto entity : entities) {
+                auto& tags = ecs.registry.getConstComponent<TagComponent>(entity);
+                for (const auto& tag : tags.tags) {
+                    if (tag == "BOSS") {
+                        if (ecs.registry.hasComponent<HealthComponent>(entity)) {
+                            auto& boss_health = ecs.registry.getComponent<HealthComponent>(entity);
+                            int current_hp = boss_health.current_hp;
+                            int max_hp = boss_health.max_hp;
+                            float hp_percent = (static_cast<float>(current_hp) / max_hp) * 100.0f;
+                            
+                            boss_hp_text.text = "BOSS: " + std::to_string(current_hp) + "/" + std::to_string(max_hp) + " (" + std::to_string(static_cast<int>(hp_percent)) + "%)";
+                            
+                            // Changer la couleur selon la santé
+                            if (hp_percent > 50) {
+                                boss_hp_text.color = sf::Color::Red;
+                            } else if (hp_percent > 25) {
+                                boss_hp_text.color = sf::Color(255, 165, 0); // Orange
+                            } else {
+                                boss_hp_text.color = sf::Color(255, 0, 255); // Magenta (critique)
+                            }
+                            
+                            found_boss = true;
+                        }
+                        break;
+                    }
+                }
+                if (found_boss) break;
+            }
+            
+            // Cacher le texte si pas de boss
+            if (!found_boss) {
+                boss_hp_text.text = "";
+            }
+        }
     }
 }
 

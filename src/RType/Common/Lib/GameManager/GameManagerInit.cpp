@@ -12,17 +12,23 @@
 #include "src/RType/Common/Systems/ai_behavior.hpp"
 #include "src/RType/Common/Systems/score.hpp"
 #include "src/RType/Common/Systems/animation_helper.hpp"
+#include "src/RType/Common/Systems/powerup.hpp"
+#include "src/RType/Common/Systems/boss_patterns.hpp"
+#include "src/RType/Common/Systems/projectile_cleanup.hpp"
 #include "src/Engine/Lib/Systems/PatternSystem/PatternSystem.hpp"
 
 void GameManager::initSystems(Environment& env) {
     auto& ecs = env.getECS();
 
     ecs.systems.addSystem<ShooterSystem>();
+    ecs.systems.addSystem<ProjectileCleanupSystem>();  // Nouveau : Nettoie projectiles hors écran
+    ecs.systems.addSystem<PowerUpSystem>();  // Nouveau : Power-Ups après collisions
     ecs.systems.addSystem<Damage>();
     ecs.systems.addSystem<HealthSystem>();
     ecs.systems.addSystem<PatternSystem>();
     ecs.systems.addSystem<EnemySpawnSystem>();
     ecs.systems.addSystem<AIBehaviorSystem>();
+    ecs.systems.addSystem<BossPatternSystem>();  // Nouveau : Patterns complexes du boss
     ecs.systems.addSystem<BoundsSystem>();
     ecs.systems.addSystem<ScoreSystem>();
 }
@@ -85,6 +91,7 @@ void GameManager::initPlayer(Environment& env) {
         _player->addCollisionTag("ENEMY_PROJECTILE");
         _player->addCollisionTag("OBSTACLE");
         _player->addCollisionTag("ITEM");
+        _player->addCollisionTag("POWERUP");  // Nouveau : pour collecter les power-ups
 
         ChargedShotComponent charged_shot;
         charged_shot.min_charge_time = 0.5f;
@@ -131,6 +138,12 @@ void GameManager::initUI(Environment& env) {
         ecs.registry.addComponent<TextComponent>(
             _timerEntity, {"Time: 0s", "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 28,
                            sf::Color::Cyan, 10, 90});
+
+        // Boss HP UI (haut à droite)
+        _bossHPEntity = ecs.registry.createEntity();
+        ecs.registry.addComponent<TextComponent>(
+            _bossHPEntity, {"", "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 28,
+                           sf::Color::Red, 1400, 10});
 
         // Score tracker
         _scoreTrackerEntity = ecs.registry.createEntity();

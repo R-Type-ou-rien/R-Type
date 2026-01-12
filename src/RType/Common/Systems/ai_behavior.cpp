@@ -1,6 +1,8 @@
 #include "ai_behavior.hpp"
 #include "Components/StandardComponents.hpp"
 #include "../Components/team_component.hpp"
+#include "shooter.hpp"
+#include "health.hpp"
 #include <cmath>
 
 void AIBehaviorSystem::update(Registry& registry, system_context context) {
@@ -41,11 +43,12 @@ void AIBehaviorSystem::update(Registry& registry, system_context context) {
         }
     }
 
-    // Gérer le boss qui arrive
+    // Gérer le boss qui arrive et ses patterns d'attaque
     auto& bosses = registry.getEntities<BossComponent>();
     for (auto boss_entity : bosses) {
         auto& boss = registry.getComponent<BossComponent>(boss_entity);
 
+        // Phase d'arrivée
         if (!boss.has_arrived && registry.hasComponent<transform_component_s>(boss_entity)) {
             auto& transform = registry.getComponent<transform_component_s>(boss_entity);
 
@@ -57,6 +60,53 @@ void AIBehaviorSystem::update(Registry& registry, system_context context) {
                     auto& vel = registry.getComponent<Velocity2D>(boss_entity);
                     vel.vx = 0.0f;
                     vel.vy = 0.0f;
+                }
+            }
+        }
+        
+        // Gestion des phases du boss
+        if (boss.has_arrived && registry.hasComponent<HealthComponent>(boss_entity)) {
+            auto& health = registry.getConstComponent<HealthComponent>(boss_entity);
+            float health_percent = static_cast<float>(health.current_hp) / static_cast<float>(health.max_hp);
+            
+            int new_phase = boss.current_phase;
+            if (health_percent <= 0.33f && boss.current_phase < 3) {
+                new_phase = 3;  // Phase finale
+            } else if (health_percent <= 0.66f && boss.current_phase < 2) {
+                new_phase = 2;  // Phase intermédiaire
+            }
+            
+            // Transition de phase
+            if (new_phase != boss.current_phase) {
+                boss.current_phase = new_phase;
+                
+                // Augmenter le fire rate en fonction de la phase
+                if (registry.hasComponent<ShooterComponent>(boss_entity)) {
+                    auto& shooter = registry.getComponent<ShooterComponent>(boss_entity);
+                    shooter.fire_rate = 0.3f / boss.current_phase;  // Plus rapide à chaque phase
+                }
+            }
+            
+            // Pattern d'attaque
+            boss.attack_pattern_timer += context.dt;
+            if (boss.attack_pattern_timer >= boss.attack_pattern_interval) {
+                boss.attack_pattern_timer = 0.0f;
+                boss.current_attack_pattern = (boss.current_attack_pattern + 1) % 3;
+                
+                // Changer le pattern de tir
+                if (registry.hasComponent<ShooterComponent>(boss_entity)) {
+                    auto& shooter = registry.getComponent<ShooterComponent>(boss_entity);
+                    switch (boss.current_attack_pattern) {
+                        case 0:
+                            shooter.pattern = ShooterComponent::STRAIGHT;
+                            break;
+                        case 1:
+                            shooter.pattern = ShooterComponent::AIM_PLAYER;
+                            break;
+                        case 2:
+                            shooter.pattern = ShooterComponent::SPREAD;
+                            break;
+                    }
                 }
             }
         }
