@@ -1,10 +1,12 @@
 #include <string>
+#include <algorithm>
 #include "GameManager.hpp"
 #include "ECS.hpp"
 #include "src/RType/Common/Systems/score.hpp"
 #include "src/RType/Common/Systems/spawn.hpp"
 #include "src/RType/Common/Systems/health.hpp"
 #include "src/RType/Common/Components/status_display_components.hpp"
+#include "src/RType/Common/Components/leaderboard_component.hpp"
 #include "Components/StandardComponents.hpp"
 
 static Entity findPlayerEntity(Registry& registry) {
@@ -102,40 +104,46 @@ void GameManager::checkGameState(Environment& env) {
     auto& ecs = env.getECS();
 
     if (_gameOver || _victory) {
+        // Si le leaderboard n'a pas encore été affiché, l'afficher maintenant
+        if (!_leaderboardDisplayed) {
+            displayLeaderboard(env, _victory);
+            _leaderboardDisplayed = true;
+        }
         return;
     }
 
     // In client mode, game state is managed by server
     // But we can check for local game over condition (player death) for UI purposes
 
-    Entity player_id = -1;
-    if (_player) {
-        player_id = _player->getId();
-    } else {
-        player_id = findPlayerEntity(ecs.registry);
-    }
-
-    if (player_id != -1) {
-        if (ecs.registry.hasComponent<HealthComponent>(player_id)) {
-            auto& health = ecs.registry.getConstComponent<HealthComponent>(player_id);
-            if (health.current_hp < 1) {
-                _gameOver = true;
-                displayGameOver(env, false);
-                return;
+    // Compter le nombre total de joueurs et de joueurs vivants
+    int total_players = 0;
+    int alive_players = 0;
+    
+    auto& entities = ecs.registry.getEntities<TagComponent>();
+    for (auto entity : entities) {
+        auto& tags = ecs.registry.getConstComponent<TagComponent>(entity);
+        for (const auto& tag : tags.tags) {
+            if (tag == "PLAYER") {
+                total_players++;
+                if (ecs.registry.hasComponent<HealthComponent>(entity)) {
+                    auto& health = ecs.registry.getConstComponent<HealthComponent>(entity);
+                    if (health.current_hp > 0) {
+                        alive_players++;
+                    }
+                }
+                break;
             }
         }
-    } else if (!env.isClient()) {
-        // Only on server/standalone: if player is missing, it's game over
-        // On client, we might just be waiting for spawn
-        if (_player) { // If we expected a player (standalone)
-             _gameOver = true;
-             displayGameOver(env, false);
-             return;
-        }
+    }
+
+    // Game over si tous les joueurs sont morts
+    if (total_players > 0 && alive_players == 0) {
+        _gameOver = true;
+        displayGameOver(env, false);
+        return;
     }
 
     // Vérification de la victoire (boss tué)
-    auto& entities = ecs.registry.getEntities<TagComponent>();
     bool boss_exists = false;
     bool boss_spawned = false;
 
@@ -182,21 +190,125 @@ void GameManager::displayGameOver(Environment& env, bool victory) {
 
         ecs.registry.addComponent<TextComponent>(
             _gameStateEntity,
-            {message, "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 72, color, 700, 450});
-
-        // Afficher le score final
-        Entity scoreMessage = ecs.registry.createEntity();
-        int final_score = ScoreSystem::getScore(ecs.registry);
-        std::string scoreText = "Final Score: " + std::to_string(final_score);
-        ecs.registry.addComponent<TextComponent>(
-            scoreMessage, {scoreText, "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 36,
-                           sf::Color::Yellow, 750, 550});
+            {message, "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 72, color, 700, 350});
 
         // Message secondaire
         Entity subMessage = ecs.registry.createEntity();
-        std::string subText = victory ? "Congratulations!" : "Try Again...";
+        std::string subText = victory ? "Congratulations!" : "Better luck next time!";
         ecs.registry.addComponent<TextComponent>(
             subMessage, {subText, "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 28,
-                         sf::Color::White, 800, 620});
+                         sf::Color::White, 750, 430});
     }
 }
+
+void GameManager::displayLeaderboard(Environment& env, bool victory) {
+    auto& ecs = env.getECS();
+
+    if (env.isServer()) {
+        return;
+    }
+
+    // Collecter tous les joueurs et leurs scores
+    std::vector<PlayerScoreEntry> player_scores;
+    
+    auto& entities = ecs.registry.getEntities<TagComponent>();
+    for (auto entity : entities) {
+        auto& tags = ecs.registry.getConstComponent<TagComponent>(entity);
+        for (const auto& tag : tags.tags) {
+            if (tag == "PLAYER") {
+                PlayerScoreEntry entry;
+                entry.player_entity = entity;
+                entry.player_name = "Player " + std::to_string(entity);
+                entry.score = 0;
+                entry.is_alive = false;
+
+                // Récupérer le score
+                if (ecs.registry.hasComponent<ScoreComponent>(entity)) {
+                    auto& score_comp = ecs.registry.getConstComponent<ScoreComponent>(entity);
+                    entry.score = score_comp.current_score;
+                }
+
+                // Vérifier si vivant
+                if (ecs.registry.hasComponent<HealthComponent>(entity)) {
+                    auto& health = ecs.registry.getConstComponent<HealthComponent>(entity);
+                    entry.is_alive = health.current_hp > 0;
+                }
+
+                player_scores.push_back(entry);
+                break;
+            }
+        }
+    }
+
+    // S'il n'y a qu'un joueur, utiliser le score global
+    if (player_scores.size() <= 1) {
+        int global_score = ScoreSystem::getScore(ecs.registry);
+        if (player_scores.empty()) {
+            PlayerScoreEntry entry;
+            entry.player_entity = -1;
+            entry.player_name = "Player";
+            entry.score = global_score;
+            entry.is_alive = false;
+            player_scores.push_back(entry);
+        } else {
+            player_scores[0].score = global_score;
+        }
+    }
+
+    // Trier par score (décroissant)
+    std::sort(player_scores.begin(), player_scores.end(), 
+              [](const PlayerScoreEntry& a, const PlayerScoreEntry& b) {
+                  return a.score > b.score;
+              });
+
+    // Créer le leaderboard
+    _leaderboardEntity = ecs.registry.createEntity();
+    LeaderboardComponent leaderboard;
+    leaderboard.entries = player_scores;
+    leaderboard.is_displayed = true;
+    ecs.registry.addComponent<LeaderboardComponent>(_leaderboardEntity, leaderboard);
+
+    // Titre du leaderboard
+    Entity title = ecs.registry.createEntity();
+    ecs.registry.addComponent<TextComponent>(
+        title, {"LEADERBOARD", "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 48,
+                sf::Color::Cyan, 750, 500});
+
+    // Afficher chaque entrée
+    float y_offset = 570;
+    int rank = 1;
+    for (const auto& entry : player_scores) {
+        Entity scoreEntity = ecs.registry.createEntity();
+        
+        std::string rank_text = "#" + std::to_string(rank) + "  ";
+        std::string name_text = entry.player_name + ": ";
+        std::string score_text = std::to_string(entry.score) + " pts";
+        std::string status_text = entry.is_alive ? " ✓" : " ✗";
+        
+        std::string full_text = rank_text + name_text + score_text + status_text;
+        
+        sf::Color entry_color = sf::Color::White;
+        if (rank == 1 && player_scores.size() > 1) {
+            entry_color = sf::Color::Yellow; // 1er en or
+        } else if (rank == 2) {
+            entry_color = sf::Color(192, 192, 192); // 2ème en argent
+        } else if (rank == 3) {
+            entry_color = sf::Color(205, 127, 50); // 3ème en bronze
+        }
+        
+        ecs.registry.addComponent<TextComponent>(
+            scoreEntity, {full_text, "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 32,
+                          entry_color, 650, y_offset});
+        
+        y_offset += 50;
+        rank++;
+    }
+
+    // Message de fin
+    Entity finalMsg = ecs.registry.createEntity();
+    std::string final_text = victory ? "Press ESC to quit" : "Press ESC to quit";
+    ecs.registry.addComponent<TextComponent>(
+        finalMsg, {final_text, "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 24,
+                   sf::Color(150, 150, 150), 750, y_offset + 30});
+}
+

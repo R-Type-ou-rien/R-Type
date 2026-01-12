@@ -24,8 +24,10 @@ class GameManager {
     Entity _chargeBarEntity;
     Entity _livesEntity;
     Entity _scoreDisplayEntity;
+    Entity _leaderboardEntity;
     bool _gameOver = false;
     bool _victory = false;
+    bool _leaderboardDisplayed = false;
 
     EntityConfig _player_config;
     std::string _current_level_scene;
@@ -43,6 +45,7 @@ class GameManager {
     void updateUI(Environment& env);
     void checkGameState(Environment& env);
     void displayGameOver(Environment& env, bool victory);
+    void displayLeaderboard(Environment& env, bool victory);
 
    public:
     GameManager();
