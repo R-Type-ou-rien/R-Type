@@ -14,14 +14,15 @@ void GameManager::updateUI(Environment& env) {
             return;
         }
 
-        // Update Status Display player reference
-        if (_player && ecs.registry.hasComponent<StatusDisplayComponent>(_statusDisplayEntity)) {
+        // Update Status Display player reference (only if local player exists)
+        if (_player && _statusDisplayEntity != static_cast<Entity>(-1) &&
+            ecs.registry.hasComponent<StatusDisplayComponent>(_statusDisplayEntity)) {
             auto& status = ecs.registry.getComponent<StatusDisplayComponent>(_statusDisplayEntity);
             status.player_entity = _player->getId();
         }
 
-        // Update Timer
-        if (ecs.registry.hasComponent<TextComponent>(_timerEntity)) {
+        // Update Timer from server-synced GameTimerComponent
+        if (_timerEntity != static_cast<Entity>(-1) && ecs.registry.hasComponent<TextComponent>(_timerEntity)) {
             auto& timer_text = ecs.registry.getComponent<TextComponent>(_timerEntity);
             auto& game_timers = ecs.registry.getEntities<GameTimerComponent>();
             if (!game_timers.empty()) {
@@ -37,6 +38,11 @@ void GameManager::checkGameState(Environment& env) {
     auto& ecs = env.getECS();
 
     if (_gameOver || _victory) {
+        return;
+    }
+
+    // In client mode, game state is managed by server
+    if (env.isClient()) {
         return;
     }
 

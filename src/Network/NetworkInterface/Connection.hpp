@@ -46,8 +46,9 @@ class Connection : public std::enable_shared_from_this<Connection<T>> {
     }
 
     void Disconnect() {
-        if (IsConnected())
+        if (IsConnected()) {
             asio::post(_asioContext, [this]() { _socket.close(); });
+        }
     }
 
     bool IsConnected() const { return _socket.is_open(); }
@@ -69,14 +70,14 @@ class Connection : public std::enable_shared_from_this<Connection<T>> {
     }
 
     void SendUdp(const message<T>& msg) {
-        asio::post(_asioContext, [this, msg]() mutable {
+        asio::post(_asioContext, [self = this->shared_from_this(), msg]() mutable {
 #if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
             msg.to_little_endian();
 #endif
-            bool WritingMessage = !_udpMessagesOut.empty();
-            _udpMessagesOut.push_back(msg);
+            bool WritingMessage = !self->_udpMessagesOut.empty();
+            self->_udpMessagesOut.push_back(msg);
             if (!WritingMessage) {
-                WriteUDP();
+                self->WriteUDP();
             }
         });
     }
@@ -84,41 +85,43 @@ class Connection : public std::enable_shared_from_this<Connection<T>> {
    protected:
     void WriteHeader() {
         asio::async_write(_socket, asio::buffer(&_qMessagesOut.front().header, sizeof(message_header<T>)),
-                          [this](std::error_code ec, std::size_t length) {
+                          [self = this->shared_from_this()](std::error_code ec, std::size_t length) {
                               if (!ec) {
-                                  if (_qMessagesOut.front().body.size() > 0) {
-                                      WriteBody();
+                                  if (self->_qMessagesOut.front().body.size() > 0) {
+                                      self->WriteBody();
                                   } else {
-                                      _qMessagesOut.pop_front();
-                                      if (!_qMessagesOut.empty()) {
-                                          WriteHeader();
+                                      self->_qMessagesOut.pop_front();
+                                      if (!self->_qMessagesOut.empty()) {
+                                          self->WriteHeader();
                                       }
                                   }
                               } else {
-                                  std::cout << "[" << id << "] Write Header Fail.\n";
+                                  std::cout << "[" << self->id << "] Write Header Fail.\n";
                                   std::cout << ec.message() << "\n";
-                                  _socket.close();
+                                  self->_socket.close();
                               }
                           });
     }
 
     void WriteBody() {
         asio::async_write(_socket, asio::buffer(_qMessagesOut.front().body.data(), _qMessagesOut.front().body.size()),
-                          [this](std::error_code ec, std::size_t length) {
+                          [self = this->shared_from_this()](std::error_code ec, std::size_t length) {
                               if (!ec) {
-                                  _qMessagesOut.pop_front();
-                                  if (!_qMessagesOut.empty()) {
-                                      WriteHeader();
+                                  self->_qMessagesOut.pop_front();
+                                  if (!self->_qMessagesOut.empty()) {
+                                      self->WriteHeader();
                                   }
                               } else {
-                                  std::cout << "[" << id << "] Write Body Fail.\n";
+                                  std::cout << "[" << self->id << "] Write Body Fail.\n";
                                   std::cout << ec.message() << "\n";
-                                  _socket.close();
+                                  self->_socket.close();
                               }
                           });
     }
-
     void WriteUDP() {
+        if (_udpMessagesOut.empty())
+            return;
+
         message<T> msg = _udpMessagesOut.pop_front();
         std::vector<uint8_t> Buffer;
         Buffer.resize(sizeof(msg.header) + msg.body.size());
@@ -128,20 +131,19 @@ class Connection : public std::enable_shared_from_this<Connection<T>> {
             std::memcpy(Buffer.data() + sizeof(msg.header), msg.body.data(), msg.body.size());
 
         auto send_buffer = asio::buffer(Buffer.data(), Buffer.size());
-        _udpSocket.async_send_to(send_buffer, _udpRemoteEndpoint,
-                                 [this, Buffer = std::move(Buffer)](std::error_code ec, std::size_t bytes_sent) {
-                                     if (!ec) {
-                                         std::cout << "[CLIENT_DEBUG] Sent " << bytes_sent << " bytes to "
-                                                   << _udpRemoteEndpoint << "\n";
-                                         if (!_udpMessagesOut.empty()) {
-                                             WriteUDP();
-                                         }
-                                     } else {
-                                         std::cout << "[" << id << "] Write UDP Fail.\n";
-                                         std::cout << ec.message() << "\n";
-                                         _socket.close();
-                                     }
-                                 });
+        _udpSocket.async_send_to(
+            send_buffer, _udpRemoteEndpoint,
+            [self = this->shared_from_this(), Buffer = std::move(Buffer)](std::error_code ec, std::size_t bytes_sent) {
+                if (!ec) {
+                    if (!self->_udpMessagesOut.empty()) {
+                        self->WriteUDP();
+                    }
+                } else {
+                    if (!self->_udpMessagesOut.empty()) {
+                        self->WriteUDP();
+                    }
+                }
+            });
     }
 
     void ReadHeader() {
@@ -163,8 +165,8 @@ class Connection : public std::enable_shared_from_this<Connection<T>> {
                                      AddToIncomingMessageQueue();
                                  }
                              } else {
-                                 std::cout << "[" << id << "] Read Header Fail.\n";
-                                 std::cout << ec.message() << "\n";
+                                 std::cout << "[" << id << "] Read Header Fail (Socket closed). E: " << ec.message()
+                                           << "\n";
                                  _socket.close();
                              }
                          });
@@ -176,8 +178,8 @@ class Connection : public std::enable_shared_from_this<Connection<T>> {
                              if (!ec) {
                                  AddToIncomingMessageQueue();
                              } else {
-                                 std::cout << "[" << id << "] Read Body Fail.\n";
-                                 std::cout << ec.message() << "\n";
+                                 std::cout << "[" << id << "] Read Body Fail (Socket closed). E: " << ec.message()
+                                           << "\n";
                                  _socket.close();
                              }
                          });

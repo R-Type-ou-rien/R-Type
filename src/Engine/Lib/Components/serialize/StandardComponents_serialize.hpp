@@ -1,12 +1,42 @@
 #pragma once
 
 #include "Components/StandardComponents.hpp"
-#include <vector>
-#include <string>
-#include "serialize.hpp"
 #include "ResourceConfig.hpp"
+#include "serialize.hpp"
+#include "../../../../RType/Common/Components/damage_component.hpp"
+#include "../../../../RType/Common/Components/shooter_component.hpp"
+#include "../../../../RType/Common/Components/team_component.hpp"
+#include "../../../../RType/Common/Components/game_timer.hpp"
+#include "../../../../RType/Common/Systems/health.hpp"
+#include "Components/NetworkComponents.hpp"
+#include "Components/AudioComponent.hpp"
 
 namespace serialize {
+
+/** AudioSource Component */
+inline void serialize(std::vector<uint8_t>& buffer, const AudioSourceComponent& component) {
+    serialize(buffer, component.sound_name);
+    serialize(buffer, component.play_on_start);
+    serialize(buffer, component.loop);
+    serialize(buffer, component.destroy_entity_on_finish);
+}
+
+inline AudioSourceComponent deserialize_audio_source(const std::vector<uint8_t>& buffer, size_t& offset) {
+    AudioSourceComponent component;
+    try {
+        std::cout << "[AUDIO_DESERIALIZE] Start. Offset: " << offset << " BufferSize: " << buffer.size() << std::endl;
+        component.sound_name = deserialize<std::string>(buffer, offset);
+        std::cout << "[AUDIO_DESERIALIZE] SoundName: " << component.sound_name << std::endl;
+        component.play_on_start = deserialize<bool>(buffer, offset);
+        component.loop = deserialize<bool>(buffer, offset);
+        component.destroy_entity_on_finish = deserialize<bool>(buffer, offset);
+        std::cout << "[AUDIO_DESERIALIZE] Success. Play: " << component.play_on_start << std::endl;
+    } catch (const std::exception& e) {
+        std::cerr << "[AUDIO_DESERIALIZE] ERROR: " << e.what() << std::endl;
+        // Return mostly empty component to avoid blocking, but logging is key
+    }
+    return component;
+}
 
 /** Pattern Component */
 inline void serialize(std::vector<uint8_t>& buffer, const PatternComponent& component) {
@@ -41,6 +71,19 @@ inline PatternComponent deserialize_pattern_component(const std::vector<uint8_t>
     component.amplitude = deserialize<float>(buffer, offset);
     component.frequency = deserialize<float>(buffer, offset);
     component.time_elapsed = deserialize<float>(buffer, offset);
+    return component;
+}
+
+/** Health Component */
+inline void serialize(std::vector<uint8_t>& buffer, const HealthComponent& component) {
+    serialize(buffer, component.max_hp);
+    serialize(buffer, component.current_hp);
+}
+
+inline HealthComponent deserialize_health_component(const std::vector<uint8_t>& buffer, size_t& offset) {
+    HealthComponent component;
+    component.max_hp = deserialize<int>(buffer, offset);
+    component.current_hp = deserialize<int>(buffer, offset);
     return component;
 }
 
@@ -153,11 +196,38 @@ inline sprite2D_component_s deserialize_sprite_2d_component(const std::vector<ui
                                                             ResourceManager<TextureAsset>& resourceManager) {
     sprite2D_component_s component;
     std::string name = deserialize<std::string>(buffer, offset);
-    auto handle = resourceManager.get_handle(name);
-    if (handle) {
-        component.handle = handle.value();
+    if (!name.empty()) {
+        if (resourceManager.is_loaded(name)) {
+            component.handle = resourceManager.get_handle(name).value();
+            std::cout << "[SPRITE_DESERIALIZE] Using existing texture: " << name << std::endl;
+        } else {
+            // Load the texture if not already loaded (critical for client-side rendering)
+#if defined(CLIENT_BUILD)
+            TextureAsset texture;
+            std::string path = name;
+            bool loaded = texture.loadFromFile(path);
+            if (!loaded) {
+                path = "../" + name;
+                loaded = texture.loadFromFile(path);
+            }
+
+            if (!loaded) {
+                std::cerr << "Client: CRITICAL ERROR: Failed to load texture: " << name << " from any path."
+                          << std::endl;
+            } else {
+                std::cout << "[SPRITE_DESERIALIZE] Loaded NEW texture: " << name << std::endl;
+            }
+            component.handle = resourceManager.load(name, texture);
+#else
+            component.handle = resourceManager.load(name, TextureAsset(name));
+#endif
+        }
+    } else {
+        std::cout << "[SPRITE_DESERIALIZE] WARNING: Empty texture name received!" << std::endl;
     }
     component.dimension = deserialize_rect(buffer, offset);
+    std::cout << "[SPRITE_DESERIALIZE] Dimension: x=" << component.dimension.x << " y=" << component.dimension.y
+              << " w=" << component.dimension.width << " h=" << component.dimension.height << std::endl;
     component.is_animated = deserialize<bool>(buffer, offset);
     uint32_t frames_size = deserialize<uint32_t>(buffer, offset);
     component.frames.resize(frames_size);
@@ -223,13 +293,49 @@ inline TextComponent deserialize_text_component(const std::vector<uint8_t>& buff
 }
 
 /** Projectile Component */
-inline void serialize(std::vector<uint8_t>& buffer, const Projectile& component) {
-    serialize(buffer, component.lifetime);
+/** Projectile Component */
+inline void serialize(std::vector<uint8_t>& buffer, const ProjectileComponent& component) {
+    serialize(buffer, component.owner_id);
 }
 
-inline Projectile deserialize_projectile_component(const std::vector<uint8_t>& buffer, size_t& offset) {
-    Projectile component;
-    component.lifetime = deserialize<float>(buffer, offset);
+inline ProjectileComponent deserialize_projectile_component(const std::vector<uint8_t>& buffer, size_t& offset) {
+    ProjectileComponent component;
+    component.owner_id = deserialize<int>(buffer, offset);
+    return component;
+}
+
+/** Team Component */
+inline void serialize(std::vector<uint8_t>& buffer, const TeamComponent& component) {
+    serialize(buffer, component.team);
+}
+
+inline TeamComponent deserialize_team_component(const std::vector<uint8_t>& buffer, size_t& offset) {
+    TeamComponent component;
+    component.team = deserialize<TeamComponent::Team>(buffer, offset);
+    return component;
+}
+
+/** DamageOnCollision Component */
+inline void serialize(std::vector<uint8_t>& buffer, const DamageOnCollision& component) {
+    serialize(buffer, component.damage_value);
+}
+
+inline DamageOnCollision deserialize_damage_on_collision(const std::vector<uint8_t>& buffer, size_t& offset) {
+    DamageOnCollision component;
+    component.damage_value = deserialize<int>(buffer, offset);
+    return component;
+}
+
+/** NetworkIdentity Component */
+inline void serialize(std::vector<uint8_t>& buffer, const NetworkIdentity& component) {
+    serialize(buffer, component.guid);
+    serialize(buffer, component.ownerId);
+}
+
+inline NetworkIdentity deserialize_network_identity(const std::vector<uint8_t>& buffer, size_t& offset) {
+    NetworkIdentity component;
+    component.guid = deserialize<uint32_t>(buffer, offset);
+    component.ownerId = deserialize<uint32_t>(buffer, offset);
     return component;
 }
 
@@ -265,12 +371,29 @@ inline BackgroundComponent deserialize_background_component(const std::vector<ui
                                                             ResourceManager<TextureAsset>& resourceManager) {
     BackgroundComponent component;
     std::string name = deserialize<std::string>(buffer, offset);
-    auto handle = resourceManager.get_handle(name);
-    if (handle) {
-        component.texture_handle = handle.value();
+    if (!name.empty()) {
+        if (resourceManager.is_loaded(name)) {
+            component.texture_handle = resourceManager.get_handle(name).value();
+        } else {
+            // Load the texture if not already loaded (critical for client-side rendering)
+            component.texture_handle = resourceManager.load(name, TextureAsset(name));
+        }
     }
     component.x_offset = deserialize<float>(buffer, offset);
     component.scroll_speed = deserialize<float>(buffer, offset);
     return component;
 }
+
+/** Game Timer Component */
+
+inline void serialize(std::vector<uint8_t>& buffer, const ::GameTimerComponent& component) {
+    serialize(buffer, component.elapsed_time);
+}
+
+inline ::GameTimerComponent deserialize_game_timer_component(const std::vector<uint8_t>& buffer, size_t& offset) {
+    ::GameTimerComponent component;
+    component.elapsed_time = deserialize<float>(buffer, offset);
+    return component;
+}
+
 }  // namespace serialize

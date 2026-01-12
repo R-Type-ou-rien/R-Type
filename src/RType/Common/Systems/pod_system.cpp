@@ -45,8 +45,13 @@ bool PodSystem::allPlayersHavePods(Registry& registry) {
 
 void PodSystem::spawnPod(Registry& registry, system_context context) {
     Entity pod_id = registry.createEntity();
+#if defined(CLIENT_BUILD)
     const float world_w = static_cast<float>(context.window.getSize().x);
     const float world_h = static_cast<float>(context.window.getSize().y);
+#else
+    const float world_w = 1920.0f;
+    const float world_h = 1080.0f;
+#endif
     float spawn_x = world_w + 50.0f;
     float spawn_y = 100.0f + (static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX)) * ((world_h - 200.0f));
 
@@ -108,7 +113,11 @@ void PodSystem::updateFloatingPodMovement(Registry& registry, system_context con
 
         pos.y = pod.base_y + std::sin(pod.float_time * pod.wave_frequency) * pod.wave_amplitude;
 
+#if defined(CLIENT_BUILD)
         const float world_h = static_cast<float>(context.window.getSize().y);
+#else
+        const float world_h = 1080.0f;
+#endif
         float min_y = 80.0f;
         float max_y = world_h - 80.0f;
 

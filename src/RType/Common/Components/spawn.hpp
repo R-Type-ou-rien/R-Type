@@ -3,7 +3,7 @@
 #include "ISystem.hpp"
 #include "registry.hpp"
 #include "config.hpp"
-#include "../Mobs/mob_spawner.hpp"
+#include "../Entities/Mobs/mob_spawner.hpp"
 #include <map>
 #include <string>
 #include <vector>

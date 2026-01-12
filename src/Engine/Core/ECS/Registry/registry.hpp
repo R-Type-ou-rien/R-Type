@@ -77,6 +77,7 @@ class Registry {
     */
     template <typename Component>
     Component& getComponent(Entity entity) {
+        getPool<Component>().markAsDirty(entity);
         return getPool<Component>().getDataFromId(entity);
     }
 

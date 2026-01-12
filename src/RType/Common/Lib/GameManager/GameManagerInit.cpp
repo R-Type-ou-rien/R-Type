@@ -22,22 +22,41 @@
 #include "src/Engine/Lib/Systems/PlayerBoundsSystem.hpp"
 #include "src/Engine/Core/Scene/SceneLoader.hpp"
 #include "src/RType/Common/Scene/ScenePrefabs.hpp"
+#include "CollisionSystem.hpp"
+
+#include "src/Engine/Lib/Systems/PhysicsSystem.hpp"
+#include "src/Engine/Lib/Systems/ActionScriptSystem.hpp"
+#include "src/Engine/Lib/Systems/DestructionSystem.hpp"
 
 void GameManager::initSystems(Environment& env) {
     auto& ecs = env.getECS();
 
-    ecs.systems.addSystem<ShooterSystem>();
-    ecs.systems.addSystem<Damage>();
-    ecs.systems.addSystem<HealthSystem>();
-    ecs.systems.addSystem<PatternSystem>();
-    ecs.systems.addSystem<EnemySpawnSystem>();
-    ecs.systems.addSystem<WallCollisionSystem>();
-    ecs.systems.addSystem<PodSystem>();
-    ecs.systems.addSystem<AIBehaviorSystem>();
-    ecs.systems.addSystem<BoundsSystem>();
-    ecs.systems.addSystem<PlayerBoundsSystem>();
-    ecs.systems.addSystem<ScoreSystem>();
+    // Game logic systems - server only (clients receive state via network)
+    if (!env.isClient()) {
+        ecs.systems.addSystem<BoxCollision>();  // Collision detection must run before damage
+        ecs.systems.addSystem<ShooterSystem>();
+        ecs.systems.addSystem<Damage>();
+        ecs.systems.addSystem<HealthSystem>();
+        ecs.systems.addSystem<PatternSystem>();
+        ecs.systems.addSystem<EnemySpawnSystem>();
+        ecs.systems.addSystem<WallCollisionSystem>();
+        ecs.systems.addSystem<PodSystem>();
+        ecs.systems.addSystem<AIBehaviorSystem>();
+        ecs.systems.addSystem<BoundsSystem>();
+        ecs.systems.addSystem<PlayerBoundsSystem>();
+        ecs.systems.addSystem<ScoreSystem>();
+        ecs.systems.addSystem<PhysicsSystem>();
+        ecs.systems.addSystem<ActionScriptSystem>();
+    }
 
+    // Destruction system runs on both server (to send packets) and client (to clean up)
+    // Actually, on server it sends packets AND cleans up.
+    // On client (standalone), it cleans up.
+    // In multiplayer client mode, received S_ENTITY_DESTROY handles destruction, BUT
+    // local entities (predictive inputs etc) might use PendingDestruction too.
+    ecs.systems.addSystem<DestructionSystem>();
+
+    // Client-only systems (rendering, UI)
     if (!env.isServer()) {
         ecs.systems.addSystem<StatusDisplaySystem>();
     }
@@ -71,6 +90,13 @@ void GameManager::initBounds(Environment& env) {
 }
 
 void GameManager::initPlayer(Environment& env) {
+    // In multiplayer mode (server or client), players are spawned when clients connect
+    // and replicated via network snapshots. Only spawn locally in standalone mode.
+    if (env.isServer() || env.isClient()) {
+        std::cout << "[GameManager] Multiplayer mode: Player spawning handled by network replication" << std::endl;
+        return;
+    }
+
     auto& ecs = env.getECS();
 
     float start_x = _player_config.start_x.value();
@@ -119,9 +145,13 @@ void GameManager::initSpawner(Environment& env) {
     auto& ecs = env.getECS();
 
     if (!env.isClient()) {
-        // Créer le timer de jeu
+        // Créer le timer de jeu avec NetworkIdentity pour la réplication
         Entity timer_entity = ecs.registry.createEntity();
         ecs.registry.addComponent<GameTimerComponent>(timer_entity, {0.0f});
+        NetworkIdentity timer_net_id;
+        timer_net_id.guid = timer_entity;
+        timer_net_id.ownerId = 0;  // Server-owned
+        ecs.registry.addComponent<NetworkIdentity>(timer_entity, timer_net_id);
 
         Entity spawner = ecs.registry.createEntity();
         EnemySpawnComponent spawn_comp;
@@ -188,6 +218,12 @@ void GameManager::initUI(Environment& env) {
 }
 
 void GameManager::initScene(Environment& env) {
+    // Only server loads the scene - clients receive entities via network replication
+    if (env.isClient()) {
+        std::cout << "GameManager: Client mode - scene will be received from server" << std::endl;
+        return;
+    }
+
     auto& ecs = env.getECS();
 
     _scene_manager = std::make_unique<SceneManager>(ecs.registry);

@@ -2,8 +2,13 @@
 #include "Components/StandardComponents.hpp"
 
 void PlayerBoundsSystem::update(Registry& registry, system_context context) {
+#if defined(CLIENT_BUILD)
     const float windowWidth = static_cast<float>(context.window.getSize().x);
     const float windowHeight = static_cast<float>(context.window.getSize().y);
+#else
+    const float windowWidth = 1920.0f;
+    const float windowHeight = 1080.0f;
+#endif
 
     float min_x = 0.0f;
     float min_y = 0.0f;

@@ -2,13 +2,9 @@
 #include <ostream>
 
 #include "GameEngineConfig.hpp"
+#include "NetworkEngine/NetworkEngine.hpp"
 #include "Components/StandardComponents.hpp"
 #include "Lib/GameManager/GameManager.hpp"
-
-/**
- Comment:
- WARNING: BIG ISSUE ECS -> le client ET le serveur créent les entités de la game logique
-*/
 
 int main() {
     GameEngine engine;

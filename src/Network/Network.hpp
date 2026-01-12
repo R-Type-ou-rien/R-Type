@@ -51,6 +51,7 @@ enum class GameEvents : uint32_t {
     C_GAME_START,
     S_GAME_START,
     S_GAME_START_KO,
+    S_ASSIGN_PLAYER_ENTITY,
     C_CANCEL_READY,
     S_CANCEL_READY_BROADCAST,
 
@@ -63,6 +64,7 @@ enum class GameEvents : uint32_t {
     S_VOICE_RELAY,
 
     S_PLAYER_DEATH,
+    S_ENTITY_DESTROY,
     S_SCORE_UPDATE,
     S_GAME_OVER,
 
@@ -114,5 +116,20 @@ struct lobby_in_info {
 
     uint32_t nbPlayers;
 };
+
+struct AssignPlayerEntityPacket {
+    uint32_t entityId;
+};
+
+// Serialization operators for AssignPlayerEntityPacket
+inline message<GameEvents>& operator<<(message<GameEvents>& msg, const AssignPlayerEntityPacket& packet) {
+    msg << packet.entityId;
+    return msg;
+}
+
+inline message<GameEvents>& operator>>(message<GameEvents>& msg, AssignPlayerEntityPacket& packet) {
+    msg >> packet.entityId;
+    return msg;
+}
 
 }  // namespace network

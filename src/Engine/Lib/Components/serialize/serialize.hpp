@@ -47,6 +47,11 @@ void serialize(std::vector<uint8_t>& buffer, const std::tuple<Args...>& t) {
 /** Basic Deserializer */
 template <typename T>
 T deserialize(const std::vector<uint8_t>& buffer, size_t& offset) {
+    if (offset + sizeof(T) > buffer.size()) {
+        std::cerr << "[SERIALIZE] CRITICAL ERROR: Buffer overflow reading type " << typeid(T).name()
+                  << ". Required: " << sizeof(T) << ", Available: " << (buffer.size() - offset) << std::endl;
+        return T{};
+    }
     T value;
     std::copy(buffer.begin() + offset, buffer.begin() + offset + sizeof(T), reinterpret_cast<uint8_t*>(&value));
     offset += sizeof(T);
@@ -55,7 +60,17 @@ T deserialize(const std::vector<uint8_t>& buffer, size_t& offset) {
 
 template <>
 inline std::string deserialize<std::string>(const std::vector<uint8_t>& buffer, size_t& offset) {
+    if (offset + sizeof(uint32_t) > buffer.size()) {
+        std::cerr << "[SERIALIZE] CRITICAL ERROR: Buffer overflow reading string size" << std::endl;
+        return "";
+    }
     uint32_t size = deserialize<uint32_t>(buffer, offset);
+
+    if (offset + size > buffer.size()) {
+        std::cerr << "[SERIALIZE] CRITICAL ERROR: Buffer overflow reading string content. Size: " << size
+                  << ", Available: " << (buffer.size() - offset) << std::endl;
+        return "";
+    }
     std::string str(buffer.begin() + offset, buffer.begin() + offset + size);
     offset += size;
     return str;

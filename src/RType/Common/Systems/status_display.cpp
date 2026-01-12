@@ -19,12 +19,15 @@
 #include "score.hpp"
 
 void StatusDisplaySystem::update(Registry& registry, system_context context) {
+#if defined(CLIENT_BUILD)
     drawChargeBar(registry, context);
     drawLives(registry, context);
     drawScore(registry, context);
+#endif
 }
 
 void StatusDisplaySystem::drawChargeBar(Registry& registry, system_context& context) {
+#if defined(CLIENT_BUILD)
     auto& chargeBarEntities = registry.getEntities<ChargeBarComponent>();
     if (chargeBarEntities.empty()) {
         return;
@@ -98,9 +101,11 @@ void StatusDisplaySystem::drawChargeBar(Registry& registry, system_context& cont
     label.setFillColor(sf::Color::White);
     label.setPosition({bar_x + bar_width / 2 - 25, bar_y - 25});
     context.window.draw(label);
+#endif
 }
 
 void StatusDisplaySystem::drawLives(Registry& registry, system_context& context) {
+#if defined(CLIENT_BUILD)
     auto& livesEntities = registry.getEntities<LivesDisplayComponent>();
     if (livesEntities.empty()) {
         return;
@@ -132,9 +137,11 @@ void StatusDisplaySystem::drawLives(Registry& registry, system_context& context)
         lifeIcon.setOutlineThickness(1);
         context.window.draw(lifeIcon);
     }
+#endif
 }
 
 void StatusDisplaySystem::drawScore(Registry& registry, system_context& context) {
+#if defined(CLIENT_BUILD)
     auto& scoreDisplayEntities = registry.getEntities<ScoreDisplayComponent>();
     if (scoreDisplayEntities.empty()) {
         return;
@@ -169,4 +176,5 @@ void StatusDisplaySystem::drawScore(Registry& registry, system_context& context)
     scoreText.setFillColor(sf::Color::Yellow);
     scoreText.setPosition({scoreDisplay.x, scoreDisplay.y});
     context.window.draw(scoreText);
+#endif
 }

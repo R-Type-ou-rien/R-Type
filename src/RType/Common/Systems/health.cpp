@@ -27,7 +27,7 @@ void HealthSystem::update(Registry& registry, system_context context) {
                 auto& score_value = registry.getConstComponent<ScoreValueComponent>(dead_entity);
                 ScoreSystem::addScore(registry, score_value.value);
             }
-            registry.destroyEntity(dead_entity);
+            registry.addComponent<PendingDestruction>(dead_entity, {});
         }
     }
 }

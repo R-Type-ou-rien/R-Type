@@ -17,7 +17,7 @@ class InputSystem : public ISystem {
    public:
     explicit InputSystem(InputManager& input) : _input(input) {}
 
-    void update(Registry& registry, system_context context) { _input.update(context.dt); }
+    // void update(Registry& registry, system_context context) { _input.update(context.dt); }
 
    private:
     InputManager& _input;
