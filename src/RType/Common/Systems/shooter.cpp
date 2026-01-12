@@ -48,14 +48,17 @@ Velocity2D ShooterSystem::get_projectile_speed(ShooterComponent::ProjectileType 
 }
 
 void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::ProjectileType type,
-                                      TeamComponent::Team team, transform_component_s pos, system_context context) {
-    create_projectile_with_pattern(registry, type, team, pos, context, ShooterComponent::STRAIGHT, 0.0f, 0.0f, 30);
+                                      TeamComponent::Team team, transform_component_s pos, system_context context,
+                                      int projectile_damage, float projectile_scale) {
+    create_projectile_with_pattern(registry, type, team, pos, context, ShooterComponent::STRAIGHT, 0.0f, 0.0f,
+                                   projectile_damage, projectile_scale);
 }
 
 void ShooterSystem::create_projectile_with_pattern(Registry& registry, ShooterComponent::ProjectileType type,
                                                    TeamComponent::Team team, transform_component_s pos,
                                                    system_context context, ShooterComponent::ShootPattern pattern,
-                                                   float target_x, float target_y, int projectile_damage) {
+                                                   float target_x, float target_y, int projectile_damage,
+                                                   float projectile_scale) {
     int id = registry.createEntity();
     Velocity2D speed = get_projectile_speed(type, team);
 
@@ -88,6 +91,13 @@ void ShooterSystem::create_projectile_with_pattern(Registry& registry, ShooterCo
     float offset_x = (team == TeamComponent::ALLY) ? 50.0f : -20.0f;
     registry.addComponent<transform_component_s>(id, {(pos.x + offset_x), (pos.y + 20)});
 
+    // Apply projectile scale
+    if (projectile_scale > 1.0f) {
+        auto& proj_transform = registry.getComponent<transform_component_s>(id);
+        proj_transform.scale_x = projectile_scale;
+        proj_transform.scale_y = projectile_scale;
+    }
+
     registry.addComponent<Velocity2D>(id, speed);
 
     registry.addComponent<TagComponent>(id, tags);
@@ -109,13 +119,28 @@ void ShooterSystem::create_projectile_with_pattern(Registry& registry, ShooterCo
         // Coordonnées des petites boules rouges/orange en bas du sprite du boss
         sprite_info.dimension = {200, 230, 12, 12};  // Petite boule rouge
     } else {
-        // Projectiles alliés : projectiles verts du joueur (r-typesheet1.gif)
+        // Projectiles alliés : projectiles du joueur (r-typesheet1.gif)
         handle_t<TextureAsset> handle =
             context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet1.gif",
                                          TextureAsset("src/RType/Common/content/sprites/r-typesheet1.gif"));
         sprite_info.handle = handle;
-        // Projectile plus visible (32x14 au lieu de 17x13)
-        sprite_info.dimension = {232, 103, 32, 14};
+
+        // 3 modes de tirs avec des sprites différents
+        switch (type) {
+            case ShooterComponent::RED:
+                // Laser rouge (r-typesheet1.gif)
+                sprite_info.dimension = {248, 84, 32, 14};
+                break;
+            case ShooterComponent::BLUE:
+                // Laser bleu (r-typesheet1.gif)
+                sprite_info.dimension = {248, 102, 32, 14};
+                break;
+            case ShooterComponent::NORMAL:
+            default:
+                // Projectile vert (par défaut)
+                sprite_info.dimension = {232, 103, 32, 14};
+                break;
+        }
     }
 
     registry.addComponent<sprite2D_component_s>(id, sprite_info);
@@ -123,11 +148,11 @@ void ShooterSystem::create_projectile_with_pattern(Registry& registry, ShooterCo
     auto& projectile_transform = registry.getComponent<transform_component_s>(id);
     if (team == TeamComponent::ENEMY) {
         // Boules rouges ennemies : agrandir pour visibilité (pas de flip car c'est une boule)
-        projectile_transform.scale_x = 3.5f;  // Agrandir davantage pour être bien visible
-        projectile_transform.scale_y = 3.5f;  // Agrandir davantage pour être bien visible
+        projectile_transform.scale_x = 4.0f;  // Agrandir davantage pour être bien visible
+        projectile_transform.scale_y = 4.0f;  // Agrandir davantage pour être bien visible
     } else {
-        projectile_transform.scale_x = 1.5f;
-        projectile_transform.scale_y = 1.5f;
+        projectile_transform.scale_x = 2.0f;
+        projectile_transform.scale_y = 2.0f;
     }
 
     registry.addComponent<BoxCollisionComponent>(id, {});
@@ -172,13 +197,31 @@ void ShooterSystem::create_charged_projectile(Registry& registry, TeamComponent:
     registry.addComponent<ProjectileComponent>(id, {id});
     registry.addComponent<TeamComponent>(id, {team});
     registry.addComponent<transform_component_s>(id, {(pos.x + 50), (pos.y)});
+    auto& proj_transform = registry.getComponent<transform_component_s>(id);
+    if (charge_ratio >= 1.0f) {
+        proj_transform.scale_x = 2.0f;
+        proj_transform.scale_y = 2.0f;
+    } else if (charge_ratio >= 0.5f) {
+        proj_transform.scale_x = 1.5f;
+        proj_transform.scale_y = 1.5f;
+    } else {
+        proj_transform.scale_x = 1.0f;
+        proj_transform.scale_y = 1.0f;
+    }
     registry.addComponent<Velocity2D>(id, speed);
     registry.addComponent<TagComponent>(id, tags);
 
     int damage = static_cast<int>(50 + (150 * charge_ratio));
     registry.addComponent<DamageOnCollision>(id, {damage});
 
-    registry.addComponent<PenetratingProjectile>(id, {});
+    // Gestion de la pénétration selon le niveau de charge
+    if (charge_ratio >= 1.0f) {
+        // Tir chargé max : traverse tout
+        registry.addComponent<PenetratingProjectile>(id, {999, 0});
+    } else if (charge_ratio >= 0.5f) {
+        // Tir middle : traverse 2 ennemis max (se détruit au 3ème impact)
+        registry.addComponent<PenetratingProjectile>(id, {3, 0});
+    }
 
     handle_t<TextureAsset> handle =
         context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet1.gif",
@@ -294,6 +337,7 @@ void ShooterSystem::update(Registry& registry, system_context context) {
                 const TeamComponent& team = registry.getConstComponent<TeamComponent>(id);
 
                 if (shooter.last_shot >= shooter.fire_rate) {
+                    int proj_damage = shooter.projectile_damage;
                     // 3 shot types based on charge level:
                     // 1. Normal shot: charge < 50% (< 1.0s)
                     // 2. Medium charged shot: charge >= 50% (>= 1.0s, yellow bar)
@@ -306,7 +350,8 @@ void ShooterSystem::update(Registry& registry, system_context context) {
                         create_charged_projectile(registry, team.team, pos, context, 0.5f);
                     } else {
                         // Normal shot - no charge
-                        create_projectile(registry, shooter.type, team.team, pos, context);
+                        create_projectile(registry, shooter.type, team.team, pos, context, proj_damage,
+                                          shooter.projectile_scale);
                     }
                     shooter.last_shot = 0.f;
                 }
@@ -351,23 +396,28 @@ void ShooterSystem::update(Registry& registry, system_context context) {
                 }
             } else if (shooter.pattern == ShooterComponent::SPREAD && team.team == TeamComponent::ENEMY) {
                 create_projectile_with_pattern(registry, shooter.type, team.team, pos, context,
-                                               ShooterComponent::STRAIGHT, 0, 0, proj_damage);
+                                               ShooterComponent::STRAIGHT, 0, 0, proj_damage,
+                                               shooter.projectile_scale);
 
                 transform_component_s pos_up = pos;
                 pos_up.y -= 20;
                 create_projectile_with_pattern(registry, shooter.type, team.team, pos_up, context,
-                                               ShooterComponent::STRAIGHT, 0, -200, proj_damage);
+                                               ShooterComponent::STRAIGHT, 0, -200, proj_damage,
+                                               shooter.projectile_scale);
 
                 transform_component_s pos_down = pos;
                 pos_down.y += 20;
                 create_projectile_with_pattern(registry, shooter.type, team.team, pos_down, context,
-                                               ShooterComponent::STRAIGHT, 0, 200, proj_damage);
+                                               ShooterComponent::STRAIGHT, 0, 200, proj_damage,
+                                               shooter.projectile_scale);
             } else if (shooter.pattern == ShooterComponent::AIM_PLAYER && player_entity != -1) {
                 create_projectile_with_pattern(registry, shooter.type, team.team, pos, context,
-                                               ShooterComponent::AIM_PLAYER, player_x, player_y, proj_damage);
+                                               ShooterComponent::AIM_PLAYER, player_x, player_y, proj_damage,
+                                               shooter.projectile_scale);
             } else {
                 create_projectile_with_pattern(registry, shooter.type, team.team, pos, context,
-                                               ShooterComponent::STRAIGHT, 0, 0, proj_damage);
+                                               ShooterComponent::STRAIGHT, 0, 0, proj_damage,
+                                               shooter.projectile_scale);
             }
             shooter.last_shot = 0.f;
         }

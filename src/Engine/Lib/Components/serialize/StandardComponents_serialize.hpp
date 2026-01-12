@@ -455,6 +455,9 @@ inline void serialize(std::vector<uint8_t>& buffer, const EnemySpawnComponent& c
     serialize(buffer, component.wave_count);
     serialize(buffer, component.is_active);
     serialize(buffer, component.use_scripted_spawns);
+    serialize(buffer, component.enemies_config_path);
+    serialize(buffer, component.boss_config_path);
+    serialize(buffer, component.game_config_path);
     serialize(buffer, component.random_seed);
     serialize(buffer, component.random_state);
 }
@@ -470,6 +473,9 @@ inline EnemySpawnComponent deserialize_enemy_spawn_component(const std::vector<u
     component.wave_count = deserialize<int>(buffer, offset);
     component.is_active = deserialize<bool>(buffer, offset);
     component.use_scripted_spawns = deserialize<bool>(buffer, offset);
+    component.enemies_config_path = deserialize<std::string>(buffer, offset);
+    component.boss_config_path = deserialize<std::string>(buffer, offset);
+    component.game_config_path = deserialize<std::string>(buffer, offset);
     component.random_seed = deserialize<unsigned int>(buffer, offset);
     component.random_state = deserialize<int>(buffer, offset);
     return component;

@@ -14,6 +14,7 @@ struct ShooterComponent {
     double fire_rate = 0.f;
     double last_shot = 1000.0f;
     int projectile_damage = 30;  // Dégâts des projectiles de cette entité
+    float projectile_scale = 3.0f;  // Scale des projectiles (par défaut 3.0)
     bool use_pod_laser = false;
 };
 

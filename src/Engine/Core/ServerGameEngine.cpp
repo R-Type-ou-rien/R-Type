@@ -109,9 +109,10 @@ void ServerGameEngine::processNetworkEvents() {
                     // Set player texture so it's visible
                     newPlayer->setTexture("src/RType/Common/content/sprites/r-typesheet42.gif");
                     newPlayer->setTextureDimension({0, 0, 33, 17});  // Frame dimensions for player sprite
+                    newPlayer->setScale({2.5f, 2.5f});
 
                     // Setup basic player stats
-                    newPlayer->setLifePoint(100);
+                    newPlayer->setLifePoint(5);
                     newPlayer->setTeam(TeamComponent::Team::ALLY);
                     newPlayer->addCollisionTag("AI");
                     newPlayer->addCollisionTag("ENEMY_PROJECTILE");
@@ -133,7 +134,7 @@ void ServerGameEngine::processNetworkEvents() {
                     player_pod.has_pod = false;
                     player_pod.pod_entity = -1;
                     player_pod.pod_attached = false;
-                    player_pod.last_known_hp = 100;
+                    player_pod.last_known_hp = 5;
                     _ecs.registry.addComponent<PlayerPodComponent>(newPlayer->getId(), player_pod);
 
                     // Store player

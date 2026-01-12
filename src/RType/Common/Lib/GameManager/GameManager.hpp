@@ -31,10 +31,10 @@ class GameManager {
     std::string _current_level_scene;
 
     void initSystems(Environment& env);
-    void initBackground(Environment& env);
+    void initBackground(Environment& env, const LevelConfig& config);
     void initPlayer(Environment& env);
-    void initSpawner(Environment& env);
-    void initScene(Environment& env);
+    void initSpawner(Environment& env, const LevelConfig& config);
+    void initScene(Environment& env, const LevelConfig& config);
     void initUI(Environment& env);
     void initBounds(Environment& env);
     void setupMovementControls(InputManager& inputs);

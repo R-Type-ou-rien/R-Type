@@ -7,8 +7,8 @@
 Player::Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<float, float> pos)
     : DynamicActor(ecs, true, textures, "PLAYER") {
     ResourceStat lifepoint;
-    lifepoint.max = 100;
-    lifepoint.current = 100;
+    lifepoint.max = 5;
+    lifepoint.current = 5;
     lifepoint.regenRate = 0;
 
     addResourceStat("lifepoint", lifepoint);
@@ -16,7 +16,7 @@ Player::Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<floa
     _ecs.registry.addComponent<TeamComponent>(_id, {TeamComponent::Team::ALLY});
     _ecs.registry.addComponent<ShooterComponent>(_id, {});
     // Système de vie avec invincibilité de 1.5s après un dégât
-    _ecs.registry.addComponent<HealthComponent>(_id, {100, 100, 0.0f, 1.5f});
+    _ecs.registry.addComponent<HealthComponent>(_id, {5, 5, 0.0f, 1.5f});
     // CRITIQUE : Le joueur doit pouvoir recevoir des dégâts (valeur = 0 car on veut juste les dégâts entrants)
     _ecs.registry.addComponent<DamageOnCollision>(_id, {0});
 
@@ -60,13 +60,25 @@ Player::Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<floa
         if (registry.hasComponent<ShooterComponent>(entity)) {
             auto& shoot = registry.getComponent<ShooterComponent>(entity);
             shoot.trigger_pressed = false;
-            // Note: is_shooting will be handled by ShooterSystem for charged shots
-            // For normal shots, we might want to stop immediately, but let's leave it to the system logic
-            // which checks trigger_pressed for charging logic.
-            // However, if not charging, we should stop shooting.
-            // The ShooterSystem logic I wrote earlier handles this:
-            // if (!shooter.trigger_pressed && charged.is_charging) -> release charged shot
-            // if (!shooter.trigger_pressed && !charged.is_charging) -> stop shooting (eventually)
+
+            if (registry.hasComponent<ChargedShotComponent>(entity)) {
+                auto& charged = registry.getComponent<ChargedShotComponent>(entity);
+                if (!charged.is_charging) {
+                    shoot.is_shooting = false;
+                }
+            } else {
+                shoot.is_shooting = false;
+            }
+        }
+    });
+
+    // Pod Controls
+    bindActionCallbackPressed("toggle_pod", [this](Registry& registry, system_context, Entity entity) {
+        if (registry.hasComponent<PlayerPodComponent>(entity)) {
+            auto& player_pod = registry.getComponent<PlayerPodComponent>(entity);
+            if (player_pod.has_pod) {
+                player_pod.detach_requested = true;
+            }
         }
     });
 
