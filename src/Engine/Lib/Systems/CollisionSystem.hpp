@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+#include <utility>
 #include "Components/StandardComponents.hpp"
 #include "Components/tag_component.hpp"
 #include "ISystem.hpp"
@@ -13,6 +15,6 @@ class BoxCollision : public ISystem {
 
    private:
     bool checkSize(const transform_component_s a, const transform_component_s b, std::pair<float, float> size,
-                   std::pair<float, float> size_b);
+                   std::pair<float, float> size_b, Velocity2D vel_a, Velocity2D vel_b, float dt);
     bool hasTagToCollide(BoxCollisionComponent entity_a, const TagComponent& entity_b);
 };

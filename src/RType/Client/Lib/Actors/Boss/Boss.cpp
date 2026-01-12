@@ -6,6 +6,7 @@
 */
 
 #include "Boss.hpp"
+#include <utility>
 #include "src/RType/Common/Components/damage.hpp"
 #include "src/RType/Common/Components/health.hpp"
 
@@ -106,9 +107,7 @@ void Boss::setCurrentHealth(int health) {
     }
 }
 
-void Boss::takeDamage(int damage)
-
-{
+void Boss::takeDamage(int damage) {
     HealthComponent& comp = _ecs.registry.getComponent<HealthComponent>(_id);
 
     comp.current_hp -= damage;

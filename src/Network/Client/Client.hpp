@@ -14,12 +14,15 @@ class Client : public ClientInterface<GameEvents> {
    public:
     void PingServer();
 
+    Client(std::string host, uint16_t port = 4040) { Connect(host, port); };
     coming_message ReadIncomingMessage();
 
     void LoginServer(std::string username, std::string password);
     void LoginServerToken();
     void LoginAnonymous();
     void RegisterServer(std::string username, std::string password);
+
+    uint32_t getId() const { return _id; }
 
     template <typename T>
     void AddMessageToServer(GameEvents event, uint32_t id, const T& data) {

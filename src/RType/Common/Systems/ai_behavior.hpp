@@ -2,6 +2,7 @@
 
 #include "ISystem.hpp"
 #include "registry.hpp"
+#include "PlayerBoundsSystem.hpp"
 
 // Composant pour les ennemis qui visent le joueur
 struct AIBehaviorComponent {
@@ -60,15 +61,6 @@ struct BossComponent {
     // Dying sequence
     float death_timer = 0.0f;
     float death_duration = 3.0f;
-};
-
-// Composant pour les limites du monde
-struct WorldBoundsComponent {
-    static constexpr auto name = "WorldBoundsComponent";
-    float min_x = 0.0f;
-    float max_x = 1920.0f;
-    float min_y = 0.0f;
-    float max_y = 1080.0f;
 };
 
 class AIBehaviorSystem : public ISystem {

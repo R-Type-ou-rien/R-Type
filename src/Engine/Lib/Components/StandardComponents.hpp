@@ -144,6 +144,10 @@ struct Scroll {
     bool is_paused;
 };
 
+struct PendingDestruction {
+    static constexpr auto name = "PendingDestruction";
+};
+
 struct BackgroundComponent {
     static constexpr auto name = "BackgroundComponent";
     handle_t<TextureAsset> texture_handle;

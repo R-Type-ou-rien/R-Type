@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <string>
+#include <unordered_map>
 #include "Components/NetworkComponents.hpp"
 #include "ResourceManagerBase.hpp"
 #include "slot_map/slot_map.hpp"

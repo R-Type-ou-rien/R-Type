@@ -45,9 +45,11 @@ void Server::OnMessage(std::shared_ptr<Connection<GameEvents>> client, message<G
             OnClientNewLobby(client, msg);
             break;
         case GameEvents::C_CONFIRM_UDP:
-            std::cout << "[SERVER] Confirm UDP\n";
+            std::cout << "[SERVER] Confirm UDP from client " << client->GetID() << "\n";
             if (_clientStates[client] == ClientState::WAITING_UDP_PING)
                 _clientStates[client] = ClientState::CONNECTED;
+            // Also forward to game engine so it can send the full game state
+            _toGameMessages.push({msg.header.id, client->GetID(), msg});
             break;
         case GameEvents::C_TEAM_CHAT:
             onClientSendText(client, msg);
@@ -75,13 +77,14 @@ bool Server::OnClientConnect(std::shared_ptr<Connection<GameEvents>> client) {
     std::cout << "[DEBUG] OnClientConnect: Send ID\n";
     AddMessageToPlayer(GameEvents::S_SEND_ID, client->GetID(), client->GetID());
     // Demander un paquet UDP pour save le endpint  udp (eh vsy j'ai meme pas besoin de parler la)
+    network::message<GameEvents> msg;
     std::cout << "[DEBUG] OnClientConnect: Confirm UDP\n";
-    AddMessageToPlayer(GameEvents::S_CONFIRM_UDP, client->GetID(), 0);
+    msg << client->GetID();
+    AddMessageToPlayer(GameEvents::S_CONFIRM_UDP, client->GetID(), msg);
 
     // Envoi du message de connection au game (bON POUR CA L'AUTOCOMPLETION DE L'IDE A UN PEU AIDER)
-    network::message<GameEvents> msg;
-    msg << 0;
     std::cout << "[DEBUG] OnClientConnect: Push to game\n";
+    msg.header.user_id = client->GetID();
     _toGameMessages.push({GameEvents::C_CONNECTION, client->GetID(), msg});
 
     _clientStates[client] = ClientState::WAITING_UDP_PING;

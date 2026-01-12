@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 file(GLOB_RECURSE CORE_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/Core/ECS/*.cpp"
-    # "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/*.cpp"
+    ${CMAKE_CURRENT_SOURCE_DIR}/Core/NetworkEngine/*cpp
     "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Actors/*.cpp"
 )
 
@@ -27,18 +27,20 @@ target_include_directories(Engine PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources
 )
 
-find_package(nlohmann_json CONFIG REQUIRED)
-target_link_libraries(Engine PUBLIC SFML::Graphics SFML::Window SFML::System NetworkLib nlohmann_json::nlohmann_json)
+target_link_libraries(Engine PUBLIC SFML::Graphics SFML::Window SFML::System SFML::Audio NetworkLib)
 
-find_package(SFML REQUIRED COMPONENTS Window Graphics)
-target_link_libraries(Engine PUBLIC SFML::Window SFML::Graphics)
+find_package(SFML REQUIRED COMPONENTS Window Graphics Audio)
+target_link_libraries(Engine PUBLIC SFML::Window SFML::Graphics SFML::Audio)
 
 file(GLOB_RECURSE COMMON_SYSTEM_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/PatternSystem/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/DestructionSystem.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/CollisionSystem.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/PhysicsSystem.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/ScrollSystem.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/SpawnSystem.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/PlayerBoundsSystem.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Core/LobbyManager.cpp"
 )
 
 if (BUILD_SERVER)
@@ -50,6 +52,8 @@ if (BUILD_SERVER)
         "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/ResourceSystem.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Core/ServerGameEngine.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Inputs/ActionRegistry.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/Inputs/InputManager/ServerInputManager.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/Inputs/InputManager/InputManagerBase.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Inputs/InputState.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Inputs/InputAction.cpp"
     )
@@ -58,15 +62,15 @@ if (BUILD_SERVER)
 else()
     target_compile_definitions(Engine PUBLIC CLIENT_BUILD)
 
-    find_package(SFML REQUIRED COMPONENTS System Audio)
-    target_link_libraries(Engine PUBLIC SFML::System SFML::Audio)
+    find_package(SFML REQUIRED COMPONENTS System)
+    target_link_libraries(Engine PUBLIC SFML::System)
 
     file(GLOB_RECURSE CLIENT_SOURCES
-        "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/ActionScriptSystem.cpp" # comment: a retirer
+        "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/ActionScriptSystem.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/BackgroundSystem.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/RenderSystem.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/InputSystem.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/AudioSystem.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/InputSystem.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Graphics/*.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Inputs/*.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Core/ClientGameEngine.cpp"

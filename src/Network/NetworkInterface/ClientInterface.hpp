@@ -17,7 +17,7 @@ class ClientInterface {
             asio::ip::tcp::resolver resolver(_context);
             asio::ip::tcp::resolver::results_type endpoints = resolver.resolve(host, std::to_string(port));
 
-            _connection = std::make_unique<Connection<T>>(Connection<T>::owner::client, _context,
+            _connection = std::make_shared<Connection<T>>(Connection<T>::owner::client, _context,
                                                           asio::ip::tcp::socket(_context), _qMessagesIn, _socketUDP);
             _connection->ConnectToServer(endpoints);
 
@@ -55,7 +55,7 @@ class ClientInterface {
         if (thrContext.joinable())
             thrContext.join();
 
-        _connection.release();
+        _connection.reset();
     }
 
     bool IsConnected() {
@@ -120,7 +120,7 @@ class ClientInterface {
    protected:
     asio::io_context _context;
     std::thread thrContext;
-    std::unique_ptr<Connection<T>> _connection;
+    std::shared_ptr<Connection<T>> _connection;
 
     asio::ip::udp::socket _socketUDP;
     asio::ip::udp::endpoint _serverUDPEndpoint;

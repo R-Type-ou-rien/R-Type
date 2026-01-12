@@ -1,9 +1,11 @@
-// /*
-// ** EPITECH PROJECT, 2025
-// ** R-Type
-// ** File description:
-// ** InputManager.cpp
-// */
+/*
+** EPITECH PROJECT, 2025
+** R-Type
+** File description:
+** InputManager.cpp
+*/
+
+#include "InputManager.hpp"
 
 // #include "InputManager.hpp"
 

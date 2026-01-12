@@ -6,7 +6,6 @@
 #include <cmath>
 
 void AIBehaviorSystem::update(Registry& registry, system_context context) {
-    // Trouver le joueur
     Entity player_entity = -1;
     auto& teams = registry.getEntities<TeamComponent>();
     for (auto entity : teams) {
@@ -29,7 +28,6 @@ void AIBehaviorSystem::update(Registry& registry, system_context context) {
     if (player_entity == -1)
         return;
 
-    // Mettre à jour les comportements des ennemis
     auto& behaviors = registry.getEntities<AIBehaviorComponent>();
     for (auto entity : behaviors) {
         auto& behavior = registry.getComponent<AIBehaviorComponent>(entity);
@@ -43,7 +41,6 @@ void AIBehaviorSystem::update(Registry& registry, system_context context) {
         }
     }
 
-    // Gérer le boss qui arrive et ses patterns d'attaque
     auto& bosses = registry.getEntities<BossComponent>();
     for (auto boss_entity : bosses) {
         auto& boss = registry.getComponent<BossComponent>(boss_entity);
@@ -141,11 +138,23 @@ void AIBehaviorSystem::updateShootAtPlayer(Registry& registry, Entity enemy, Ent
 }
 
 void BoundsSystem::update(Registry& registry, system_context context) {
-    auto& bounds_entities = registry.getEntities<WorldBoundsComponent>();
-    if (bounds_entities.empty())
-        return;
+#if defined(CLIENT_BUILD)
+    const float windowWidth = static_cast<float>(context.window.getSize().x);
+    const float windowHeight = static_cast<float>(context.window.getSize().y);
+#else
+    const float windowWidth = 1920.0f;
+    const float windowHeight = 1080.0f;
+#endif
 
-    auto& bounds = registry.getConstComponent<WorldBoundsComponent>(bounds_entities[0]);
+    float min_x = 0.0f;
+    float min_y = 0.0f;
+
+    auto& bounds_entities = registry.getEntities<WorldBoundsComponent>();
+    if (!bounds_entities.empty()) {
+        auto& bounds = registry.getConstComponent<WorldBoundsComponent>(bounds_entities[0]);
+        min_x = bounds.min_x;
+        min_y = bounds.min_y;
+    }
 
     auto& players = registry.getEntities<TeamComponent>();
     for (auto entity : players) {
@@ -178,21 +187,27 @@ void BoundsSystem::update(Registry& registry, system_context context) {
 
             if (registry.hasComponent<sprite2D_component_s>(entity)) {
                 auto& sprite = registry.getConstComponent<sprite2D_component_s>(entity);
-                sprite_w = sprite.dimension.width;
-                sprite_h = sprite.dimension.height;
+                if (sprite.is_animated && !sprite.frames.empty()) {
+                    const auto& frame = sprite.frames[sprite.current_animation_frame];
+                    sprite_w = frame.width;
+                    sprite_h = frame.height;
+                } else if (sprite.dimension.width > 0 && sprite.dimension.height > 0) {
+                    sprite_w = sprite.dimension.width;
+                    sprite_h = sprite.dimension.height;
+                }
             }
 
-            float actual_width = sprite_w * scale_x;
-            float actual_height = sprite_h * scale_y;
+            float actual_width = sprite_w * std::abs(scale_x);
+            float actual_height = sprite_h * std::abs(scale_y);
 
-            if (transform.x < bounds.min_x)
-                transform.x = bounds.min_x;
-            if (transform.x > bounds.max_x - actual_width)
-                transform.x = bounds.max_x - actual_width;
-            if (transform.y < bounds.min_y)
-                transform.y = bounds.min_y;
-            if (transform.y > bounds.max_y - actual_height)
-                transform.y = bounds.max_y - actual_height;
+            if (transform.x < min_x)
+                transform.x = min_x;
+            if (transform.x > windowWidth - actual_width)
+                transform.x = windowWidth - actual_width;
+            if (transform.y < min_y)
+                transform.y = min_y;
+            if (transform.y > windowHeight - actual_height)
+                transform.y = windowHeight - actual_height;
         }
     }
 }

@@ -1,17 +1,20 @@
 #include "NetworkEngine.hpp"
 #include <cstdint>
-#include <memory>  // Added for std::shared_ptr
+#include <memory>
+#include <vector>
+#include <iostream>
+#include <map>
 #include "../../Lib/Components/NetworkComponents.hpp"
 
 namespace engine {
 namespace core {
 
-NetworkEngine::NetworkEngine(NetworkRole role, uint16_t port, int timeout) : _role(role) {
+NetworkEngine::NetworkEngine(NetworkRole role, std::string host, uint16_t port, int timeout) : _role(role) {
     if (role == NetworkRole::SERVER) {
         _networkInstance = std::make_shared<network::Server>(port, timeout);
         std::get<std::shared_ptr<network::Server>>(_networkInstance)->Start();
     } else {
-        _networkInstance = std::make_shared<network::Client>();
+        _networkInstance = std::make_shared<network::Client>(host, port);
     }
 }
 
@@ -21,8 +24,6 @@ bool NetworkEngine::isUdpEvent(EventType type) {
         case network::GameEvents::S_SNAPSHOT:
         case network::GameEvents::C_VOICE_PACKET:
         case network::GameEvents::S_VOICE_RELAY:
-        case network::GameEvents::S_SCORE_UPDATE:
-        case network::GameEvents::S_PLAYER_DEATH:
             return true;
         default:
             return false;
@@ -30,6 +31,11 @@ bool NetworkEngine::isUdpEvent(EventType type) {
 }
 
 void NetworkEngine::processIncomingPackets(uint32_t tick) {
+    if (std::holds_alternative<std::shared_ptr<network::Server>>(_networkInstance)) {
+        auto server = std::get<std::shared_ptr<network::Server>>(_networkInstance);
+        server->Update(-1, false);
+    }
+
     while (true) {
         network::coming_message msg;
         bool hasMsg = false;
@@ -49,59 +55,51 @@ void NetworkEngine::processIncomingPackets(uint32_t tick) {
         if (!hasMsg)
             break;
 
-        uint32_t guid = msg.msg.header.user_id;
+        uint32_t user_guid = msg.msg.header.user_id;
 
         if (isUdpEvent(msg.id)) {
-            // Check if body is large enough to contain GUID (at least 4 bytes)
-            if (msg.msg.body.size() < sizeof(uint32_t)) {
-                continue;
-            }
-
             uint32_t packetTick = msg.msg.header.tick;
+            uint32_t sequence_guid = user_guid;
 
-            // User requested casting to ComponentPacket
-            // We interpret the start of the body as the struct.
-            // Note: This assumes the struct layout matches the sender's serialization.
-            ComponentPacket* packet = reinterpret_cast<ComponentPacket*>(msg.msg.body.data());
-            uint32_t guid = packet->entity_guid;
-            if (packetTick <= _lastPacketTickMap[guid]) {
-                continue;
+            if (msg.id == network::GameEvents::S_SNAPSHOT) {
+                auto temp_msg = msg.msg;
+                ComponentPacket temp_packet;
+                temp_msg >> temp_packet;
+                sequence_guid = temp_packet.entity_guid;
+
+                if (_lastPacketTickMap.count(sequence_guid) && packetTick < _lastPacketTickMap[sequence_guid]) {
+                    continue;
+                }
+                _lastPacketTickMap[sequence_guid] = packetTick;
             }
-            _lastPacketTickMap[guid] = packetTick;
-            _processedEvents[msg.id].push_back(msg.msg.body);
+            _processedEvents[msg.id].push_back(msg.msg);
 
         } else {
-            _processedEvents[msg.id].push_back(msg.msg.body);
+            _processedEvents[msg.id].push_back(msg.msg);
         }
     }
 }
 
-std::map<NetworkEngine::EventType, std::vector<std::vector<uint8_t>>> NetworkEngine::getPendingEvents() {
+std::map<NetworkEngine::EventType, std::vector<network::message<NetworkEngine::EventType>>>
+NetworkEngine::getPendingEvents() {
     auto events = _processedEvents;
     _processedEvents.clear();
     return events;
 }
 
-bool NetworkEngine::transmitEvent(EventType type, const std::vector<uint8_t>& data, uint32_t tick, uint32_t targetId) {
-    try {
-        network::message<network::GameEvents> msg;
-        msg.header.id = type;
-        msg.body = data;
-        msg.header.size = data.size();
-        msg.header.tick = tick;
-
-        if (std::holds_alternative<std::shared_ptr<network::Server>>(_networkInstance)) {
-            auto server = std::get<std::shared_ptr<network::Server>>(_networkInstance);
-            server->AddMessageToPlayer(type, targetId, msg);
-        } else {
-            auto client = std::get<std::shared_ptr<network::Client>>(_networkInstance);
-            client->AddMessageToServer(type, msg);
-        }
-    } catch (const std::exception& e) {
-        std::cerr << "Error transmitting event: " << e.what() << std::endl;
-        return false;
+void NetworkEngine::setTimeout(int timeout) {
+    if (std::holds_alternative<std::shared_ptr<network::Server>>(_networkInstance)) {
+        auto server = std::get<std::shared_ptr<network::Server>>(_networkInstance);
+        server->setTimeout(timeout);
     }
-    return true;
+}
+
+uint32_t NetworkEngine::getClientId() const {
+    if (std::holds_alternative<std::shared_ptr<network::Client>>(_networkInstance)) {
+        auto client = std::get<std::shared_ptr<network::Client>>(_networkInstance);
+        return client->getId();
+    }
+    return 0;
 }
 
 }  // namespace core

@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <string>
 #include "NetworkManager.hpp"
 
 class NetworkManagerTest : public ::testing::Test {
@@ -202,8 +203,6 @@ TEST_F(NetworkManagerTest, EmptyPayload_InvalidForLogin) {
     EXPECT_EQ(result.status, PackageValidation::INVALID_PAYLOAD_SIZE);
 }
 
-// ==================== Tests Input Event ====================
-
 TEST_F(NetworkManagerTest, ValidInput_PassesValidation) {
     // Simulate input packet: action string + bool
     network::message<network::GameEvents> msg;
@@ -220,8 +219,6 @@ TEST_F(NetworkManagerTest, ValidInput_PassesValidation) {
     EXPECT_TRUE(result.isValid());
 }
 
-// ==================== Tests JoinRoom Event ====================
-
 TEST_F(NetworkManagerTest, ValidJoinRoom_PassesValidation) {
     uint32_t lobbyId = 12345;
     auto msg = createValidMessage(network::GameEvents::C_JOIN_ROOM, lobbyId);
@@ -230,8 +227,6 @@ TEST_F(NetworkManagerTest, ValidJoinRoom_PassesValidation) {
 
     EXPECT_TRUE(result.isValid());
 }
-
-// ==================== Edge Cases ====================
 
 TEST_F(NetworkManagerTest, ValidationResult_ErrorMessageIsEmptyOnSuccess) {
     uint32_t lobbyId = 1;

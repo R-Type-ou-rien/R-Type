@@ -1,8 +1,10 @@
+#include <string>
 #include "GameManager.hpp"
 #include "ECS.hpp"
 #include "src/RType/Common/Systems/score.hpp"
 #include "src/RType/Common/Systems/spawn.hpp"
 #include "src/RType/Common/Systems/health.hpp"
+#include "src/RType/Common/Components/status_display_components.hpp"
 
 void GameManager::updateUI(Environment& env) {
     auto& ecs = env.getECS();
@@ -12,29 +14,15 @@ void GameManager::updateUI(Environment& env) {
             return;
         }
 
-        // Update HP
-        if (ecs.registry.hasComponent<TextComponent>(_uiEntity)) {
-            auto& text = ecs.registry.getComponent<TextComponent>(_uiEntity);
-
-            if (_player) {
-                Entity player_id = _player->getId();
-                if (ecs.registry.hasComponent<HealthComponent>(player_id)) {
-                    int hp = _player->getCurrentHealth();
-                    int max_hp = _player->getMaxHealth();
-                    text.text = "HP: " + std::to_string(hp) + "/" + std::to_string(max_hp);
-                }
-            }
+        // Update Status Display player reference (only if local player exists)
+        if (_player && _statusDisplayEntity != static_cast<Entity>(-1) &&
+            ecs.registry.hasComponent<StatusDisplayComponent>(_statusDisplayEntity)) {
+            auto& status = ecs.registry.getComponent<StatusDisplayComponent>(_statusDisplayEntity);
+            status.player_entity = _player->getId();
         }
 
-        // Update Score
-        if (ecs.registry.hasComponent<TextComponent>(_scoreEntity)) {
-            auto& score_text = ecs.registry.getComponent<TextComponent>(_scoreEntity);
-            int score = ScoreSystem::getScore(ecs.registry);
-            score_text.text = "Score: " + std::to_string(score);
-        }
-
-        // Update Timer
-        if (ecs.registry.hasComponent<TextComponent>(_timerEntity)) {
+        // Update Timer from server-synced GameTimerComponent
+        if (_timerEntity != static_cast<Entity>(-1) && ecs.registry.hasComponent<TextComponent>(_timerEntity)) {
             auto& timer_text = ecs.registry.getComponent<TextComponent>(_timerEntity);
             auto& game_timers = ecs.registry.getEntities<GameTimerComponent>();
             if (!game_timers.empty()) {
@@ -93,6 +81,11 @@ void GameManager::checkGameState(Environment& env) {
     auto& ecs = env.getECS();
 
     if (_gameOver || _victory) {
+        return;
+    }
+
+    // In client mode, game state is managed by server
+    if (env.isClient()) {
         return;
     }
 

@@ -1,6 +1,5 @@
 #include "damage.hpp"
 
-#include "CollisionSystem.hpp"
 #include "health.hpp"
 #include "shooter.hpp"
 #include "../Components/team_component.hpp"

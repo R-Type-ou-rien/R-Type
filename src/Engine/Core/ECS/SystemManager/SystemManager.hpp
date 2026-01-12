@@ -15,6 +15,17 @@ class SystemManager {
         _systems.push_back(std::make_unique<T>(std::forward<Args>(args)...));
     }
 
+    template <typename T>
+    T* getSystem() {
+        for (auto& system : _systems) {
+            T* casted = dynamic_cast<T*>(system.get());
+            if (casted) {
+                return casted;
+            }
+        }
+        return nullptr;
+    }
+
     void updateAll(system_context context);
 
    private:

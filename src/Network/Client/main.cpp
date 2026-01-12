@@ -83,13 +83,7 @@ int main(int argc, char* argv[]) {
         port = std::stoi(argv[2]);
     }
 
-    network::Client client;
-    std::cout << "[CLIENT] Connecting to " << host << ":" << port << "...\n";
-
-    if (!client.Connect(host, port)) {
-        std::cerr << "[CLIENT] Connection failed.\n";
-        return 1;
-    }
+    network::Client client(host, port);
     std::cout << "[CLIENT] Connected!\n";
 
     // Start receiver thread
