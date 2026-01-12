@@ -49,4 +49,7 @@ void ScoutSpawner::spawn(Registry& registry, system_context context, float x, fl
     TagComponent tags;
     tags.tags.push_back("AI");
     registry.addComponent<TagComponent>(id, tags);
+
+    // Add NetworkIdentity for network replication
+    registry.addComponent<NetworkIdentity>(id, {static_cast<uint32_t>(id), 0});
 }

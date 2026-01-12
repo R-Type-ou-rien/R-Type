@@ -17,6 +17,9 @@
 #include "../../RType/Common/Components/team_component.hpp"
 #include "../../RType/Common/Components/damage_component.hpp"
 #include "../../RType/Common/Components/game_timer.hpp"
+#include "../../RType/Common/Components/pod_component.hpp"
+#include "../../RType/Common/Components/charged_shot.hpp"
+#include "../../RType/Common/Systems/ai_behavior.hpp"
 #include "../../RType/Common/Entities/Player/Player.hpp"
 
 ServerGameEngine::ServerGameEngine() {
@@ -49,6 +52,12 @@ int ServerGameEngine::init() {
     registerNetworkComponent<NetworkIdentity>();
     registerNetworkComponent<::GameTimerComponent>();
     registerNetworkComponent<AudioSourceComponent>();
+
+    // R-Type specific components
+    registerNetworkComponent<PodComponent>();
+    registerNetworkComponent<PlayerPodComponent>();
+    registerNetworkComponent<AIBehaviorComponent>();
+    registerNetworkComponent<BossComponent>();
 
     return SUCCESS;
 }
@@ -112,6 +121,20 @@ void ServerGameEngine::processNetworkEvents() {
 
                     // Add NetworkIdentity so it gets replicated and accepts inputs
                     _ecs.registry.addComponent<NetworkIdentity>(newPlayer->getId(), {newPlayer->getId(), newClientId});
+
+                    // Add ChargedShotComponent for charged shooting
+                    ChargedShotComponent charged_shot;
+                    charged_shot.min_charge_time = 0.5f;
+                    charged_shot.max_charge_time = 2.0f;
+                    _ecs.registry.addComponent<ChargedShotComponent>(newPlayer->getId(), charged_shot);
+
+                    // Add PlayerPodComponent for pod system
+                    PlayerPodComponent player_pod;
+                    player_pod.has_pod = false;
+                    player_pod.pod_entity = -1;
+                    player_pod.pod_attached = false;
+                    player_pod.last_known_hp = 100;
+                    _ecs.registry.addComponent<PlayerPodComponent>(newPlayer->getId(), player_pod);
 
                     // Store player
                     _players[newClientId] = newPlayer;

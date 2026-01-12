@@ -35,4 +35,7 @@ void ObstacleSpawner::spawn(Registry& registry, system_context context, float x,
     TagComponent tags;
     tags.tags.push_back("OBSTACLE");
     registry.addComponent<TagComponent>(id, tags);
+
+    // Add NetworkIdentity for network replication
+    registry.addComponent<NetworkIdentity>(id, {static_cast<uint32_t>(id), 0});
 }

@@ -153,4 +153,62 @@ struct ComponentTraits<::GameTimerComponent> {
     }
 };
 
+// --- R-TYPE GAME COMPONENTS ---
+
+template <>
+struct ComponentTraits<ShooterComponent> {
+    static ShooterComponent deserialize(const std::vector<uint8_t>& buffer, size_t& offset,
+                                        ResourceManager<TextureAsset>&) {
+        return deserialize_shooter_component(buffer, offset);
+    }
+};
+
+template <>
+struct ComponentTraits<ChargedShotComponent> {
+    static ChargedShotComponent deserialize(const std::vector<uint8_t>& buffer, size_t& offset,
+                                            ResourceManager<TextureAsset>&) {
+        return deserialize_charged_shot_component(buffer, offset);
+    }
+};
+
+template <>
+struct ComponentTraits<EnemySpawnComponent> {
+    static EnemySpawnComponent deserialize(const std::vector<uint8_t>& buffer, size_t& offset,
+                                           ResourceManager<TextureAsset>&) {
+        return deserialize_enemy_spawn_component(buffer, offset);
+    }
+};
+
+template <>
+struct ComponentTraits<PodComponent> {
+    static PodComponent deserialize(const std::vector<uint8_t>& buffer, size_t& offset,
+                                    ResourceManager<TextureAsset>&) {
+        return deserialize_pod_component(buffer, offset);
+    }
+};
+
+template <>
+struct ComponentTraits<PlayerPodComponent> {
+    static PlayerPodComponent deserialize(const std::vector<uint8_t>& buffer, size_t& offset,
+                                          ResourceManager<TextureAsset>&) {
+        return deserialize_player_pod_component(buffer, offset);
+    }
+};
+
+template <>
+struct ComponentTraits<AIBehaviorComponent> {
+    static AIBehaviorComponent deserialize(const std::vector<uint8_t>& buffer, size_t& offset,
+                                           ResourceManager<TextureAsset>&) {
+        return deserialize_ai_behavior_component(buffer, offset);
+    }
+};
+
+template <>
+struct ComponentTraits<BossComponent> {
+    static BossComponent deserialize(const std::vector<uint8_t>& buffer, size_t& offset,
+                                     ResourceManager<TextureAsset>&) {
+        return deserialize_boss_component(buffer, offset);
+    }
+};
+
 }  // namespace serialize

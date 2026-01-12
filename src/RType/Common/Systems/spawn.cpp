@@ -3,9 +3,12 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <fstream>
+#include <sstream>
 #include "Components/StandardComponents.hpp"
 #include "../Entities/Mobs/all_mobs.hpp"
 #include "../Components/game_timer.hpp"
+#include "../Components/scripted_spawn.hpp"
 
 const float WORLD_WIDTH = 1920.0f;
 const float WORLD_HEIGHT = 1080.0f;
@@ -42,6 +45,98 @@ float EnemySpawnSystem::getRandomFloat(EnemySpawnComponent& comp, float min, flo
     comp.random_state = (comp.random_state * 1103515245 + 12345) & 0x7fffffff;
     float normalized = static_cast<float>(comp.random_state) / static_cast<float>(0x7fffffff);
     return min + normalized * (max - min);
+}
+
+void EnemySpawnSystem::loadScriptedSpawns(ScriptedSpawnComponent& scripted_spawn, const std::string& filename) {
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Failed to open spawn script: " << filename << std::endl;
+        return;
+    }
+
+    std::string line;
+    while (std::getline(file, line)) {
+        if (line.empty() || line[0] == '#')
+            continue;
+
+        if (line.find("spawn=") == 0) {
+            std::string content = line.substr(6);
+            std::stringstream ss(content);
+            std::string segment;
+            std::vector<std::string> parts;
+
+            while (std::getline(ss, segment, ',')) {
+                parts.push_back(segment);
+            }
+
+            if (parts.size() >= 9) {
+                SpawnEvent event;
+                event.trigger_time = std::stof(parts[0]);
+                event.enemy_type = parts[1];
+                event.x_position = std::stof(parts[2]);
+                event.y_position = std::stof(parts[3]);
+                event.count = std::stoi(parts[4]);
+                event.spacing = std::stof(parts[5]);
+                event.formation = parts[6];
+                event.custom_speed = std::stof(parts[7]);
+                event.custom_hp = std::stoi(parts[8]);
+                event.executed = false;
+
+                scripted_spawn.spawn_events.push_back(event);
+            }
+        }
+    }
+    std::cout << "Loaded " << scripted_spawn.spawn_events.size() << " scripted spawn events." << std::endl;
+}
+
+void EnemySpawnSystem::handleScriptedSpawns(Registry& registry, system_context context,
+                                            ScriptedSpawnComponent& scripted_spawn, float windowWidth,
+                                            float windowHeight) {
+    if (scripted_spawn.all_events_completed)
+        return;
+
+    scripted_spawn.level_time += context.dt;
+
+    while (scripted_spawn.next_event_index < scripted_spawn.spawn_events.size()) {
+        SpawnEvent& event = scripted_spawn.spawn_events[scripted_spawn.next_event_index];
+
+        if (scripted_spawn.level_time >= event.trigger_time) {
+            // Execute spawn event
+            if (event.formation == "SINGLE") {
+                spawnEnemy(registry, context, event.x_position, event.y_position, event.enemy_type);
+            } else if (event.formation == "LINE_HORIZONTAL") {
+                for (int i = 0; i < event.count; i++) {
+                    spawnEnemy(registry, context, event.x_position + (i * event.spacing), event.y_position,
+                               event.enemy_type);
+                }
+            } else if (event.formation == "LINE_VERTICAL") {
+                for (int i = 0; i < event.count; i++) {
+                    spawnEnemy(registry, context, event.x_position, event.y_position + (i * event.spacing),
+                               event.enemy_type);
+                }
+            } else if (event.formation == "V_FORMATION") {
+                for (int i = 0; i < event.count; i++) {
+                    float y_offset = std::abs(i - event.count / 2) * event.spacing;
+                    spawnEnemy(registry, context, event.x_position + (i * 50), event.y_position + y_offset,
+                               event.enemy_type);
+                }
+            } else if (event.formation == "SNAKE") {
+                for (int i = 0; i < event.count; i++) {
+                    spawnEnemy(registry, context, event.x_position + (i * event.spacing),
+                               event.y_position + std::sin(i) * 50, event.enemy_type);
+                }
+            }
+
+            event.executed = true;
+            scripted_spawn.next_event_index++;
+        } else {
+            break;  // Events are sorted by time, so we can stop checking
+        }
+    }
+
+    if (scripted_spawn.next_event_index >= scripted_spawn.spawn_events.size()) {
+        scripted_spawn.all_events_completed = true;
+    }
 }
 
 void EnemySpawnSystem::update(Registry& registry, system_context context) {
@@ -88,6 +183,19 @@ void EnemySpawnSystem::update(Registry& registry, system_context context) {
         registry.destroyEntity(entity);
     }
 
+    // Handle scripted spawns
+    auto& scripted_spawners = registry.getEntities<ScriptedSpawnComponent>();
+    for (auto spawner : scripted_spawners) {
+        auto& scripted_spawn = registry.getComponent<ScriptedSpawnComponent>(spawner);
+
+        // Load script if empty (first run)
+        if (scripted_spawn.spawn_events.empty() && !scripted_spawn.all_events_completed) {
+            loadScriptedSpawns(scripted_spawn, "src/RType/Common/content/config/level1_spawns.cfg");
+        }
+
+        handleScriptedSpawns(registry, context, scripted_spawn, windowWidth, windowHeight);
+    }
+
     for (auto spawner : spawners) {
         auto& spawn_comp = registry.getComponent<EnemySpawnComponent>(spawner);
 
@@ -99,7 +207,9 @@ void EnemySpawnSystem::update(Registry& registry, system_context context) {
         spawn_comp.total_time += context.dt;
 
         // Obstacles avant le boss
-        handleObstacles(registry, context, spawn_comp, windowWidth, windowHeight);
+        if (!spawn_comp.use_scripted_spawns) {
+            handleObstacles(registry, context, spawn_comp, windowWidth, windowHeight);
+        }
 
         // Gestion du boss
         if (handleBossSpawn(registry, context, spawn_comp))
@@ -108,11 +218,13 @@ void EnemySpawnSystem::update(Registry& registry, system_context context) {
         if (!spawn_comp.is_active)
             continue;
 
-        // Spawn des vagues normales
-        spawn_comp.spawn_timer += context.dt;
-        if (spawn_comp.spawn_timer >= _game_config.wave_interval.value()) {
-            spawn_comp.spawn_timer = 0.0f;
-            spawnWave(registry, context, spawn_comp, windowWidth, windowHeight);
+        // Spawn des vagues normales (seulement si pas en mode scripté)
+        if (!spawn_comp.use_scripted_spawns) {
+            spawn_comp.spawn_timer += context.dt;
+            if (spawn_comp.spawn_timer >= _game_config.wave_interval.value()) {
+                spawn_comp.spawn_timer = 0.0f;
+                spawnWave(registry, context, spawn_comp, windowWidth, windowHeight);
+            }
         }
     }
 }

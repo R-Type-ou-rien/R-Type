@@ -89,4 +89,7 @@ void BossSpawner::spawn(Registry& registry, system_context context, float x, flo
     tags.tags.push_back("AI");
     tags.tags.push_back("BOSS");
     registry.addComponent<TagComponent>(id, tags);
+
+    // Add NetworkIdentity for network replication
+    registry.addComponent<NetworkIdentity>(id, {static_cast<uint32_t>(id), 0});
 }

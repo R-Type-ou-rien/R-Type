@@ -11,6 +11,7 @@
 #include <unordered_map>
 #include "src/Engine/Core/Scene/SceneManager.hpp"
 #include "Components/StandardComponents.hpp"
+#include "Components/NetworkComponents.hpp"
 #include "../Components/terrain_component.hpp"
 #include "../Components/team_component.hpp"
 #include "../Systems/health.hpp"
@@ -84,6 +85,9 @@ class ScenePrefabs {
                 tags.tags.push_back("WALL");
                 tags.tags.push_back("TERRAIN");
                 registry.addComponent<TagComponent>(entity, tags);
+
+                // Add NetworkIdentity for network replication
+                registry.addComponent<NetworkIdentity>(entity, {static_cast<uint32_t>(entity), 0});
             });
     }
 
@@ -167,6 +171,9 @@ class ScenePrefabs {
                 tags.tags.push_back("AI");
                 tags.tags.push_back("TURRET");
                 registry.addComponent<TagComponent>(entity, tags);
+
+                // Add NetworkIdentity for network replication
+                registry.addComponent<NetworkIdentity>(entity, {static_cast<uint32_t>(entity), 0});
             });
     }
 };
