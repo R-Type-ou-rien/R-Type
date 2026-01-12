@@ -92,10 +92,13 @@ void PodSystem::spawnPod(Registry& registry, system_context context) {
     sprite_info.handle = handle;
     sprite_info.z_index = 2;
 
+    float frame_width = 33.0f;
+    float frame_height = 32.0f;
+    sprite_info.dimension = {0, 0, frame_width, frame_height};
+
     registry.addComponent<sprite2D_component_s>(pod_id, sprite_info);
 
-    AnimationHelper::setupAnimation(registry, pod_id, 1.0f, 1.0f, 33.0f, 32.0f, 12, 0.15f, 1.0f);
-
+    AnimationHelper::setupAnimation(registry, pod_id, 1.0f, 1.0f, static_cast<float>(frame_width), static_cast<float>(frame_height), 12, 0.15f, 1.0f);
     auto& transform = registry.getComponent<transform_component_s>(pod_id);
     transform.scale_x = 3.0f;
     transform.scale_y = 3.0f;

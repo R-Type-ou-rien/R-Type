@@ -32,7 +32,7 @@ class ScenePrefabs {
             "Wall", [&texture_manager](Registry& registry, Entity entity,
                                        const std::unordered_map<std::string, std::any>& props) {
                 float x = 0, y = 0, width = 64, height = 64;
-                std::string sprite_path = "src/RType/Common/content/sprites/r-typesheet14.gif";
+                std::string sprite_path = "src/RType/Common/content/sprites/wall-level1.gif";
                 bool destructible = false;
 
                 if (props.count("x"))
