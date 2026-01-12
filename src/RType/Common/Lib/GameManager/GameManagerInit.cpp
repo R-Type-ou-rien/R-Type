@@ -131,19 +131,19 @@ void GameManager::initPlayer(Environment& env) {
         _player->addCollisionTag("ENEMY_PROJECTILE");
         _player->addCollisionTag("OBSTACLE");
         _player->addCollisionTag("ITEM");
-<<<<<<< HEAD
         _player->addCollisionTag("POWERUP");  // Nouveau : pour collecter les power-ups
-=======
         _player->addCollisionTag("WALL");
->>>>>>> origin/dev
 
         ChargedShotComponent charged_shot;
         charged_shot.min_charge_time = 0.5f;
         charged_shot.max_charge_time = 2.0f;
         ecs.registry.addComponent<ChargedShotComponent>(_player->getId(), charged_shot);
 
-        _player->addCollisionTag("POWERUP");  // Nouveau : pour collecter les power-ups
-        _player->addCollisionTag("WALL");.last_known_hp = _player_config.hp.value();
+        PlayerPodComponent player_pod;
+        player_pod.has_pod = false;
+        player_pod.pod_entity = -1;
+        player_pod.pod_attached = false;
+        player_pod.last_known_hp = _player_config.hp.value();
         ecs.registry.addComponent<PlayerPodComponent>(_player->getId(), player_pod);
     }
 }
