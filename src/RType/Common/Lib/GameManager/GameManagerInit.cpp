@@ -68,16 +68,9 @@ void GameManager::initSystems(Environment& env) {
     }
 }
 
-void GameManager::initBackground(Environment& env) {
+void GameManager::initBackground(Environment& env, const LevelConfig& config) {
     if (!env.isServer()) {
-        LevelConfig level_config;
-        try {
-            level_config = SceneLoader::loadFromFile(_current_level_scene);
-        } catch (...) {
-            level_config.background_texture = "src/RType/Common/content/sprites/test.png";
-        }
-
-        std::string bgPath = level_config.background_texture;
+        std::string bgPath = config.background_texture;
         if (bgPath.empty()) {
             bgPath = "src/RType/Common/content/sprites/test.png";
         }
@@ -131,7 +124,10 @@ void GameManager::initPlayer(Environment& env) {
 
         // Appliquer le scale si defini dans la configuration
         if (_player_config.scale.has_value()) {
+            std::cout << "[GameManager] Applying player scale: " << _player_config.scale.value() << std::endl;
             _player->setScale({_player_config.scale.value(), _player_config.scale.value()});
+        } else {
+            std::cout << "[GameManager] No scale defined in player config" << std::endl;
         }
 
         _player->setFireRate(_player_config.fire_rate.value());
@@ -159,7 +155,7 @@ void GameManager::initPlayer(Environment& env) {
     }
 }
 
-void GameManager::initSpawner(Environment& env) {
+void GameManager::initSpawner(Environment& env, const LevelConfig& config) {
     auto& ecs = env.getECS();
 
     if (!env.isClient()) {
@@ -175,12 +171,19 @@ void GameManager::initSpawner(Environment& env) {
         EnemySpawnComponent spawn_comp;
         spawn_comp.spawn_interval = 2.0f;
         spawn_comp.is_active = true;
+        
+        // Use configuration paths from LevelConfig
+        spawn_comp.enemies_config_path = config.enemies_config;
+        spawn_comp.boss_config_path = config.boss_config;
+        spawn_comp.game_config_path = config.game_config;
+
         ecs.registry.addComponent<EnemySpawnComponent>(spawner, spawn_comp);
         ecs.registry.addComponent<NetworkIdentity>(spawner, {static_cast<uint32_t>(spawner), 0});
 
         // Scripted Spawn Component
         Entity scripted_spawner = ecs.registry.createEntity();
         ScriptedSpawnComponent scripted_spawn_comp;
+        scripted_spawn_comp.script_path = config.spawn_script;
         ecs.registry.addComponent<ScriptedSpawnComponent>(scripted_spawner, scripted_spawn_comp);
 
         Entity pod_spawner = ecs.registry.createEntity();
@@ -247,7 +250,7 @@ void GameManager::initUI(Environment& env) {
     }
 }
 
-void GameManager::initScene(Environment& env) {
+void GameManager::initScene(Environment& env, const LevelConfig& config) {
     // Only server loads the scene - clients receive entities via network replication
     if (env.isClient()) {
         std::cout << "GameManager: Client mode - scene will be received from server" << std::endl;
@@ -261,9 +264,8 @@ void GameManager::initScene(Environment& env) {
     ScenePrefabs::registerAll(*_scene_manager, env.getTextureManager());
 
     try {
-        LevelConfig level_config = SceneLoader::loadFromFile(_current_level_scene);
-        _scene_manager->loadScene(level_config);
-        std::cout << "GameManager: Loaded scene '" << level_config.name << "'" << std::endl;
+        _scene_manager->loadScene(config);
+        std::cout << "GameManager: Loaded scene '" << config.name << "'" << std::endl;
     } catch (const std::exception& e) {
         std::cerr << "GameManager: Failed to load scene: " << e.what() << std::endl;
     }

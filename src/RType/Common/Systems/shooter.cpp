@@ -49,15 +49,16 @@ Velocity2D ShooterSystem::get_projectile_speed(ShooterComponent::ProjectileType 
 
 void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::ProjectileType type,
                                       TeamComponent::Team team, transform_component_s pos, system_context context,
-                                      int projectile_damage) {
+                                      int projectile_damage, float projectile_scale) {
     create_projectile_with_pattern(registry, type, team, pos, context, ShooterComponent::STRAIGHT, 0.0f, 0.0f,
-                                   projectile_damage);
+                                   projectile_damage, projectile_scale);
 }
 
 void ShooterSystem::create_projectile_with_pattern(Registry& registry, ShooterComponent::ProjectileType type,
                                                    TeamComponent::Team team, transform_component_s pos,
                                                    system_context context, ShooterComponent::ShootPattern pattern,
-                                                   float target_x, float target_y, int projectile_damage) {
+                                                   float target_x, float target_y, int projectile_damage,
+                                                   float projectile_scale) {
     int id = registry.createEntity();
     Velocity2D speed = get_projectile_speed(type, team);
 
@@ -89,6 +90,13 @@ void ShooterSystem::create_projectile_with_pattern(Registry& registry, ShooterCo
 
     float offset_x = (team == TeamComponent::ALLY) ? 50.0f : -20.0f;
     registry.addComponent<transform_component_s>(id, {(pos.x + offset_x), (pos.y + 20)});
+
+    // Apply projectile scale
+    if (projectile_scale > 1.0f) {
+        auto& proj_transform = registry.getComponent<transform_component_s>(id);
+        proj_transform.scale_x = projectile_scale;
+        proj_transform.scale_y = projectile_scale;
+    }
 
     registry.addComponent<Velocity2D>(id, speed);
 
@@ -140,11 +148,11 @@ void ShooterSystem::create_projectile_with_pattern(Registry& registry, ShooterCo
     auto& projectile_transform = registry.getComponent<transform_component_s>(id);
     if (team == TeamComponent::ENEMY) {
         // Boules rouges ennemies : agrandir pour visibilité (pas de flip car c'est une boule)
-        projectile_transform.scale_x = 3.5f;  // Agrandir davantage pour être bien visible
-        projectile_transform.scale_y = 3.5f;  // Agrandir davantage pour être bien visible
+        projectile_transform.scale_x = 4.0f;  // Agrandir davantage pour être bien visible
+        projectile_transform.scale_y = 4.0f;  // Agrandir davantage pour être bien visible
     } else {
-        projectile_transform.scale_x = 1.5f;
-        projectile_transform.scale_y = 1.5f;
+        projectile_transform.scale_x = 2.0f;
+        projectile_transform.scale_y = 2.0f;
     }
 
     registry.addComponent<BoxCollisionComponent>(id, {});
@@ -189,6 +197,17 @@ void ShooterSystem::create_charged_projectile(Registry& registry, TeamComponent:
     registry.addComponent<ProjectileComponent>(id, {id});
     registry.addComponent<TeamComponent>(id, {team});
     registry.addComponent<transform_component_s>(id, {(pos.x + 50), (pos.y)});
+    auto& proj_transform = registry.getComponent<transform_component_s>(id);
+    if (charge_ratio >= 1.0f) {
+        proj_transform.scale_x = 2.0f;
+        proj_transform.scale_y = 2.0f;
+    } else if (charge_ratio >= 0.5f) {
+        proj_transform.scale_x = 1.5f;
+        proj_transform.scale_y = 1.5f;
+    } else {
+        proj_transform.scale_x = 1.0f;
+        proj_transform.scale_y = 1.0f;
+    }
     registry.addComponent<Velocity2D>(id, speed);
     registry.addComponent<TagComponent>(id, tags);
 
@@ -331,7 +350,8 @@ void ShooterSystem::update(Registry& registry, system_context context) {
                         create_charged_projectile(registry, team.team, pos, context, 0.5f);
                     } else {
                         // Normal shot - no charge
-                        create_projectile(registry, shooter.type, team.team, pos, context, proj_damage);
+                        create_projectile(registry, shooter.type, team.team, pos, context, proj_damage,
+                                          shooter.projectile_scale);
                     }
                     shooter.last_shot = 0.f;
                 }
@@ -376,23 +396,28 @@ void ShooterSystem::update(Registry& registry, system_context context) {
                 }
             } else if (shooter.pattern == ShooterComponent::SPREAD && team.team == TeamComponent::ENEMY) {
                 create_projectile_with_pattern(registry, shooter.type, team.team, pos, context,
-                                               ShooterComponent::STRAIGHT, 0, 0, proj_damage);
+                                               ShooterComponent::STRAIGHT, 0, 0, proj_damage,
+                                               shooter.projectile_scale);
 
                 transform_component_s pos_up = pos;
                 pos_up.y -= 20;
                 create_projectile_with_pattern(registry, shooter.type, team.team, pos_up, context,
-                                               ShooterComponent::STRAIGHT, 0, -200, proj_damage);
+                                               ShooterComponent::STRAIGHT, 0, -200, proj_damage,
+                                               shooter.projectile_scale);
 
                 transform_component_s pos_down = pos;
                 pos_down.y += 20;
                 create_projectile_with_pattern(registry, shooter.type, team.team, pos_down, context,
-                                               ShooterComponent::STRAIGHT, 0, 200, proj_damage);
+                                               ShooterComponent::STRAIGHT, 0, 200, proj_damage,
+                                               shooter.projectile_scale);
             } else if (shooter.pattern == ShooterComponent::AIM_PLAYER && player_entity != -1) {
                 create_projectile_with_pattern(registry, shooter.type, team.team, pos, context,
-                                               ShooterComponent::AIM_PLAYER, player_x, player_y, proj_damage);
+                                               ShooterComponent::AIM_PLAYER, player_x, player_y, proj_damage,
+                                               shooter.projectile_scale);
             } else {
                 create_projectile_with_pattern(registry, shooter.type, team.team, pos, context,
-                                               ShooterComponent::STRAIGHT, 0, 0, proj_damage);
+                                               ShooterComponent::STRAIGHT, 0, 0, proj_damage,
+                                               shooter.projectile_scale);
             }
             shooter.last_shot = 0.f;
         }
@@ -418,6 +443,7 @@ void ShooterSystem::create_pod_circular_laser(Registry& registry, transform_comp
     registry.addComponent<TeamComponent>(laser_id, {TeamComponent::ALLY});
     registry.addComponent<ProjectileComponent>(laser_id, {static_cast<int>(laser_id)});
     registry.addComponent<DamageOnCollision>(laser_id, {projectile_damage});
+    registry.addComponent<PenetratingProjectile>(laser_id, {999, 0});
 
     handle_t<TextureAsset> handle =
         context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet1.gif",

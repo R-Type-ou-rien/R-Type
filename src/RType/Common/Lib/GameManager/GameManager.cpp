@@ -21,11 +21,11 @@ void GameManager::init(Environment& env, InputManager& inputs) {
         // Fallback or handle error
     }
 
-    initBackground(env);
+    initBackground(env, level_config);
     initBounds(env);
     initPlayer(env);
-    initSpawner(env);
-    initScene(env);
+    initSpawner(env, level_config);
+    initScene(env, level_config);
     initUI(env);
 
     if (!env.isServer()) {

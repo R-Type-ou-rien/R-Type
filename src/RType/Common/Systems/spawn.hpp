@@ -13,12 +13,12 @@
 
 class EnemySpawnSystem : public ISystem {
    public:
-    EnemySpawnSystem();
+    EnemySpawnSystem() = default;
     ~EnemySpawnSystem() = default;
     void update(Registry& registry, system_context context) override;
 
    private:
-    void loadConfigs();
+    void loadConfigs(const std::string& enemies, const std::string& boss, const std::string& game);
     void spawnEnemy(Registry& registry, system_context context, float x, float y, const std::string& enemy_type);
     void spawnBoss(Registry& registry, system_context context);
     void spawnObstacle(Registry& registry, system_context context, float x, float y);

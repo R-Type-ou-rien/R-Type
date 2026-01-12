@@ -109,6 +109,7 @@ void ServerGameEngine::processNetworkEvents() {
                     // Set player texture so it's visible
                     newPlayer->setTexture("src/RType/Common/content/sprites/r-typesheet42.gif");
                     newPlayer->setTextureDimension({0, 0, 33, 17});  // Frame dimensions for player sprite
+                    newPlayer->setScale({2.5f, 2.5f});
 
                     // Setup basic player stats
                     newPlayer->setLifePoint(5);

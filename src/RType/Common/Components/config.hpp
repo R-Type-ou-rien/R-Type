@@ -14,6 +14,7 @@ struct EntityConfig {
     std::optional<int> hp;
     std::optional<int> damage;
     std::optional<int> projectile_damage;
+    std::optional<float> projectile_scale;
     std::optional<float> speed;
     std::optional<float> fire_rate;
     std::optional<bool> can_shoot;
@@ -229,6 +230,8 @@ class ConfigLoader {
             config.damage = std::stoi(value);
         else if (key == "projectile_damage")
             config.projectile_damage = std::stoi(value);
+        else if (key == "projectile_scale")
+            config.projectile_scale = std::stof(value);
         else if (key == "speed")
             config.speed = std::stof(value);
         else if (key == "fire_rate")

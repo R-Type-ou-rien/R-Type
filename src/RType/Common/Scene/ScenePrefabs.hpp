@@ -125,6 +125,7 @@ class ScenePrefabs {
                 shooter.fire_rate = fire_rate;
                 shooter.last_shot = 0.0f;
                 shooter.projectile_damage = 15;
+                shooter.projectile_scale = 3.0f;
 
                 if (shoot_pattern == "AIM_PLAYER") {
                     shooter.pattern = ShooterComponent::AIM_PLAYER;
@@ -159,8 +160,8 @@ class ScenePrefabs {
                 registry.addComponent<sprite2D_component_s>(entity, sprite);
 
                 auto& transform = registry.getComponent<transform_component_s>(entity);
-                transform.scale_x = 2.0f;
-                transform.scale_y = 2.0f;
+                transform.scale_x = 2.5f;
+                transform.scale_y = 2.5f;
 
                 BoxCollisionComponent collision;
                 collision.tagCollision.push_back("FRIENDLY_PROJECTILE");

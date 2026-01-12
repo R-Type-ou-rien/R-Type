@@ -46,6 +46,12 @@ bool PodSystem::allPlayersHavePods(Registry& registry) {
 }
 
 void PodSystem::spawnPod(Registry& registry, system_context context) {
+    // Pod sprite constants - defined first for use in transform
+    constexpr float POD_FRAME_WIDTH = 34.0f;
+    constexpr float POD_FRAME_HEIGHT = 18.0f;
+    constexpr int POD_NUM_FRAMES = 6;
+    constexpr float POD_SCALE = 3.0f;
+
     Entity pod_id = registry.createEntity();
 #if defined(CLIENT_BUILD)
     const auto world_w = static_cast<float>(context.window.getSize().x);
@@ -62,7 +68,7 @@ void PodSystem::spawnPod(Registry& registry, system_context context) {
     float spawn_x = world_w + 50.0f;
     float spawn_y = 100.0f + dis(gen) * ((world_h - 200.0f));
 
-    registry.addComponent<transform_component_s>(pod_id, {spawn_x, spawn_y, 1.0f, 1.0f});
+    registry.addComponent<transform_component_s>(pod_id, {spawn_x, spawn_y, POD_SCALE, POD_SCALE});
     registry.addComponent<Velocity2D>(pod_id, {-80.0f, 0.0f});
 
     TagComponent tags;
@@ -90,14 +96,7 @@ void PodSystem::spawnPod(Registry& registry, system_context context) {
 
     sprite2D_component_s sprite_info;
     sprite_info.handle = handle;
-    sprite_info.z_index = 2;
-
-    // Le sprite r-typesheet3.gif fait 205x18 pixels avec 6 frames
-    // 205 / 6 = 34.16, donc chaque frame fait 34x18 (avec 1px de padding entre frames)
-    constexpr float POD_FRAME_WIDTH = 34.0f;
-    constexpr float POD_FRAME_HEIGHT = 18.0f;
-    constexpr int POD_NUM_FRAMES = 6;
-    constexpr float POD_SCALE = 3.0f;
+    sprite_info.z_index = 1;
 
     sprite_info.dimension = {1, 0, POD_FRAME_WIDTH, POD_FRAME_HEIGHT};
 
@@ -106,9 +105,6 @@ void PodSystem::spawnPod(Registry& registry, system_context context) {
     // Animation: 6 frames horizontales, start à (1,0) avec padding de 0
     AnimationHelper::setupAnimation(registry, pod_id, 1.0f, 0.0f, POD_FRAME_WIDTH, POD_FRAME_HEIGHT, POD_NUM_FRAMES,
                                     0.12f, 0.0f);
-    auto& transform = registry.getComponent<transform_component_s>(pod_id);
-    transform.scale_x = POD_SCALE;
-    transform.scale_y = POD_SCALE;
 
     // Add NetworkIdentity for network replication
     registry.addComponent<NetworkIdentity>(pod_id, {static_cast<uint32_t>(pod_id), 0});

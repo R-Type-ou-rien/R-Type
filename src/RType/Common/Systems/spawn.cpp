@@ -13,20 +13,17 @@
 const float WORLD_WIDTH = 1920.0f;
 const float WORLD_HEIGHT = 1080.0f;
 
-EnemySpawnSystem::EnemySpawnSystem() {
-    loadConfigs();
-}
-
-void EnemySpawnSystem::loadConfigs() {
+void EnemySpawnSystem::loadConfigs(const std::string& enemies, const std::string& boss, const std::string& game) {
     if (_configs_loaded)
         return;
 
-    _enemy_configs = ConfigLoader::loadEnemiesConfig("src/RType/Common/content/config/enemies.cfg",
-                                                     ConfigLoader::getRequiredEnemyFields());
-    _boss_config = ConfigLoader::loadEntityConfig("src/RType/Common/content/config/boss.cfg",
-                                                  ConfigLoader::getRequiredBossFields());
-    _game_config =
-        ConfigLoader::loadGameConfig("src/RType/Common/content/config/game.cfg", ConfigLoader::getRequiredGameFields());
+    std::string enemies_path = enemies.empty() ? "src/RType/Common/content/config/enemies.cfg" : enemies;
+    std::string boss_path = boss.empty() ? "src/RType/Common/content/config/boss.cfg" : boss;
+    std::string game_path = game.empty() ? "src/RType/Common/content/config/game.cfg" : game;
+
+    _enemy_configs = ConfigLoader::loadEnemiesConfig(enemies_path, ConfigLoader::getRequiredEnemyFields());
+    _boss_config = ConfigLoader::loadEntityConfig(boss_path, ConfigLoader::getRequiredBossFields());
+    _game_config = ConfigLoader::loadGameConfig(game_path, ConfigLoader::getRequiredGameFields());
 
     for (const auto& pair : _enemy_configs) {
         _enemy_types.push_back(pair.first);
@@ -192,7 +189,10 @@ void EnemySpawnSystem::update(Registry& registry, system_context context) {
 
         // Load script if empty (first run)
         if (scripted_spawn.spawn_events.empty() && !scripted_spawn.all_events_completed) {
-            loadScriptedSpawns(scripted_spawn, "src/RType/Common/content/config/level1_spawns.cfg");
+            std::string path = scripted_spawn.script_path.empty()
+                                   ? "src/RType/Common/content/config/level1_spawns.cfg"
+                                   : scripted_spawn.script_path;
+            loadScriptedSpawns(scripted_spawn, path);
         }
 
         handleScriptedSpawns(registry, context, scripted_spawn, windowWidth, windowHeight);
@@ -200,6 +200,9 @@ void EnemySpawnSystem::update(Registry& registry, system_context context) {
 
     for (auto spawner : spawners) {
         auto& spawn_comp = registry.getComponent<EnemySpawnComponent>(spawner);
+
+        // Load configurations if not yet loaded
+        loadConfigs(spawn_comp.enemies_config_path, spawn_comp.boss_config_path, spawn_comp.game_config_path);
 
         if (spawn_comp.random_seed == 0) {
             spawn_comp.random_seed = static_cast<unsigned int>(std::time(nullptr));
