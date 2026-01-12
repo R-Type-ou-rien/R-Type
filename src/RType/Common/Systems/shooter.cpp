@@ -48,8 +48,10 @@ Velocity2D ShooterSystem::get_projectile_speed(ShooterComponent::ProjectileType 
 }
 
 void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::ProjectileType type,
-                                      TeamComponent::Team team, transform_component_s pos, system_context context) {
-    create_projectile_with_pattern(registry, type, team, pos, context, ShooterComponent::STRAIGHT, 0.0f, 0.0f, 30);
+                                      TeamComponent::Team team, transform_component_s pos, system_context context,
+                                      int projectile_damage) {
+    create_projectile_with_pattern(registry, type, team, pos, context, ShooterComponent::STRAIGHT, 0.0f, 0.0f,
+                                   projectile_damage);
 }
 
 void ShooterSystem::create_projectile_with_pattern(Registry& registry, ShooterComponent::ProjectileType type,
@@ -193,7 +195,14 @@ void ShooterSystem::create_charged_projectile(Registry& registry, TeamComponent:
     int damage = static_cast<int>(50 + (150 * charge_ratio));
     registry.addComponent<DamageOnCollision>(id, {damage});
 
-    registry.addComponent<PenetratingProjectile>(id, {});
+    // Gestion de la pénétration selon le niveau de charge
+    if (charge_ratio >= 1.0f) {
+        // Tir chargé max : traverse tout
+        registry.addComponent<PenetratingProjectile>(id, {999, 0});
+    } else if (charge_ratio >= 0.5f) {
+        // Tir middle : traverse 2 ennemis max (se détruit au 3ème impact)
+        registry.addComponent<PenetratingProjectile>(id, {3, 0});
+    }
 
     handle_t<TextureAsset> handle =
         context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet1.gif",
@@ -309,6 +318,7 @@ void ShooterSystem::update(Registry& registry, system_context context) {
                 const TeamComponent& team = registry.getConstComponent<TeamComponent>(id);
 
                 if (shooter.last_shot >= shooter.fire_rate) {
+                    int proj_damage = shooter.projectile_damage;
                     // 3 shot types based on charge level:
                     // 1. Normal shot: charge < 50% (< 1.0s)
                     // 2. Medium charged shot: charge >= 50% (>= 1.0s, yellow bar)
@@ -321,7 +331,7 @@ void ShooterSystem::update(Registry& registry, system_context context) {
                         create_charged_projectile(registry, team.team, pos, context, 0.5f);
                     } else {
                         // Normal shot - no charge
-                        create_projectile(registry, shooter.type, team.team, pos, context);
+                        create_projectile(registry, shooter.type, team.team, pos, context, proj_damage);
                     }
                     shooter.last_shot = 0.f;
                 }
@@ -408,7 +418,6 @@ void ShooterSystem::create_pod_circular_laser(Registry& registry, transform_comp
     registry.addComponent<TeamComponent>(laser_id, {TeamComponent::ALLY});
     registry.addComponent<ProjectileComponent>(laser_id, {static_cast<int>(laser_id)});
     registry.addComponent<DamageOnCollision>(laser_id, {projectile_damage});
-    registry.addComponent<PenetratingProjectile>(laser_id, {999, 0});
 
     handle_t<TextureAsset> handle =
         context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet1.gif",

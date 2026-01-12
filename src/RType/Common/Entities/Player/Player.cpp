@@ -7,8 +7,8 @@
 Player::Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<float, float> pos)
     : DynamicActor(ecs, true, textures, "PLAYER") {
     ResourceStat lifepoint;
-    lifepoint.max = 100;
-    lifepoint.current = 100;
+    lifepoint.max = 5;
+    lifepoint.current = 5;
     lifepoint.regenRate = 0;
 
     addResourceStat("lifepoint", lifepoint);
@@ -16,7 +16,7 @@ Player::Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<floa
     _ecs.registry.addComponent<TeamComponent>(_id, {TeamComponent::Team::ALLY});
     _ecs.registry.addComponent<ShooterComponent>(_id, {});
     // Système de vie avec invincibilité de 1.5s après un dégât
-    _ecs.registry.addComponent<HealthComponent>(_id, {100, 100, 0.0f, 1.5f});
+    _ecs.registry.addComponent<HealthComponent>(_id, {5, 5, 0.0f, 1.5f});
     // CRITIQUE : Le joueur doit pouvoir recevoir des dégâts (valeur = 0 car on veut juste les dégâts entrants)
     _ecs.registry.addComponent<DamageOnCollision>(_id, {0});
 

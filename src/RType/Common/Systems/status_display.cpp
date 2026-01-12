@@ -154,7 +154,7 @@ void StatusDisplaySystem::drawLives(Registry& registry, system_context& context)
 
     auto& livesDisplay = registry.getConstComponent<LivesDisplayComponent>(livesEntities[0]);
 
-    for (int i = 0; i < current_lives && i < 10; i++) {
+    for (int i = 0; i < current_lives && i < 5; i++) {
         sf::RectangleShape lifeIcon({livesDisplay.icon_size, livesDisplay.icon_size * 0.6f});
         lifeIcon.setPosition({livesDisplay.x + i * livesDisplay.icon_spacing, livesDisplay.y});
         lifeIcon.setFillColor(sf::Color(50, 150, 255));
