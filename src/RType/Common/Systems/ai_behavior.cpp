@@ -3,6 +3,7 @@
 #include "../Components/team_component.hpp"
 #include "shooter.hpp"
 #include "health.hpp"
+#include "src/Engine/Lib/Systems/PlayerBoundsSystem.hpp"
 #include <cmath>
 
 void AIBehaviorSystem::update(Registry& registry, system_context context) {

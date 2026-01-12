@@ -3,25 +3,13 @@
 #include "ISystem.hpp"
 #include "registry.hpp"
 #include "../Components/config.hpp"
+#include "../Components/spawn.hpp"
+#include "../Components/scripted_spawn.hpp"
 #include "../Entities/Mobs/mob_spawner.hpp"
 #include <map>
 #include <string>
 #include <vector>
 #include <memory>
-
-struct EnemySpawnComponent {
-    static constexpr auto name = "EnemySpawnComponent";
-    float spawn_timer = 0.0f;
-    float spawn_interval = 2.0f;
-    float total_time = 0.0f;
-    bool boss_spawned = false;
-    bool boss_arrived = false;
-    float boss_intro_timer = 0.0f;
-    int wave_count = 0;
-    bool is_active = true;
-    unsigned int random_seed = 0;
-    int random_state = 0;
-};
 
 class EnemySpawnSystem : public ISystem {
    public:
@@ -39,6 +27,9 @@ class EnemySpawnSystem : public ISystem {
     bool handleBossSpawn(Registry& registry, system_context context, EnemySpawnComponent& spawn_comp);
     void spawnWave(Registry& registry, system_context context, EnemySpawnComponent& spawn_comp, float windowWidth,
                    float windowHeight);
+    void loadScriptedSpawns(ScriptedSpawnComponent& scripted_spawn, const std::string& filename);
+    void handleScriptedSpawns(Registry& registry, system_context context, ScriptedSpawnComponent& scripted_spawn,
+                              float windowWidth, float windowHeight);
 
     int getRandomInt(EnemySpawnComponent& comp, int min, int max);
     float getRandomFloat(EnemySpawnComponent& comp, float min, float max);

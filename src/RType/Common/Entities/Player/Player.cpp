@@ -49,8 +49,26 @@ Player::Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<floa
     });
 
     // Shooting
-    bindActionCallbackPressed("shoot", [this](Registry&, system_context, Entity) { this->setShootingState(true); });
-    bindActionCallbackOnReleased("shoot", [this](Registry&, system_context, Entity) { this->setShootingState(false); });
+    bindActionCallbackPressed("shoot", [this](Registry& registry, system_context, Entity entity) {
+        if (registry.hasComponent<ShooterComponent>(entity)) {
+            auto& shoot = registry.getComponent<ShooterComponent>(entity);
+            shoot.is_shooting = true;
+            shoot.trigger_pressed = true;
+        }
+    });
+    bindActionCallbackOnReleased("shoot", [this](Registry& registry, system_context, Entity entity) {
+        if (registry.hasComponent<ShooterComponent>(entity)) {
+            auto& shoot = registry.getComponent<ShooterComponent>(entity);
+            shoot.trigger_pressed = false;
+            // Note: is_shooting will be handled by ShooterSystem for charged shots
+            // For normal shots, we might want to stop immediately, but let's leave it to the system logic
+            // which checks trigger_pressed for charging logic.
+            // However, if not charging, we should stop shooting.
+            // The ShooterSystem logic I wrote earlier handles this:
+            // if (!shooter.trigger_pressed && charged.is_charging) -> release charged shot
+            // if (!shooter.trigger_pressed && !charged.is_charging) -> stop shooting (eventually)
+        }
+    });
 
     BoxCollisionComponent player_collision;
     player_collision.tagCollision.push_back("ENEMY_PROJECTILE");
@@ -129,6 +147,11 @@ int Player::getMaxHealth() {
     const HealthComponent& comp = _ecs.registry.getConstComponent<HealthComponent>(_id);
 
     return comp.max_hp;
+}
+
+void Player::setCurrentHealth(int health) {
+    HealthComponent& comp = _ecs.registry.getComponent<HealthComponent>(_id);
+    comp.current_hp = health;
 }
 
 void Player::takeDamage(int damage) {

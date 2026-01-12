@@ -7,6 +7,10 @@
 #include "../../../../RType/Common/Components/shooter_component.hpp"
 #include "../../../../RType/Common/Components/team_component.hpp"
 #include "../../../../RType/Common/Components/game_timer.hpp"
+#include "../../../../RType/Common/Components/charged_shot.hpp"
+#include "../../../../RType/Common/Components/spawn.hpp"
+#include "../../../../RType/Common/Components/pod_component.hpp"
+#include "../../../../RType/Common/Components/ai_behavior_component.hpp"
 #include "../../../../RType/Common/Systems/health.hpp"
 #include "Components/NetworkComponents.hpp"
 #include "Components/AudioComponent.hpp"
@@ -393,6 +397,159 @@ inline void serialize(std::vector<uint8_t>& buffer, const ::GameTimerComponent& 
 inline ::GameTimerComponent deserialize_game_timer_component(const std::vector<uint8_t>& buffer, size_t& offset) {
     ::GameTimerComponent component;
     component.elapsed_time = deserialize<float>(buffer, offset);
+    return component;
+}
+
+/** ShooterComponent */
+inline void serialize(std::vector<uint8_t>& buffer, const ShooterComponent& component) {
+    serialize(buffer, static_cast<int>(component.type));
+    serialize(buffer, static_cast<int>(component.pattern));
+    serialize(buffer, component.is_shooting);
+    serialize(buffer, component.trigger_pressed);
+    serialize(buffer, component.fire_rate);
+    serialize(buffer, component.last_shot);
+    serialize(buffer, component.projectile_damage);
+    serialize(buffer, component.use_pod_laser);
+}
+
+inline ShooterComponent deserialize_shooter_component(const std::vector<uint8_t>& buffer, size_t& offset) {
+    ShooterComponent component;
+    component.type = static_cast<ShooterComponent::ProjectileType>(deserialize<int>(buffer, offset));
+    component.pattern = static_cast<ShooterComponent::ShootPattern>(deserialize<int>(buffer, offset));
+    component.is_shooting = deserialize<bool>(buffer, offset);
+    component.trigger_pressed = deserialize<bool>(buffer, offset);
+    component.fire_rate = deserialize<double>(buffer, offset);
+    component.last_shot = deserialize<double>(buffer, offset);
+    component.projectile_damage = deserialize<int>(buffer, offset);
+    component.use_pod_laser = deserialize<bool>(buffer, offset);
+    return component;
+}
+
+/** ChargedShotComponent */
+inline void serialize(std::vector<uint8_t>& buffer, const ChargedShotComponent& component) {
+    serialize(buffer, component.is_charging);
+    serialize(buffer, component.charge_time);
+    serialize(buffer, component.min_charge_time);
+    serialize(buffer, component.max_charge_time);
+    serialize(buffer, component.medium_charge_threshold);
+}
+
+inline ChargedShotComponent deserialize_charged_shot_component(const std::vector<uint8_t>& buffer, size_t& offset) {
+    ChargedShotComponent component;
+    component.is_charging = deserialize<bool>(buffer, offset);
+    component.charge_time = deserialize<float>(buffer, offset);
+    component.min_charge_time = deserialize<float>(buffer, offset);
+    component.max_charge_time = deserialize<float>(buffer, offset);
+    component.medium_charge_threshold = deserialize<float>(buffer, offset);
+    return component;
+}
+
+/** EnemySpawnComponent */
+inline void serialize(std::vector<uint8_t>& buffer, const EnemySpawnComponent& component) {
+    serialize(buffer, component.spawn_timer);
+    serialize(buffer, component.spawn_interval);
+    serialize(buffer, component.total_time);
+    serialize(buffer, component.boss_spawned);
+    serialize(buffer, component.boss_arrived);
+    serialize(buffer, component.boss_intro_timer);
+    serialize(buffer, component.wave_count);
+    serialize(buffer, component.is_active);
+    serialize(buffer, component.use_scripted_spawns);
+    serialize(buffer, component.random_seed);
+    serialize(buffer, component.random_state);
+}
+
+inline EnemySpawnComponent deserialize_enemy_spawn_component(const std::vector<uint8_t>& buffer, size_t& offset) {
+    EnemySpawnComponent component;
+    component.spawn_timer = deserialize<float>(buffer, offset);
+    component.spawn_interval = deserialize<float>(buffer, offset);
+    component.total_time = deserialize<float>(buffer, offset);
+    component.boss_spawned = deserialize<bool>(buffer, offset);
+    component.boss_arrived = deserialize<bool>(buffer, offset);
+    component.boss_intro_timer = deserialize<float>(buffer, offset);
+    component.wave_count = deserialize<int>(buffer, offset);
+    component.is_active = deserialize<bool>(buffer, offset);
+    component.use_scripted_spawns = deserialize<bool>(buffer, offset);
+    component.random_seed = deserialize<unsigned int>(buffer, offset);
+    component.random_state = deserialize<int>(buffer, offset);
+    return component;
+}
+
+/** PodComponent */
+inline void serialize(std::vector<uint8_t>& buffer, const PodComponent& component) {
+    serialize(buffer, static_cast<int>(component.state));
+    serialize(buffer, static_cast<int>(component.owner_id));
+    serialize(buffer, component.auto_fire_rate);
+    serialize(buffer, component.last_shot_time);
+    serialize(buffer, component.projectile_damage);
+    serialize(buffer, component.float_time);
+    serialize(buffer, component.wave_amplitude);
+    serialize(buffer, component.wave_frequency);
+    serialize(buffer, component.base_y);
+}
+
+inline PodComponent deserialize_pod_component(const std::vector<uint8_t>& buffer, size_t& offset) {
+    PodComponent component;
+    component.state = static_cast<PodState>(deserialize<int>(buffer, offset));
+    component.owner_id = deserialize<int>(buffer, offset);
+    component.auto_fire_rate = deserialize<float>(buffer, offset);
+    component.last_shot_time = deserialize<float>(buffer, offset);
+    component.projectile_damage = deserialize<int>(buffer, offset);
+    component.float_time = deserialize<float>(buffer, offset);
+    component.wave_amplitude = deserialize<float>(buffer, offset);
+    component.wave_frequency = deserialize<float>(buffer, offset);
+    component.base_y = deserialize<float>(buffer, offset);
+    return component;
+}
+
+/** PlayerPodComponent */
+inline void serialize(std::vector<uint8_t>& buffer, const PlayerPodComponent& component) {
+    serialize(buffer, component.has_pod);
+    serialize(buffer, static_cast<int>(component.pod_entity));
+    serialize(buffer, component.pod_attached);
+    serialize(buffer, component.detach_requested);
+    serialize(buffer, component.last_known_hp);
+    serialize(buffer, component.pod_laser_fire_rate);
+    serialize(buffer, component.pod_laser_cooldown);
+}
+
+inline PlayerPodComponent deserialize_player_pod_component(const std::vector<uint8_t>& buffer, size_t& offset) {
+    PlayerPodComponent component;
+    component.has_pod = deserialize<bool>(buffer, offset);
+    component.pod_entity = deserialize<int>(buffer, offset);
+    component.pod_attached = deserialize<bool>(buffer, offset);
+    component.detach_requested = deserialize<bool>(buffer, offset);
+    component.last_known_hp = deserialize<int>(buffer, offset);
+    component.pod_laser_fire_rate = deserialize<float>(buffer, offset);
+    component.pod_laser_cooldown = deserialize<float>(buffer, offset);
+    return component;
+}
+
+/** AIBehaviorComponent */
+inline void serialize(std::vector<uint8_t>& buffer, const AIBehaviorComponent& component) {
+    serialize(buffer, component.shoot_at_player);
+    serialize(buffer, component.follow_player);
+    serialize(buffer, component.follow_speed);
+}
+
+inline AIBehaviorComponent deserialize_ai_behavior_component(const std::vector<uint8_t>& buffer, size_t& offset) {
+    AIBehaviorComponent component;
+    component.shoot_at_player = deserialize<bool>(buffer, offset);
+    component.follow_player = deserialize<bool>(buffer, offset);
+    component.follow_speed = deserialize<float>(buffer, offset);
+    return component;
+}
+
+/** BossComponent */
+inline void serialize(std::vector<uint8_t>& buffer, const BossComponent& component) {
+    serialize(buffer, component.has_arrived);
+    serialize(buffer, component.target_x);
+}
+
+inline BossComponent deserialize_boss_component(const std::vector<uint8_t>& buffer, size_t& offset) {
+    BossComponent component;
+    component.has_arrived = deserialize<bool>(buffer, offset);
+    component.target_x = deserialize<float>(buffer, offset);
     return component;
 }
 

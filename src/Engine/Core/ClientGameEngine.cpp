@@ -18,6 +18,8 @@
 #include "../../../RType/Common/Components/team_component.hpp"
 #include "../../../RType/Common/Components/damage_component.hpp"
 #include "../../../RType/Common/Components/game_timer.hpp"
+#include "../../../RType/Common/Components/pod_component.hpp"
+#include "../../../RType/Common/Systems/ai_behavior.hpp"
 #include "Components/StandardComponents.hpp"
 #include "Components/NetworkComponents.hpp"
 
@@ -47,6 +49,12 @@ int ClientGameEngine::init() {
     registerNetworkComponent<NetworkIdentity>();
     registerNetworkComponent<::GameTimerComponent>();
     registerNetworkComponent<AudioSourceComponent>();
+
+    // R-Type specific components
+    registerNetworkComponent<PodComponent>();
+    registerNetworkComponent<PlayerPodComponent>();
+    registerNetworkComponent<AIBehaviorComponent>();
+    registerNetworkComponent<BossComponent>();
 
     _ecs.systems.addSystem<BackgroundSystem>();
     _ecs.systems.addSystem<RenderSystem>();

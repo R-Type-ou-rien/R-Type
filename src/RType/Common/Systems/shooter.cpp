@@ -7,6 +7,7 @@
 #include <algorithm>
 
 #include "Components/StandardComponents.hpp"
+#include "Components/NetworkComponents.hpp"
 #include "ISystem.hpp"
 #include "ResourceConfig.hpp"
 #include "damage.hpp"
@@ -19,19 +20,27 @@ Velocity2D ShooterSystem::get_projectile_speed(ShooterComponent::ProjectileType 
     Velocity2D vel = {0, 0};
     double speed = 0;
 
-    switch (type) {
-        case ShooterComponent::NORMAL:
-            speed = 700;
-            break;
-        case ShooterComponent::CHARG:
-            speed = 800;
-            break;
-        case ShooterComponent::RED:
-            speed = 650;
-            break;
-        case ShooterComponent::BLUE:
-            speed = 650;
-            break;
+    // Enemy projectiles are slower than player projectiles
+    if (team == TeamComponent::ENEMY) {
+        speed = 300;  // Slower enemy projectiles (player speed is 350)
+    } else {
+        switch (type) {
+            case ShooterComponent::NORMAL:
+                speed = 700;
+                break;
+            case ShooterComponent::CHARG:
+                speed = 800;
+                break;
+            case ShooterComponent::RED:
+                speed = 650;
+                break;
+            case ShooterComponent::BLUE:
+                speed = 650;
+                break;
+            case ShooterComponent::POD_LASER:
+                speed = 800;
+                break;
+        }
     }
     vel.vx = speed;
     vel.vy = 0;
@@ -138,6 +147,9 @@ void ShooterSystem::create_projectile_with_pattern(Registry& registry, ShooterCo
         registry.addComponent<AudioSourceComponent>(id, audio);
     }
 
+    // Add NetworkIdentity for network replication
+    registry.addComponent<NetworkIdentity>(id, {static_cast<uint32_t>(id), 0});
+
     return;
 }
 
@@ -203,6 +215,9 @@ void ShooterSystem::create_charged_projectile(Registry& registry, TeamComponent:
         audio.destroy_entity_on_finish = false;
         registry.addComponent<AudioSourceComponent>(id, audio);
     }
+
+    // Add NetworkIdentity for network replication
+    registry.addComponent<NetworkIdentity>(id, {static_cast<uint32_t>(id), 0});
 }
 
 void ShooterSystem::update(Registry& registry, system_context context) {
@@ -250,7 +265,8 @@ void ShooterSystem::update(Registry& registry, system_context context) {
                 charged.is_charging = true;
                 charged.charge_time += context.dt;
 
-                if (charged.charge_time >= charged.min_charge_time &&
+                // Play charging sound when reaching medium threshold (50%)
+                if (charged.charge_time >= charged.medium_charge_threshold &&
                     !registry.hasComponent<AudioSourceComponent>(id)) {
                     AudioSourceComponent audio;
                     audio.sound_name = "charg_start";
@@ -277,14 +293,21 @@ void ShooterSystem::update(Registry& registry, system_context context) {
                 const transform_component_s& pos = registry.getConstComponent<transform_component_s>(id);
                 const TeamComponent& team = registry.getConstComponent<TeamComponent>(id);
 
-                if (charged.charge_time >= charged.min_charge_time && shooter.last_shot >= shooter.fire_rate) {
-                    float charge_ratio = (charged.charge_time - charged.min_charge_time) /
-                                         (charged.max_charge_time - charged.min_charge_time);
-                    charge_ratio = std::min(1.0f, charge_ratio);
-                    create_charged_projectile(registry, team.team, pos, context, charge_ratio);
-                    shooter.last_shot = 0.f;
-                } else if (charged.charge_time < charged.min_charge_time && shooter.last_shot >= shooter.fire_rate) {
-                    create_projectile(registry, shooter.type, team.team, pos, context);
+                if (shooter.last_shot >= shooter.fire_rate) {
+                    // 3 shot types based on charge level:
+                    // 1. Normal shot: charge < 50% (< 1.0s)
+                    // 2. Medium charged shot: charge >= 50% (>= 1.0s, yellow bar)
+                    // 3. Max charged shot: charge >= 100% (>= 2.0s, full red bar)
+                    if (charged.charge_time >= charged.max_charge_time) {
+                        // Max charged shot (100%) - full power
+                        create_charged_projectile(registry, team.team, pos, context, 1.0f);
+                    } else if (charged.charge_time >= charged.medium_charge_threshold) {
+                        // Medium charged shot (50%) - half power
+                        create_charged_projectile(registry, team.team, pos, context, 0.5f);
+                    } else {
+                        // Normal shot - no charge
+                        create_projectile(registry, shooter.type, team.team, pos, context);
+                    }
                     shooter.last_shot = 0.f;
                 }
 
@@ -300,16 +323,29 @@ void ShooterSystem::update(Registry& registry, system_context context) {
         const transform_component_s& pos = registry.getConstComponent<transform_component_s>(id);
         const TeamComponent& team = registry.getConstComponent<TeamComponent>(id);
 
+        // Update pod laser cooldown
+        if (shooter.use_pod_laser && team.team == TeamComponent::ALLY) {
+            if (registry.hasComponent<PlayerPodComponent>(id)) {
+                auto& player_pod = registry.getComponent<PlayerPodComponent>(id);
+                if (player_pod.pod_laser_cooldown > 0.0f) {
+                    player_pod.pod_laser_cooldown -= context.dt;
+                }
+            }
+        }
+
         if (shooter.last_shot >= shooter.fire_rate) {
             int proj_damage = shooter.projectile_damage;
 
             if (shooter.use_pod_laser && team.team == TeamComponent::ALLY) {
                 if (registry.hasComponent<PlayerPodComponent>(id)) {
-                    auto& player_pod = registry.getConstComponent<PlayerPodComponent>(id);
-                    if (player_pod.has_pod && player_pod.pod_attached && player_pod.pod_entity != -1) {
+                    auto& player_pod = registry.getComponent<PlayerPodComponent>(id);
+                    // Only fire if pod laser cooldown has expired
+                    if (player_pod.has_pod && player_pod.pod_attached && player_pod.pod_entity != -1 &&
+                        player_pod.pod_laser_cooldown <= 0.0f) {
                         if (registry.hasComponent<transform_component_s>(player_pod.pod_entity)) {
                             auto& pod_pos = registry.getConstComponent<transform_component_s>(player_pod.pod_entity);
                             create_pod_circular_laser(registry, pod_pos, context, proj_damage);
+                            player_pod.pod_laser_cooldown = player_pod.pod_laser_fire_rate;
                         }
                     }
                 }
@@ -383,4 +419,7 @@ void ShooterSystem::create_pod_circular_laser(Registry& registry, transform_comp
     audio.loop = false;
     audio.destroy_entity_on_finish = true;
     registry.addComponent<AudioSourceComponent>(sound_entity, audio);
+
+    // Add NetworkIdentity for network replication
+    registry.addComponent<NetworkIdentity>(laser_id, {static_cast<uint32_t>(laser_id), 0});
 }
