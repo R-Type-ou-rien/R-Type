@@ -8,6 +8,7 @@
 #include "wall_collision.hpp"
 #include "Components/StandardComponents.hpp"
 #include "../Components/terrain_component.hpp"
+#include "health.hpp"
 #include <algorithm>
 #include <cmath>
 
@@ -85,56 +86,11 @@ void WallCollisionSystem::update(Registry& registry, system_context context) {
 }
 
 void WallCollisionSystem::handlePlayerWallCollision(Registry& registry, Entity player, Entity wall) {
-    if (!registry.hasComponent<transform_component_s>(player))
-        return;
-    if (!registry.hasComponent<transform_component_s>(wall))
-        return;
-    if (!registry.hasComponent<sprite2D_component_s>(player))
-        return;
-    if (!registry.hasComponent<sprite2D_component_s>(wall))
+    if (!registry.hasComponent<HealthComponent>(player))
         return;
 
-    auto& player_transform = registry.getComponent<transform_component_s>(player);
-    const auto& wall_transform = registry.getConstComponent<transform_component_s>(wall);
-    const auto& wall_comp = registry.getConstComponent<WallComponent>(wall);
-    const auto& player_sprite = registry.getConstComponent<sprite2D_component_s>(player);
-    const auto& wall_sprite = registry.getConstComponent<sprite2D_component_s>(wall);
-
-    float player_width = player_sprite.dimension.width * player_transform.scale_x;
-    float player_height = player_sprite.dimension.height * player_transform.scale_y;
-    float wall_width = wall_comp.width > 0 ? wall_comp.width : wall_sprite.dimension.width * wall_transform.scale_x;
-    float wall_height = wall_comp.height > 0 ? wall_comp.height : wall_sprite.dimension.height * wall_transform.scale_y;
-
-    float player_center_x = player_transform.x + player_width / 2;
-    float player_center_y = player_transform.y + player_height / 2;
-    float wall_center_x = wall_transform.x + wall_width / 2;
-    float wall_center_y = wall_transform.y + wall_height / 2;
-
-    float overlap_x = (player_width / 2 + wall_width / 2) - std::abs(player_center_x - wall_center_x);
-    float overlap_y = (player_height / 2 + wall_height / 2) - std::abs(player_center_y - wall_center_y);
-
-    if (overlap_x < overlap_y) {
-        if (player_center_x < wall_center_x) {
-            player_transform.x -= overlap_x;
-        } else {
-            player_transform.x += overlap_x;
-        }
-    } else {
-        if (player_center_y < wall_center_y) {
-            player_transform.y -= overlap_y;
-        } else {
-            player_transform.y += overlap_y;
-        }
-    }
-
-    if (registry.hasComponent<Velocity2D>(player)) {
-        auto& velocity = registry.getComponent<Velocity2D>(player);
-        if (overlap_x < overlap_y) {
-            velocity.vx = 0;
-        } else {
-            velocity.vy = 0;
-        }
-    }
+    auto& health = registry.getComponent<HealthComponent>(player);
+    health.current_hp = 0;  // Instant kill
 }
 
 void WallCollisionSystem::handleProjectileWallCollision(Registry& registry, Entity projectile, Entity wall) {

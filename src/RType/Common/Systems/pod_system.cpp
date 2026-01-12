@@ -1,13 +1,15 @@
 #include "pod_system.hpp"
 
 #include <cmath>
-#include <ctime>
+#include <random>
 #include <iostream>
 #include <cstdlib>
 #include <vector>
+#include <numbers>
 
 #include "../Components/pod_component.hpp"
 #include "Components/StandardComponents.hpp"
+#include "Components/NetworkComponents.hpp"
 #include "ResourceConfig.hpp"
 #include "damage.hpp"
 #include "shooter.hpp"
@@ -21,7 +23,7 @@ bool PodSystem::allPlayersHavePods(Registry& registry) {
     int players_with_pods = 0;
 
     for (auto entity : players) {
-        auto& tags = registry.getConstComponent<TagComponent>(entity);
+        const auto& tags = registry.getConstComponent<TagComponent>(entity);
         bool is_player = false;
         for (const auto& tag : tags.tags) {
             if (tag == "PLAYER") {
@@ -32,7 +34,7 @@ bool PodSystem::allPlayersHavePods(Registry& registry) {
         if (is_player) {
             player_count++;
             if (registry.hasComponent<PlayerPodComponent>(entity)) {
-                auto& pod_comp = registry.getConstComponent<PlayerPodComponent>(entity);
+                const auto& pod_comp = registry.getConstComponent<PlayerPodComponent>(entity);
                 if (pod_comp.has_pod) {
                     players_with_pods++;
                 }
@@ -46,21 +48,26 @@ bool PodSystem::allPlayersHavePods(Registry& registry) {
 void PodSystem::spawnPod(Registry& registry, system_context context) {
     Entity pod_id = registry.createEntity();
 #if defined(CLIENT_BUILD)
-    const float world_w = static_cast<float>(context.window.getSize().x);
-    const float world_h = static_cast<float>(context.window.getSize().y);
+    const auto world_w = static_cast<float>(context.window.getSize().x);
+    const auto world_h = static_cast<float>(context.window.getSize().y);
 #else
     const float world_w = 1920.0f;
     const float world_h = 1080.0f;
 #endif
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<float> dis(0.0f, 1.0f);
+
     float spawn_x = world_w + 50.0f;
-    float spawn_y = 100.0f + (static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX)) * ((world_h - 200.0f));
+    float spawn_y = 100.0f + dis(gen) * ((world_h - 200.0f));
 
     registry.addComponent<transform_component_s>(pod_id, {spawn_x, spawn_y, 1.0f, 1.0f});
     registry.addComponent<Velocity2D>(pod_id, {-80.0f, 0.0f});
 
     TagComponent tags;
-    tags.tags.push_back("POD");
-    tags.tags.push_back("ITEM");
+    tags.tags.emplace_back("POD");
+    tags.tags.emplace_back("ITEM");
     registry.addComponent<TagComponent>(pod_id, tags);
 
     PodComponent pod_comp;
@@ -68,13 +75,13 @@ void PodSystem::spawnPod(Registry& registry, system_context context) {
     pod_comp.owner_id = static_cast<Entity>(-1);
     pod_comp.base_y = spawn_y;
     pod_comp.float_time = 0.0f;
-    pod_comp.wave_amplitude = 30.0f + (static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX)) * 40.0f;
-    pod_comp.wave_frequency = 1.5f + (static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX)) * 1.5f;
+    pod_comp.wave_amplitude = 30.0f + dis(gen) * 40.0f;
+    pod_comp.wave_frequency = 1.5f + dis(gen) * 1.5f;
     registry.addComponent<PodComponent>(pod_id, pod_comp);
     registry.addComponent<TeamComponent>(pod_id, {TeamComponent::ALLY});
 
     BoxCollisionComponent collision;
-    collision.tagCollision.push_back("PLAYER");
+    collision.tagCollision.emplace_back("PLAYER");
     registry.addComponent<BoxCollisionComponent>(pod_id, collision);
 
     handle_t<TextureAsset> handle =
@@ -85,18 +92,24 @@ void PodSystem::spawnPod(Registry& registry, system_context context) {
     sprite_info.handle = handle;
     sprite_info.z_index = 2;
 
+    float frame_width = 33.0f;
+    float frame_height = 32.0f;
+    sprite_info.dimension = {0, 0, frame_width, frame_height};
+
     registry.addComponent<sprite2D_component_s>(pod_id, sprite_info);
 
-    AnimationHelper::setupAnimation(registry, pod_id, 1.0f, 1.0f, 33.0f, 32.0f, 12, 0.15f, 1.0f);
-
+    AnimationHelper::setupAnimation(registry, pod_id, 1.0f, 1.0f, static_cast<float>(frame_width), static_cast<float>(frame_height), 12, 0.15f, 1.0f);
     auto& transform = registry.getComponent<transform_component_s>(pod_id);
     transform.scale_x = 3.0f;
     transform.scale_y = 3.0f;
 
+    // Add NetworkIdentity for network replication
+    registry.addComponent<NetworkIdentity>(pod_id, {static_cast<uint32_t>(pod_id), 0});
+
     std::cout << "[PodSystem] Pod spawned at (" << spawn_x << ", " << spawn_y << ")" << std::endl;
 }
 
-void PodSystem::updateFloatingPodMovement(Registry& registry, system_context context) {
+void PodSystem::updateFloatingPodMovement(Registry& registry, const system_context& context) {
     auto& pods = registry.getEntities<PodComponent>();
 
     for (auto pod_entity : pods) {
@@ -114,7 +127,7 @@ void PodSystem::updateFloatingPodMovement(Registry& registry, system_context con
         pos.y = pod.base_y + std::sin(pod.float_time * pod.wave_frequency) * pod.wave_amplitude;
 
 #if defined(CLIENT_BUILD)
-        const float world_h = static_cast<float>(context.window.getSize().y);
+        const auto world_h = static_cast<float>(context.window.getSize().y);
 #else
         const float world_h = 1080.0f;
 #endif
@@ -133,11 +146,8 @@ void PodSystem::updateFloatingPodMovement(Registry& registry, system_context con
     }
 }
 
-void PodSystem::handlePodCollection(Registry& registry, system_context context) {
+void PodSystem::handlePodCollection(Registry& registry) {
     auto& pods = registry.getEntities<PodComponent>();
-    auto& players = registry.getEntities<TagComponent>();
-
-    std::vector<Entity> pods_to_collect;
 
     for (auto pod_entity : pods) {
         auto& pod = registry.getComponent<PodComponent>(pod_entity);
@@ -147,12 +157,12 @@ void PodSystem::handlePodCollection(Registry& registry, system_context context) 
 
         if (!registry.hasComponent<BoxCollisionComponent>(pod_entity))
             continue;
-        auto& pod_collision = registry.getConstComponent<BoxCollisionComponent>(pod_entity);
+        const auto& pod_collision = registry.getConstComponent<BoxCollisionComponent>(pod_entity);
 
         for (Entity collided_entity : pod_collision.collision.tags) {
             if (!registry.hasComponent<TagComponent>(collided_entity))
                 continue;
-            auto& collided_tags = registry.getConstComponent<TagComponent>(collided_entity);
+            const auto& collided_tags = registry.getConstComponent<TagComponent>(collided_entity);
 
             bool is_player = false;
             for (const auto& tag : collided_tags.tags) {
@@ -167,7 +177,7 @@ void PodSystem::handlePodCollection(Registry& registry, system_context context) 
             Entity player_entity = collided_entity;
 
             if (registry.hasComponent<PlayerPodComponent>(player_entity)) {
-                auto& player_pod = registry.getComponent<PlayerPodComponent>(player_entity);
+                const auto& player_pod = registry.getComponent<PlayerPodComponent>(player_entity);
                 if (player_pod.has_pod) {
                     continue;
                 }
@@ -191,7 +201,7 @@ void PodSystem::handlePodCollection(Registry& registry, system_context context) 
 
             auto& pod_col = registry.getComponent<BoxCollisionComponent>(pod_entity);
             pod_col.tagCollision.clear();
-            pod_col.tagCollision.push_back("AI");
+            pod_col.tagCollision.emplace_back("AI");
 
             registry.addComponent<DamageOnCollision>(pod_entity, {50});
 
@@ -216,7 +226,7 @@ void PodSystem::handlePodCollection(Registry& registry, system_context context) 
     }
 }
 
-void PodSystem::updateAttachedPodPosition(Registry& registry, system_context context) {
+void PodSystem::updateAttachedPodPosition(Registry& registry) {
     auto& pods = registry.getEntities<PodComponent>();
 
     for (auto pod_entity : pods) {
@@ -232,7 +242,7 @@ void PodSystem::updateAttachedPodPosition(Registry& registry, system_context con
         if (!registry.hasComponent<transform_component_s>(pod_entity))
             continue;
 
-        auto& player_pos = registry.getConstComponent<transform_component_s>(pod.owner_id);
+        const auto& player_pos = registry.getConstComponent<transform_component_s>(pod.owner_id);
         auto& pod_pos = registry.getComponent<transform_component_s>(pod_entity);
 
         pod_pos.x = player_pos.x + 60.0f;
@@ -240,7 +250,7 @@ void PodSystem::updateAttachedPodPosition(Registry& registry, system_context con
     }
 }
 
-void PodSystem::updateDetachedPodPosition(Registry& registry, system_context context) {
+void PodSystem::updateDetachedPodPosition(Registry& registry, const system_context& context) {
     auto& pods = registry.getEntities<PodComponent>();
 
     for (auto pod_entity : pods) {
@@ -256,7 +266,7 @@ void PodSystem::updateDetachedPodPosition(Registry& registry, system_context con
         if (!registry.hasComponent<transform_component_s>(pod_entity))
             continue;
 
-        auto& player_pos = registry.getConstComponent<transform_component_s>(pod.owner_id);
+        const auto& player_pos = registry.getConstComponent<transform_component_s>(pod.owner_id);
         auto& pod_pos = registry.getComponent<transform_component_s>(pod_entity);
 
         float target_x = player_pos.x + 80.0f;
@@ -274,7 +284,7 @@ void PodSystem::updateDetachedPodPosition(Registry& registry, system_context con
     }
 }
 
-void PodSystem::handlePlayerDamage(Registry& registry, system_context context) {
+void PodSystem::handlePlayerDamage(Registry& registry) {
     auto& players = registry.getEntities<PlayerPodComponent>();
 
     for (auto player_entity : players) {
@@ -282,7 +292,7 @@ void PodSystem::handlePlayerDamage(Registry& registry, system_context context) {
 
         if (!registry.hasComponent<HealthComponent>(player_entity))
             continue;
-        auto& health = registry.getConstComponent<HealthComponent>(player_entity);
+        const auto& health = registry.getConstComponent<HealthComponent>(player_entity);
 
         if (player_pod.last_known_hp == -1) {
             player_pod.last_known_hp = health.current_hp;
@@ -330,7 +340,7 @@ void PodSystem::handlePlayerDamage(Registry& registry, system_context context) {
     }
 }
 
-void PodSystem::handlePodToggle(Registry& registry, system_context context) {
+void PodSystem::handlePodToggle(Registry& registry) {
     auto& players = registry.getEntities<PlayerPodComponent>();
 
     for (auto player_entity : players) {
@@ -392,7 +402,7 @@ void PodSystem::handlePodToggle(Registry& registry, system_context context) {
             if (registry.hasComponent<BoxCollisionComponent>(pod_entity)) {
                 auto& collision = registry.getComponent<BoxCollisionComponent>(pod_entity);
                 collision.tagCollision.clear();
-                collision.tagCollision.push_back("AI");
+                collision.tagCollision.emplace_back("AI");
             }
 
             std::cout << "[PodSystem] Pod " << pod_entity << " attached to player " << player_entity << std::endl;
@@ -412,8 +422,8 @@ void PodSystem::createPodLaserProjectile(Registry& registry, system_context cont
     registry.addComponent<Velocity2D>(projectile_id, {vx, vy});
 
     TagComponent tags;
-    tags.tags.push_back("FRIENDLY_PROJECTILE");
-    tags.tags.push_back("POD_LASER");
+    tags.tags.emplace_back("FRIENDLY_PROJECTILE");
+    tags.tags.emplace_back("POD_LASER");
     registry.addComponent<TagComponent>(projectile_id, tags);
 
     registry.addComponent<TeamComponent>(projectile_id, {TeamComponent::ALLY});
@@ -435,10 +445,8 @@ void PodSystem::createPodLaserProjectile(Registry& registry, system_context cont
 
     registry.addComponent<sprite2D_component_s>(projectile_id, sprite_info);
 
-    auto& transform = registry.getComponent<transform_component_s>(projectile_id);
-
     BoxCollisionComponent collision;
-    collision.tagCollision.push_back("AI");
+    collision.tagCollision.emplace_back("AI");
     registry.addComponent<BoxCollisionComponent>(projectile_id, collision);
 
     AudioSourceComponent audio;
@@ -447,6 +455,9 @@ void PodSystem::createPodLaserProjectile(Registry& registry, system_context cont
     audio.loop = false;
     audio.destroy_entity_on_finish = false;
     registry.addComponent<AudioSourceComponent>(projectile_id, audio);
+
+    // Add NetworkIdentity for network replication
+    registry.addComponent<NetworkIdentity>(projectile_id, {static_cast<uint32_t>(projectile_id), 0});
 }
 
 void PodSystem::handleDetachedPodShooting(Registry& registry, system_context context) {
@@ -465,50 +476,23 @@ void PodSystem::handleDetachedPodShooting(Registry& registry, system_context con
 
             if (!registry.hasComponent<transform_component_s>(pod_entity))
                 continue;
-            auto& pod_pos = registry.getConstComponent<transform_component_s>(pod_entity);
+            const auto& pod_pos = registry.getConstComponent<transform_component_s>(pod_entity);
 
-            Entity projectile_id = registry.createEntity();
-
-            registry.addComponent<transform_component_s>(projectile_id, {pod_pos.x + 30.0f, pod_pos.y, 1.0f, 1.0f});
-            registry.addComponent<Velocity2D>(projectile_id, {700.0f, 0.0f});
-
-            TagComponent tags;
-            tags.tags.push_back("FRIENDLY_PROJECTILE");
-            registry.addComponent<TagComponent>(projectile_id, tags);
-
-            registry.addComponent<TeamComponent>(projectile_id, {TeamComponent::ALLY});
-            registry.addComponent<ProjectileComponent>(projectile_id, {static_cast<int>(projectile_id)});
-            registry.addComponent<DamageOnCollision>(projectile_id, {pod.projectile_damage});
-
-            handle_t<TextureAsset> handle =
-                context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet1.gif",
-                                             TextureAsset("src/RType/Common/content/sprites/r-typesheet1.gif"));
-
-            sprite2D_component_s sprite_info;
-            sprite_info.handle = handle;
-            sprite_info.animation_speed = 0;
-            sprite_info.current_animation_frame = 0;
-            sprite_info.dimension = {232, 103, 32, 14};
-            sprite_info.z_index = 1;
-
-            registry.addComponent<sprite2D_component_s>(projectile_id, sprite_info);
-
-            BoxCollisionComponent collision;
-            collision.tagCollision.push_back("AI");
-            registry.addComponent<BoxCollisionComponent>(projectile_id, collision);
-
-            AudioSourceComponent audio;
-            audio.sound_name = "shoot";
-            audio.play_on_start = true;
-            audio.loop = false;
-            audio.destroy_entity_on_finish = false;
-            registry.addComponent<AudioSourceComponent>(projectile_id, audio);
+            // Circular pattern: 8 projectiles in all directions
+            for (int i = 0; i < 8; ++i) {
+                float angle = static_cast<float>(i) * (std::numbers::pi_v<float> / 4.0f);  // 45 degrees in radians
+                createPodLaserProjectile(registry, context, pod_pos, angle, pod.projectile_damage);
+            }
         }
     }
 }
 
 void PodSystem::update(Registry& registry, system_context context) {
     auto& spawners = registry.getEntities<PodSpawnComponent>();
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<float> dis(0.0f, 1.0f);
+
     for (auto spawner : spawners) {
         auto& spawn_comp = registry.getComponent<PodSpawnComponent>(spawner);
 
@@ -522,7 +506,7 @@ void PodSystem::update(Registry& registry, system_context context) {
         bool floating_pod_exists = false;
         auto& pods = registry.getEntities<PodComponent>();
         for (auto pod : pods) {
-            auto& pod_comp = registry.getConstComponent<PodComponent>(pod);
+            const auto& pod_comp = registry.getConstComponent<PodComponent>(pod);
             if (pod_comp.state == PodState::FLOATING) {
                 floating_pod_exists = true;
                 break;
@@ -536,26 +520,26 @@ void PodSystem::update(Registry& registry, system_context context) {
         if (spawn_comp.spawn_timer >= spawn_comp.spawn_interval && spawn_comp.can_spawn) {
             spawn_comp.spawn_timer = 0.0f;
             spawn_comp.spawn_interval =
-                spawn_comp.min_spawn_interval + (static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX)) *
+                spawn_comp.min_spawn_interval + dis(gen) *
                                                     (spawn_comp.max_spawn_interval - spawn_comp.min_spawn_interval);
             spawnPod(registry, context);
         }
     }
 
     updateFloatingPodMovement(registry, context);
-    handlePodCollection(registry, context);
-    handlePlayerDamage(registry, context);
-    handlePodToggle(registry, context);
-    updateAttachedPodPosition(registry, context);
+    handlePodCollection(registry);
+    handlePlayerDamage(registry);
+    handlePodToggle(registry);
+    updateAttachedPodPosition(registry);
     updateDetachedPodPosition(registry, context);
     handleDetachedPodShooting(registry, context);
     auto& pods = registry.getEntities<PodComponent>();
     std::vector<Entity> to_destroy;
     for (auto pod : pods) {
-        auto& pod_comp = registry.getConstComponent<PodComponent>(pod);
+        const auto& pod_comp = registry.getConstComponent<PodComponent>(pod);
         if (pod_comp.state == PodState::FLOATING) {
             if (registry.hasComponent<transform_component_s>(pod)) {
-                auto& pos = registry.getConstComponent<transform_component_s>(pod);
+                const auto& pos = registry.getConstComponent<transform_component_s>(pod);
                 if (pos.x < -100.0f) {
                     to_destroy.push_back(pod);
                 }

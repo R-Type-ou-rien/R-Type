@@ -15,20 +15,20 @@ void BoxCollision::update(Registry& registry, system_context context) {
     }
 
     for (auto entity_a : entities) {
-        if (!registry.hasComponent<transform_component_s>(entity_a))  // check if the entity has a transform
+        if (!registry.hasComponent<transform_component_s>(entity_a))
             continue;
         if (!registry.hasComponent<TagComponent>(entity_a))
             continue;
         auto& transform_a = registry.getConstComponent<transform_component_s>(entity_a);
         auto& collision_comp = registry.getComponent<BoxCollisionComponent>(entity_a);
         for (auto entity_b : entities) {
-            if (entity_a == entity_b)  // check if its the same entity
+            if (entity_a == entity_b)
                 continue;
-            if (!registry.hasComponent<TagComponent>(entity_b))  // check if the entity has a transform
+            if (!registry.hasComponent<TagComponent>(entity_b))
                 continue;
             if (!hasTagToCollide(collision_comp, registry.getConstComponent<TagComponent>(entity_b)))
                 continue;
-            if (!registry.hasComponent<transform_component_s>(entity_b))  // check if the entity has a transform
+            if (!registry.hasComponent<transform_component_s>(entity_b))
                 continue;
             if (!registry.hasComponent<sprite2D_component_s>(entity_a))
                 continue;
@@ -59,27 +59,18 @@ void BoxCollision::update(Registry& registry, system_context context) {
 bool BoxCollision::checkSize(const transform_component_s a, const transform_component_s b,
                              std::pair<float, float> size_a, std::pair<float, float> size_b, Velocity2D vel_a,
                              Velocity2D vel_b, float dt) {
-    // Correct width/height assignment
     double width_a = size_a.first * a.scale_x;
     double height_a = size_a.second * a.scale_y;
     double width_b = size_b.first * b.scale_x;
     double height_b = size_b.second * b.scale_y;
-
-    // Swept AABB:
-    // Calculate the range of X and Y values covered by the entity during this frame.
-    // Entity A range
     double a_min_x = std::min(a.x, a.x + vel_a.vx * dt);
     double a_max_x = std::max(a.x + width_a, a.x + width_a + vel_a.vx * dt);
     double a_min_y = std::min(a.y, a.y + vel_a.vy * dt);
     double a_max_y = std::max(a.y + height_a, a.y + height_a + vel_a.vy * dt);
-
-    // Entity B range
     double b_min_x = std::min(b.x, b.x + vel_b.vx * dt);
     double b_max_x = std::max(b.x + width_b, b.x + width_b + vel_b.vx * dt);
     double b_min_y = std::min(b.y, b.y + vel_b.vy * dt);
     double b_max_y = std::max(b.y + height_b, b.y + height_b + vel_b.vy * dt);
-
-    // Check intersection of the swept bounding boxes
     bool collision_x = a_min_x < b_max_x && a_max_x > b_min_x;
     bool collision_y = a_min_y < b_max_y && a_max_y > b_min_y;
 

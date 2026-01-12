@@ -1,6 +1,7 @@
 #include "ai_behavior.hpp"
 #include "Components/StandardComponents.hpp"
 #include "../Components/team_component.hpp"
+#include "src/Engine/Lib/Systems/PlayerBoundsSystem.hpp"
 #include <cmath>
 
 void AIBehaviorSystem::update(Registry& registry, system_context context) {

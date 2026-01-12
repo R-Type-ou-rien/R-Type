@@ -158,6 +158,12 @@ void GameManager::initSpawner(Environment& env) {
         spawn_comp.spawn_interval = 2.0f;
         spawn_comp.is_active = true;
         ecs.registry.addComponent<EnemySpawnComponent>(spawner, spawn_comp);
+        ecs.registry.addComponent<NetworkIdentity>(spawner, {static_cast<uint32_t>(spawner), 0});
+
+        // Scripted Spawn Component
+        Entity scripted_spawner = ecs.registry.createEntity();
+        ScriptedSpawnComponent scripted_spawn_comp;
+        ecs.registry.addComponent<ScriptedSpawnComponent>(scripted_spawner, scripted_spawn_comp);
 
         Entity pod_spawner = ecs.registry.createEntity();
         PodSpawnComponent pod_spawn_comp;

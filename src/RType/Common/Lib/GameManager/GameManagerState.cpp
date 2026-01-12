@@ -5,6 +5,20 @@
 #include "src/RType/Common/Systems/spawn.hpp"
 #include "src/RType/Common/Systems/health.hpp"
 #include "src/RType/Common/Components/status_display_components.hpp"
+#include "Components/StandardComponents.hpp"
+
+static Entity findPlayerEntity(Registry& registry) {
+    auto& entities = registry.getEntities<TagComponent>();
+    for (auto entity : entities) {
+        auto& tags = registry.getConstComponent<TagComponent>(entity);
+        for (const auto& tag : tags.tags) {
+            if (tag == "PLAYER") {
+                return entity;
+            }
+        }
+    }
+    return -1;
+}
 
 void GameManager::updateUI(Environment& env) {
     auto& ecs = env.getECS();
@@ -14,11 +28,18 @@ void GameManager::updateUI(Environment& env) {
             return;
         }
 
+        Entity player_id = -1;
+        if (_player) {
+            player_id = _player->getId();
+        } else {
+            player_id = findPlayerEntity(ecs.registry);
+        }
+
         // Update Status Display player reference (only if local player exists)
-        if (_player && _statusDisplayEntity != static_cast<Entity>(-1) &&
+        if (player_id != -1 && _statusDisplayEntity != static_cast<Entity>(-1) &&
             ecs.registry.hasComponent<StatusDisplayComponent>(_statusDisplayEntity)) {
             auto& status = ecs.registry.getComponent<StatusDisplayComponent>(_statusDisplayEntity);
-            status.player_entity = _player->getId();
+            status.player_entity = player_id;
         }
 
         // Update Timer from server-synced GameTimerComponent
@@ -42,28 +63,32 @@ void GameManager::checkGameState(Environment& env) {
     }
 
     // In client mode, game state is managed by server
-    if (env.isClient()) {
-        return;
+    // But we can check for local game over condition (player death) for UI purposes
+
+    Entity player_id = -1;
+    if (_player) {
+        player_id = _player->getId();
+    } else {
+        player_id = findPlayerEntity(ecs.registry);
     }
 
-    // Vérification de la défaite (joueur mort)
-    if (_player) {
-        Entity player_id = _player->getId();
-        if (!ecs.registry.hasComponent<HealthComponent>(player_id)) {
-            _gameOver = true;
-            displayGameOver(env, false);
-            return;
+    if (player_id != -1) {
+        if (ecs.registry.hasComponent<HealthComponent>(player_id)) {
+            auto& health = ecs.registry.getConstComponent<HealthComponent>(player_id);
+            if (health.current_hp < 1) {
+                _gameOver = true;
+                displayGameOver(env, false);
+                return;
+            }
         }
-        auto& health = ecs.registry.getConstComponent<HealthComponent>(player_id);
-        if (health.current_hp < 1) {
-            _gameOver = true;
-            displayGameOver(env, false);
-            return;
+    } else if (!env.isClient()) {
+        // Only on server/standalone: if player is missing, it's game over
+        // On client, we might just be waiting for spawn
+        if (_player) { // If we expected a player (standalone)
+             _gameOver = true;
+             displayGameOver(env, false);
+             return;
         }
-    } else {
-        _gameOver = true;
-        displayGameOver(env, false);
-        return;
     }
 
     // Vérification de la victoire (boss tué)

@@ -4,6 +4,7 @@
 #include <map>
 #include <string>
 #include "mob_spawner.hpp"
+#include "Components/NetworkComponents.hpp"
 
 class ScoutSpawner : public IMobSpawner {
    public:

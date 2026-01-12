@@ -11,6 +11,7 @@
 #include <unordered_map>
 #include "src/Engine/Core/Scene/SceneManager.hpp"
 #include "Components/StandardComponents.hpp"
+#include "Components/NetworkComponents.hpp"
 #include "../Components/terrain_component.hpp"
 #include "../Components/team_component.hpp"
 #include "../Systems/health.hpp"
@@ -31,7 +32,7 @@ class ScenePrefabs {
             "Wall", [&texture_manager](Registry& registry, Entity entity,
                                        const std::unordered_map<std::string, std::any>& props) {
                 float x = 0, y = 0, width = 64, height = 64;
-                std::string sprite_path = "src/RType/Common/content/sprites/r-typesheet14.gif";
+                std::string sprite_path = "src/RType/Common/content/sprites/wall-level1.gif";
                 bool destructible = false;
 
                 if (props.count("x"))
@@ -84,6 +85,9 @@ class ScenePrefabs {
                 tags.tags.push_back("WALL");
                 tags.tags.push_back("TERRAIN");
                 registry.addComponent<TagComponent>(entity, tags);
+
+                // Add NetworkIdentity for network replication
+                registry.addComponent<NetworkIdentity>(entity, {static_cast<uint32_t>(entity), 0});
             });
     }
 
@@ -167,6 +171,9 @@ class ScenePrefabs {
                 tags.tags.push_back("AI");
                 tags.tags.push_back("TURRET");
                 registry.addComponent<TagComponent>(entity, tags);
+
+                // Add NetworkIdentity for network replication
+                registry.addComponent<NetworkIdentity>(entity, {static_cast<uint32_t>(entity), 0});
             });
     }
 };

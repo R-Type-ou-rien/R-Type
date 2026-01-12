@@ -2,22 +2,7 @@
 
 #include "ISystem.hpp"
 #include "registry.hpp"
-#include "PlayerBoundsSystem.hpp"
-
-// Composant pour les ennemis qui visent le joueur
-struct AIBehaviorComponent {
-    static constexpr auto name = "AIBehaviorComponent";
-    bool shoot_at_player = false;
-    bool follow_player = false;
-    float follow_speed = 100.0f;
-};
-
-// Composant pour marquer le boss (utile pour arrêter le background)
-struct BossComponent {
-    static constexpr auto name = "BossComponent";
-    bool has_arrived = false;
-    float target_x = 0.0f;
-};
+#include "../Components/ai_behavior_component.hpp"
 
 class AIBehaviorSystem : public ISystem {
    public:
