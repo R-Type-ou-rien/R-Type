@@ -115,29 +115,28 @@ void GameManager::checkGameState(Environment& env) {
     // In client mode, game state is managed by server
     // But we can check for local game over condition (player death) for UI purposes
 
-    // Compter le nombre total de joueurs et de joueurs vivants
-    int total_players = 0;
-    int alive_players = 0;
+    // Vérifier si au moins un joueur est mort
+    bool any_player_dead = false;
     
     auto& entities = ecs.registry.getEntities<TagComponent>();
     for (auto entity : entities) {
         auto& tags = ecs.registry.getConstComponent<TagComponent>(entity);
         for (const auto& tag : tags.tags) {
             if (tag == "PLAYER") {
-                total_players++;
                 if (ecs.registry.hasComponent<HealthComponent>(entity)) {
                     auto& health = ecs.registry.getConstComponent<HealthComponent>(entity);
-                    if (health.current_hp > 0) {
-                        alive_players++;
+                    if (health.current_hp <= 0) {
+                        any_player_dead = true;
+                        break;
                     }
                 }
-                break;
             }
         }
+        if (any_player_dead) break;
     }
 
-    // Game over si tous les joueurs sont morts
-    if (total_players > 0 && alive_players == 0) {
+    // Game over dès qu'un joueur meurt
+    if (any_player_dead) {
         _gameOver = true;
         displayGameOver(env, false);
         return;
