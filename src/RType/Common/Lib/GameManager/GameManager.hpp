@@ -16,6 +16,7 @@ class GameManager {
     std::unique_ptr<Player> _player;
     std::unique_ptr<SceneManager> _scene_manager;
     Entity _timerEntity;
+    Entity _bossHPEntity;  // Nouvelle entité pour la vie du boss
     Entity _gameStateEntity;
     Entity _boundsEntity;
     Entity _scoreTrackerEntity;

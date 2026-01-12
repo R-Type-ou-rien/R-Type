@@ -2,6 +2,7 @@
 
 #include "ISystem.hpp"
 #include "registry.hpp"
+#include "PlayerBoundsSystem.hpp"
 #include "../Components/ai_behavior_component.hpp"
 
 class AIBehaviorSystem : public ISystem {

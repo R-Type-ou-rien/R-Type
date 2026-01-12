@@ -2,6 +2,7 @@
 #include "damage.hpp"
 #include "Components/StandardComponents.hpp"
 #include "score.hpp"
+#include "ai_behavior.hpp"
 
 #include "health.hpp"
 
@@ -17,6 +18,11 @@ void HealthSystem::update(Registry& registry, system_context context) {
             health.last_damage_time -= context.dt;
         }
         if (health.current_hp <= 0) {
+            // Ne pas détruire les boss immédiatement - ils ont une séquence de mort
+            if (registry.hasComponent<BossComponent>(entity)) {
+                // Le BossPatternSystem gère la mort du boss
+                continue;
+            }
             dead_entities.push_back(entity);
         }
     }

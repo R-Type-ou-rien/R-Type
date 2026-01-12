@@ -16,6 +16,9 @@
 #include "src/RType/Common/Systems/ai_behavior.hpp"
 #include "src/RType/Common/Systems/score.hpp"
 #include "src/RType/Common/Systems/animation_helper.hpp"
+#include "src/RType/Common/Systems/powerup.hpp"
+#include "src/RType/Common/Systems/boss_patterns.hpp"
+#include "src/RType/Common/Systems/projectile_cleanup.hpp"
 #include "src/RType/Common/Systems/pod_system.hpp"
 #include "src/RType/Common/Systems/status_display.hpp"
 #include "src/Engine/Lib/Systems/PatternSystem/PatternSystem.hpp"
@@ -35,6 +38,8 @@ void GameManager::initSystems(Environment& env) {
     if (!env.isClient()) {
         ecs.systems.addSystem<BoxCollision>();  // Collision detection must run before damage
         ecs.systems.addSystem<ShooterSystem>();
+        ecs.systems.addSystem<ProjectileCleanupSystem>();  // Nouveau : Nettoie projectiles hors écran
+        ecs.systems.addSystem<PowerUpSystem>();  // Nouveau : Power-Ups après collisions
         ecs.systems.addSystem<Damage>();
         ecs.systems.addSystem<HealthSystem>();
         ecs.systems.addSystem<PatternSystem>();
@@ -42,6 +47,7 @@ void GameManager::initSystems(Environment& env) {
         ecs.systems.addSystem<WallCollisionSystem>();
         ecs.systems.addSystem<PodSystem>();
         ecs.systems.addSystem<AIBehaviorSystem>();
+        ecs.systems.addSystem<BossPatternSystem>();  // Nouveau : Patterns complexes du boss
         ecs.systems.addSystem<BoundsSystem>();
         ecs.systems.addSystem<PlayerBoundsSystem>();
         ecs.systems.addSystem<ScoreSystem>();
@@ -125,6 +131,7 @@ void GameManager::initPlayer(Environment& env) {
         _player->addCollisionTag("ENEMY_PROJECTILE");
         _player->addCollisionTag("OBSTACLE");
         _player->addCollisionTag("ITEM");
+        _player->addCollisionTag("POWERUP");  // Nouveau : pour collecter les power-ups
         _player->addCollisionTag("WALL");
 
         ChargedShotComponent charged_shot;
@@ -184,6 +191,12 @@ void GameManager::initUI(Environment& env) {
         ecs.registry.addComponent<TextComponent>(
             _timerEntity, {"Time: 0s", "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 28,
                            sf::Color::Cyan, 10, 10});
+
+        // Boss HP UI (haut à droite)
+        _bossHPEntity = ecs.registry.createEntity();
+        ecs.registry.addComponent<TextComponent>(
+            _bossHPEntity, {"", "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 28,
+                           sf::Color::Red, 1400, 10});
 
         // Score tracker
         _scoreTrackerEntity = ecs.registry.createEntity();

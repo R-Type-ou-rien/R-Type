@@ -15,7 +15,10 @@ Player::Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<floa
     setPosition(pos);
     _ecs.registry.addComponent<TeamComponent>(_id, {TeamComponent::Team::ALLY});
     _ecs.registry.addComponent<ShooterComponent>(_id, {});
-    _ecs.registry.addComponent<HealthComponent>(_id, {100, 100});
+    // Système de vie avec invincibilité de 1.5s après un dégât
+    _ecs.registry.addComponent<HealthComponent>(_id, {100, 100, 0.0f, 1.5f});
+    // CRITIQUE : Le joueur doit pouvoir recevoir des dégâts (valeur = 0 car on veut juste les dégâts entrants)
+    _ecs.registry.addComponent<DamageOnCollision>(_id, {0});
 
     // Movement Bindings
     bindActionCallbackPressed("move_left", [this](Registry&, system_context, Entity) {
