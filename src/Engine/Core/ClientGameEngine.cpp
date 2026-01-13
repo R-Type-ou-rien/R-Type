@@ -7,6 +7,7 @@
 
 #include "Components/NetworkComponents.hpp"
 #include "Components/StandardComponents.hpp"
+#include "Context.hpp"
 #include "Network.hpp"
 #include "NetworkEngine/NetworkEngine.hpp"
 #include "AudioSystem.hpp"
@@ -49,6 +50,7 @@ int ClientGameEngine::init() {
     registerNetworkComponent<NetworkIdentity>();
     registerNetworkComponent<::GameTimerComponent>();
     registerNetworkComponent<AudioSourceComponent>();
+    registerNetworkComponent<PredictionComponent>();
 
     // R-Type specific components
     registerNetworkComponent<PodComponent>();
@@ -67,6 +69,12 @@ int ClientGameEngine::init() {
     // _ecs.systems.addSystem<ActionScriptSystem>();
     // _ecs.systems.addSystem<PatternSystem>();
     // _ecs.systems.addSystem<SpawnSystem>();
+
+
+    if (!_physicsLogic) {
+        _physicsLogic = [](Entity, Registry&, const InputSnapshot&, float){};
+    }
+    _predictionSystem = std::make_unique<PredictionSystem>(_physicsLogic);
     return 0;
 }
 
@@ -93,6 +101,15 @@ void ClientGameEngine::processNetworkEvents() {
             ComponentPacket packet;
             mutable_msg >> packet;
             processComponentPacket(packet.entity_guid, packet.component_type, packet.data);
+            if (_localPlayerEntity.has_value() && packet.entity_guid == _localPlayerEntity.value()) {
+                Entity localId = getLocalPlayerEntity().value();
+                if (_ecs.registry.hasComponent<PredictionComponent>(localId) && 
+                    _ecs.registry.hasComponent<transform_component_s>(localId)) {
+
+                    auto serverPos = _ecs.registry.getComponent<transform_component_s>(localId);
+                    _predictionSystem->onServerUpdate(_ecs.registry, localId, serverPos, msg.header.tick);
+                }
+            }
         }
     }
 
@@ -154,6 +171,7 @@ int ClientGameEngine::run() {
 
         handleEvent();
         processNetworkEvents();
+        _predictionSystem->updatePrediction(_ecs.registry, input_manager, _currentTick, context.dt);
         input_manager.update(*_network, _currentTick, context);
         _window_manager.clear();
 

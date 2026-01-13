@@ -30,6 +30,7 @@
 #include "src/Engine/Lib/Systems/PhysicsSystem.hpp"
 #include "src/Engine/Lib/Systems/ActionScriptSystem.hpp"
 #include "src/Engine/Lib/Systems/DestructionSystem.hpp"
+#include "src/Engine/Lib/Components/PredictionComponent.hpp"
 
 void GameManager::initSystems(Environment& env) {
     auto& ecs = env.getECS();
@@ -100,8 +101,6 @@ void GameManager::initBounds(Environment& env) {
 }
 
 void GameManager::initPlayer(Environment& env) {
-    // In multiplayer mode (server or client), players are spawned when clients connect
-    // and replicated via network snapshots. Only spawn locally in standalone mode.
     if (env.isServer() || env.isClient()) {
         std::cout << "[GameManager] Multiplayer mode: Player spawning handled by network replication" << std::endl;
         return;
@@ -116,7 +115,6 @@ void GameManager::initPlayer(Environment& env) {
     if (_player) {
         _player->setTexture(_player_config.sprite_path.value());
 
-        // Configuration de l'animation horizontale avec le helper
         Entity player_id = _player->getId();
         int num_frames = _player_config.animation_frames.value_or(5);
         float anim_speed = _player_config.animation_speed.value_or(0.1f);
@@ -152,7 +150,10 @@ void GameManager::initPlayer(Environment& env) {
         player_pod.pod_attached = false;
         player_pod.last_known_hp = _player_config.hp.value();
         ecs.registry.addComponent<PlayerPodComponent>(_player->getId(), player_pod);
+
+        ecs.registry.addComponent<PredictionComponent>(_player->getId(), {});
     }
+
 }
 
 void GameManager::initSpawner(Environment& env, const LevelConfig& config) {

@@ -16,6 +16,7 @@
 #include "BackgroundSystem.hpp"
 #include "ResourceConfig.hpp"
 #include "WindowManager.hpp"
+#include "PredictionSystem.hpp"
 
 #define SUCCESS 0
 #define FAILURE -1
@@ -28,6 +29,8 @@ class ClientGameEngine : public GameEngineBase<ClientGameEngine> {
     uint32_t _serverId = 0;
     uint32_t _clientId = 0;
     std::optional<Entity> _localPlayerEntity;
+    std::unique_ptr<PredictionSystem> _predictionSystem;
+    PhysicsSimulationCallback _physicsLogic;
 
    public:
     static constexpr bool IsServer = false;
@@ -37,12 +40,12 @@ class ClientGameEngine : public GameEngineBase<ClientGameEngine> {
     int run();
     explicit ClientGameEngine(std::string window_name = "Default Name");
     ~ClientGameEngine() {}
+    void setPredictionLogic(PhysicsSimulationCallback logic) { _physicsLogic = logic; }
 
     std::optional<Entity> getLocalPlayerEntity() const {
         if (!_localPlayerEntity.has_value())
             return std::nullopt;
 
-        // Convert network GUID to local entity ID
         auto it = _networkToLocalEntity.find(_localPlayerEntity.value());
         if (it != _networkToLocalEntity.end()) {
             return it->second;
@@ -53,4 +56,6 @@ class ClientGameEngine : public GameEngineBase<ClientGameEngine> {
    private:
     void handleEvent();
     void processNetworkEvents();
+    void applyLocalInputs(Entity playerEntity);
+    void reconcile(Entity playerEntity, const transform_component_s& serverState, uint32_t serverTick);
 };
