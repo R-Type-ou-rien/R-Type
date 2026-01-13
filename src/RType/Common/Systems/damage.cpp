@@ -1,5 +1,7 @@
 #include "damage.hpp"
 
+#include <set>
+#include <vector>
 #include "health.hpp"
 #include "shooter.hpp"
 #include "../Components/team_component.hpp"
@@ -8,6 +10,11 @@
 
 void Damage::update(Registry& registry, system_context context) {
     auto& attackers = registry.getEntities<DamageOnCollision>();
+
+    // Track entities that have already been damaged this frame
+    std::set<Entity> damaged_this_frame;
+    // Track attackers to destroy after processing
+    std::vector<Entity> attackers_to_destroy;
 
     for (auto attacker : attackers) {
         if (!registry.hasComponent<BoxCollisionComponent>(attacker))
@@ -33,6 +40,8 @@ void Damage::update(Registry& registry, system_context context) {
                 if (teamA.team == teamB.team)
                     continue;
             }
+
+            // Check invincibility from previous frames
             if (health.last_damage_time > 0) {
                 continue;
             }
@@ -52,12 +61,37 @@ void Damage::update(Registry& registry, system_context context) {
                 std::cout << "[Damage] Entity " << hit_id << " took " << dmg.damage_value << " damage, HP remaining: " << health.current_hp << std::endl;
             }
 
+            int damage_value = dmg.damage_value;
+
+            // Obstacles have a fixed damage value in the original logic
+            if (registry.hasComponent<TagComponent>(attacker)) {
+                auto& tags = registry.getConstComponent<TagComponent>(attacker);
+                for (const auto& tag : tags.tags) {
+                    if (tag == "OBSTACLE") {
+                        damage_value = 10;
+                    }
+                }
+            }
+
+            // Mark as damaged this frame BEFORE applying damage
+            damaged_this_frame.insert(hit_id);
+
+            // Always set invincibility after taking damage
+            health.last_damage_time = health.invincibility_duration;
+
+            if (health.current_hp - damage_value <= 0) {
+                health.current_hp = 0;
+            } else {
+                health.current_hp -= damage_value;
+            }
+
+            // Handle attacker destruction
             if (registry.hasComponent<TeamComponent>(attacker) && registry.hasComponent<TeamComponent>(hit_id)) {
                 auto& teamA = registry.getConstComponent<TeamComponent>(attacker);
                 auto& teamB = registry.getConstComponent<TeamComponent>(hit_id);
                 if (teamA.team == TeamComponent::ENEMY && teamB.team == TeamComponent::ALLY) {
                     if (!registry.hasComponent<ProjectileComponent>(attacker)) {
-                        registry.destroyEntity(attacker);
+                        attackers_to_destroy.push_back(attacker);
                         break;
                     }
                 }
@@ -69,14 +103,22 @@ void Damage::update(Registry& registry, system_context context) {
                     penetrating.current_penetrations++;
 
                     if (penetrating.current_penetrations >= penetrating.max_penetrations) {
-                        registry.destroyEntity(attacker);
+                        attackers_to_destroy.push_back(attacker);
                         break;
                     }
                 } else {
-                    registry.destroyEntity(attacker);
+                    attackers_to_destroy.push_back(attacker);
                     break;
                 }
             }
+        }
+    }
+
+    // Destroy attackers after processing to avoid iterator invalidation
+    // Use PendingDestruction for network replication compatibility
+    for (auto attacker : attackers_to_destroy) {
+        if (!registry.hasComponent<PendingDestruction>(attacker)) {
+            registry.addComponent<PendingDestruction>(attacker, {});
         }
     }
 }

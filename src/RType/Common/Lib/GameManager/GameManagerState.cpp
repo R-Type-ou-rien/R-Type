@@ -60,11 +60,11 @@ void GameManager::updateUI(Environment& env) {
         // Update Boss HP (nouveau)
         if (ecs.registry.hasComponent<TextComponent>(_bossHPEntity)) {
             auto& boss_hp_text = ecs.registry.getComponent<TextComponent>(_bossHPEntity);
-            
+
             // Chercher le boss
             auto& entities = ecs.registry.getEntities<TagComponent>();
             bool found_boss = false;
-            
+
             for (auto entity : entities) {
                 auto& tags = ecs.registry.getConstComponent<TagComponent>(entity);
                 for (const auto& tag : tags.tags) {
@@ -74,26 +74,28 @@ void GameManager::updateUI(Environment& env) {
                             int current_hp = boss_health.current_hp;
                             int max_hp = boss_health.max_hp;
                             float hp_percent = (static_cast<float>(current_hp) / max_hp) * 100.0f;
-                            
-                            boss_hp_text.text = "BOSS: " + std::to_string(current_hp) + "/" + std::to_string(max_hp) + " (" + std::to_string(static_cast<int>(hp_percent)) + "%)";
-                            
+
+                            boss_hp_text.text = "BOSS: " + std::to_string(current_hp) + "/" + std::to_string(max_hp) +
+                                                " (" + std::to_string(static_cast<int>(hp_percent)) + "%)";
+
                             // Changer la couleur selon la santé
                             if (hp_percent > 50) {
                                 boss_hp_text.color = sf::Color::Red;
                             } else if (hp_percent > 25) {
-                                boss_hp_text.color = sf::Color(255, 165, 0); // Orange
+                                boss_hp_text.color = sf::Color(255, 165, 0);  // Orange
                             } else {
-                                boss_hp_text.color = sf::Color(255, 0, 255); // Magenta (critique)
+                                boss_hp_text.color = sf::Color(255, 0, 255);  // Magenta (critique)
                             }
-                            
+
                             found_boss = true;
                         }
                         break;
                     }
                 }
-                if (found_boss) break;
+                if (found_boss)
+                    break;
             }
-            
+
             // Cacher le texte si pas de boss
             if (!found_boss) {
                 boss_hp_text.text = "";
@@ -163,14 +165,10 @@ void GameManager::checkGameState(Environment& env) {
         }
     }
     
-    // Gestion selon le nombre de joueurs
     if (total_players == 1) {
-        // Mode solo : si le joueur meurt, game over
         if (alive_players == 0) {
             _gameOver = true;
             
-            // Le GameStateSystem (côté serveur) envoie S_GAME_OVER aux clients
-            // Côté serveur standalone, on affiche quand même
             if (env.isStandalone() && !_leaderboardDisplayed) {
                 displayGameOver(env, false);
                 displayLeaderboard(env, false);
@@ -179,7 +177,6 @@ void GameManager::checkGameState(Environment& env) {
             return;
         }
     } else if (total_players >= 2) {
-        // Mode multijoueur : gérer les spectateurs
         for (auto entity : player_entities) {
             if (!ecs.registry.hasComponent<HealthComponent>(entity))
                 continue;
@@ -188,11 +185,9 @@ void GameManager::checkGameState(Environment& env) {
             bool is_dead = health.current_hp <= 0;
             bool is_spectator = ecs.registry.hasComponent<SpectatorComponent>(entity);
             
-            // Si un joueur meurt et n'est pas encore spectateur, le mettre en spectateur
             if (is_dead && !is_spectator && alive_players > 0) {
                 SpectatorComponent spectator;
                 
-                // Trouver un joueur vivant à observer
                 for (auto other_entity : player_entities) {
                     if (other_entity != entity && ecs.registry.hasComponent<HealthComponent>(other_entity)) {
                         auto& other_health = ecs.registry.getConstComponent<HealthComponent>(other_entity);
@@ -205,7 +200,6 @@ void GameManager::checkGameState(Environment& env) {
                 
                 ecs.registry.addComponent<SpectatorComponent>(entity, spectator);
                 
-                // Afficher message spectateur (si c'est le joueur local)
                 if (!env.isServer() && _player && _player->getId() == entity) {
                     Entity spectatorMsg = ecs.registry.createEntity();
                     ecs.registry.addComponent<TextComponent>(
@@ -217,12 +211,9 @@ void GameManager::checkGameState(Environment& env) {
             }
         }
         
-        // Si tous les joueurs sont morts, afficher le leaderboard
         if (alive_players == 0 && dead_players > 0) {
             _gameOver = true;
             
-            // Le GameStateSystem (côté serveur) envoie S_GAME_OVER aux clients
-            // Côté serveur standalone, on affiche quand même
             if (env.isStandalone() && !_leaderboardDisplayed) {
                 displayGameOver(env, false);
                 displayLeaderboard(env, false);
@@ -232,11 +223,9 @@ void GameManager::checkGameState(Environment& env) {
         }
     }
 
-    // Vérification de la victoire (boss tué)
     bool boss_exists = false;
     bool boss_spawned = false;
 
-    // Vérifier si le boss a été spawné
     auto& spawners = ecs.registry.getEntities<EnemySpawnComponent>();
     for (auto spawner : spawners) {
         if (ecs.registry.hasComponent<EnemySpawnComponent>(spawner)) {

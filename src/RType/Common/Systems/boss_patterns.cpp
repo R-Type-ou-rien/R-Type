@@ -171,7 +171,7 @@ void BossPatternSystem::handlePhaseTransition(Registry& registry, Entity boss_en
 
         case BossComponent::PHASE_3:
             boss.current_phase = 3;
-            boss.core_vulnerable = false; // Protection temporaire
+            boss.core_vulnerable = false;  // Protection temporaire
 
             if (registry.hasComponent<ShooterComponent>(boss_entity)) {
                 auto& shooter = registry.getComponent<ShooterComponent>(boss_entity);
@@ -190,6 +190,9 @@ void BossPatternSystem::handlePhaseTransition(Registry& registry, Entity boss_en
             break;
 
         case BossComponent::DYING:
+            std::cout << "DYING" << std::endl;
+            break;
+
         default:
             break;
     }
@@ -270,7 +273,7 @@ void BossPatternSystem::executePhase3Patterns(Registry& registry, system_context
 
 void BossPatternSystem::executeEnragedPatterns(Registry& registry, system_context context, Entity boss_entity, BossComponent& boss) {
     // Mode ENRAGED ultra-agressif avec mouvements rapides
-    boss.oscillation_timer += context.dt * 2.0f; // 2x plus rapide
+    boss.oscillation_timer += context.dt * 2.0f;  // 2x plus rapide
     if (registry.hasComponent<transform_component_s>(boss_entity)) {
         auto& transform = registry.getComponent<transform_component_s>(boss_entity);
         if (boss.base_y == 0.0f)
@@ -341,7 +344,7 @@ void BossPatternSystem::patternWallOfProjectiles(Registry& registry, system_cont
 
     // Éventail de 5 projectiles
     for (int i = -2; i <= 2; i++) {
-        float angle = i * 15.0f; // 15 degrés entre chaque
+        float angle = i * 15.0f;  // 15 degrés entre chaque
         float vx = -350.0f * std::cos(angle * 3.14159f / 180.0f);
         float vy = -350.0f * std::sin(angle * 3.14159f / 180.0f);
         createBossProjectile(registry, context, boss_transform, vx, vy, 35);
@@ -370,7 +373,7 @@ void BossPatternSystem::patternSpiral(Registry& registry, system_context context
     auto& boss = registry.getConstComponent<BossComponent>(boss_entity);
 
     // Spirale basée sur le timer
-    float angle = boss.state_timer * 180.0f; // Rotation rapide
+    float angle = boss.state_timer * 180.0f;  // Rotation rapide
     int projectile_count = 8;
 
     for (int i = 0; i < projectile_count; i++) {

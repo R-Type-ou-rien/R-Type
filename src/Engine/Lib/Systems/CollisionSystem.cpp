@@ -4,6 +4,7 @@
 #include <ostream>
 #include <vector>
 #include <utility>
+#include <algorithm>
 #include "Components/StandardComponents.hpp"
 
 void BoxCollision::update(Registry& registry, system_context context) {

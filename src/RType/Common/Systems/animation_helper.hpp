@@ -23,6 +23,8 @@ class AnimationHelper {
         float start_x = static_cast<float>(config.sprite_x.value());
         float start_y = static_cast<float>(config.sprite_y.value());
 
+        sprite.dimension = {start_x, start_y, sprite_w, sprite_h};
+
         for (int i = 0; i < num_frames; i++) {
             sprite.frames.push_back({start_x + i * sprite_w, start_y, sprite_w, sprite_h});
         }
@@ -43,6 +45,9 @@ class AnimationHelper {
         sprite.loop_animation = true;
         sprite.animation_speed = animation_speed;
         sprite.frames.clear();
+
+        // Définir dimension pour le système de collision
+        sprite.dimension = {start_x, start_y, width, height};
 
         for (int i = 0; i < num_frames; i++) {
             sprite.frames.push_back({start_x + i * (width + padding_x), start_y, width, height});

@@ -42,6 +42,7 @@ void BossSpawner::spawn(Registry& registry, system_context context, float x, flo
     boss_shooter.fire_rate = config.fire_rate.value();
     boss_shooter.last_shot = 0.0f;
     boss_shooter.projectile_damage = config.projectile_damage.value_or(25);
+    boss_shooter.projectile_scale = config.projectile_scale.value_or(3.0f);
 
     if (config.shoot_pattern.has_value()) {
         std::string pattern = config.shoot_pattern.value();

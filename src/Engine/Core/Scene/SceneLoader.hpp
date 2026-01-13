@@ -79,6 +79,14 @@ class SceneLoader {
             config.background_texture = value;
         else if (key == "music")
             config.music_track = value;
+        else if (key == "enemies_config")
+            config.enemies_config = value;
+        else if (key == "boss_config")
+            config.boss_config = value;
+        else if (key == "game_config")
+            config.game_config = value;
+        else if (key == "spawn_script")
+            config.spawn_script = value;
     }
 
     static void parseWallEntry(LevelConfig& config, const std::string& value) {

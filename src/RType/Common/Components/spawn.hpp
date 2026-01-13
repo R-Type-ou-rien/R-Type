@@ -1,5 +1,5 @@
 #pragma once
-
+#include <string>
 // EnemySpawnComponent - Component definition only (no system)
 // The EnemySpawnSystem is defined in Systems/spawn.hpp
 
@@ -14,6 +14,11 @@ struct EnemySpawnComponent {
     int wave_count = 0;
     bool is_active = true;
     bool use_scripted_spawns = true;
+
+    // Configuration paths
+    std::string enemies_config_path;
+    std::string boss_config_path;
+    std::string game_config_path;
 
     // Seed pour le random (pas de static)
     unsigned int random_seed = 0;

@@ -46,6 +46,12 @@ bool PodSystem::allPlayersHavePods(Registry& registry) {
 }
 
 void PodSystem::spawnPod(Registry& registry, system_context context) {
+    // Pod sprite constants - defined first for use in transform
+    constexpr float POD_FRAME_WIDTH = 34.0f;
+    constexpr float POD_FRAME_HEIGHT = 18.0f;
+    constexpr int POD_NUM_FRAMES = 6;
+    constexpr float POD_SCALE = 3.0f;
+
     Entity pod_id = registry.createEntity();
 #if defined(CLIENT_BUILD)
     const auto world_w = static_cast<float>(context.window.getSize().x);
@@ -62,7 +68,7 @@ void PodSystem::spawnPod(Registry& registry, system_context context) {
     float spawn_x = world_w + 50.0f;
     float spawn_y = 100.0f + dis(gen) * ((world_h - 200.0f));
 
-    registry.addComponent<transform_component_s>(pod_id, {spawn_x, spawn_y, 1.0f, 1.0f});
+    registry.addComponent<transform_component_s>(pod_id, {spawn_x, spawn_y, POD_SCALE, POD_SCALE});
     registry.addComponent<Velocity2D>(pod_id, {-80.0f, 0.0f});
 
     TagComponent tags;
@@ -90,18 +96,15 @@ void PodSystem::spawnPod(Registry& registry, system_context context) {
 
     sprite2D_component_s sprite_info;
     sprite_info.handle = handle;
-    sprite_info.z_index = 2;
+    sprite_info.z_index = 1;
 
-    float frame_width = 33.0f;
-    float frame_height = 32.0f;
-    sprite_info.dimension = {0, 0, frame_width, frame_height};
+    sprite_info.dimension = {1, 0, POD_FRAME_WIDTH, POD_FRAME_HEIGHT};
 
     registry.addComponent<sprite2D_component_s>(pod_id, sprite_info);
 
-    AnimationHelper::setupAnimation(registry, pod_id, 1.0f, 1.0f, static_cast<float>(frame_width), static_cast<float>(frame_height), 12, 0.15f, 1.0f);
-    auto& transform = registry.getComponent<transform_component_s>(pod_id);
-    transform.scale_x = 3.0f;
-    transform.scale_y = 3.0f;
+    // Animation: 6 frames horizontales, start à (1,0) avec padding de 0
+    AnimationHelper::setupAnimation(registry, pod_id, 1.0f, 0.0f, POD_FRAME_WIDTH, POD_FRAME_HEIGHT, POD_NUM_FRAMES,
+                                    0.12f, 0.0f);
 
     // Add NetworkIdentity for network replication
     registry.addComponent<NetworkIdentity>(pod_id, {static_cast<uint32_t>(pod_id), 0});
@@ -324,7 +327,9 @@ void PodSystem::handlePlayerDamage(Registry& registry) {
             }
 
             if (registry.hasComponent<PodComponent>(pod_entity)) {
-                registry.destroyEntity(pod_entity);
+                if (!registry.hasComponent<PendingDestruction>(pod_entity)) {
+                    registry.addComponent<PendingDestruction>(pod_entity, {});
+                }
             }
 
             player_pod.has_pod = false;
@@ -430,7 +435,7 @@ void PodSystem::createPodLaserProjectile(Registry& registry, system_context cont
     registry.addComponent<ProjectileComponent>(projectile_id, {static_cast<int>(projectile_id)});
     registry.addComponent<DamageOnCollision>(projectile_id, {damage});
 
-    // a faire remplacer avec le sprite du laser circulaire du pod
+    // Tir laser circulaire du pod
     handle_t<TextureAsset> handle =
         context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet1.gif",
                                      TextureAsset("src/RType/Common/content/sprites/r-typesheet1.gif"));
@@ -439,8 +444,8 @@ void PodSystem::createPodLaserProjectile(Registry& registry, system_context cont
     sprite_info.handle = handle;
     sprite_info.animation_speed = 0;
     sprite_info.current_animation_frame = 0;
-    // a faire mettre les coordonées correctes du sprite laser circulaire du pod
-    sprite_info.dimension = {232, 103, 32, 14};
+    // Coordonnées du petit projectile bleu circulaire
+    sprite_info.dimension = {263, 120, 32, 28};
     sprite_info.z_index = 3;
 
     registry.addComponent<sprite2D_component_s>(projectile_id, sprite_info);
@@ -450,7 +455,7 @@ void PodSystem::createPodLaserProjectile(Registry& registry, system_context cont
     registry.addComponent<BoxCollisionComponent>(projectile_id, collision);
 
     AudioSourceComponent audio;
-    audio.sound_name = "pod_laser";  // a faire ajouter le son du tir de laser du pod
+    audio.sound_name = "shoot";
     audio.play_on_start = true;
     audio.loop = false;
     audio.destroy_entity_on_finish = false;
@@ -519,9 +524,8 @@ void PodSystem::update(Registry& registry, system_context context) {
         spawn_comp.spawn_timer += context.dt;
         if (spawn_comp.spawn_timer >= spawn_comp.spawn_interval && spawn_comp.can_spawn) {
             spawn_comp.spawn_timer = 0.0f;
-            spawn_comp.spawn_interval =
-                spawn_comp.min_spawn_interval + dis(gen) *
-                                                    (spawn_comp.max_spawn_interval - spawn_comp.min_spawn_interval);
+            spawn_comp.spawn_interval = spawn_comp.min_spawn_interval +
+                                        dis(gen) * (spawn_comp.max_spawn_interval - spawn_comp.min_spawn_interval);
             spawnPod(registry, context);
         }
     }
@@ -547,6 +551,8 @@ void PodSystem::update(Registry& registry, system_context context) {
         }
     }
     for (auto pod : to_destroy) {
-        registry.destroyEntity(pod);
+        if (!registry.hasComponent<PendingDestruction>(pod)) {
+            registry.addComponent<PendingDestruction>(pod, {});
+        }
     }
 }

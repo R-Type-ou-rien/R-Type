@@ -3,6 +3,7 @@
 #include <memory>
 #include <vector>
 #include <iostream>
+#include <string>
 #include <map>
 #include "../../Lib/Components/NetworkComponents.hpp"
 
