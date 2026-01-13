@@ -211,4 +211,12 @@ struct ComponentTraits<BossComponent> {
     }
 };
 
+template <>
+struct ComponentTraits<AudioSourceComponent> {
+    static AudioSourceComponent deserialize(const std::vector<uint8_t>& buffer, size_t& offset,
+                                            ResourceManager<TextureAsset>&) {
+        return deserialize_audio_source(buffer, offset);
+    }
+};
+
 }  // namespace serialize
