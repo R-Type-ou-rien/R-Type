@@ -94,6 +94,14 @@ void BossPatternSystem::updateBossState(Registry& registry, system_context conte
             
         case BossComponent::DYING:
             boss.death_timer += context.dt;
+            
+            // Déplacer le boss hors écran progressivement pendant la mort pour libérer la vue
+            if (registry.hasComponent<transform_component_s>(boss_entity)) {
+                auto& transform = registry.getComponent<transform_component_s>(boss_entity);
+                // Faire descendre le boss progressivement hors de l'écran
+                transform.y += 500.0f * context.dt;
+            }
+            
             if (boss.death_timer >= boss.death_duration) {
                 boss.current_state = BossComponent::DEAD;
                 

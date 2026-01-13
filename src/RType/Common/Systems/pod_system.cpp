@@ -202,9 +202,12 @@ void PodSystem::handlePodCollection(Registry& registry) {
                 player_pod.pod_attached = true;
             }
 
-            auto& pod_col = registry.getComponent<BoxCollisionComponent>(pod_entity);
-            pod_col.tagCollision.clear();
-            pod_col.tagCollision.emplace_back("AI");
+            // Vérifier que le composant existe avant de modifier
+            if (registry.hasComponent<BoxCollisionComponent>(pod_entity)) {
+                auto& pod_col = registry.getComponent<BoxCollisionComponent>(pod_entity);
+                pod_col.tagCollision.clear();
+                pod_col.tagCollision.emplace_back("AI");
+            }
 
             registry.addComponent<DamageOnCollision>(pod_entity, {50});
 
@@ -309,6 +312,11 @@ void PodSystem::handlePlayerDamage(Registry& registry) {
         if (health.current_hp < player_pod.last_known_hp) {
             Entity pod_entity = player_pod.pod_entity;
 
+            // IMPORTANT: Réinitialiser d'abord les références du joueur pour éviter les crashs
+            player_pod.has_pod = false;
+            player_pod.pod_entity = -1;
+            player_pod.pod_attached = false;
+
             if (registry.hasComponent<HealthComponent>(player_entity)) {
                 auto& player_health = registry.getComponent<HealthComponent>(player_entity);
                 player_health.current_hp = player_pod.last_known_hp;  // Restaurer les HP
@@ -326,19 +334,20 @@ void PodSystem::handlePlayerDamage(Registry& registry) {
                 registry.addComponent<ChargedShotComponent>(player_entity, charged_shot);
             }
 
-            if (registry.hasComponent<PodComponent>(pod_entity)) {
-                if (!registry.hasComponent<PendingDestruction>(pod_entity)) {
-                    registry.addComponent<PendingDestruction>(pod_entity, {});
+            // Vérifier que le pod existe toujours ET qu'il n'est pas déjà marqué pour destruction
+            if (pod_entity != -1 && 
+                registry.hasComponent<PodComponent>(pod_entity) && 
+                !registry.hasComponent<PendingDestruction>(pod_entity)) {
+                // Nettoyer les références du pod avant destruction
+                if (registry.hasComponent<BoxCollisionComponent>(pod_entity)) {
+                    auto& pod_col = registry.getComponent<BoxCollisionComponent>(pod_entity);
+                    pod_col.tagCollision.clear();
                 }
+                registry.addComponent<PendingDestruction>(pod_entity, {});
+                std::cout << "[PodSystem] Pod " << pod_entity << " destroyed! Player " << player_entity << " was hit with pod attached." << std::endl;
             }
 
-            player_pod.has_pod = false;
-            player_pod.pod_entity = -1;
-            player_pod.pod_attached = false;
             player_pod.last_known_hp = health.current_hp;
-
-            std::cout << "[PodSystem] Pod destroyed! Player " << player_entity << " was hit with pod attached."
-                      << std::endl;
         } else {
             player_pod.last_known_hp = health.current_hp;
         }
@@ -356,8 +365,17 @@ void PodSystem::handlePodToggle(Registry& registry) {
         player_pod.detach_requested = false;
 
         Entity pod_entity = player_pod.pod_entity;
-        if (!registry.hasComponent<PodComponent>(pod_entity))
+        if (pod_entity == -1) {
+            player_pod.has_pod = false;
+            player_pod.pod_attached = false;
             continue;
+        }
+        if (!registry.hasComponent<PodComponent>(pod_entity)) {
+            player_pod.has_pod = false;
+            player_pod.pod_entity = -1;
+            player_pod.pod_attached = false;
+            continue;
+        }
 
         auto& pod = registry.getComponent<PodComponent>(pod_entity);
 
@@ -415,8 +433,8 @@ void PodSystem::handlePodToggle(Registry& registry) {
     }
 }
 
-void PodSystem::createPodLaserProjectile(Registry& registry, system_context context, transform_component_s pos,
-                                         float angle, int damage) {
+void PodSystem::createPodLaserProjectile(Registry& registry, system_context context, Entity owner_entity,
+                                         transform_component_s pos, float angle, int damage) {
     Entity projectile_id = registry.createEntity();
 
     float speed = 600.0f;
@@ -432,7 +450,7 @@ void PodSystem::createPodLaserProjectile(Registry& registry, system_context cont
     registry.addComponent<TagComponent>(projectile_id, tags);
 
     registry.addComponent<TeamComponent>(projectile_id, {TeamComponent::ALLY});
-    registry.addComponent<ProjectileComponent>(projectile_id, {static_cast<int>(projectile_id)});
+    registry.addComponent<ProjectileComponent>(projectile_id, {static_cast<int>(owner_entity)});
     registry.addComponent<DamageOnCollision>(projectile_id, {damage});
 
     // Tir laser circulaire du pod
@@ -486,7 +504,9 @@ void PodSystem::handleDetachedPodShooting(Registry& registry, system_context con
             // Circular pattern: 8 projectiles in all directions
             for (int i = 0; i < 8; ++i) {
                 float angle = static_cast<float>(i) * (std::numbers::pi_v<float> / 4.0f);  // 45 degrees in radians
-                createPodLaserProjectile(registry, context, pod_pos, angle, pod.projectile_damage);
+                if (pod.owner_id != -1) {
+                    createPodLaserProjectile(registry, context, pod.owner_id, pod_pos, angle, pod.projectile_damage);
+                }
             }
         }
     }

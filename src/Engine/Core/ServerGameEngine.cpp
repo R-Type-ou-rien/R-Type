@@ -141,11 +141,13 @@ void ServerGameEngine::processNetworkEvents() {
                     _ecs.registry.addComponent<PlayerPodComponent>(newPlayer->getId(), player_pod);
 
                     // Add ScoreComponent for individual player score tracking
-                    ScoreComponent playerScore;
-                    playerScore.current_score = 0;
-                    playerScore.high_score = 0;
-                    _ecs.registry.addComponent<ScoreComponent>(newPlayer->getId(), playerScore);
-                    std::cout << "SERVER: Added ScoreComponent to player " << newPlayer->getId() << std::endl;
+                    if (!_ecs.registry.hasComponent<ScoreComponent>(newPlayer->getId())) {
+                        ScoreComponent playerScore;
+                        playerScore.current_score = 0;
+                        playerScore.high_score = 0;
+                        _ecs.registry.addComponent<ScoreComponent>(newPlayer->getId(), playerScore);
+                        std::cout << "SERVER: Added ScoreComponent to player " << newPlayer->getId() << std::endl;
+                    }
 
                     // Store player
                     _players[newClientId] = newPlayer;

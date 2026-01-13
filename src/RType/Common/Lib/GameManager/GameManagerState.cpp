@@ -115,7 +115,6 @@ void GameManager::checkGameState(Environment& env) {
             
             // Supprimer le composant pour ne pas le traiter plusieurs fois
             ecs.registry.destroyEntity(gameOverEntities[0]);
-            displayGameOver(env, notification.victory);
             if (!_leaderboardDisplayed) {
                 displayLeaderboard(env, notification.victory);
                 _leaderboardDisplayed = true;
@@ -243,6 +242,7 @@ void GameManager::checkGameState(Environment& env) {
         }
     }
 
+    // IMPORTANT: Vérifier si le boss existe seulement s'il a été spawné
     if (boss_spawned) {
         for (auto entity : entities) {
             auto& tags = ecs.registry.getConstComponent<TagComponent>(entity);
@@ -256,18 +256,16 @@ void GameManager::checkGameState(Environment& env) {
                 break;
         }
 
-        // Si le boss est tué, victoire (seulement s'il reste au moins 1 joueur vivant)
-        if (!boss_exists) {
-            if (alive_players <= 0) {
-                _gameOver = true;
-                displayGameOver(env, false);
-                return;
-            }
-
+        // VICTOIRE seulement si : boss a été spawné ET boss n'existe plus ET au moins 1 joueur vivant
+        if (!boss_exists && alive_players > 0) {
             _victory = true;
             
             // Afficher WIN à tous les joueurs
-            displayGameOver(env, true);
+            if (!_leaderboardDisplayed) {
+                displayGameOver(env, true);
+                displayLeaderboard(env, true);
+                _leaderboardDisplayed = true;
+            }
             
             // Préparer la transition vers le niveau suivant
             if (!env.isServer()) {
@@ -436,65 +434,86 @@ void GameManager::displayLeaderboard(Environment& env, bool victory) {
     leaderboard.is_displayed = true;
     ecs.registry.addComponent<LeaderboardComponent>(_leaderboardEntity, leaderboard);
 
-    // Titre du leaderboard
-    Entity title = ecs.registry.createEntity();
+    // Titre GAME OVER ou VICTORY
+    Entity gameOverTitle = ecs.registry.createEntity();
+    std::string game_status = victory ? "VICTORY!" : "GAME OVER";
+    sf::Color game_status_color = victory ? sf::Color::Green : sf::Color::Red;
     ecs.registry.addComponent<TextComponent>(
-        title, {"LEADERBOARD", "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 48,
-                sf::Color::Cyan, 750, 500});
+        gameOverTitle, {game_status, "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 72,
+                game_status_color, 700, 200});
+
+    // Sous-titre du leaderboard
+    Entity subtitle = ecs.registry.createEntity();
+    std::string subtitle_text = victory ? "Congratulations!" : "Better luck next time!";
+    ecs.registry.addComponent<TextComponent>(
+        subtitle, {subtitle_text, "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 32,
+                sf::Color::White, 750, 300});
     
-    // Afficher le score total combiné (si mode multijoueur)
-    float y_offset = 570;
-    if (player_scores.size() > 1) {
+    // Titre LEADERBOARD
+    Entity leaderboardTitle = ecs.registry.createEntity();
+    ecs.registry.addComponent<TextComponent>(
+        leaderboardTitle, {"LEADERBOARD", "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 48,
+                sf::Color::Cyan, 750, 380});
+    
+    // Afficher le score total combiné avec un style plus visible
+    float y_offset = 460;
+    if (total_combined_score > 0) {
         Entity totalScoreEntity = ecs.registry.createEntity();
-        std::string total_text = "SCORE TOTAL: " + std::to_string(total_combined_score) + " pts";
+        std::string total_text = "Total Score: " + std::to_string(total_combined_score) + " pts";
         ecs.registry.addComponent<TextComponent>(
             totalScoreEntity, {total_text, "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 36,
-                              sf::Color(100, 255, 100), 650, y_offset});  // Vert clair
-        y_offset += 60;
-        
-        // Ligne de séparation
-        Entity separatorEntity = ecs.registry.createEntity();
-        ecs.registry.addComponent<TextComponent>(
-            separatorEntity, {"─────────────────────────────", 
-                            "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 24,
-                            sf::Color(100, 100, 100), 620, y_offset});
-        y_offset += 50;
+                            sf::Color(255, 255, 100), 650, y_offset});
+        y_offset += 70;
+    } else {
+        y_offset += 20;
     }
     
-    // Afficher chaque entrée (classement individuel)
+    // Afficher chaque entrée avec un style amélioré
     int rank = 1;
     for (const auto& entry : player_scores) {
         Entity scoreEntity = ecs.registry.createEntity();
         
-        std::string rank_text = "#" + std::to_string(rank) + "  ";
-        std::string name_text = entry.player_name + ": ";
+        std::string rank_icon;
+        if (rank == 1 && player_scores.size() > 1) {
+            rank_icon = "1st ";
+        } else if (rank == 2) {
+            rank_icon = "2nd ";
+        } else if (rank == 3) {
+            rank_icon = "3rd ";
+        } else {
+            rank_icon = "#" + std::to_string(rank) + " ";
+        }
+        
+        std::string name_text = entry.player_name;
         std::string score_text = std::to_string(entry.score) + " pts";
         std::string status_text = entry.is_alive ? " ✓" : " ✗";
         
-        std::string full_text = rank_text + name_text + score_text + status_text;
+        std::string full_text = rank_icon + name_text + ": " + score_text + status_text;
         
         sf::Color entry_color = sf::Color::White;
         if (rank == 1 && player_scores.size() > 1) {
-            entry_color = sf::Color::Yellow; // 1er en or
+            entry_color = sf::Color(255, 215, 0); // Or brillant
         } else if (rank == 2) {
-            entry_color = sf::Color(192, 192, 192); // 2ème en argent
+            entry_color = sf::Color(192, 192, 192); // Argent
         } else if (rank == 3) {
-            entry_color = sf::Color(205, 127, 50); // 3ème en bronze
+            entry_color = sf::Color(205, 127, 50); // Bronze
+        } else {
+            entry_color = sf::Color(200, 200, 255); // Bleu clair pour les autres
         }
         
         ecs.registry.addComponent<TextComponent>(
-            scoreEntity, {full_text, "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 32,
-                          entry_color, 650, y_offset});
+            scoreEntity, {full_text, "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 36,
+                          entry_color, 600, y_offset});
         
-        y_offset += 50;
+        y_offset += 55;
         rank++;
     }
 
-    // Message de fin
+    // Message de fin avec style amélioré
     Entity finalMsg = ecs.registry.createEntity();
-    std::string final_text = victory ? "Press ESC to quit" : "Press ESC to quit";
+    std::string final_text = victory ? "Congratulations! Press ESC to quit" : "Try again! Press ESC to quit";
     ecs.registry.addComponent<TextComponent>(
-        finalMsg, {final_text, "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 24,
-                   sf::Color(150, 150, 150), 750, y_offset + 30});
+        finalMsg, {final_text, "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 28,
+                   sf::Color(180, 180, 180), 580, y_offset + 40});
 }
 

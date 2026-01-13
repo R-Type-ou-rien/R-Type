@@ -7,6 +7,7 @@
 #include "../Components/team_component.hpp"
 #include "../Components/charged_shot.hpp"
 #include "../Components/ai_behavior_component.hpp"
+#include "../Components/last_damage_dealer.hpp"
 
 void Damage::update(Registry& registry, system_context context) {
     auto& attackers = registry.getEntities<DamageOnCollision>();
@@ -46,29 +47,37 @@ void Damage::update(Registry& registry, system_context context) {
                 continue;
             }
 
+            // Track who last damaged this entity (used for score attribution)
+            {
+                Entity dealer = attacker;
+                if (registry.hasComponent<ProjectileComponent>(attacker)) {
+                    const auto& proj = registry.getConstComponent<ProjectileComponent>(attacker);
+                    dealer = static_cast<Entity>(proj.owner_id);
+                }
+
+                if (dealer != -1) {
+                    if (registry.hasComponent<LastDamageDealerComponent>(hit_id)) {
+                        auto& last = registry.getComponent<LastDamageDealerComponent>(hit_id);
+                        last.dealer_entity = dealer;
+                    } else {
+                        registry.addComponent<LastDamageDealerComponent>(hit_id, {dealer});
+                    }
+                }
+            }
+
             // Trigger boss damage flash (visual feedback), even if this hit kills the boss.
             if (registry.hasComponent<BossComponent>(hit_id)) {
                 auto& boss = registry.getComponent<BossComponent>(hit_id);
                 boss.damage_flash_timer = boss.damage_flash_duration;
             }
 
-            if (health.current_hp - dmg.damage_value <= 0) {
-                health.current_hp = 0;
-                std::cout << "[Damage] Entity " << hit_id << " killed by entity " << attacker << " (damage: " << dmg.damage_value << ")" << std::endl;
-            } else {
-                health.current_hp -= dmg.damage_value;
-                health.last_damage_time = health.invincibility_duration;
-                std::cout << "[Damage] Entity " << hit_id << " took " << dmg.damage_value << " damage, HP remaining: " << health.current_hp << std::endl;
-            }
-
             int damage_value = dmg.damage_value;
-
-            // Obstacles have a fixed damage value in the original logic
             if (registry.hasComponent<TagComponent>(attacker)) {
-                auto& tags = registry.getConstComponent<TagComponent>(attacker);
+                const auto& tags = registry.getConstComponent<TagComponent>(attacker);
                 for (const auto& tag : tags.tags) {
                     if (tag == "OBSTACLE") {
                         damage_value = 10;
+                        break;
                     }
                 }
             }
@@ -76,14 +85,19 @@ void Damage::update(Registry& registry, system_context context) {
             // Mark as damaged this frame BEFORE applying damage
             damaged_this_frame.insert(hit_id);
 
-            // Always set invincibility after taking damage
-            health.last_damage_time = health.invincibility_duration;
-
+            // Apply damage once
             if (health.current_hp - damage_value <= 0) {
                 health.current_hp = 0;
+                std::cout << "[Damage] Entity " << hit_id << " killed by entity " << attacker << " (damage: " << damage_value
+                          << ")" << std::endl;
             } else {
                 health.current_hp -= damage_value;
+                std::cout << "[Damage] Entity " << hit_id << " took " << damage_value
+                          << " damage, HP remaining: " << health.current_hp << std::endl;
             }
+
+            // Always set invincibility after taking damage
+            health.last_damage_time = health.invincibility_duration;
 
             // Handle attacker destruction
             if (registry.hasComponent<TeamComponent>(attacker) && registry.hasComponent<TeamComponent>(hit_id)) {
