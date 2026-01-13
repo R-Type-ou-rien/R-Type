@@ -257,32 +257,15 @@ bool EnemySpawnSystem::handleBossSpawn(Registry& registry, system_context contex
         // Arrêter immédiatement le spawn de nouvelles vagues
         spawn_comp.is_active = false;
 
-        auto& enemies = registry.getEntities<TagComponent>();
-        int enemy_count = 0;
-        for (auto entity : enemies) {
-            auto& tags = registry.getConstComponent<TagComponent>(entity);
-            bool is_ai = false, is_boss = false;
-            for (const auto& tag : tags.tags) {
-                if (tag == "AI")
-                    is_ai = true;
-                if (tag == "BOSS")
-                    is_boss = true;
-            }
-            if (is_ai && !is_boss)
-                enemy_count++;
-        }
+        // Spawn immédiat du boss sans attendre la fin des ennemis
+        spawn_comp.boss_spawned = true;
+        spawn_comp.boss_intro_timer = 0.0f;
 
-        // Attendre que tous les ennemis soient éliminés
-        if (enemy_count == 0) {
-            spawn_comp.boss_spawned = true;
-            spawn_comp.boss_intro_timer = 0.0f;
-
-            // Stop background
-            auto& backgrounds = registry.getEntities<BackgroundComponent>();
-            for (auto bg_entity : backgrounds) {
-                auto& bg = registry.getComponent<BackgroundComponent>(bg_entity);
-                bg.scroll_speed = 0.0f;
-            }
+        // Stop background
+        auto& backgrounds = registry.getEntities<BackgroundComponent>();
+        for (auto bg_entity : backgrounds) {
+            auto& bg = registry.getComponent<BackgroundComponent>(bg_entity);
+            bg.scroll_speed = 0.0f;
         }
     }
 

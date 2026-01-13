@@ -10,6 +10,10 @@
 
 namespace network {
 
+// Hard upper bound for inbound message bodies.
+// Prevents crashes when a corrupted header advertises an absurd size.
+inline constexpr uint32_t MAX_MESSAGE_BODY_SIZE = 1024u * 1024u;  // 1 MiB
+
 #pragma pack(push, 1)
 
 template <typename T>
@@ -61,6 +65,16 @@ struct message {
     template <typename DataType>
     friend message<T>& operator>>(message<T>& msg, DataType& data) {
         static_assert(std::is_standard_layout<DataType>::value, "Data is too complex to be pulled from vector");
+
+        // Safety: avoid underflow and gigantic resizes on truncated/corrupted packets.
+        if (msg.body.size() < sizeof(DataType)) {
+            std::cerr << "[Network] Warning: message underrun while decoding (have=" << msg.body.size()
+                      << ", need=" << sizeof(DataType) << ")" << std::endl;
+            std::memset(&data, 0, sizeof(DataType));
+            msg.body.clear();
+            msg.header.size = 0;
+            return msg;
+        }
 
         size_t i = msg.body.size() - sizeof(DataType);
 

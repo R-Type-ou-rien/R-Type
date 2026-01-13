@@ -22,20 +22,23 @@ void BossPatternSystem::updateBossState(Registry& registry, system_context conte
         return;
     
     auto& boss = registry.getComponent<BossComponent>(boss_entity);
-    
+    // Update damage flash timer
+    if (boss.damage_flash_timer > 0.0f) {
+        boss.damage_flash_timer -= context.dt;
+        if (boss.damage_flash_timer < 0.0f) {
+            boss.damage_flash_timer = 0.0f;
+        }
+    }
     // Vérifier si le boss a un composant de santé
     if (!registry.hasComponent<HealthComponent>(boss_entity)) {
-        std::cerr << "⚠️ WARNING: Boss has no HealthComponent!" << std::endl;
         return;
     }
     
     auto& health = registry.getComponent<HealthComponent>(boss_entity);
-    
     float health_percent = static_cast<float>(health.current_hp) / static_cast<float>(health.max_hp);
-    
-    // CRITIQUE: Si HP <= 0 et pas déjà en DYING/DEAD, commencer la séquence de mort
+
+    // Si HP <= 0 et pas déjà en DYING/DEAD, commencer la séquence de mort
     if (health.current_hp <= 0 && boss.current_state != BossComponent::DYING && boss.current_state != BossComponent::DEAD) {
-        std::cout << "☠️ BOSS HP REACHED 0 - INITIATING DEATH SEQUENCE" << std::endl;
         boss.current_state = BossComponent::DYING;
         boss.death_timer = 0.0f;
         boss.state_timer = 0.0f;
@@ -92,9 +95,11 @@ void BossPatternSystem::updateBossState(Registry& registry, system_context conte
         case BossComponent::DYING:
             boss.death_timer += context.dt;
             
-            // Explosions progressives
-            if (static_cast<int>(boss.death_timer * 3.0f) % 2 == 0) {
-                std::cout << "💥 Boss explosion!" << std::endl;
+            // Déplacer le boss hors écran progressivement pendant la mort pour libérer la vue
+            if (registry.hasComponent<transform_component_s>(boss_entity)) {
+                auto& transform = registry.getComponent<transform_component_s>(boss_entity);
+                // Faire descendre le boss progressivement hors de l'écran
+                transform.y += 500.0f * context.dt;
             }
             
             if (boss.death_timer >= boss.death_duration) {
@@ -106,7 +111,9 @@ void BossPatternSystem::updateBossState(Registry& registry, system_context conte
                     if (registry.hasComponent<TeamComponent>(proj)) {
                         auto& team = registry.getConstComponent<TeamComponent>(proj);
                         if (team.team == TeamComponent::ENEMY) {
-                            registry.destroyEntity(proj);
+                            if (!registry.hasComponent<PendingDestruction>(proj)) {
+                                registry.addComponent<PendingDestruction>(proj, {});
+                            }
                         }
                     }
                 }
@@ -116,12 +123,24 @@ void BossPatternSystem::updateBossState(Registry& registry, system_context conte
                 for (auto sub : sub_entities) {
                     auto& sub_comp = registry.getConstComponent<BossSubEntityComponent>(sub);
                     if (sub_comp.boss_entity_id == boss_entity) {
-                        registry.destroyEntity(sub);
+                        if (!registry.hasComponent<PendingDestruction>(sub)) {
+                            registry.addComponent<PendingDestruction>(sub, {});
+                        }
                     }
                 }
-                
-                std::cout << "🏁 BOSS DEFEATED - AREA CLEARED!" << std::endl;
-                registry.destroyEntity(boss_entity);
+
+                // Détruire les segments de queue du boss
+                auto& tail_segments = registry.getEntities<BossTailSegmentComponent>();
+                for (auto segment : tail_segments) {
+                    if (!registry.hasComponent<PendingDestruction>(segment)) {
+                        registry.addComponent<PendingDestruction>(segment, {});
+                    }
+                }
+
+                // IMPORTANT: Use PendingDestruction so the server broadcasts S_ENTITY_DESTROY
+                if (!registry.hasComponent<PendingDestruction>(boss_entity)) {
+                    registry.addComponent<PendingDestruction>(boss_entity, {});
+                }
             }
             break;
             
@@ -132,11 +151,8 @@ void BossPatternSystem::updateBossState(Registry& registry, system_context conte
 }
 
 void BossPatternSystem::handlePhaseTransition(Registry& registry, Entity boss_entity, BossComponent& boss) {
-    std::cout << "BOSS PHASE TRANSITION -> ";
-    
     switch (boss.current_state) {
         case BossComponent::PHASE_1:
-            std::cout << "PHASE 1" << std::endl;
             boss.current_phase = 1;
             // Activer 2 tentacules
             spawnTentacle(registry, boss_entity, 0, -100.0f, -80.0f);
@@ -144,7 +160,6 @@ void BossPatternSystem::handlePhaseTransition(Registry& registry, Entity boss_en
             break;
             
         case BossComponent::PHASE_2:
-            std::cout << "PHASE 2" << std::endl;
             boss.current_phase = 2;
             // Activer 4 tentacules + canons
             spawnTentacle(registry, boss_entity, 2, -80.0f, -120.0f);
@@ -160,7 +175,6 @@ void BossPatternSystem::handlePhaseTransition(Registry& registry, Entity boss_en
             break;
             
         case BossComponent::PHASE_3:
-            std::cout << "PHASE 3" << std::endl;
             boss.current_phase = 3;
             boss.core_vulnerable = false; // Protection temporaire
             
@@ -171,7 +185,6 @@ void BossPatternSystem::handlePhaseTransition(Registry& registry, Entity boss_en
             break;
             
         case BossComponent::ENRAGED:
-            std::cout << "ENRAGED!" << std::endl;
             boss.is_enraged = true;
             boss.core_vulnerable = true;
             
@@ -189,9 +202,7 @@ void BossPatternSystem::handlePhaseTransition(Registry& registry, Entity boss_en
             break;
     }
 }
-
-void BossPatternSystem::executePhase1Patterns(Registry& registry, system_context context, 
-                                               Entity boss_entity, BossComponent& boss) {
+void BossPatternSystem::executePhase1Patterns(Registry& registry, system_context context, Entity boss_entity, BossComponent& boss) {
     boss.attack_pattern_timer += context.dt;
     
     if (boss.attack_pattern_timer >= boss.attack_pattern_interval) {
@@ -209,14 +220,13 @@ void BossPatternSystem::executePhase1Patterns(Registry& registry, system_context
         boss.current_attack_pattern++;
     }
 }
-
-void BossPatternSystem::executePhase2Patterns(Registry& registry, system_context context,
-                                               Entity boss_entity, BossComponent& boss) {
+void BossPatternSystem::executePhase2Patterns(Registry& registry, system_context context, Entity boss_entity, BossComponent& boss) {
     // Oscillation verticale
     boss.oscillation_timer += context.dt;
     if (registry.hasComponent<transform_component_s>(boss_entity)) {
         auto& transform = registry.getComponent<transform_component_s>(boss_entity);
-        if (boss.base_y == 0.0f) boss.base_y = transform.y;
+        if (boss.base_y == 0.0f)
+            boss.base_y = transform.y;
         transform.y = boss.base_y + std::sin(boss.oscillation_timer * boss.oscillation_frequency) * boss.oscillation_amplitude;
     }
     
@@ -237,9 +247,7 @@ void BossPatternSystem::executePhase2Patterns(Registry& registry, system_context
         boss.current_attack_pattern++;
     }
 }
-
-void BossPatternSystem::executePhase3Patterns(Registry& registry, system_context context,
-                                               Entity boss_entity, BossComponent& boss) {
+void BossPatternSystem::executePhase3Patterns(Registry& registry, system_context context, Entity boss_entity, BossComponent& boss) {
     boss.attack_pattern_timer += context.dt;
     
     // Le noyau devient vulnérable après certains patterns
@@ -264,9 +272,7 @@ void BossPatternSystem::executePhase3Patterns(Registry& registry, system_context
         boss.current_attack_pattern++;
     }
 }
-
-void BossPatternSystem::executeEnragedPatterns(Registry& registry, system_context context,
-                                                Entity boss_entity, BossComponent& boss) {
+void BossPatternSystem::executeEnragedPatterns(Registry& registry, system_context context, Entity boss_entity, BossComponent& boss) {
     // Mode ENRAGED ultra-agressif avec mouvements rapides
     boss.oscillation_timer += context.dt * 2.0f; // 2x plus rapide
     if (registry.hasComponent<transform_component_s>(boss_entity)) {
@@ -296,14 +302,8 @@ void BossPatternSystem::executeEnragedPatterns(Registry& registry, system_contex
 
 // Patterns spécifiques
 void BossPatternSystem::patternLinearAlternate(Registry& registry, system_context context, Entity boss_entity) {
-    // Tirs linéaires alternés (Pattern A - Phase 1)
-    std::cout << "Boss Pattern: Linear Alternate" << std::endl;
-    
     if (!registry.hasComponent<transform_component_s>(boss_entity))
         return;
-    
-    auto& boss_transform = registry.getConstComponent<transform_component_s>(boss_entity);
-    
     // Trouver les tentacules actives
     auto& sub_entities = registry.getEntities<BossSubEntityComponent>();
     for (auto sub_entity : sub_entities) {
@@ -325,9 +325,6 @@ void BossPatternSystem::patternLinearAlternate(Registry& registry, system_contex
 }
 
 void BossPatternSystem::patternSlowMissiles(Registry& registry, system_context context, Entity boss_entity) {
-    // Missiles lents (Pattern B - Phase 1)
-    std::cout << "Boss Pattern: Slow Missiles" << std::endl;
-    
     if (!registry.hasComponent<transform_component_s>(boss_entity))
         return;
     
@@ -339,9 +336,6 @@ void BossPatternSystem::patternSlowMissiles(Registry& registry, system_context c
 }
 
 void BossPatternSystem::patternWallOfProjectiles(Registry& registry, system_context context, Entity boss_entity) {
-    // Mur de projectiles en éventail (Pattern C - Phase 2)
-    std::cout << "Boss Pattern: Wall of Projectiles" << std::endl;
-    
     if (!registry.hasComponent<transform_component_s>(boss_entity))
         return;
     
@@ -357,9 +351,6 @@ void BossPatternSystem::patternWallOfProjectiles(Registry& registry, system_cont
 }
 
 void BossPatternSystem::patternBouncingShots(Registry& registry, system_context context, Entity boss_entity) {
-    // Projectiles rebondissants (Pattern D - Phase 2)
-    std::cout << "Boss Pattern: Bouncing Shots" << std::endl;
-    
     // TODO: Implémenter rebondissement (nécessite physique avancée)
     // Pour l'instant, tirs diagonaux
     if (!registry.hasComponent<transform_component_s>(boss_entity))
@@ -372,9 +363,6 @@ void BossPatternSystem::patternBouncingShots(Registry& registry, system_context 
 }
 
 void BossPatternSystem::patternSpiral(Registry& registry, system_context context, Entity boss_entity) {
-    // Spirale (Pattern E - Phase 3)
-    std::cout << "Boss Pattern: Spiral" << std::endl;
-    
     if (!registry.hasComponent<transform_component_s>(boss_entity))
         return;
     if (!registry.hasComponent<BossComponent>(boss_entity))
@@ -396,22 +384,17 @@ void BossPatternSystem::patternSpiral(Registry& registry, system_context context
 }
 
 void BossPatternSystem::patternDelayedShots(Registry& registry, system_context context, Entity boss_entity) {
-    // Tirs retardés (Pattern F - Phase 3)
-    std::cout << "Boss Pattern: Delayed Shots" << std::endl;
-    
     // TODO: Implémenter accélération progressive
     // Pour l'instant, tirs lents
     if (!registry.hasComponent<transform_component_s>(boss_entity))
         return;
     
     auto& boss_transform = registry.getConstComponent<transform_component_s>(boss_entity);
-    
     createBossProjectile(registry, context, boss_transform, -200.0f, 0.0f, 45);
 }
 
 // Création de projectiles du boss
-void BossPatternSystem::createBossProjectile(Registry& registry, system_context context,
-                                              const transform_component_s& pos, float vx, float vy, int damage) {
+void BossPatternSystem::createBossProjectile(Registry& registry, system_context context, const transform_component_s& pos, float vx, float vy, int damage) {
     Entity projectile = registry.createEntity();
     
     // Team ennemi
@@ -442,8 +425,8 @@ void BossPatternSystem::createBossProjectile(Registry& registry, system_context 
     sprite_info.animation_speed = 0.0f;
     sprite_info.current_animation_frame = 0;
     // Projectile ennemi (boule d'énergie rouge)
-    sprite_info.dimension = {241, 120, 10, 10};  // Petit projectile rouge
-    sprite_info.z_index = 5;  // Au-dessus des autres sprites
+    sprite_info.dimension = {241, 120, 10, 10};
+    sprite_info.z_index = 5;
     registry.addComponent<sprite2D_component_s>(projectile, sprite_info);
     
     // Échelle pour rendre visible
@@ -455,9 +438,6 @@ void BossPatternSystem::createBossProjectile(Registry& registry, system_context 
     BoxCollisionComponent collision;
     collision.tagCollision.push_back("PLAYER");
     registry.addComponent<BoxCollisionComponent>(projectile, collision);
-    
-    std::cout << "Boss projectile created at (" << pos.x << ", " << pos.y 
-              << ") with velocity (" << vx << ", " << vy << ")" << std::endl;
 }
 
 // Sous-entités
@@ -471,9 +451,7 @@ void BossPatternSystem::updateSubEntities(Registry& registry, system_context con
             continue;
         
         // Mettre à jour la position relative au boss
-        if (registry.hasComponent<transform_component_s>(sub_entity) &&
-            registry.hasComponent<transform_component_s>(sub.boss_entity_id)) {
-            
+        if (registry.hasComponent<transform_component_s>(sub_entity) && registry.hasComponent<transform_component_s>(sub.boss_entity_id)) {
             auto& boss_transform = registry.getConstComponent<transform_component_s>(sub.boss_entity_id);
             auto& sub_transform = registry.getComponent<transform_component_s>(sub_entity);
             
@@ -493,8 +471,7 @@ void BossPatternSystem::updateSubEntities(Registry& registry, system_context con
     }
 }
 
-void BossPatternSystem::spawnTentacle(Registry& registry, Entity boss_entity, int index, 
-                                       float offset_x, float offset_y) {
+void BossPatternSystem::spawnTentacle(Registry& registry, Entity boss_entity, int index, float offset_x, float offset_y) {
     Entity tentacle = registry.createEntity();
     
     BossSubEntityComponent sub;
@@ -513,8 +490,6 @@ void BossPatternSystem::spawnTentacle(Registry& registry, Entity boss_entity, in
     TagComponent tags;
     tags.tags.push_back("BOSS_PART");
     registry.addComponent<TagComponent>(tentacle, tags);
-    
-    std::cout << "Spawned Tentacle " << index << std::endl;
 }
 
 void BossPatternSystem::spawnCannon(Registry& registry, Entity boss_entity, int index,
@@ -537,6 +512,4 @@ void BossPatternSystem::spawnCannon(Registry& registry, Entity boss_entity, int 
     TagComponent tags;
     tags.tags.push_back("BOSS_PART");
     registry.addComponent<TagComponent>(cannon, tags);
-    
-    std::cout << "Spawned Cannon " << index << std::endl;
 }

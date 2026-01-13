@@ -2,6 +2,7 @@
 #include "Player.hpp"
 #include "src/RType/Common/Systems/health.hpp"
 #include "src/RType/Common/Systems/damage.hpp"
+#include "src/RType/Common/Systems/score.hpp"
 #include "CollisionSystem.hpp"
 
 Player::Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<float, float> pos)
@@ -15,6 +16,7 @@ Player::Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<floa
     setPosition(pos);
     _ecs.registry.addComponent<TeamComponent>(_id, {TeamComponent::Team::ALLY});
     _ecs.registry.addComponent<ShooterComponent>(_id, {});
+    _ecs.registry.addComponent<ScoreComponent>(_id, {0, 0});
     // Système de vie avec invincibilité de 1.5s après un dégât
     _ecs.registry.addComponent<HealthComponent>(_id, {5, 5, 0.0f, 1.5f});
     // CRITIQUE : Le joueur doit pouvoir recevoir des dégâts (valeur = 0 car on veut juste les dégâts entrants)

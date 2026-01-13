@@ -10,6 +10,7 @@
 #include <SFML/Graphics/Texture.hpp>
 #include <iostream>
 #include <iterator>
+#include "../../../RType/Common/Systems/health.hpp"
 
 void RenderSystem::update(Registry& registry, system_context context) {
     auto& positions = registry.getView<transform_component_s>();
@@ -21,7 +22,7 @@ void RenderSystem::update(Registry& registry, system_context context) {
                 continue;
             const transform_component_s& transform = registry.getConstComponent<transform_component_s>(entity);
             sprite2D_component_s& spriteData = registry.getComponent<sprite2D_component_s>(entity);
-            drawEntity(transform, spriteData, context);
+            drawEntity(entity, transform, spriteData, registry, context);
         }
     }
 
@@ -54,8 +55,8 @@ void RenderSystem::drawText(const TextComponent& textComp, const system_context&
     context.window.draw(text);
 }
 
-void RenderSystem::drawEntity(const transform_component_s& transform, sprite2D_component_s& spriteData,
-                              const system_context& context) {
+void RenderSystem::drawEntity(Entity entity, const transform_component_s& transform, sprite2D_component_s& spriteData,
+                              Registry& registry, const system_context& context) {
     if (!context.texture_manager.has(spriteData.handle))
         return;
 
@@ -93,6 +94,48 @@ void RenderSystem::drawEntity(const transform_component_s& transform, sprite2D_c
     }
     sprite.setPosition({transform.x, transform.y});
     sprite.setScale({transform.scale_x, transform.scale_y});
+
+    // Boss hit feedback (client-side): detect HP drops on entities tagged "BOSS" and draw an additive white flash.
+    bool is_boss = false;
+    if (registry.hasComponent<TagComponent>(entity)) {
+        const auto& tags = registry.getConstComponent<TagComponent>(entity);
+        for (const auto& t : tags.tags) {
+            if (t == "BOSS") {
+                is_boss = true;
+                break;
+            }
+        }
+    }
+
+    bool flash_active = false;
+    if (is_boss && registry.hasComponent<HealthComponent>(entity)) {
+        const auto& health = registry.getConstComponent<HealthComponent>(entity);
+        auto& state = _bossHitFlash[entity];
+
+        if (state.last_hp < 0) {
+            state.last_hp = health.current_hp;
+        } else {
+            if (health.current_hp < state.last_hp) {
+                state.timer = _bossHitFlashDuration;
+            }
+            state.last_hp = health.current_hp;
+        }
+
+        if (state.timer > 0.0f) {
+            state.timer -= context.dt;
+            if (state.timer < 0.0f) {
+                state.timer = 0.0f;
+            }
+        }
+
+        flash_active = (state.timer > 0.0f);
+    }
+
     context.window.draw(sprite);
+    if (flash_active) {
+        sf::Sprite flash = sprite;
+        flash.setColor(sf::Color(255, 255, 255, 200));
+        context.window.draw(flash, sf::RenderStates(sf::BlendAdd));
+    }
     return;
 }
