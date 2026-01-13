@@ -33,13 +33,21 @@ fi
 
 build_client() {
     echo "--- Building Client ---"
-    cmake -B build-client -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug -DBUILD_SERVER=OFF -DCMAKE_TOOLCHAIN_FILE="$PROJECT_ROOT/vcpkg/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-linux
+    cmake -B build-client -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug -DBUILD_SERVER=OFF \
+        -DCMAKE_TOOLCHAIN_FILE="$PROJECT_ROOT/vcpkg/scripts/buildsystems/vcpkg.cmake" \
+        -DVCPKG_TARGET_TRIPLET=x64-linux \
+        -DCMAKE_PREFIX_PATH="$PROJECT_ROOT/vcpkg_installed/x64-linux" \
+        -DVCPKG_INSTALLED_DIR="$PROJECT_ROOT/vcpkg_installed"
     cmake --build build-client -v
 }
 
 build_server() {
     echo "--- Building Server ---"
-    cmake -B build-server -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug -DBUILD_SERVER=ON -DCMAKE_TOOLCHAIN_FILE="$PROJECT_ROOT/vcpkg/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-linux
+    cmake -B build-server -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug -DBUILD_SERVER=ON \
+        -DCMAKE_TOOLCHAIN_FILE="$PROJECT_ROOT/vcpkg/scripts/buildsystems/vcpkg.cmake" \
+        -DVCPKG_TARGET_TRIPLET=x64-linux \
+        -DCMAKE_PREFIX_PATH="$PROJECT_ROOT/vcpkg_installed/x64-linux" \
+        -DVCPKG_INSTALLED_DIR="$PROJECT_ROOT/vcpkg_installed"
     cmake --build build-server -v
 }
 
