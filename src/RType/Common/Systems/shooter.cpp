@@ -396,7 +396,8 @@ void ShooterSystem::update(Registry& registry, system_context context) {
                 }
             } else if (shooter.pattern == ShooterComponent::SPREAD && team.team == TeamComponent::ENEMY) {
                 create_projectile_with_pattern(registry, shooter.type, team.team, pos, context,
-                                               ShooterComponent::STRAIGHT, 0, 0, proj_damage, shooter.projectile_scale);
+                                               ShooterComponent::STRAIGHT, 0, 0, proj_damage,
+                                               shooter.projectile_scale);
 
                 transform_component_s pos_up = pos;
                 pos_up.y -= 20;
@@ -415,7 +416,8 @@ void ShooterSystem::update(Registry& registry, system_context context) {
                                                shooter.projectile_scale);
             } else {
                 create_projectile_with_pattern(registry, shooter.type, team.team, pos, context,
-                                               ShooterComponent::STRAIGHT, 0, 0, proj_damage, shooter.projectile_scale);
+                                               ShooterComponent::STRAIGHT, 0, 0, proj_damage,
+                                               shooter.projectile_scale);
             }
             shooter.last_shot = 0.f;
         }

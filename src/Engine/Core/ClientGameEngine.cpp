@@ -4,8 +4,6 @@
 #include <cstring>
 #include <iostream>
 #include <ostream>
-#include <memory>
-#include <string>
 
 #include "Components/NetworkComponents.hpp"
 #include "Components/StandardComponents.hpp"
@@ -26,6 +24,8 @@
 #include "../../../RType/Common/Components/pod_component.hpp"
 #include "../../../RType/Common/Components/game_over_notification.hpp"
 #include "../../../RType/Common/Systems/ai_behavior.hpp"
+#include "Components/StandardComponents.hpp"
+#include "Components/NetworkComponents.hpp"
 
 ClientGameEngine::ClientGameEngine(std::string window_name) : _window_manager(WINDOW_W, WINDOW_H, window_name) {
     _network = std::make_unique<engine::core::NetworkEngine>(engine::core::NetworkEngine::NetworkRole::CLIENT);
@@ -64,8 +64,7 @@ int ClientGameEngine::init() {
     _ecs.systems.addSystem<BackgroundSystem>();
     _ecs.systems.addSystem<RenderSystem>();
     _ecs.systems.addSystem<AudioSystem>();
-
-    // _ecs.systems.addSystem<InputSystem>(input_manager);
+    //_ecs.systems.addSystem<InputSystem>(input_manager);
 
     // Physics and game logic handled by server - client only renders
     _ecs.systems.addSystem<PhysicsSystem>();

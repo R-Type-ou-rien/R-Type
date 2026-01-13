@@ -157,6 +157,13 @@ class Connection : public std::enable_shared_from_this<Connection<T>> {
                                      return;
                                  }
 
+                                 if (_msgTemporaryIn.header.size > MAX_MESSAGE_BODY_SIZE) {
+                                     std::cout << "[" << id << "] Error: Message too large: "
+                                               << _msgTemporaryIn.header.size << " bytes\n";
+                                     _socket.close();
+                                     return;
+                                 }
+
                                  if (_msgTemporaryIn.header.size > 0) {
                                      _msgTemporaryIn.body.resize(_msgTemporaryIn.header.size);
                                      ReadBody();

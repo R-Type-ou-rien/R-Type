@@ -60,11 +60,11 @@ void GameManager::updateUI(Environment& env) {
         // Update Boss HP (nouveau)
         if (ecs.registry.hasComponent<TextComponent>(_bossHPEntity)) {
             auto& boss_hp_text = ecs.registry.getComponent<TextComponent>(_bossHPEntity);
-
+            
             // Chercher le boss
             auto& entities = ecs.registry.getEntities<TagComponent>();
             bool found_boss = false;
-
+            
             for (auto entity : entities) {
                 auto& tags = ecs.registry.getConstComponent<TagComponent>(entity);
                 for (const auto& tag : tags.tags) {
@@ -74,28 +74,26 @@ void GameManager::updateUI(Environment& env) {
                             int current_hp = boss_health.current_hp;
                             int max_hp = boss_health.max_hp;
                             float hp_percent = (static_cast<float>(current_hp) / max_hp) * 100.0f;
-
-                            boss_hp_text.text = "BOSS: " + std::to_string(current_hp) + "/" + std::to_string(max_hp) +
-                                                " (" + std::to_string(static_cast<int>(hp_percent)) + "%)";
-
+                            
+                            boss_hp_text.text = "BOSS: " + std::to_string(current_hp) + "/" + std::to_string(max_hp) + " (" + std::to_string(static_cast<int>(hp_percent)) + "%)";
+                            
                             // Changer la couleur selon la santé
                             if (hp_percent > 50) {
                                 boss_hp_text.color = sf::Color::Red;
                             } else if (hp_percent > 25) {
-                                boss_hp_text.color = sf::Color(255, 165, 0);  // Orange
+                                boss_hp_text.color = sf::Color(255, 165, 0); // Orange
                             } else {
-                                boss_hp_text.color = sf::Color(255, 0, 255);  // Magenta (critique)
+                                boss_hp_text.color = sf::Color(255, 0, 255); // Magenta (critique)
                             }
-
+                            
                             found_boss = true;
                         }
                         break;
                     }
                 }
-                if (found_boss)
-                    break;
+                if (found_boss) break;
             }
-
+            
             // Cacher le texte si pas de boss
             if (!found_boss) {
                 boss_hp_text.text = "";
@@ -122,6 +120,14 @@ void GameManager::checkGameState(Environment& env) {
                 displayLeaderboard(env, notification.victory);
                 _leaderboardDisplayed = true;
             }
+            return;
+        }
+    } else if (!env.isClient()) {
+        // Server/standalone: if we expected a player entity but it is missing, it's game over.
+        // (On client, we might just be waiting for spawn.)
+        if (_player) {
+            _gameOver = true;
+            displayGameOver(env, false);
             return;
         }
     }

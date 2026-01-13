@@ -10,6 +10,10 @@
 
 namespace network {
 
+// Hard upper bound for inbound message bodies.
+// Prevents crashes when a corrupted header advertises an absurd size.
+inline constexpr uint32_t MAX_MESSAGE_BODY_SIZE = 1024u * 1024u;  // 1 MiB
+
 #pragma pack(push, 1)
 
 template <typename T>

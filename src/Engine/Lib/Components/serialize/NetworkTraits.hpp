@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <cstdint>
+#include <cstddef>
 #include "StandardComponents_serialize.hpp"
 #include "tag_component_serialize.hpp"
 

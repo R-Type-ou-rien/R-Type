@@ -189,8 +189,9 @@ void EnemySpawnSystem::update(Registry& registry, system_context context) {
 
         // Load script if empty (first run)
         if (scripted_spawn.spawn_events.empty() && !scripted_spawn.all_events_completed) {
-            std::string path = scripted_spawn.script_path.empty() ? "src/RType/Common/content/config/level1_spawns.cfg"
-                                                                  : scripted_spawn.script_path;
+            std::string path = scripted_spawn.script_path.empty()
+                                   ? "src/RType/Common/content/config/level1_spawns.cfg"
+                                   : scripted_spawn.script_path;
             loadScriptedSpawns(scripted_spawn, path);
         }
 

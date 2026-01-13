@@ -2,8 +2,6 @@
 #include "Components/AudioComponent.hpp"
 #include <iostream>
 #include <vector>
-#include <memory>
-#include <utility>
 
 #if defined(CLIENT_BUILD)
 int AudioSystem::getAvailableSoundIndex() {
@@ -27,6 +25,9 @@ int AudioSystem::getAvailableSoundIndex() {
 #endif
 
 void AudioSystem::update(Registry& registry, system_context context) {
+    if (!context.sound_manager.is_loaded("shoot")) {
+        // std::cout << "[AUDIO] 'shoot' not loaded (yet)" << std::endl;
+    }
 #if defined(CLIENT_BUILD)
     auto& entities = registry.getEntities<AudioSourceComponent>();
     // std::cout << "[AUDIO] Entities with AudioSourceComponent: " << entities.size() << std::endl;
