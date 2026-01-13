@@ -2,10 +2,6 @@
 
 #include <string>
 #include <functional>
-#include <iostream>
-#include <vector>
-#include <memory>
-#include <unordered_map>
 #include <unordered_set>
 
 #include "ECS/ECS.hpp"

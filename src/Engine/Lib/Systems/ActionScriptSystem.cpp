@@ -17,7 +17,7 @@ void ActionScriptSystem::update(Registry& registry, system_context context) {
         if (registry.hasComponent<NetworkIdentity>(entity)) {
             // Script on a networked entity. Check its owner.
             uint32_t ownerId = registry.getConstComponent<NetworkIdentity>(entity).ownerId;
-            if (ownerId != 0) {
+            if (ownerId != 0) {  // It's owned by a player
                 for (auto& [action_name, function] : script.actionOnPressed) {
                     if (context.input.isJustPressed(action_name, ownerId)) {
                         function(registry, context, entity);
@@ -35,6 +35,8 @@ void ActionScriptSystem::update(Registry& registry, system_context context) {
                 }
             }
         } else {
+            // Script on a non-networked, server-side-only entity.
+            // This could be a "global" script that reacts to any player's input.
             for (uint32_t client_id : context.active_clients) {
                 for (auto& [action_name, function] : script.actionOnPressed) {
                     if (context.input.isJustPressed(action_name, client_id)) {
