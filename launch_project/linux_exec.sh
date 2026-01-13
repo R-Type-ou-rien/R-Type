@@ -1,7 +1,16 @@
 #!/bin/bash
+set -e
+
+# Se positionner à la racine du projet (parent de launch_project)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$PROJECT_ROOT"
+
+echo "=== Working directory: $PROJECT_ROOT ==="
 
 # Initialiser le submodule vcpkg si nécessaire
-if [ -d vcpkg ]; then
+if [ ! -d "vcpkg/.git" ]; then
+    echo "--- Initializing vcpkg submodule ---"
     git submodule update --init --recursive
 fi
 
@@ -12,8 +21,8 @@ if [ ! -f "vcpkg/vcpkg" ]; then
 fi
 
 # Installer les dépendances vcpkg
-echo "--- Installing vcpkg dependencies ---"
-./vcpkg/vcpkg install
+echo "--- Installing vcpkg dependencies (this may take a while) ---"
+./vcpkg/vcpkg install --x-manifest-root="$PROJECT_ROOT"
 
 if [ "$1" == "clean" ]; then
     echo "--- Cleaning all builds ---"
