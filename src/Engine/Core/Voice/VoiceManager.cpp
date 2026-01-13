@@ -639,18 +639,10 @@ void VoiceManager::captureThreadFunc() {
         if (samplesRead < samplesNeeded)
             continue;
 
-        // 1. Amplification (Software Gain) - Boost voice volume (3.0x)
-        // 2. Low-Pass Filter (Stronger smoothing) to reduce high-freq noise (0.3 factor)
+        // Apply 5.0x gain (Compensate for low 25% sys volume)
         for (auto& s : captureBuffer) {
-            // Amplify
-            float amplified = static_cast<float>(s) * 3.0f;
-
-            // Filter: y[n] = 0.7 * y[n-1] + 0.3 * x[n] (Heavy cleanup of high pitch)
-            float val = static_cast<float>(lastSample) * 0.7f + amplified * 0.3f;
-
-            // Clamp and store
-            s = static_cast<int16_t>(std::clamp(val, -32767.0f, 32767.0f));
-            lastSample = s;
+            int32_t amplified = static_cast<int32_t>(s) * 5;
+            s = static_cast<int16_t>(std::clamp(amplified, -32767, 32767));
         }
 
         // Check if there's actual audio (not silence)
@@ -659,7 +651,8 @@ void VoiceManager::captureThreadFunc() {
             maxSample = std::max(maxSample, static_cast<int32_t>(std::abs(s)));
         }
 
-        bool talking = (maxSample > 800);
+        // Lower threshold to detect voice at low levels
+        bool talking = (maxSample > 100);
         _isTalking.store(talking);
 
         // Skip if muted
@@ -748,10 +741,16 @@ void VoiceManager::playbackThreadFunc() {
 
         // 2. Add to player-specific jitter buffer
         if (hasPacket) {
-            playerJitterBuffers[packet.senderId].push(packet);
+            auto& queue = playerJitterBuffers[packet.senderId];
+
+            // Limit queue size to prevent latency (max 10 packets = 200ms)
+            while (queue.size() >= 10) {
+                queue.pop();
+            }
+            queue.push(packet);
 
             // If we have enough packets, mark as playing
-            if (!isPlaying[packet.senderId] && playerJitterBuffers[packet.senderId].size() >= TARGET_JITTER_SIZE) {
+            if (!isPlaying[packet.senderId] && queue.size() >= TARGET_JITTER_SIZE) {
                 isPlaying[packet.senderId] = true;
                 std::cout << "[VoiceManager] Started playback for player " << packet.senderId << std::endl;
             }
