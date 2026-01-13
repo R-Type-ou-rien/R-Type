@@ -14,6 +14,17 @@ GameManager::GameManager() {
     _player_config = ConfigLoader::loadEntityConfig("src/RType/Common/content/config/player.cfg",
                                                     ConfigLoader::getRequiredPlayerFields());
     _current_level_scene = "src/RType/Common/content/config/level1.scene";
+
+#ifdef CLIENT_BUILD
+    // Initialize voice manager
+    _voiceManager = std::make_unique<engine::voice::VoiceManager>();
+    engine::voice::VoiceConfig voiceConfig;
+    voiceConfig.sampleRate = 48000;
+    voiceConfig.framesPerBuffer = 960;  // 20ms at 48kHz
+    voiceConfig.channels = 1;
+    _voiceManager->setConfig(voiceConfig);
+    std::cout << "[VoiceManager] Created" << std::endl;
+#endif
 }
 
 void GameManager::init(Environment& env, InputManager& inputs) {
@@ -688,6 +699,15 @@ void GameManager::initInLobby(Environment& env) {
         _startButtonEntity, {"[ START GAME ]", "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 40,
                              isLocalPlayerHost() ? sf::Color::White : sf::Color(100, 100, 100), 1300, 900});
 
+#ifdef CLIENT_BUILD
+    // Initialize voice mute/unmute button
+    _voiceMuted = false;
+    _muteButtonEntity = ecs.registry.createEntity();
+    ecs.registry.addComponent<TextComponent>(
+        _muteButtonEntity, {"[ MIC ON ]", "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 28,
+                            sf::Color::Green, 100, 850});
+#endif
+
     // Initialize chat box
     _chatBoxEntity = ecs.registry.createEntity();
     ecs.registry.addComponent<TextComponent>(
@@ -697,12 +717,12 @@ void GameManager::initInLobby(Environment& env) {
     _chatInputEntity = ecs.registry.createEntity();
     ecs.registry.addComponent<TextComponent>(
         _chatInputEntity,
-        {"> ", "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 18, sf::Color::White, 50, 850});
+        {"> ", "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 18, sf::Color::White, 50, 900});
 
     _chatPromptEntity = ecs.registry.createEntity();
     ecs.registry.addComponent<TextComponent>(
         _chatPromptEntity, {"Click here to chat...", "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf",
-                            16, sf::Color(150, 150, 150), 80, 852});
+                            16, sf::Color(150, 150, 150), 80, 902});
 
     _chatMessages.clear();
     _chatInputText.clear();
@@ -710,6 +730,24 @@ void GameManager::initInLobby(Environment& env) {
     updateChatDisplay(env);
 
     updatePlayerListDisplay(env);
+
+#ifdef CLIENT_BUILD
+    // Start voice chat when entering lobby
+    if (_voiceManager) {
+        std::cout << "[GameManager] Setting voice local player ID to: " << _localPlayerId << std::endl;
+        _voiceManager->setLocalPlayerId(_localPlayerId);
+        _voiceManager->setSendCallback([this](const engine::voice::VoicePacket& packet) {
+            if (_voiceSendCallback) {
+                _voiceSendCallback(packet);
+            }
+        });
+        if (!_voiceManager->start()) {
+            std::cerr << "[GameManager] Failed to start voice chat" << std::endl;
+        } else {
+            std::cout << "[GameManager] Voice chat started" << std::endl;
+        }
+    }
+#endif
 }
 
 void GameManager::updatePlayerListDisplay(Environment& env) {
@@ -899,14 +937,26 @@ void GameManager::updateInLobby(Environment& env, InputManager& inputs) {
     const float leaveBtnX = 100.0f, leaveBtnY = 950.0f, leaveBtnW = 180.0f, leaveBtnH = 45.0f;
     const float startBtnX = 1300.0f, startBtnY = 900.0f, startBtnW = 300.0f, startBtnH = 55.0f;
     const float chatAreaX = 50.0f, chatAreaY = 840.0f, chatAreaW = 400.0f, chatAreaH = 40.0f;
+#ifdef CLIENT_BUILD
+    const float muteBtnX = 100.0f, muteBtnY = 850.0f, muteBtnW = 200.0f, muteBtnH = 50.0f;
+#endif
 
     if (mousePressed && !_mouseWasPressed) {
-        // Check chat area click
-        if (isMouseOverButton(chatAreaX, chatAreaY, chatAreaW, chatAreaH)) {
-            _isChatFocused = true;
-        } else {
+#ifdef CLIENT_BUILD
+        // Voice mute button
+        if (isMouseOverButton(muteBtnX, muteBtnY, muteBtnW, muteBtnH) && _voiceManager) {
+            _voiceMuted = !_voiceMuted;
+            _voiceManager->setMuted(_voiceMuted);
+            std::cout << "[GameManager] Toggled mute: " << (_voiceMuted ? "MUTED" : "UNMUTED") << std::endl;
             _isChatFocused = false;
-        }
+        } else
+#endif
+            // Check chat area click
+            if (isMouseOverButton(chatAreaX, chatAreaY, chatAreaW, chatAreaH)) {
+                _isChatFocused = true;
+            } else {
+                _isChatFocused = false;
+            }
 
         // Ready button
         if (!_isChatFocused && isMouseOverButton(readyBtnX, readyBtnY, readyBtnW, readyBtnH)) {
@@ -1004,6 +1054,21 @@ void GameManager::updateInLobby(Environment& env, InputManager& inputs) {
         text.color =
             isMouseOverButton(leaveBtnX, leaveBtnY, leaveBtnW, leaveBtnH) ? sf::Color::Yellow : sf::Color::White;
     }
+
+#ifdef CLIENT_BUILD
+    if (ecs.registry.hasComponent<TextComponent>(_muteButtonEntity)) {
+        auto& text = ecs.registry.getComponent<TextComponent>(_muteButtonEntity);
+        text.text = _voiceMuted ? "[ MIC OFF ]" : "[ MIC ON ]";
+        if (_voiceMuted) {
+            text.color =
+                isMouseOverButton(muteBtnX, muteBtnY, muteBtnW, muteBtnH) ? sf::Color(255, 100, 100) : sf::Color::Red;
+        } else {
+            text.color =
+                isMouseOverButton(muteBtnX, muteBtnY, muteBtnW, muteBtnH) ? sf::Color::Green : sf::Color::White;
+        }
+    }
+#endif
+
     if (ecs.registry.hasComponent<TextComponent>(_startButtonEntity)) {
         auto& text = ecs.registry.getComponent<TextComponent>(_startButtonEntity);
         bool canStart = isLocalPlayerHost() && areAllPlayersReady();
@@ -1020,6 +1085,15 @@ void GameManager::updateInLobby(Environment& env, InputManager& inputs) {
 
 void GameManager::cleanupInLobby(Environment& env) {
     auto& ecs = env.getECS();
+
+#ifdef CLIENT_BUILD
+    // Stop voice chat when leaving lobby
+    if (_voiceManager) {
+        _voiceManager->stop();
+        std::cout << "[GameManager] Voice chat stopped" << std::endl;
+    }
+#endif
+
     auto cleanup = [&](Entity& e) {
         if (e != static_cast<Entity>(-1)) {
             ecs.registry.destroyEntity(e);
@@ -1033,6 +1107,9 @@ void GameManager::cleanupInLobby(Environment& env) {
     cleanup(_chatBoxEntity);
     cleanup(_chatInputEntity);
     cleanup(_chatPromptEntity);
+#ifdef CLIENT_BUILD
+    cleanup(_muteButtonEntity);
+#endif
     for (auto& e : _playerListEntities)
         ecs.registry.destroyEntity(e);
     _playerListEntities.clear();
@@ -1094,4 +1171,18 @@ void GameManager::onGameStarted() {
     std::cout << "[GameManager] onGameStarted called, setting pending game start flag" << std::endl;
     // Set flag to be processed in update loop where we have access to Environment
     _pendingGameStart = true;
+}
+
+void GameManager::onVoicePacketReceived(const engine::voice::VoicePacket& packet) {
+#ifdef CLIENT_BUILD
+    if (_voiceManager) {
+        static uint32_t packetsForwarded = 0;
+        packetsForwarded++;
+        if (packetsForwarded % 50 == 1) {
+            std::cout << "[GameManager] Forwarding voice packet " << packetsForwarded << " from sender "
+                      << packet.senderId << " to VoiceManager" << std::endl;
+        }
+        _voiceManager->receivePacket(packet);
+    }
+#endif
 }

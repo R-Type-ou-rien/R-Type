@@ -42,7 +42,13 @@ int main() {
         [&engine](const std::string& user, const std::string& pass) { engine.sendRegister(user, pass); });
     gm.setAnonymousLoginCallback([&engine]() { engine.sendAnonymousLogin(); });
 
-    engine.setAuthSuccessCallback([&gm]() { gm.onAuthSuccess(); });
+    engine.setAuthSuccessCallback([&gm, &engine]() {
+        // Update localPlayerId now that we have the real ID from the server
+        uint32_t clientId = engine.getClientId();
+        std::cout << "[MAIN] Auth success! Setting localPlayerId to " << clientId << std::endl;
+        gm.setLocalPlayerId(clientId);
+        gm.onAuthSuccess();
+    });
     engine.setAuthFailedCallback([&gm]() { gm.onAuthFailed(); });
     engine.setPlayerJoinedCallback([&gm](const engine::core::LobbyPlayerInfo& p) {
         LobbyPlayerInfo info;
@@ -66,10 +72,23 @@ int main() {
 
     gm.setSendChatCallback([&engine](const std::string& msg) { engine.sendChatMessage(msg); });
 
+    // Voice chat callbacks
+    gm.setVoiceSendCallback([&engine](const engine::voice::VoicePacket& packet) { engine.sendVoicePacket(packet); });
+    engine.setVoicePacketCallback(
+        [&gm](const engine::voice::VoicePacket& packet) { gm.onVoicePacketReceived(packet); });
+
     engine.setFocusChangedCallback([&gm](bool hasFocus) { gm.setWindowFocus(hasFocus); });
 
-    engine.setLobbyJoinedCallback([&gm](uint32_t id, const std::string& name,
-                                        const std::vector<engine::core::LobbyPlayerInfo>& players, uint32_t hostId) {
+    engine.setLobbyJoinedCallback([&gm, &engine](uint32_t id, const std::string& name,
+                                                 const std::vector<engine::core::LobbyPlayerInfo>& players,
+                                                 uint32_t hostId) {
+        // Update localPlayerId when joining lobby - the ID is guaranteed to be set by now
+        uint32_t clientId = engine.getClientId();
+        if (clientId != 0) {
+            std::cout << "[MAIN] Lobby joined - updating localPlayerId to " << clientId << std::endl;
+            gm.setLocalPlayerId(clientId);
+        }
+
         std::vector<LobbyPlayerInfo> gmPlayers;
         for (const auto& p : players) {
             LobbyPlayerInfo info;

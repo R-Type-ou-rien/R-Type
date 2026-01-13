@@ -145,10 +145,6 @@ void ClientGameEngine::processNetworkEvents() {
         }
     }
 
-    if (pending.count(network::GameEvents::S_VOICE_RELAY)) {
-        std::cout << "Vocal replay not implemented" << std::endl;
-    }
-
     if (pending.count(network::GameEvents::S_ASSIGN_PLAYER_ENTITY)) {
         auto& msgs = pending.at(network::GameEvents::S_ASSIGN_PLAYER_ENTITY);
         for (auto& msg : msgs) {
@@ -301,6 +297,43 @@ void ClientGameEngine::processLobbyEvents(
         }
     }
 
+    // Handle voice packet relay from server
+    if (pending.count(network::GameEvents::S_VOICE_RELAY)) {
+        auto& msgs = pending.at(network::GameEvents::S_VOICE_RELAY);
+        static uint32_t voicePacketsReceived = 0;
+        for (auto& msg : msgs) {
+            try {
+                if (msg.body.size() >= sizeof(network::voice_packet)) {
+                    network::voice_packet netPacket;
+                    std::memcpy(&netPacket, msg.body.data() + msg.body.size() - sizeof(network::voice_packet),
+                                sizeof(network::voice_packet));
+
+                    engine::voice::VoicePacket packet;
+                    packet.senderId = netPacket.sender_id;
+                    packet.sequenceNumber = netPacket.sequence_number;
+                    packet.timestamp = netPacket.timestamp;
+
+                    if (netPacket.data_size > 0 && netPacket.data_size <= 1024) {
+                        packet.encodedData.resize(netPacket.data_size);
+                        std::memcpy(packet.encodedData.data(), netPacket.data, netPacket.data_size);
+                    }
+
+                    voicePacketsReceived++;
+                    if (voicePacketsReceived % 50 == 1) {
+                        std::cout << "[CLIENT] Received voice packet " << voicePacketsReceived << " from player "
+                                  << packet.senderId << std::endl;
+                    }
+
+                    if (_voicePacketCallback) {
+                        _voicePacketCallback(packet);
+                    }
+                }
+            } catch (const std::exception& e) {
+                std::cerr << "[CLIENT_ERROR] Failed to process voice packet: " << e.what() << std::endl;
+            }
+        }
+    }
+
     // Handle lobby list response
     if (pending.count(network::GameEvents::S_ROOMS_LIST)) {
         auto& msgs = pending.at(network::GameEvents::S_ROOMS_LIST);
@@ -399,6 +432,26 @@ void ClientGameEngine::sendChatMessage(const std::string& message) {
     std::strncpy(msgBuffer, message.c_str(), 255);
     _network->transmitEvent<char[256]>(network::GameEvents::C_TEAM_CHAT, msgBuffer, 0, 0);
     std::cout << "[CLIENT] Sending chat message: " << message << std::endl;
+}
+
+void ClientGameEngine::sendVoicePacket(const engine::voice::VoicePacket& packet) {
+    if (_currentScene != GameScene::LOBBY)
+        return;
+
+    // Use fixed-size struct for network transmission
+    network::voice_packet netPacket;
+    std::memset(&netPacket, 0, sizeof(netPacket));
+
+    netPacket.sender_id = packet.senderId;
+    netPacket.sequence_number = packet.sequenceNumber;
+    netPacket.timestamp = packet.timestamp;
+    netPacket.data_size = std::min(static_cast<uint32_t>(packet.encodedData.size()), 1024u);
+
+    if (netPacket.data_size > 0) {
+        std::memcpy(netPacket.data, packet.encodedData.data(), netPacket.data_size);
+    }
+
+    _network->transmitEvent<network::voice_packet>(network::GameEvents::C_VOICE_PACKET, netPacket, 0, 0);
 }
 
 void ClientGameEngine::requestLobbyList() {

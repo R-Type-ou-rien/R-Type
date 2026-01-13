@@ -54,6 +54,9 @@ void Server::OnMessage(std::shared_ptr<Connection<GameEvents>> client, message<G
         case GameEvents::C_TEAM_CHAT:
             onClientSendText(client, msg);
             break;
+        case GameEvents::C_VOICE_PACKET:
+            onClientVoicePacket(client, msg);
+            break;
         case GameEvents::C_READY:
             onClientReadyUp(client, msg);
             break;
@@ -604,6 +607,46 @@ void Server::onClientSendText(std::shared_ptr<Connection<GameEvents>> client, me
 
             AddMessageToLobby(GameEvents::S_TEAM_CHAT, lobby.GetID(), chatMsg);
             std::cout << "[SERVER] Chat from " << chatMsg.sender_name << ": " << chatMsg.message << std::endl;
+            break;
+        }
+    }
+}
+
+void Server::onClientVoicePacket(std::shared_ptr<Connection<GameEvents>> client, message<GameEvents>& msg) {
+    // Find the lobby the client is in
+    for (Lobby<GameEvents>& lobby : _lobbys) {
+        if (lobby.HasPlayer(client->GetID())) {
+            // Get the voice packet data
+            if (msg.body.size() < sizeof(voice_packet)) {
+                return;
+            }
+
+            voice_packet voiceData;
+            std::memcpy(&voiceData, msg.body.data(), sizeof(voice_packet));
+
+            // Set the sender ID to the client's actual ID
+            voiceData.sender_id = client->GetID();
+
+            // Relay to all other players in the lobby
+            static uint32_t relayCount = 0;
+            int relayedTo = 0;
+            for (auto& otherClient : _deqConnections) {
+                if (otherClient && otherClient->GetID() != client->GetID() && lobby.HasPlayer(otherClient->GetID())) {
+                    message<GameEvents> relayMsg;
+                    relayMsg.header.id = GameEvents::S_VOICE_RELAY;
+                    relayMsg.body.resize(sizeof(voice_packet));
+                    std::memcpy(relayMsg.body.data(), &voiceData, sizeof(voice_packet));
+                    relayMsg.header.size = static_cast<uint32_t>(relayMsg.size());
+                    MessageClient(otherClient, relayMsg);
+                    relayedTo++;
+                }
+            }
+
+            relayCount++;
+            if (relayCount % 50 == 1) {
+                std::cout << "[SERVER] Relayed voice packet " << relayCount << " from player " << client->GetID()
+                          << " to " << relayedTo << " players" << std::endl;
+            }
             break;
         }
     }

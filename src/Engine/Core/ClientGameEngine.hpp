@@ -18,6 +18,7 @@
 #include "ResourceConfig.hpp"
 #include "WindowManager.hpp"
 #include "LobbyState.hpp"
+#include "Voice/VoiceManager.hpp"
 
 #define SUCCESS 0
 #define FAILURE -1
@@ -91,6 +92,9 @@ class ClientGameEngine : public GameEngineBase<ClientGameEngine> {
         _chatMessageCallback = cb;
     }
     void setFocusChangedCallback(std::function<void(bool)> cb) { _focusChangedCallback = cb; }
+    void setVoicePacketCallback(std::function<void(const engine::voice::VoicePacket&)> cb) {
+        _voicePacketCallback = cb;
+    }
 
     // Lobby methods
     GameScene getCurrentScene() const { return _currentScene; }
@@ -102,9 +106,10 @@ class ClientGameEngine : public GameEngineBase<ClientGameEngine> {
     void joinLobby(uint32_t lobbyId);
     void sendLeaveLobby(uint32_t lobbyId);
     void sendChatMessage(const std::string& message);
+    void sendVoicePacket(const engine::voice::VoicePacket& packet);
     void requestLobbyList();
     const std::vector<engine::core::AvailableLobby>& getAvailableLobbies() const { return _availableLobbies; }
-    uint32_t getClientId() const { return _clientId; }
+    uint32_t getClientId() const { return _network ? _network->getClientId() : 0; }
     sf::RenderWindow& getWindow() { return _window_manager.getWindow(); }
 
    private:
@@ -125,4 +130,5 @@ class ClientGameEngine : public GameEngineBase<ClientGameEngine> {
     std::function<void()> _gameStartedCallback;
     std::function<void(const std::string&, const std::string&)> _chatMessageCallback;
     std::function<void(bool)> _focusChangedCallback;
+    std::function<void(const engine::voice::VoicePacket&)> _voicePacketCallback;
 };

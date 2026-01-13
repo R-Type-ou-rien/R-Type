@@ -244,4 +244,13 @@ inline message<GameEvents>& operator>>(message<GameEvents>& msg, player& p) {
     return msg;
 }
 
+// Voice packet structure for network transmission
+struct voice_packet {
+    uint32_t sender_id;
+    uint32_t sequence_number;
+    uint32_t timestamp;
+    uint32_t data_size;
+    uint8_t data[1024];  // Fixed size for easy serialization
+};
+
 }  // namespace network

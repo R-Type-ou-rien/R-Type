@@ -12,6 +12,7 @@
 #include "src/RType/Common/Components/config.hpp"
 #include "src/RType/Common/Components/game_timer.hpp"
 #include "src/Engine/Core/Scene/SceneManager.hpp"
+#include "Voice/VoiceManager.hpp"
 
 // Lobby info for browser display
 struct LobbyInfo {
@@ -145,6 +146,14 @@ class GameManager {
     std::function<void(uint32_t)> _leaveLobbyCallback;
     std::function<void(uint32_t)> _startGameCallback;
     std::function<void(const std::string&)> _sendChatCallback;
+    std::function<void(const engine::voice::VoicePacket&)> _voiceSendCallback;
+
+    // Voice chat
+#ifdef CLIENT_BUILD
+    std::unique_ptr<engine::voice::VoiceManager> _voiceManager;
+    bool _voiceMuted = false;
+    Entity _muteButtonEntity;
+#endif
 
     // Core methods
     void initSystems(Environment& env);
@@ -209,7 +218,15 @@ class GameManager {
     void onNewHost(uint32_t hostId);
     void onGameStarted();
     void onChatMessageReceived(const std::string& senderName, const std::string& message);
-    void setLocalPlayerId(uint32_t id) { _localPlayerId = id; }
+    void onVoicePacketReceived(const engine::voice::VoicePacket& packet);
+    void setLocalPlayerId(uint32_t id) {
+        _localPlayerId = id;
+#ifdef CLIENT_BUILD
+        if (_voiceManager) {
+            _voiceManager->setLocalPlayerId(id);
+        }
+#endif
+    }
 
     // Set network callbacks
     void setRequestLobbyListCallback(std::function<void()> cb) { _requestLobbyListCallback = cb; }
@@ -227,6 +244,7 @@ class GameManager {
     void setLeaveLobbyCallback(std::function<void(uint32_t)> cb) { _leaveLobbyCallback = cb; }
     void setStartGameCallback(std::function<void(uint32_t)> cb) { _startGameCallback = cb; }
     void setSendChatCallback(std::function<void(const std::string&)> cb) { _sendChatCallback = cb; }
+    void setVoiceSendCallback(std::function<void(const engine::voice::VoicePacket&)> cb) { _voiceSendCallback = cb; }
 
     void onAuthSuccess();  // Called when login/register successful
     void onAuthFailed();   // Called when login failed
