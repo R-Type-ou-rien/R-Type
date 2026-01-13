@@ -1,8 +1,19 @@
 #!/bin/bash
 
+# Initialiser le submodule vcpkg si nécessaire
 if [ -d vcpkg ]; then
     git submodule update --init --recursive
 fi
+
+# Bootstrap vcpkg si nécessaire
+if [ ! -f "vcpkg/vcpkg" ]; then
+    echo "--- Bootstrapping vcpkg ---"
+    ./vcpkg/bootstrap-vcpkg.sh
+fi
+
+# Installer les dépendances vcpkg
+echo "--- Installing vcpkg dependencies ---"
+./vcpkg/vcpkg install
 
 if [ "$1" == "clean" ]; then
     echo "--- Cleaning all builds ---"
