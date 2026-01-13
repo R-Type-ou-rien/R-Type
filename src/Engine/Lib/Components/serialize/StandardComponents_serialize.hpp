@@ -431,7 +431,7 @@ inline void serialize(std::vector<uint8_t>& buffer, const ChargedShotComponent& 
     serialize(buffer, component.charge_time);
     serialize(buffer, component.min_charge_time);
     serialize(buffer, component.max_charge_time);
-    serialize(buffer, component.medium_charge_threshold);
+    serialize(buffer, component.medium_charge);
 }
 
 inline ChargedShotComponent deserialize_charged_shot_component(const std::vector<uint8_t>& buffer, size_t& offset) {
@@ -440,7 +440,7 @@ inline ChargedShotComponent deserialize_charged_shot_component(const std::vector
     component.charge_time = deserialize<float>(buffer, offset);
     component.min_charge_time = deserialize<float>(buffer, offset);
     component.max_charge_time = deserialize<float>(buffer, offset);
-    component.medium_charge_threshold = deserialize<float>(buffer, offset);
+    component.medium_charge = deserialize<float>(buffer, offset);
     return component;
 }
 

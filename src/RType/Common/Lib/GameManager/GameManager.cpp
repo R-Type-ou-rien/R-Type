@@ -6,6 +6,8 @@
 GameManager::GameManager() {
     _player_config = ConfigLoader::loadEntityConfig("src/RType/Common/content/config/player.cfg",
                                                     ConfigLoader::getRequiredPlayerFields());
+    _game_config = ConfigLoader::loadGameConfig("src/RType/Common/content/config/game.cfg",
+                                                ConfigLoader::getRequiredGameFields());
     _current_level_scene = "src/RType/Common/content/config/level1.scene";
 }
 
@@ -17,6 +19,10 @@ void GameManager::init(Environment& env, InputManager& inputs) {
     LevelConfig level_config;
     try {
         level_config = SceneLoader::loadFromFile(_current_level_scene);
+        if (!level_config.game_config.empty()) {
+            _game_config = ConfigLoader::loadGameConfig(level_config.game_config,
+                                                        ConfigLoader::getRequiredGameFields());
+        }
     } catch (...) {
         // Fallback or handle error
     }

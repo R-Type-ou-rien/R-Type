@@ -309,7 +309,7 @@ void ShooterSystem::update(Registry& registry, system_context context) {
                 charged.charge_time += context.dt;
 
                 // Play charging sound when reaching medium threshold (50%)
-                if (charged.charge_time >= charged.medium_charge_threshold &&
+                if (charged.charge_time >= charged.medium_charge &&
                     !registry.hasComponent<AudioSourceComponent>(id)) {
                     AudioSourceComponent audio;
                     audio.sound_name = "charg_start";
@@ -345,7 +345,7 @@ void ShooterSystem::update(Registry& registry, system_context context) {
                     if (charged.charge_time >= charged.max_charge_time) {
                         // Max charged shot (100%) - full power
                         create_charged_projectile(registry, team.team, pos, context, 1.0f);
-                    } else if (charged.charge_time >= charged.medium_charge_threshold) {
+                    } else if (charged.charge_time >= charged.medium_charge) {
                         // Medium charged shot (50%) - half power
                         create_charged_projectile(registry, team.team, pos, context, 0.5f);
                     } else {
