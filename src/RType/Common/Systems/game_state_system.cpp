@@ -10,7 +10,6 @@
 #include "src/Engine/Core/NetworkEngine/NetworkEngine.hpp"
 #include "src/Engine/Core/LobbyManager.hpp"
 #include "src/RType/Common/Systems/score.hpp"
-#include <iostream>
 #include <variant>
 
 void GameStateSystem::update(Registry& registry, system_context context) {
@@ -31,6 +30,7 @@ void GameStateSystem::update(Registry& registry, system_context context) {
     
     std::vector<PlayerInfo> all_players;
     int alive_count = 0;
+    bool any_in_game_lobby = false;
     
     // Parcourir TOUS les lobbies en jeu pour trouver TOUS les joueurs
     auto& lobbies = context.lobby_manager->getAllLobbies();
@@ -38,6 +38,8 @@ void GameStateSystem::update(Registry& registry, system_context context) {
         if (lobby.getState() != engine::core::Lobby::State::IN_GAME) {
             continue;
         }
+
+        any_in_game_lobby = true;
         
         // Pour chaque client dans le lobby
         for (const auto& client : lobby.getClients()) {
@@ -73,70 +75,136 @@ void GameStateSystem::update(Registry& registry, system_context context) {
             }
             
             all_players.push_back(player);
-            std::cout << "[GameStateSystem] Client " << player.client_id 
-                      << " | Entity " << player.entity_id 
-                      << " | HP: " << player.hp 
-                      << " | Score: " << player.score 
-                      << " | " << (player.found_in_registry ? "✅ IN REGISTRY" : "❌ DESTROYED")
-                      << std::endl;
         }
     }
     
-    std::cout << "[GameStateSystem] === SUMMARY: Total=" << all_players.size() 
-              << " | Alive=" << alive_count << " ===" << std::endl;
-    
-    // Si aucun joueur ou tous vivants, rien à faire
-    if (all_players.empty() || alive_count == all_players.size()) {
+    // Si aucun joueur, rien à faire
+    if (all_players.empty()) {
+        // If no lobby is currently in-game, we're between matches: reset one-shot flags
+        if (!any_in_game_lobby) {
+            _gameOverSent = false;
+            _victorySent = false;
+        }
         return;
     }
-    
-    // SERVEUR SEULEMENT : Envoyer S_GAME_OVER quand tous les joueurs sont morts
-    if (alive_count == 0 && !_gameOverSent) {
-        std::cout << "🌐 [GameStateSystem] All players dead! Sending S_GAME_OVER..." << std::endl;
-        
+
+    // If we're not in an active match, reset flags and stop
+    if (!any_in_game_lobby) {
+        _gameOverSent = false;
+        _victorySent = false;
+        return;
+    }
+
+    // SERVEUR SEULEMENT : Envoyer S_GAME_OVER quand tous les joueurs sont morts (prioritaire sur la victoire)
+    if (alive_count == 0) {
+        if (!_gameOverSent) {
+            auto network_instance = context.network.getNetworkInstance();
+            if (std::holds_alternative<std::shared_ptr<network::Server>>(network_instance)) {
+                auto server = std::get<std::shared_ptr<network::Server>>(network_instance);
+
+                // Créer le packet avec les scores de TOUS les joueurs
+                network::GameOverPacket gameOverPacket;
+                gameOverPacket.victory = false;
+                gameOverPacket.player_count = 0;
+
+                for (const auto& player : all_players) {
+                    if (gameOverPacket.player_count >= 8)
+                        break;
+
+                    network::PlayerScore playerScore;
+                    playerScore.client_id = player.client_id;
+                    playerScore.score = player.score;
+                    playerScore.is_alive = (player.hp > 0);
+
+                    gameOverPacket.players[gameOverPacket.player_count] = playerScore;
+                    gameOverPacket.player_count++;
+                }
+
+                // Envoyer à TOUS les clients dans les lobbies en jeu
+                for (auto const& [lobbyId, lobby] : lobbies) {
+                    if (lobby.getState() != engine::core::Lobby::State::IN_GAME) {
+                        continue;
+                    }
+
+                    for (const auto& client : lobby.getClients()) {
+                        server->AddMessageToPlayer(network::GameEvents::S_GAME_OVER, client.id, gameOverPacket);
+                    }
+                }
+
+                _gameOverSent = true;
+            }
+        }
+
+        // Even if the boss is dead too, defeat must win.
+        return;
+    }
+
+    // Détection victoire: boss vaincu (uniquement s'il reste au moins 1 joueur vivant)
+    bool boss_spawned = false;
+    {
+        auto& spawners = registry.getEntities<EnemySpawnComponent>();
+        for (auto spawner : spawners) {
+            if (!registry.hasComponent<EnemySpawnComponent>(spawner))
+                continue;
+            auto& spawn_comp = registry.getConstComponent<EnemySpawnComponent>(spawner);
+            if (spawn_comp.boss_arrived) {
+                boss_spawned = true;
+                break;
+            }
+        }
+    }
+
+    bool boss_exists = false;
+    if (boss_spawned) {
+        auto& tagged = registry.getEntities<TagComponent>();
+        for (auto entity : tagged) {
+            if (!registry.hasComponent<TagComponent>(entity))
+                continue;
+            auto& tags = registry.getConstComponent<TagComponent>(entity);
+            for (const auto& tag : tags.tags) {
+                if (tag == "BOSS") {
+                    boss_exists = true;
+                    break;
+                }
+            }
+            if (boss_exists)
+                break;
+        }
+    }
+
+    if (boss_spawned && !boss_exists && !_victorySent) {
         auto network_instance = context.network.getNetworkInstance();
         if (std::holds_alternative<std::shared_ptr<network::Server>>(network_instance)) {
             auto server = std::get<std::shared_ptr<network::Server>>(network_instance);
-            
-            // Créer le packet avec les scores de TOUS les joueurs
+
             network::GameOverPacket gameOverPacket;
-            gameOverPacket.victory = false;
+            gameOverPacket.victory = true;
             gameOverPacket.player_count = 0;
-            
-            std::cout << "  📊 Collecting scores from " << all_players.size() << " players..." << std::endl;
-            
+
             for (const auto& player : all_players) {
-                if (gameOverPacket.player_count >= 8) break;  // Max 8 joueurs
-                
+                if (gameOverPacket.player_count >= 8)
+                    break;
+
                 network::PlayerScore playerScore;
                 playerScore.client_id = player.client_id;
                 playerScore.score = player.score;
                 playerScore.is_alive = (player.hp > 0);
-                
                 gameOverPacket.players[gameOverPacket.player_count] = playerScore;
                 gameOverPacket.player_count++;
-                
-                std::cout << "    ✅ Player " << player.client_id 
-                          << " | Score: " << player.score << " pts"
-                          << " | " << (playerScore.is_alive ? "ALIVE" : "DEAD") << std::endl;
             }
-            
-            std::cout << "  📨 Broadcasting to all clients..." << std::endl;
-            
+
             // Envoyer à TOUS les clients dans les lobbies en jeu
             for (auto const& [lobbyId, lobby] : lobbies) {
                 if (lobby.getState() != engine::core::Lobby::State::IN_GAME) {
                     continue;
                 }
-                
+
                 for (const auto& client : lobby.getClients()) {
                     server->AddMessageToPlayer(network::GameEvents::S_GAME_OVER, client.id, gameOverPacket);
-                    std::cout << "    📨 Sent S_GAME_OVER with " << gameOverPacket.player_count 
-                              << " players to client " << client.id << std::endl;
                 }
             }
-            
-            _gameOverSent = true;
+
+            _victorySent = true;
         }
     }
 #endif

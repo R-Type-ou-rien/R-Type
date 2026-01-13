@@ -10,7 +10,7 @@
 #include <SFML/Graphics/Texture.hpp>
 #include <iostream>
 #include <iterator>
-#include "../../../RType/Common/Components/ai_behavior_component.hpp"
+#include "../../../RType/Common/Systems/health.hpp"
 
 void RenderSystem::update(Registry& registry, system_context context) {
     auto& positions = registry.getView<transform_component_s>();
@@ -94,15 +94,48 @@ void RenderSystem::drawEntity(Entity entity, const transform_component_s& transf
     }
     sprite.setPosition({transform.x, transform.y});
     sprite.setScale({transform.scale_x, transform.scale_y});
-    
-    // Apply white flash effect for boss damage
-    if (registry.hasComponent<BossComponent>(entity)) {
-        auto& boss = registry.getConstComponent<BossComponent>(entity);
-        if (boss.damage_flash_timer > 0.0f) {
-            sprite.setColor(sf::Color::White);
+
+    // Boss hit feedback (client-side): detect HP drops on entities tagged "BOSS" and draw an additive white flash.
+    bool is_boss = false;
+    if (registry.hasComponent<TagComponent>(entity)) {
+        const auto& tags = registry.getConstComponent<TagComponent>(entity);
+        for (const auto& t : tags.tags) {
+            if (t == "BOSS") {
+                is_boss = true;
+                break;
+            }
         }
     }
-    
+
+    bool flash_active = false;
+    if (is_boss && registry.hasComponent<HealthComponent>(entity)) {
+        const auto& health = registry.getConstComponent<HealthComponent>(entity);
+        auto& state = _bossHitFlash[entity];
+
+        if (state.last_hp < 0) {
+            state.last_hp = health.current_hp;
+        } else {
+            if (health.current_hp < state.last_hp) {
+                state.timer = _bossHitFlashDuration;
+            }
+            state.last_hp = health.current_hp;
+        }
+
+        if (state.timer > 0.0f) {
+            state.timer -= context.dt;
+            if (state.timer < 0.0f) {
+                state.timer = 0.0f;
+            }
+        }
+
+        flash_active = (state.timer > 0.0f);
+    }
+
     context.window.draw(sprite);
+    if (flash_active) {
+        sf::Sprite flash = sprite;
+        flash.setColor(sf::Color(255, 255, 255, 200));
+        context.window.draw(flash, sf::RenderStates(sf::BlendAdd));
+    }
     return;
 }

@@ -105,24 +105,16 @@ void GameManager::updateUI(Environment& env) {
 void GameManager::checkGameState(Environment& env) {
     auto& ecs = env.getECS();
 
-    std::cout << "=== [DEBUG] checkGameState called ===" << std::endl;
-    std::cout << "[DEBUG] _gameOver=" << _gameOver << ", _victory=" << _victory 
-              << ", _leaderboardDisplayed=" << _leaderboardDisplayed << std::endl;
-
     // CLIENT SEULEMENT : Vérifier si on a reçu S_GAME_OVER du serveur
     if (!env.isServer()) {
         auto& gameOverEntities = ecs.registry.getEntities<GameOverNotification>();
         if (!gameOverEntities.empty()) {
-            std::cout << "🎮 [CLIENT] GameOverNotification détecté!" << std::endl;
-            
             auto& notification = ecs.registry.getConstComponent<GameOverNotification>(gameOverEntities[0]);
             _gameOver = !notification.victory;
             _victory = notification.victory;
             
             // Supprimer le composant pour ne pas le traiter plusieurs fois
             ecs.registry.destroyEntity(gameOverEntities[0]);
-            
-            std::cout << "📊 [CLIENT] Affichage du leaderboard suite à S_GAME_OVER..." << std::endl;
             displayGameOver(env, notification.victory);
             if (!_leaderboardDisplayed) {
                 displayLeaderboard(env, notification.victory);
@@ -133,14 +125,10 @@ void GameManager::checkGameState(Environment& env) {
     }
 
     if (_gameOver || _victory) {
-        std::cout << "[DEBUG] Game already over, checking leaderboard display..." << std::endl;
         // Si le leaderboard n'a pas encore été affiché, l'afficher maintenant
         if (!_leaderboardDisplayed) {
-            std::cout << "[DEBUG] Displaying leaderboard NOW" << std::endl;
             displayLeaderboard(env, _victory);
             _leaderboardDisplayed = true;
-        } else {
-            std::cout << "[DEBUG] Leaderboard already displayed, skipping" << std::endl;
         }
         return;
     }
@@ -163,11 +151,6 @@ void GameManager::checkGameState(Environment& env) {
                 if (ecs.registry.hasComponent<HealthComponent>(entity)) {
                     auto& health = ecs.registry.getConstComponent<HealthComponent>(entity);
                     is_alive = health.current_hp > 0;
-                    
-                    // Debug log pour voir l'état des joueurs
-                    std::cout << "[GameManager] Player entity " << entity 
-                              << " - HP: " << health.current_hp << "/" << health.max_hp 
-                              << " (alive: " << (is_alive ? "yes" : "no") << ")" << std::endl;
                 }
                 
                 if (is_alive) {
@@ -180,16 +163,10 @@ void GameManager::checkGameState(Environment& env) {
         }
     }
     
-    std::cout << "[GameManager] Game state check - Total: " << total_players 
-              << ", Alive: " << alive_players 
-              << ", Dead: " << dead_players << std::endl;
-
     // Gestion selon le nombre de joueurs
     if (total_players == 1) {
-        std::cout << "[DEBUG] SOLO MODE detected (1 player)" << std::endl;
         // Mode solo : si le joueur meurt, game over
         if (alive_players == 0) {
-            std::cout << "💀 [GameManager] Solo player died - triggering game over" << std::endl;
             _gameOver = true;
             
             // Le GameStateSystem (côté serveur) envoie S_GAME_OVER aux clients
@@ -202,7 +179,6 @@ void GameManager::checkGameState(Environment& env) {
             return;
         }
     } else if (total_players >= 2) {
-        std::cout << "[DEBUG] MULTIPLAYER MODE detected (" << total_players << " players)" << std::endl;
         // Mode multijoueur : gérer les spectateurs
         for (auto entity : player_entities) {
             if (!ecs.registry.hasComponent<HealthComponent>(entity))
@@ -243,7 +219,6 @@ void GameManager::checkGameState(Environment& env) {
         
         // Si tous les joueurs sont morts, afficher le leaderboard
         if (alive_players == 0 && dead_players > 0) {
-            std::cout << "💀 [GameManager] All players dead - triggering game over" << std::endl;
             _gameOver = true;
             
             // Le GameStateSystem (côté serveur) envoie S_GAME_OVER aux clients
@@ -286,8 +261,14 @@ void GameManager::checkGameState(Environment& env) {
                 break;
         }
 
-        // Si le boss est tué, victoire !
+        // Si le boss est tué, victoire (seulement s'il reste au moins 1 joueur vivant)
         if (!boss_exists) {
+            if (alive_players <= 0) {
+                _gameOver = true;
+                displayGameOver(env, false);
+                return;
+            }
+
             _victory = true;
             
             // Afficher WIN à tous les joueurs
@@ -330,37 +311,21 @@ void GameManager::displayGameOver(Environment& env, bool victory) {
 void GameManager::displayLeaderboard(Environment& env, bool victory) {
     auto& ecs = env.getECS();
 
-    std::cout << "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" << std::endl;
-    std::cout << "🎯 [GameManager] ===== DISPLAY LEADERBOARD CALLED =====" << std::endl;
-    std::cout << "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" << std::endl;
-    std::cout << "[DEBUG] victory=" << victory << ", isServer=" << env.isServer() << std::endl;
-
     if (env.isServer()) {
-        std::cout << "[GameManager] Skipping leaderboard - running on server" << std::endl;
         return;
     }
 
     // Collecter tous les joueurs et leurs scores
     std::vector<PlayerScoreEntry> player_scores;
     
-    std::cout << "[GameManager] 🔍 Searching for LEADERBOARD_DATA entities..." << std::endl;
-    
     // Priorité aux données du leaderboard envoyées par le serveur
     auto& leaderboard_entities = ecs.registry.getEntities<TagComponent>();
     bool has_leaderboard_data = false;
-    
-    std::cout << "[DEBUG] Total entities with TagComponent: " << leaderboard_entities.size() << std::endl;
     
     for (auto entity : leaderboard_entities) {
         if (!ecs.registry.hasComponent<TagComponent>(entity)) continue;
         
         auto& tags = ecs.registry.getConstComponent<TagComponent>(entity);
-        
-        std::cout << "[DEBUG] Entity " << entity << " has tags: ";
-        for (const auto& tag : tags.tags) {
-            std::cout << tag << " ";
-        }
-        std::cout << std::endl;
         
         bool is_leaderboard_data = false;
         
@@ -400,30 +365,19 @@ void GameManager::displayLeaderboard(Environment& env, bool victory) {
             }
 
             player_scores.push_back(entry);
-            std::cout << "✅ [GameManager] Found LEADERBOARD_DATA entity: " << entry.player_name 
-                      << " - Score: " << entry.score << std::endl;
         }
     }
     
     // Si pas de données leaderboard, chercher les joueurs locaux (mode standalone)
     if (!has_leaderboard_data) {
-        std::cout << "[GameManager] No leaderboard data from server, using local PLAYER entities" << std::endl;
-        
         auto& entities = ecs.registry.getEntities<TagComponent>();
-        std::cout << "[DEBUG] Total entities with TagComponent: " << entities.size() << std::endl;
         
         for (auto entity : entities) {
             if (!ecs.registry.hasComponent<TagComponent>(entity)) {
-                std::cout << "[DEBUG] Entity " << entity << " no longer has TagComponent, skipping" << std::endl;
                 continue;
             }
             
             auto& tags = ecs.registry.getConstComponent<TagComponent>(entity);
-            std::cout << "[DEBUG] Entity " << entity << " tags: ";
-            for (const auto& tag : tags.tags) {
-                std::cout << tag << " ";
-            }
-            std::cout << std::endl;
             
             for (const auto& tag : tags.tags) {
                 if (tag == "PLAYER") {
@@ -433,45 +387,30 @@ void GameManager::displayLeaderboard(Environment& env, bool victory) {
                     entry.score = 0;
                     entry.is_alive = false;
 
-                    std::cout << "✅ [GameManager] Found PLAYER entity: " << entity << std::endl;
-
                     // Récupérer le score
                     if (ecs.registry.hasComponent<ScoreComponent>(entity)) {
                         auto& score_comp = ecs.registry.getConstComponent<ScoreComponent>(entity);
                         entry.score = score_comp.current_score;
-                        std::cout << "[GameManager] Player " << entity << " has ScoreComponent with score: " << entry.score << std::endl;
-                    } else {
-                        std::cout << "[GameManager] WARNING: Player " << entity << " has NO ScoreComponent!" << std::endl;
                     }
 
                     // Vérifier si vivant
                     if (ecs.registry.hasComponent<HealthComponent>(entity)) {
                         auto& health = ecs.registry.getConstComponent<HealthComponent>(entity);
                         entry.is_alive = health.current_hp > 0;
-                        std::cout << "[GameManager] Player " << entity << " health: " << health.current_hp << " (alive: " << entry.is_alive << ")" << std::endl;
                     }
 
                     player_scores.push_back(entry);
-                    std::cout << "📝 [DEBUG] Added player " << entity << " to leaderboard (total now: " << player_scores.size() << ")" << std::endl;
                     break;
                 }
             }
         }
     }
 
-    std::cout << "[GameManager] Found " << player_scores.size() << " PLAYER entities" << std::endl;
-    std::cout << "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" << std::endl;
-    std::cout << "🎯 [GameManager] Total entries collected: " << player_scores.size() << std::endl;
-    std::cout << "🎯 [GameManager] has_leaderboard_data=" << has_leaderboard_data << std::endl;
-    std::cout << "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" << std::endl;
-
     // S'il n'y a qu'un joueur, utiliser le score global
     if (player_scores.size() <= 1) {
         int global_score = ScoreSystem::getScore(ecs.registry);
-        std::cout << "[GameManager] Solo mode - Global score: " << global_score << std::endl;
         
         if (player_scores.empty()) {
-            std::cout << "[GameManager] No player entities found, creating default entry" << std::endl;
             PlayerScoreEntry entry;
             entry.player_entity = -1;
             entry.player_name = "Player";
@@ -479,7 +418,6 @@ void GameManager::displayLeaderboard(Environment& env, bool victory) {
             entry.is_alive = false;
             player_scores.push_back(entry);
         } else {
-            std::cout << "[GameManager] Updating player score from " << player_scores[0].score << " to " << global_score << std::endl;
             player_scores[0].score = global_score;
         }
     }
@@ -495,8 +433,6 @@ void GameManager::displayLeaderboard(Environment& env, bool victory) {
     for (const auto& entry : player_scores) {
         total_combined_score += entry.score;
     }
-    
-    std::cout << "[GameManager] Total combined score: " << total_combined_score << std::endl;
 
     // Créer le leaderboard
     _leaderboardEntity = ecs.registry.createEntity();
@@ -530,8 +466,6 @@ void GameManager::displayLeaderboard(Environment& env, bool victory) {
         y_offset += 50;
     }
     
-    std::cout << "[GameManager] Leaderboard created with " << player_scores.size() << " entries" << std::endl;
-
     // Afficher chaque entrée (classement individuel)
     int rank = 1;
     for (const auto& entry : player_scores) {

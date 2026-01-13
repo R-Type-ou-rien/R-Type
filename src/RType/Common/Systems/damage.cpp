@@ -37,6 +37,12 @@ void Damage::update(Registry& registry, system_context context) {
                 continue;
             }
 
+            // Trigger boss damage flash (visual feedback), even if this hit kills the boss.
+            if (registry.hasComponent<BossComponent>(hit_id)) {
+                auto& boss = registry.getComponent<BossComponent>(hit_id);
+                boss.damage_flash_timer = boss.damage_flash_duration;
+            }
+
             if (health.current_hp - dmg.damage_value <= 0) {
                 health.current_hp = 0;
                 std::cout << "[Damage] Entity " << hit_id << " killed by entity " << attacker << " (damage: " << dmg.damage_value << ")" << std::endl;
@@ -44,12 +50,6 @@ void Damage::update(Registry& registry, system_context context) {
                 health.current_hp -= dmg.damage_value;
                 health.last_damage_time = health.invincibility_duration;
                 std::cout << "[Damage] Entity " << hit_id << " took " << dmg.damage_value << " damage, HP remaining: " << health.current_hp << std::endl;
-                
-                // Trigger boss damage flash
-                if (registry.hasComponent<BossComponent>(hit_id)) {
-                    auto& boss = registry.getComponent<BossComponent>(hit_id);
-                    boss.damage_flash_timer = boss.damage_flash_duration;
-                }
             }
 
             if (registry.hasComponent<TeamComponent>(attacker) && registry.hasComponent<TeamComponent>(hit_id)) {

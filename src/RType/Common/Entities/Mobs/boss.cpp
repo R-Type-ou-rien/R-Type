@@ -94,11 +94,18 @@ void BossSpawner::spawn(Registry& registry, system_context context, float x, flo
     // Add NetworkIdentity for network replication
     registry.addComponent<NetworkIdentity>(id, {static_cast<uint32_t>(id), 0});
     
-    // Create tail segments (10 segments for serpentine effect)
-    const int num_tail_segments = 10;
-    const float segment_spacing = 60.0f;  // Distance between segments
-    const float tail_width = 40.0f;
-    const float tail_height = 40.0f;
+    // Create tail segments (a longer, tighter chain of balls)
+    const int num_tail_segments = 18;
+    // Tail segments are small orange balls located at the bottom of r-typesheet30.gif
+    // (same sprite as enemy projectile balls)
+    const float tail_sprite_w = 15.0f;
+    const float tail_sprite_h = 15.0f;
+    // Make the tail balls much bigger (user request)
+    const float tail_scale = config.scale.value_or(1.0f) * 2.0f;
+    const float tail_size_x = tail_sprite_w * tail_scale;
+    const float tail_size_y = tail_sprite_h * tail_scale;
+    // Distance between segments: slightly less than diameter for a "connected" look
+    const float segment_spacing = tail_size_x * 0.4f;
     
     int previous_segment_id = id;  // First segment follows the boss
     
@@ -107,7 +114,8 @@ void BossSpawner::spawn(Registry& registry, system_context context, float x, flo
         
         // Position initiale derrière le boss
         float segment_x = start_x - (i + 1) * segment_spacing;
-        float segment_y = start_y + (boss_height / 2.0f) - (tail_height / 2.0f);
+        // Start around the middle of the boss sprite
+        float segment_y = start_y + (boss_height *2); //- (tail_size_y * 0.5f);
         
         registry.addComponent<transform_component_s>(segment_id, {segment_x, segment_y});
         registry.addComponent<Velocity2D>(segment_id, {-config.speed.value(), 0.0f});
@@ -135,13 +143,13 @@ void BossSpawner::spawn(Registry& registry, system_context context, float x, flo
         
         // Sprite (use simple sprite for now, can be customized)
         handle_t<TextureAsset> tail_handle =
-            context.texture_manager.load(config.sprite_path.value(), TextureAsset(config.sprite_path.value()));
+            context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet30.gif",
+                                         TextureAsset("src/RType/Common/content/sprites/r-typesheet30.gif"));
         
         sprite2D_component_s tail_sprite;
         tail_sprite.handle = tail_handle;
-        tail_sprite.dimension = {static_cast<float>(config.sprite_x.value()), 
-                                static_cast<float>(config.sprite_y.value()),
-                                tail_width, tail_height};
+        // Small ball from the boss sprite sheet (5th row from bottom)
+        tail_sprite.dimension = {596.0f, 2061.0f, tail_sprite_w, tail_sprite_h};
         tail_sprite.z_index = 1;  // Behind boss
         tail_sprite.is_animated = false;  // CRITICAL: Prevent animation system from accessing empty frames vector
         tail_sprite.loop_animation = false;
@@ -152,11 +160,9 @@ void BossSpawner::spawn(Registry& registry, system_context context, float x, flo
         tail_sprite.lastUpdateTime = 0.0f;
         registry.addComponent<sprite2D_component_s>(segment_id, tail_sprite);
         
-        if (config.scale.has_value()) {
-            auto& segment_transform = registry.getComponent<transform_component_s>(segment_id);
-            segment_transform.scale_x = config.scale.value() * 0.8f;  // Slightly smaller
-            segment_transform.scale_y = config.scale.value() * 0.8f;
-        }
+        auto& segment_transform = registry.getComponent<transform_component_s>(segment_id);
+        segment_transform.scale_x = tail_scale;
+        segment_transform.scale_y = tail_scale;
         
         // Tags
         TagComponent segment_tags;

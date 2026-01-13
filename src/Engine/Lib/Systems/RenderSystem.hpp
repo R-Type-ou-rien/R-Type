@@ -29,4 +29,12 @@ class RenderSystem : public ISystem {
    private:
     sf::Font _font;
     bool _fontLoaded = false;
+
+    struct HitFlashState {
+        int last_hp = -1;
+        float timer = 0.0f;
+    };
+
+    std::unordered_map<Entity, HitFlashState> _bossHitFlash;
+    float _bossHitFlashDuration = 0.10f;
 };
