@@ -20,10 +20,10 @@ if [ ! -f "vcpkg/vcpkg" ]; then
     ./vcpkg/bootstrap-vcpkg.sh
 fi
 
-# Installer les dépendances vcpkg
+# Installer les dépendances vcpkg (mode manifest - lit vcpkg.json)
 echo "--- Installing vcpkg dependencies (this may take a while) ---"
 export VCPKG_DEFAULT_TRIPLET=x64-linux
-./vcpkg/vcpkg install --triplet=x64-linux
+./vcpkg/vcpkg install
 
 if [ "$1" == "clean" ]; then
     echo "--- Cleaning all builds ---"
