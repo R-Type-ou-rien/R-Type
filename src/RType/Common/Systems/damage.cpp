@@ -53,9 +53,11 @@ void Damage::update(Registry& registry, system_context context) {
                 if (registry.hasComponent<ProjectileComponent>(attacker)) {
                     const auto& proj = registry.getConstComponent<ProjectileComponent>(attacker);
                     dealer = static_cast<Entity>(proj.owner_id);
+                    std::cout << "[SCORE DEBUG] Projectile " << attacker << " owned by dealer=" << dealer << std::endl;
                 }
 
-                if (dealer != -1) {
+                if (dealer != static_cast<Entity>(-1)) {
+                    std::cout << "[SCORE DEBUG] Setting LastDamageDealer on entity " << hit_id << " to dealer=" << dealer << std::endl;
                     if (registry.hasComponent<LastDamageDealerComponent>(hit_id)) {
                         auto& last = registry.getComponent<LastDamageDealerComponent>(hit_id);
                         last.dealer_entity = dealer;

@@ -30,21 +30,33 @@ void HealthSystem::update(Registry& registry, system_context context) {
     }
     for (auto dead_entity : dead_entities) {
         if (registry.hasComponent<HealthComponent>(dead_entity)) {
+            std::cout << "[SCORE DEBUG] Entity " << dead_entity << " is dead, checking score attribution..." << std::endl;
+            
             // Ajouter le score si l'entité a une valeur de score
             if (registry.hasComponent<ScoreValueComponent>(dead_entity)) {
                 auto& score_value = registry.getConstComponent<ScoreValueComponent>(dead_entity);
                 bool awarded_to_player = false;
+                
+                std::cout << "[SCORE DEBUG] Entity " << dead_entity << " has ScoreValueComponent value=" << score_value.value << std::endl;
 
                 if (registry.hasComponent<LastDamageDealerComponent>(dead_entity)) {
                     const auto& last = registry.getConstComponent<LastDamageDealerComponent>(dead_entity);
                     const Entity dealer = last.dealer_entity;
-                    if (dealer != -1 && registry.hasComponent<ScoreComponent>(dealer)) {
+                    std::cout << "[SCORE DEBUG] LastDamageDealer for entity " << dead_entity << " is dealer=" << dealer << std::endl;
+                    
+                    if (dealer != static_cast<Entity>(-1) && registry.hasComponent<ScoreComponent>(dealer)) {
                         auto& dealer_score = registry.getComponent<ScoreComponent>(dealer);
+                        std::cout << "[SCORE DEBUG] Dealer " << dealer << " has ScoreComponent, current_score=" << dealer_score.current_score << std::endl;
                         dealer_score.current_score += score_value.value;
                         awarded_to_player = true;
                         std::cout << "[HealthSystem] Entity " << dead_entity << " died, awarding score "
-                                  << score_value.value << " to dealer " << dealer << std::endl;
+                                  << score_value.value << " to dealer " << dealer 
+                                  << ", new_score=" << dealer_score.current_score << std::endl;
+                    } else {
+                        std::cerr << "[SCORE DEBUG] ERROR: Dealer " << dealer << " has NO ScoreComponent!" << std::endl;
                     }
+                } else {
+                    std::cerr << "[SCORE DEBUG] ERROR: Entity " << dead_entity << " has NO LastDamageDealerComponent!" << std::endl;
                 }
 
                 if (!awarded_to_player) {

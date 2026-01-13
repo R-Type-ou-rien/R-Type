@@ -104,7 +104,7 @@ void GameStateSystem::update(Registry& registry, system_context context) {
 
                 // Créer le packet avec les scores de TOUS les joueurs
                 network::GameOverPacket gameOverPacket;
-                gameOverPacket.victory = false;
+                gameOverPacket.victory = 0;  // 0 = défaite
                 gameOverPacket.player_count = 0;
 
                 for (const auto& player : all_players) {
@@ -114,7 +114,7 @@ void GameStateSystem::update(Registry& registry, system_context context) {
                     network::PlayerScore playerScore;
                     playerScore.client_id = player.client_id;
                     playerScore.score = player.score;
-                    playerScore.is_alive = (player.hp > 0);
+                    playerScore.is_alive = (player.hp > 0) ? 1 : 0;
 
                     gameOverPacket.players[gameOverPacket.player_count] = playerScore;
                     gameOverPacket.player_count++;
@@ -127,6 +127,9 @@ void GameStateSystem::update(Registry& registry, system_context context) {
                     }
 
                     for (const auto& client : lobby.getClients()) {
+                        std::cout << "[GAMESTATE DEBUG] Sending S_GAME_OVER to client " << client.id 
+                                  << " victory=" << (int)gameOverPacket.victory 
+                                  << " player_count=" << gameOverPacket.player_count << std::endl;
                         server->AddMessageToPlayer(network::GameEvents::S_GAME_OVER, client.id, gameOverPacket);
                     }
                 }
@@ -153,6 +156,8 @@ void GameStateSystem::update(Registry& registry, system_context context) {
             }
         }
     }
+    
+    std::cout << "[GAMESTATE DEBUG] boss_spawned=" << boss_spawned << " alive_count=" << alive_count << std::endl;
 
     bool boss_exists = false;
     if (boss_spawned) {
@@ -164,6 +169,7 @@ void GameStateSystem::update(Registry& registry, system_context context) {
             for (const auto& tag : tags.tags) {
                 if (tag == "BOSS") {
                     boss_exists = true;
+                    std::cout << "[GAMESTATE DEBUG] Found BOSS entity=" << entity << std::endl;
                     break;
                 }
             }
@@ -171,14 +177,17 @@ void GameStateSystem::update(Registry& registry, system_context context) {
                 break;
         }
     }
+    
+    std::cout << "[GAMESTATE DEBUG] boss_exists=" << boss_exists << " _victorySent=" << _victorySent << std::endl;
 
     if (boss_spawned && !boss_exists && !_victorySent) {
+        std::cout << "[GAMESTATE DEBUG] VICTORY DETECTED! Boss spawned and destroyed. Sending S_GAME_OVER(victory=true)" << std::endl;
         auto network_instance = context.network.getNetworkInstance();
         if (std::holds_alternative<std::shared_ptr<network::Server>>(network_instance)) {
             auto server = std::get<std::shared_ptr<network::Server>>(network_instance);
 
             network::GameOverPacket gameOverPacket;
-            gameOverPacket.victory = true;
+            gameOverPacket.victory = 1;  // 1 = victoire
             gameOverPacket.player_count = 0;
 
             for (const auto& player : all_players) {
@@ -188,7 +197,7 @@ void GameStateSystem::update(Registry& registry, system_context context) {
                 network::PlayerScore playerScore;
                 playerScore.client_id = player.client_id;
                 playerScore.score = player.score;
-                playerScore.is_alive = (player.hp > 0);
+                playerScore.is_alive = (player.hp > 0) ? 1 : 0;
                 gameOverPacket.players[gameOverPacket.player_count] = playerScore;
                 gameOverPacket.player_count++;
             }

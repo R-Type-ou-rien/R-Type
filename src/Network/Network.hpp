@@ -136,47 +136,55 @@ inline message<GameEvents>& operator>>(message<GameEvents>& msg, AssignPlayerEnt
 struct PlayerScore {
     uint32_t client_id;
     int32_t score;
-    bool is_alive;
+    uint8_t is_alive;  // 0 = dead, 1 = alive (fixed size for network)
 };
 
 // Structure pour le message S_GAME_OVER avec tous les scores
 struct GameOverPacket {
-    bool victory;  // true = victoire, false = défaite
+    uint8_t victory;  // 0 = défaite, 1 = victoire (fixed size for network)
     uint32_t player_count;
     PlayerScore players[8];  // Maximum 8 joueurs
 };
 
 // Serialization operators for GameOverPacket
+// NOTE: Due to LIFO message system, we serialize player_count LAST so it can be read FIRST
 inline message<GameEvents>& operator<<(message<GameEvents>& msg, const GameOverPacket& packet) {
+    // Write victory first (will be read last in LIFO)
     msg << packet.victory;
-    msg << packet.player_count;
+    
+    // Write players data
     for (uint32_t i = 0; i < packet.player_count && i < 8; i++) {
         msg << packet.players[i].client_id;
         msg << packet.players[i].score;
         msg << packet.players[i].is_alive;
     }
+    
+    // Write player_count LAST (will be read FIRST in LIFO)
+    msg << packet.player_count;
+    
     return msg;
 }
 
 inline message<GameEvents>& operator>>(message<GameEvents>& msg, GameOverPacket& packet) {
-    // CRITICAL: Message system is LIFO (Last In First Out)
-    // Must read in REVERSE order of serialization
+    // LIFO: Read in reverse order of write
     
-    // Lire d'abord player_count et victory (en ordre inverse)
+    // 1. Read player_count FIRST (was written last)
     msg >> packet.player_count;
-    msg >> packet.victory;
     
-    // Sécurité: limiter player_count à 8 maximum
+    // Validate
     if (packet.player_count > 8) {
         packet.player_count = 8;
     }
     
-    // Lire UNIQUEMENT les joueurs qui ont été sérialisés (en ordre inverse)
+    // 2. Read players in REVERSE order (last written player first)
     for (int i = static_cast<int>(packet.player_count) - 1; i >= 0; i--) {
         msg >> packet.players[i].is_alive;
         msg >> packet.players[i].score;
         msg >> packet.players[i].client_id;
     }
+    
+    // 3. Read victory LAST (was written first)
+    msg >> packet.victory;
     
     return msg;
 }

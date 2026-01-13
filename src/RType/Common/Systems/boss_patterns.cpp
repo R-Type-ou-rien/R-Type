@@ -8,7 +8,18 @@
 #include <iostream>
 
 void BossPatternSystem::update(Registry& registry, system_context context) {
+    // DEBUG: Always log to confirm system is running
+    static int frame_counter = 0;
+    frame_counter++;
+    if (frame_counter % 60 == 0) {  // Log every 60 frames
+        std::cout << "[BOSS DEBUG] BossPatternSystem::update called (frame " << frame_counter << ")" << std::endl;
+    }
+    
     auto& bosses = registry.getEntities<BossComponent>();
+    
+    if (!bosses.empty()) {
+        std::cout << "[BOSS DEBUG] BossPatternSystem found " << bosses.size() << " boss entities" << std::endl;
+    }
     
     for (auto boss_entity : bosses) {
         updateBossState(registry, context, boss_entity);
@@ -22,6 +33,17 @@ void BossPatternSystem::updateBossState(Registry& registry, system_context conte
         return;
     
     auto& boss = registry.getComponent<BossComponent>(boss_entity);
+    
+    // DEBUG: Log boss state every frame when damaged
+    if (registry.hasComponent<HealthComponent>(boss_entity)) {
+        auto& health = registry.getComponent<HealthComponent>(boss_entity);
+        if (health.current_hp < health.max_hp) {
+            std::cout << "[BOSS DEBUG] Boss entity=" << boss_entity 
+                      << " HP=" << health.current_hp << "/" << health.max_hp
+                      << " state=" << static_cast<int>(boss.current_state) << std::endl;
+        }
+    }
+    
     // Update damage flash timer
     if (boss.damage_flash_timer > 0.0f) {
         boss.damage_flash_timer -= context.dt;
@@ -39,6 +61,7 @@ void BossPatternSystem::updateBossState(Registry& registry, system_context conte
 
     // Si HP <= 0 et pas déjà en DYING/DEAD, commencer la séquence de mort
     if (health.current_hp <= 0 && boss.current_state != BossComponent::DYING && boss.current_state != BossComponent::DEAD) {
+        std::cout << "[BOSS DEBUG] Boss HP=0! Starting DYING sequence (entity=" << boss_entity << ")" << std::endl;
         boss.current_state = BossComponent::DYING;
         boss.death_timer = 0.0f;
         boss.state_timer = 0.0f;
@@ -94,6 +117,8 @@ void BossPatternSystem::updateBossState(Registry& registry, system_context conte
             
         case BossComponent::DYING:
             boss.death_timer += context.dt;
+            std::cout << "[BOSS DEBUG] DYING phase: death_timer=" << boss.death_timer 
+                      << " / death_duration=" << boss.death_duration << std::endl;
             
             // Déplacer le boss hors écran progressivement pendant la mort pour libérer la vue
             if (registry.hasComponent<transform_component_s>(boss_entity)) {
@@ -103,6 +128,7 @@ void BossPatternSystem::updateBossState(Registry& registry, system_context conte
             }
             
             if (boss.death_timer >= boss.death_duration) {
+                std::cout << "[BOSS DEBUG] Death sequence complete! Transitioning to DEAD state" << std::endl;
                 boss.current_state = BossComponent::DEAD;
                 
                 // Détruire tous les projectiles ennemis
@@ -139,6 +165,7 @@ void BossPatternSystem::updateBossState(Registry& registry, system_context conte
 
                 // IMPORTANT: Use PendingDestruction so the server broadcasts S_ENTITY_DESTROY
                 if (!registry.hasComponent<PendingDestruction>(boss_entity)) {
+                    std::cout << "[BOSS DEBUG] Adding PendingDestruction to boss entity " << boss_entity << std::endl;
                     registry.addComponent<PendingDestruction>(boss_entity, {});
                 }
             }

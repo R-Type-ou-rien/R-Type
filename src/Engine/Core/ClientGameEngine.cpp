@@ -134,12 +134,17 @@ void ClientGameEngine::processNetworkEvents() {
     // Nouveau: Gérer le message S_GAME_OVER
     if (pending.count(network::GameEvents::S_GAME_OVER)) {
         auto& msgs = pending.at(network::GameEvents::S_GAME_OVER);
+        std::cout << "[CLIENT DEBUG] Received S_GAME_OVER packet(s): " << msgs.size() << std::endl;
         for (auto& msg : msgs) {
             network::GameOverPacket packet;
             msg >> packet;
             
+            std::cout << "[CLIENT DEBUG] S_GAME_OVER: victory=" << packet.victory 
+                      << " player_count=" << packet.player_count << std::endl;
+            
             // CRITICAL: Validate packet data before use
             if (packet.player_count > 8) {
+                std::cerr << "[CLIENT DEBUG] ERROR: Invalid player_count=" << packet.player_count << std::endl;
                 continue;
             }
             
@@ -148,6 +153,8 @@ void ClientGameEngine::processNetworkEvents() {
             GameOverNotification notification;
             notification.victory = packet.victory;
             _ecs.registry.addComponent<GameOverNotification>(gameOverEntity, notification);
+            std::cout << "[CLIENT DEBUG] Created GameOverNotification entity=" << gameOverEntity 
+                      << " with victory=" << notification.victory << std::endl;
             
             // Créer des entités temporaires pour tous les joueurs avec leurs scores
             // Le GameManager pourra les lire pour afficher le leaderboard complet

@@ -236,12 +236,25 @@ void PodSystem::updateAttachedPodPosition(Registry& registry) {
     auto& pods = registry.getEntities<PodComponent>();
 
     for (auto pod_entity : pods) {
+        // BUG #1 DEBUG: Vérifier que le pod existe toujours
+        if (!registry.hasComponent<PodComponent>(pod_entity)) {
+            std::cerr << "[POD DEBUG] ERROR: PodComponent missing for entity " << pod_entity 
+                      << " (iterator invalidation?)" << std::endl;
+            continue;
+        }
         auto& pod = registry.getComponent<PodComponent>(pod_entity);
 
         if (pod.state != PodState::ATTACHED)
             continue;
-        if (pod.owner_id == -1)
+        if (pod.owner_id == static_cast<Entity>(-1))
             continue;
+        
+        // BUG #1 DEBUG: Vérifier que l'owner existe toujours
+        if (!registry.hasComponent<PlayerPodComponent>(pod.owner_id)) {
+            std::cerr << "[POD DEBUG] ERROR: Pod " << pod_entity << " has invalid owner_id=" 
+                      << pod.owner_id << " (player destroyed?)" << std::endl;
+            continue;
+        }
 
         if (!registry.hasComponent<transform_component_s>(pod.owner_id))
             continue;
@@ -294,6 +307,11 @@ void PodSystem::handlePlayerDamage(Registry& registry) {
     auto& players = registry.getEntities<PlayerPodComponent>();
 
     for (auto player_entity : players) {
+        // BUG #1 DEBUG: Vérifier que le composant existe toujours
+        if (!registry.hasComponent<PlayerPodComponent>(player_entity)) {
+            std::cerr << "[POD DEBUG] ERROR: PlayerPodComponent missing for entity " << player_entity << std::endl;
+            continue;
+        }
         auto& player_pod = registry.getComponent<PlayerPodComponent>(player_entity);
 
         if (!registry.hasComponent<HealthComponent>(player_entity))
@@ -311,11 +329,17 @@ void PodSystem::handlePlayerDamage(Registry& registry) {
 
         if (health.current_hp < player_pod.last_known_hp) {
             Entity pod_entity = player_pod.pod_entity;
+            
+            std::cout << "[POD DEBUG] Player " << player_entity << " took damage with pod! "
+                      << "HP: " << player_pod.last_known_hp << " -> " << health.current_hp 
+                      << ", pod_entity=" << pod_entity << std::endl;
 
             // IMPORTANT: Réinitialiser d'abord les références du joueur pour éviter les crashs
             player_pod.has_pod = false;
             player_pod.pod_entity = -1;
             player_pod.pod_attached = false;
+            
+            std::cout << "[POD DEBUG] Reset player pod references: has_pod=false, pod_entity=-1" << std::endl;
 
             if (registry.hasComponent<HealthComponent>(player_entity)) {
                 auto& player_health = registry.getComponent<HealthComponent>(player_entity);
@@ -358,6 +382,11 @@ void PodSystem::handlePodToggle(Registry& registry) {
     auto& players = registry.getEntities<PlayerPodComponent>();
 
     for (auto player_entity : players) {
+        // BUG #1 DEBUG: Vérifier que le composant existe
+        if (!registry.hasComponent<PlayerPodComponent>(player_entity)) {
+            std::cerr << "[POD DEBUG] ERROR in handlePodToggle: PlayerPodComponent missing for " << player_entity << std::endl;
+            continue;
+        }
         auto& player_pod = registry.getComponent<PlayerPodComponent>(player_entity);
 
         if (!player_pod.has_pod || !player_pod.detach_requested)
@@ -365,12 +394,17 @@ void PodSystem::handlePodToggle(Registry& registry) {
         player_pod.detach_requested = false;
 
         Entity pod_entity = player_pod.pod_entity;
-        if (pod_entity == -1) {
+        std::cout << "[POD DEBUG] handlePodToggle: player=" << player_entity 
+                  << " pod_entity=" << pod_entity << std::endl;
+        
+        if (pod_entity == static_cast<Entity>(-1)) {
+            std::cout << "[POD DEBUG] Pod entity is -1, resetting player pod state" << std::endl;
             player_pod.has_pod = false;
             player_pod.pod_attached = false;
             continue;
         }
         if (!registry.hasComponent<PodComponent>(pod_entity)) {
+            std::cerr << "[POD DEBUG] ERROR: Pod entity " << pod_entity << " has no PodComponent! Resetting..." << std::endl;
             player_pod.has_pod = false;
             player_pod.pod_entity = -1;
             player_pod.pod_attached = false;

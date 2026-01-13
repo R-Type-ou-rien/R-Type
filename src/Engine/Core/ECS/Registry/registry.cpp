@@ -17,11 +17,13 @@ Entity Registry::createEntity() {
 }
 
 void Registry::destroyEntity(Entity id) {
+    std::cout << "[REGISTRY DEBUG] Destroying entity " << id << std::endl;
     for (auto& [type, pool] : _pools) {
         if (pool->has(id))
             pool->removeId(id);
     }
     _deadEntities.push_back(id);
+    std::cout << "[REGISTRY DEBUG] Entity " << id << " recycled (deadEntities size=" << _deadEntities.size() << ")" << std::endl;
     return;
 }
 

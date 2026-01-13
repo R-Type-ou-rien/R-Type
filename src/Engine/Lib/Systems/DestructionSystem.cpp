@@ -23,6 +23,8 @@ void DestructionSystem::update(Registry& registry, system_context context) {
 
     if (to_destroy.empty())
         return;
+    
+    std::cout << "[DESTRUCTION DEBUG] Processing " << to_destroy.size() << " entities for destruction" << std::endl;
 
 #if defined(SERVER_BUILD)
     auto network_instance = context.network.getNetworkInstance();
