@@ -1,23 +1,18 @@
-#include "Server.hpp"
 #include <iostream>
-#include <ifaddrs.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
+#include "ServerGameEngine.hpp"
+#include "NetworkEngine/NetworkEngine.hpp"
 
 int main() {
-    std::cout << std::unitbuf;
-    network::Server server(4040, 30);
+    std::cout << "[SERVER] Starting R-Type Game Server..." << std::endl;
 
-    if (server.Start()) {
-        std::cout << "[SERVER] Server running. Press Ctrl+C to stop.\n";
-
-        while (1) {
-            server.Update(-1, true);
-        }
-    } else {
-        std::cerr << "[SERVER] Failed to start server.\n";
-        return 1;
+    try {
+        ServerGameEngine gameEngine;
+        return gameEngine.run();
+    } catch (const std::exception& e) {
+        std::cerr << "[SERVER] Fatal error: " << e.what() << std::endl;
+        return 84;
+    } catch (...) {
+        std::cerr << "[SERVER] Unknown fatal error" << std::endl;
+        return 84;
     }
-
-    return 0;
 }

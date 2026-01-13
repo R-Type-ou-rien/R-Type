@@ -62,6 +62,7 @@ class Server : public network::ServerInterface<GameEvents> {
    public:
     coming_message ReadIncomingMessage();
     void setTimeout(int timeout) { _timeout_seconds = timeout; };
+    void BroadcastLobbyList();
 
     template <typename T>
     void AddMessageToPlayer(GameEvents event, uint32_t id, const T& data) {
@@ -76,6 +77,11 @@ class Server : public network::ServerInterface<GameEvents> {
                 msg << data;
                 msg.header.id = event;
                 msg.header.size = msg.size();
+
+                if (event == GameEvents::S_PLAYER_JOINED) {
+                    std::cout << "[SERVER_DEBUG] Sending S_PLAYER_JOINED to " << id << " (Body: " << msg.size() << ")"
+                              << std::endl;
+                }
 
                 if (_networkManager.isUdpEvent(event)) {
                     MessageClientUDP(client, msg);
@@ -143,5 +149,6 @@ class Server : public network::ServerInterface<GameEvents> {
     Database _database{DATABASE_FILE};
 
     int _timeout_seconds = 30;
+    uint32_t nLobbyIDCounter = 1;
 };
 }  // namespace network

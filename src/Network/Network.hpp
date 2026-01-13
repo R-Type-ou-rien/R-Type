@@ -109,18 +109,25 @@ struct player {
     char username[32];
 };
 
+struct chat_message {
+    uint32_t sender_id;
+    char sender_name[32];
+    char message[256];
+};
+
 struct lobby_in_info {
     uint32_t id;
     char name[32];
     std::vector<uint32_t> id_player;
-
     uint32_t nbPlayers;
+    uint32_t hostId;
 };
 
 struct AssignPlayerEntityPacket {
     uint32_t entityId;
 };
 
+// Serialization operators for AssignPlayerEntityPacket
 // Serialization operators for AssignPlayerEntityPacket
 inline message<GameEvents>& operator<<(message<GameEvents>& msg, const AssignPlayerEntityPacket& packet) {
     msg << packet.entityId;
@@ -129,6 +136,111 @@ inline message<GameEvents>& operator<<(message<GameEvents>& msg, const AssignPla
 
 inline message<GameEvents>& operator>>(message<GameEvents>& msg, AssignPlayerEntityPacket& packet) {
     msg >> packet.entityId;
+    return msg;
+}
+
+// Serialization for lobby_info
+inline message<GameEvents>& operator<<(message<GameEvents>& msg, const lobby_info& info) {
+    msg << info.id;
+    msg.body.resize(msg.body.size() + 32);
+    std::memcpy(msg.body.data() + msg.body.size() - 32, info.name, 32);
+    msg.header.size = (uint32_t)msg.size();
+    msg << info.nbConnectedPlayers;
+    msg << info.maxPlayers;
+    msg << info.state;
+    return msg;
+}
+
+inline message<GameEvents>& operator>>(message<GameEvents>& msg, lobby_info& info) {
+    // Pop reverse of push: STATE, MAX, NB, NAME, ID
+    msg >> info.state;
+    msg >> info.maxPlayers;
+    msg >> info.nbConnectedPlayers;
+
+    // Manual pop for name (32 bytes)
+    if (msg.body.size() < 32)
+        throw std::runtime_error("Message too small for name");
+    size_t i = msg.body.size() - 32;
+    std::memcpy(info.name, msg.body.data() + i, 32);
+    msg.body.resize(i);
+    msg.header.size = (uint32_t)msg.size();
+
+    msg >> info.id;
+    return msg;
+}
+
+// Serialization for lobby_in_info
+inline message<GameEvents>& operator<<(message<GameEvents>& msg, const lobby_in_info& info) {
+    msg << info.id;
+    // Name
+    msg.body.resize(msg.body.size() + 32);
+    std::memcpy(msg.body.data() + msg.body.size() - 32, info.name, 32);
+    msg.header.size = (uint32_t)msg.size();
+
+    // Vector
+    // Push elements first? or count first?
+    // If pop is reverse:
+    // Push: ID, NAME, VEC_ELEMENTS..., VEC_SIZE, HOST_ID, NB_PLAYERS
+
+    for (uint32_t pid : info.id_player) {
+        msg << pid;
+    }
+    msg << (uint32_t)info.id_player.size();  // vecSize
+    msg << info.hostId;
+    msg << info.nbPlayers;
+    return msg;
+}
+
+inline message<GameEvents>& operator>>(message<GameEvents>& msg, lobby_in_info& info) {
+    // Pop reverse of push: NB_PLAYERS, HOST_ID, VEC_SIZE, VEC_ELEMENTS..., NAME, ID
+    msg >> info.nbPlayers;
+
+    msg >> info.hostId;
+
+    uint32_t vecSize = 0;
+    msg >> vecSize;
+
+    info.id_player.resize(vecSize);
+    // Pop elements (they were pushed in order 0..N, so they are at end in order N..0? No.
+    // Pushed: 0, 1, 2...
+    // Stack: ... 0, 1, 2.
+    // Pop 2, then 1, then 0.
+    // So we iterate reverse or fill reverse.
+    for (int i = vecSize - 1; i >= 0; --i) {
+        msg >> info.id_player[i];
+    }
+
+    // Pop name
+    if (msg.body.size() < 32)
+        throw std::runtime_error("Message too small for name");
+    size_t i = msg.body.size() - 32;
+    std::memcpy(info.name, msg.body.data() + i, 32);
+    msg.body.resize(i);
+    msg.header.size = (uint32_t)msg.size();
+
+    msg >> info.id;
+    return msg;
+}
+
+// Serialization for player
+inline message<GameEvents>& operator<<(message<GameEvents>& msg, const player& p) {
+    msg << p.id;
+    msg.body.resize(msg.body.size() + 32);
+    std::memcpy(msg.body.data() + msg.body.size() - 32, p.username, 32);
+    msg.header.size = (uint32_t)msg.size();
+    return msg;
+}
+
+inline message<GameEvents>& operator>>(message<GameEvents>& msg, player& p) {
+    // Pop reverse: USERNAME, ID
+    if (msg.body.size() < 32)
+        throw std::runtime_error("Message too small for player username");
+    size_t i = msg.body.size() - 32;
+    std::memcpy(p.username, msg.body.data() + i, 32);
+    msg.body.resize(i);
+    msg.header.size = (uint32_t)msg.size();
+
+    msg >> p.id;
     return msg;
 }
 
