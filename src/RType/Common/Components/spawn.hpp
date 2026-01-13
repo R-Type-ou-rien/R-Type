@@ -1,5 +1,5 @@
 #pragma once
-
+#include <string>
 // EnemySpawnComponent - Component definition only (no system)
 // The EnemySpawnSystem is defined in Systems/spawn.hpp
 

@@ -96,4 +96,4 @@ inline message<GameEvents>& operator>>(message<GameEvents>& msg, ActionPacket& p
     return msg;
 }
 
-} // namespace network
+}  // namespace network

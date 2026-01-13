@@ -524,9 +524,8 @@ void PodSystem::update(Registry& registry, system_context context) {
         spawn_comp.spawn_timer += context.dt;
         if (spawn_comp.spawn_timer >= spawn_comp.spawn_interval && spawn_comp.can_spawn) {
             spawn_comp.spawn_timer = 0.0f;
-            spawn_comp.spawn_interval =
-                spawn_comp.min_spawn_interval + dis(gen) *
-                                                    (spawn_comp.max_spawn_interval - spawn_comp.min_spawn_interval);
+            spawn_comp.spawn_interval = spawn_comp.min_spawn_interval +
+                                        dis(gen) * (spawn_comp.max_spawn_interval - spawn_comp.min_spawn_interval);
             spawnPod(registry, context);
         }
     }
