@@ -44,13 +44,17 @@ void GameManager::initSystems(Environment& env) {
         std::cout << "[GameManager] Initializing gameplay systems (Server mode)" << std::endl;
         ecs.systems.addSystem<BoxCollision>();  // Collision detection must run before damage
         ecs.systems.addSystem<ShooterSystem>();
-        ecs.systems.addSystem<ProjectileCleanupSystem>();  // Nouveau : Nettoie projectiles hors écran
-        ecs.systems.addSystem<PowerUpSystem>();  // Nouveau : Power-Ups après collisions
         ecs.systems.addSystem<Damage>();
         ecs.systems.addSystem<HealthSystem>();
+        ecs.systems.addSystem<ProjectileCleanupSystem>();
+
+        // IA et Patterns
+        ecs.systems.addSystem<AIBehaviorSystem>();
         ecs.systems.addSystem<PatternSystem>();
+        ecs.systems.addSystem<BossPatternSystem>();
         ecs.systems.addSystem<EnemySpawnSystem>();
-        ecs.systems.addSystem<WallCollisionSystem>();
+
+        // Gameplay
         ecs.systems.addSystem<PodSystem>();
         ecs.systems.addSystem<AIBehaviorSystem>();
         ecs.systems.addSystem<BossPatternSystem>();  // Nouveau : Patterns complexes du boss
@@ -65,14 +69,10 @@ void GameManager::initSystems(Environment& env) {
         std::cout << "[GameManager] Skipping gameplay systems (Client mode - server handles all logic)" << std::endl;
     }
 
-    // Destruction system runs on both server (to send packets) and client (to clean up)
-    // Actually, on server it sends packets AND cleans up.
-    // On client (standalone), it cleans up.
-    // In multiplayer client mode, received S_ENTITY_DESTROY handles destruction, BUT
-    // local entities (predictive inputs etc) might use PendingDestruction too.
+    // --- Systèmes Communs ---
     ecs.systems.addSystem<DestructionSystem>();
 
-    // Client-only systems (rendering, UI)
+    // --- Systèmes Visuels (Client & Standalone) ---
     if (!env.isServer()) {
         ecs.systems.addSystem<StatusDisplaySystem>();
         ecs.systems.addSystem<LevelTransitionSystem>();
@@ -91,7 +91,7 @@ void GameManager::initBackground(Environment& env, const LevelConfig& config) {
 
         BackgroundComponent bg{};
         bg.x_offset = 0.f;
-        bg.scroll_speed = 60.f;
+        bg.scroll_speed = _game_config.scroll_speed.value_or(60.f);
 
         bg.texture_handle = env.loadTexture(bgPath);
 
@@ -111,57 +111,49 @@ void GameManager::initBounds(Environment& env) {
 }
 
 void GameManager::initPlayer(Environment& env) {
-    // In multiplayer mode (server or client), players are spawned when clients connect
-    // and replicated via network snapshots. Only spawn locally in standalone mode.
     if (env.isServer() || env.isClient()) {
         std::cout << "[GameManager] Multiplayer mode: Player spawning handled by network replication" << std::endl;
         return;
     }
 
     auto& ecs = env.getECS();
-
-    float start_x = _player_config.start_x.value();
-    float start_y = _player_config.start_y.value();
+    float start_x = _player_config.start_x.value_or(150.0f);
+    float start_y = _player_config.start_y.value_or(500.0f);
 
     _player = env.spawn<Player>(SpawnPolicy::PREDICTED, std::pair<float, float>{start_x, start_y});
     if (_player) {
-        _player->setTexture(_player_config.sprite_path.value());
+        _player->setTexture(_player_config.sprite_path.value_or(""));
 
-        // Configuration de l'animation horizontale avec le helper
+        // Animation setup
         Entity player_id = _player->getId();
         int num_frames = _player_config.animation_frames.value_or(5);
         float anim_speed = _player_config.animation_speed.value_or(0.1f);
         AnimationHelper::setupHorizontalAnimation(ecs.registry, player_id, _player_config, num_frames, anim_speed);
 
-        // Appliquer le scale si defini dans la configuration
+        // Scale
         if (_player_config.scale.has_value()) {
-            std::cout << "[GameManager] Applying player scale: " << _player_config.scale.value() << std::endl;
             _player->setScale({_player_config.scale.value(), _player_config.scale.value()});
-        } else {
-            std::cout << "[GameManager] No scale defined in player config" << std::endl;
         }
 
-        _player->setFireRate(_player_config.fire_rate.value());
-        _player->setLifePoint(_player_config.hp.value());
-        _player->setLifePoint(_player_config.hp.value());
+        _player->setFireRate(_player_config.fire_rate.value_or(0.25f));
+        _player->setLifePoint(_player_config.hp.value_or(5));
 
-        _player->addCollisionTag("AI");
-        _player->addCollisionTag("ENEMY_PROJECTILE");
-        _player->addCollisionTag("OBSTACLE");
-        _player->addCollisionTag("ITEM");
-        _player->addCollisionTag("POWERUP");  // Nouveau : pour collecter les power-ups
-        _player->addCollisionTag("WALL");
+        // Collision Tags from config
+        for (const auto& tag : _player_config.collision_tags) {
+            _player->addCollisionTag(tag);
+        }
 
+        // Default components
         ChargedShotComponent charged_shot;
-        charged_shot.min_charge_time = 0.5f;
-        charged_shot.max_charge_time = 2.0f;
+        charged_shot.min_charge_time = _player_config.min_charge_time.value_or(0.5f);
+        charged_shot.max_charge_time = _player_config.max_charge_time.value_or(2.0f);
         ecs.registry.addComponent<ChargedShotComponent>(_player->getId(), charged_shot);
 
         PlayerPodComponent player_pod;
         player_pod.has_pod = false;
         player_pod.pod_entity = -1;
         player_pod.pod_attached = false;
-        player_pod.last_known_hp = _player_config.hp.value();
+        player_pod.last_known_hp = _player_config.hp.value_or(5);
         ecs.registry.addComponent<PlayerPodComponent>(_player->getId(), player_pod);
     }
 }
@@ -180,7 +172,7 @@ void GameManager::initSpawner(Environment& env, const LevelConfig& config) {
 
         Entity spawner = ecs.registry.createEntity();
         EnemySpawnComponent spawn_comp;
-        spawn_comp.spawn_interval = 2.0f;
+        spawn_comp.spawn_interval = _game_config.enemy_spawn_interval.value_or(2.0f);
         spawn_comp.is_active = true;
         
         // Use configuration paths from LevelConfig
@@ -199,66 +191,87 @@ void GameManager::initSpawner(Environment& env, const LevelConfig& config) {
 
         Entity pod_spawner = ecs.registry.createEntity();
         PodSpawnComponent pod_spawn_comp;
-        pod_spawn_comp.spawn_interval = 15.0f;
-        pod_spawn_comp.min_spawn_interval = 10.0f;
-        pod_spawn_comp.max_spawn_interval = 20.0f;
+        pod_spawn_comp.spawn_interval = _game_config.pod_spawn_interval.value_or(15.0f);
+        pod_spawn_comp.min_spawn_interval = _game_config.pod_min_spawn_interval.value_or(10.0f);
+        pod_spawn_comp.max_spawn_interval = _game_config.pod_max_spawn_interval.value_or(20.0f);
         pod_spawn_comp.can_spawn = true;
         ecs.registry.addComponent<PodSpawnComponent>(pod_spawner, pod_spawn_comp);
     }
 }
 
 void GameManager::initUI(Environment& env) {
+    if (env.isServer()) return;
+
     auto& ecs = env.getECS();
-
-    if (!env.isServer()) {
-        // Timer UI (top left)
-        _timerEntity = ecs.registry.createEntity();
-        ecs.registry.addComponent<TextComponent>(
-            _timerEntity, {"Time: 0s", "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 28,
-                           sf::Color::Cyan, 10, 10});
-
-        // Boss HP UI (haut à droite)
-        _bossHPEntity = ecs.registry.createEntity();
-        ecs.registry.addComponent<TextComponent>(
-            _bossHPEntity, {"", "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 28,
-                           sf::Color::Red, 1400, 10});
-
-        // Score tracker
-        _scoreTrackerEntity = ecs.registry.createEntity();
-        ecs.registry.addComponent<ScoreComponent>(_scoreTrackerEntity, {0, 0});
-
-        // Status Display Component (links player to UI)
-        _statusDisplayEntity = ecs.registry.createEntity();
-        StatusDisplayComponent statusDisplay;
-        statusDisplay.is_initialized = true;
-        ecs.registry.addComponent<StatusDisplayComponent>(_statusDisplayEntity, statusDisplay);
-
-        // Charge Bar (bottom center)
-        _chargeBarEntity = ecs.registry.createEntity();
-        ChargeBarComponent chargeBar;
-        chargeBar.bar_width = 200.0f;
-        chargeBar.bar_height = 20.0f;
-        chargeBar.x = 860.0f;
-        chargeBar.y = 1030.0f;
-        ecs.registry.addComponent<ChargeBarComponent>(_chargeBarEntity, chargeBar);
-
-        // Lives Display (bottom left)
-        _livesEntity = ecs.registry.createEntity();
-        LivesDisplayComponent livesDisplay;
-        livesDisplay.x = 50.0f;
-        livesDisplay.y = 1030.0f;
-        livesDisplay.icon_size = 32.0f;
-        livesDisplay.icon_spacing = 40.0f;
-        ecs.registry.addComponent<LivesDisplayComponent>(_livesEntity, livesDisplay);
-
-        // Score Display (bottom right) - R-Type style with 7 zeros
-        _scoreDisplayEntity = ecs.registry.createEntity();
-        ScoreDisplayComponent scoreDisplay;
-        scoreDisplay.digit_count = 7;
-        scoreDisplay.x = 1650.0f;
-        scoreDisplay.y = 1030.0f;
-        ecs.registry.addComponent<ScoreDisplayComponent>(_scoreDisplayEntity, scoreDisplay);
+    UIConfig ui;
+    try {
+        ui = ConfigLoader::loadUIConfig("src/RType/Common/content/config/ui.cfg");
+    } catch (...) {
+        std::cerr << "[GameManager] Failed to load ui.cfg, using default values" << std::endl;
     }
+
+    // Timer UI
+    auto& t = ui.elements["Timer"];
+    _timerEntity = ecs.registry.createEntity();
+    TextComponent timerText;
+    timerText.text = "Time: 0s";
+    timerText.fontPath = t.font.empty() ? "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf" : t.font;
+    timerText.characterSize = static_cast<unsigned int>(t.size == 0 ? 28 : t.size);
+    timerText.color = t.color;
+    timerText.x = t.x;
+    timerText.y = t.y;
+    ecs.registry.addComponent<TextComponent>(_timerEntity, timerText);
+
+    // Boss HP UI
+    auto& b = ui.elements["BossHP"];
+    _bossHPEntity = ecs.registry.createEntity();
+    TextComponent bossText;
+    bossText.text = "";
+    bossText.fontPath = b.font.empty() ? "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf" : b.font;
+    bossText.characterSize = static_cast<unsigned int>(b.size == 0 ? 28 : b.size);
+    bossText.color = b.color;
+    bossText.x = b.x;
+    bossText.y = b.y;
+    ecs.registry.addComponent<TextComponent>(_bossHPEntity, bossText);
+
+    // Score tracker & Status
+    _scoreTrackerEntity = ecs.registry.createEntity();
+    ecs.registry.addComponent<ScoreComponent>(_scoreTrackerEntity, {0, 0});
+
+    _statusDisplayEntity = ecs.registry.createEntity();
+    StatusDisplayComponent status;
+    status.is_initialized = true;
+    status.player_entity = -1;
+    ecs.registry.addComponent<StatusDisplayComponent>(_statusDisplayEntity, status);
+
+    // Charge Bar
+    auto& cb = ui.elements["ChargeBar"];
+    _chargeBarEntity = ecs.registry.createEntity();
+    ChargeBarComponent chargeBar;
+    chargeBar.x = cb.x;
+    chargeBar.y = cb.y;
+    chargeBar.bar_width = cb.width == 0 ? 200.0f : cb.width;
+    chargeBar.bar_height = cb.height == 0 ? 20.0f : cb.height;
+    ecs.registry.addComponent<ChargeBarComponent>(_chargeBarEntity, chargeBar);
+
+    // Lives Display
+    auto& ld = ui.elements["LivesDisplay"];
+    _livesEntity = ecs.registry.createEntity();
+    LivesDisplayComponent lives;
+    lives.x = ld.x;
+    lives.y = ld.y;
+    lives.icon_size = ld.icon_size == 0 ? 32.0f : ld.icon_size;
+    lives.icon_spacing = ld.icon_spacing == 0 ? 40.0f : ld.icon_spacing;
+    ecs.registry.addComponent<LivesDisplayComponent>(_livesEntity, lives);
+
+    // Score Display
+    auto& sd = ui.elements["ScoreDisplay"];
+    _scoreDisplayEntity = ecs.registry.createEntity();
+    ScoreDisplayComponent score;
+    score.digit_count = sd.digit_count == 0 ? 7 : sd.digit_count;
+    score.x = sd.x;
+    score.y = sd.y;
+    ecs.registry.addComponent<ScoreDisplayComponent>(_scoreDisplayEntity, score);
 }
 
 void GameManager::initScene(Environment& env, const LevelConfig& config) {

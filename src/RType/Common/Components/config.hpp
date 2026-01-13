@@ -8,6 +8,20 @@
 #include <stdexcept>
 #include <set>
 #include <optional>
+#include <SFML/Graphics/Color.hpp>
+
+// Helper pour parser les couleurs SFML
+inline sf::Color parseColor(const std::string& colorName) {
+    if (colorName == "Red") return sf::Color::Red;
+    if (colorName == "Green") return sf::Color::Green;
+    if (colorName == "Blue") return sf::Color::Blue;
+    if (colorName == "Yellow") return sf::Color::Yellow;
+    if (colorName == "Magenta") return sf::Color::Magenta;
+    if (colorName == "Cyan") return sf::Color::Cyan;
+    if (colorName == "White") return sf::Color::White;
+    if (colorName == "Black") return sf::Color::Black;
+    return sf::Color::White;
+}
 
 // Structure globale pour les stats d'une entité
 struct EntityConfig {
@@ -35,9 +49,24 @@ struct EntityConfig {
     std::optional<int> score_value;
     std::optional<float> start_x;
     std::optional<float> start_y;
+    std::vector<std::string> collision_tags;
+    std::optional<float> min_charge_time;
+    std::optional<float> max_charge_time;
 };
 
-// Structure globale pour les paramètres de jeu
+struct UIConfig {
+    struct Element {
+        float x = 0, y = 0;
+        int size = 24;
+        std::string font;
+        sf::Color color = sf::Color::White;
+        float width = 0, height = 0;
+        float icon_size = 0, icon_spacing = 0;
+        int digit_count = 0;
+    };
+    std::map<std::string, Element> elements;
+};
+
 struct GameConfig {
     std::optional<float> boss_spawn_time;
     std::optional<float> wave_interval;
@@ -50,9 +79,13 @@ struct GameConfig {
     std::optional<float> obstacle_speed;
     std::optional<int> obstacle_hp;
     std::optional<int> obstacle_damage;
+    std::optional<float> scroll_speed;
+    std::optional<float> enemy_spawn_interval;
+    std::optional<float> pod_spawn_interval;
+    std::optional<float> pod_min_spawn_interval;
+    std::optional<float> pod_max_spawn_interval;
 };
 
-// Classe pour charger les configurations
 class ConfigLoader {
    public:
     static EntityConfig loadEntityConfig(const std::string& filepath, const std::set<std::string>& required_fields) {
@@ -203,6 +236,16 @@ class ConfigLoader {
                 config.obstacle_hp = std::stoi(value);
             else if (key == "obstacle_damage")
                 config.obstacle_damage = std::stoi(value);
+            else if (key == "scroll_speed")
+                config.scroll_speed = std::stof(value);
+            else if (key == "enemy_spawn_interval")
+                config.enemy_spawn_interval = std::stof(value);
+            else if (key == "pod_spawn_interval")
+                config.pod_spawn_interval = std::stof(value);
+            else if (key == "pod_min_spawn_interval")
+                config.pod_min_spawn_interval = std::stof(value);
+            else if (key == "pod_max_spawn_interval")
+                config.pod_max_spawn_interval = std::stof(value);
         }
 
         // Vérifier que tous les champs requis sont présents
@@ -219,6 +262,52 @@ class ConfigLoader {
             throw std::runtime_error("Missing required fields in " + filepath + ": " + missing_fields);
         }
 
+        return config;
+    }
+
+    static UIConfig loadUIConfig(const std::string& filepath) {
+        UIConfig config;
+        std::ifstream file(filepath);
+        if (!file.is_open()) {
+            throw std::runtime_error("Cannot open config file: " + filepath);
+        }
+
+        std::string line;
+        std::string current_section;
+        while (std::getline(file, line)) {
+            if (line.empty() || line[0] == '#')
+                continue;
+
+            if (line[0] == '[') {
+                size_t end = line.find(']');
+                current_section = line.substr(1, end - 1);
+                continue;
+            }
+
+            size_t pos = line.find('=');
+            if (pos == std::string::npos)
+                continue;
+
+            std::string key = line.substr(0, pos);
+            std::string value = line.substr(pos + 1);
+
+            if (current_section.empty()) continue;
+
+            auto& element = config.elements[current_section];
+            if (key == "x") element.x = std::stof(value);
+            else if (key == "y") element.y = std::stof(value);
+            else if (key == "size" || key == "main_size" || key == "score_size" || key == "sub_size") {
+                // Pour simplifier on stocke le dernier lu ou on pourrait avoir plusieurs champs
+                element.size = std::stoi(value);
+            }
+            else if (key == "font") element.font = value;
+            else if (key == "color") element.color = parseColor(value);
+            else if (key == "width") element.width = std::stof(value);
+            else if (key == "height") element.height = std::stof(value);
+            else if (key == "icon_size") element.icon_size = std::stof(value);
+            else if (key == "icon_spacing") element.icon_spacing = std::stof(value);
+            else if (key == "digit_count") element.digit_count = std::stoi(value);
+        }
         return config;
     }
 
@@ -272,6 +361,17 @@ class ConfigLoader {
             config.animation_frames = std::stoi(value);
         else if (key == "animation_speed")
             config.animation_speed = std::stof(value);
+        else if (key == "min_charge_time")
+            config.min_charge_time = std::stof(value);
+        else if (key == "max_charge_time")
+            config.max_charge_time = std::stof(value);
+        else if (key == "collision_tags") {
+            std::stringstream ss(value);
+            std::string tag;
+            while (std::getline(ss, tag, ',')) {
+                config.collision_tags.push_back(tag);
+            }
+        }
     }
 
    public:
