@@ -34,3 +34,17 @@ struct BossSubEntityComponent {
     float fire_timer = 0.0f;
     float fire_rate = 2.0f;
 };
+
+// Boss tail segment - each segment follows the one before it
+struct BossTailSegmentComponent {
+    static constexpr auto name = "BossTailSegmentComponent";
+    
+    int boss_entity_id;          // Boss principal
+    int segment_index;           // 0 = premier segment attaché au boss, 1-9 = suivants
+    int parent_segment_id;       // -1 pour le premier (suit le boss), sinon ID du segment précédent
+    
+    // Animation parameters
+    float sine_offset = 0.0f;    // Offset de phase pour l'ondulation (segment_index * 0.5f)
+    float base_offset_x = 0.0f;  // Position de base par rapport au parent
+    float base_offset_y = 0.0f;
+};

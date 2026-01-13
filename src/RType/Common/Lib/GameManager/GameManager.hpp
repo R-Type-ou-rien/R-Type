@@ -22,21 +22,19 @@ class GameManager {
     // Entités et Gestionnaires
     std::unique_ptr<Player> _player;
     std::unique_ptr<SceneManager> _scene_manager;
-    
-    // Entités principales
-    Entity _timerEntity = -1;
-    Entity _bossHPEntity = -1;
-    Entity _gameStateEntity = -1;
-    Entity _scoreTrackerEntity = -1;
-    Entity _statusDisplayEntity = -1;
-    Entity _chargeBarEntity = -1;
-    Entity _livesEntity = -1;
-    Entity _scoreDisplayEntity = -1;
-    Entity _boundsEntity = -1;
-
-    // État du jeu
+    Entity _timerEntity;
+    Entity _bossHPEntity;  // Nouvelle entité pour la vie du boss
+    Entity _gameStateEntity;
+    Entity _boundsEntity;
+    Entity _scoreTrackerEntity;
+    Entity _statusDisplayEntity;
+    Entity _chargeBarEntity;
+    Entity _livesEntity;
+    Entity _scoreDisplayEntity;
+    Entity _leaderboardEntity;
     bool _gameOver = false;
     bool _victory = false;
+    bool _leaderboardDisplayed = false;
 
     // Configuration
     EntityConfig _player_config;
@@ -61,6 +59,7 @@ class GameManager {
     void updateUI(Environment& env);
     void checkGameState(Environment& env);
     void displayGameOver(Environment& env, bool victory);
+    void displayLeaderboard(Environment& env, bool victory);
 
    public:
     GameManager();

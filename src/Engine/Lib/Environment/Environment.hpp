@@ -127,6 +127,8 @@ class Environment {
 
     bool isClient() const { return (_mode == EnvMode::CLIENT); }
 
+    bool isStandalone() const { return (_mode == EnvMode::STANDALONE); }
+
     ECS& getECS() { return _ecs; }
 
     ResourceManager<TextureAsset>& getTextureManager() { return _textures; }

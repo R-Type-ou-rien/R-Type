@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <cstdint>
+#include <cstddef>
 #include "StandardComponents_serialize.hpp"
 #include "tag_component_serialize.hpp"
 
@@ -208,6 +209,14 @@ struct ComponentTraits<BossComponent> {
     static BossComponent deserialize(const std::vector<uint8_t>& buffer, size_t& offset,
                                      ResourceManager<TextureAsset>&) {
         return deserialize_boss_component(buffer, offset);
+    }
+};
+
+template <>
+struct ComponentTraits<AudioSourceComponent> {
+    static AudioSourceComponent deserialize(const std::vector<uint8_t>& buffer, size_t& offset,
+                                            ResourceManager<TextureAsset>&) {
+        return deserialize_audio_source(buffer, offset);
     }
 };
 

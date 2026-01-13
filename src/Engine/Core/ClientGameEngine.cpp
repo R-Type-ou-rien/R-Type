@@ -7,11 +7,14 @@
 
 #include "Components/NetworkComponents.hpp"
 #include "Components/StandardComponents.hpp"
+#include "Components/serialize/StandardComponents_serialize.hpp"
+#include "Components/serialize/score_component_serialize.hpp"
 #include "Network.hpp"
 #include "NetworkEngine/NetworkEngine.hpp"
 #include "AudioSystem.hpp"
 
 #include "../../../RType/Common/Systems/health.hpp"
+#include "../../../RType/Common/Systems/score.hpp"
 #include "../../../RType/Common/Components/spawn.hpp"
 #include "../../../RType/Common/Components/shooter_component.hpp"
 #include "../../../RType/Common/Components/charged_shot.hpp"
@@ -19,6 +22,7 @@
 #include "../../../RType/Common/Components/damage_component.hpp"
 #include "../../../RType/Common/Components/game_timer.hpp"
 #include "../../../RType/Common/Components/pod_component.hpp"
+#include "../../../RType/Common/Components/game_over_notification.hpp"
 #include "../../../RType/Common/Systems/ai_behavior.hpp"
 #include "Components/StandardComponents.hpp"
 #include "Components/NetworkComponents.hpp"
@@ -55,6 +59,7 @@ int ClientGameEngine::init() {
     registerNetworkComponent<PlayerPodComponent>();
     registerNetworkComponent<AIBehaviorComponent>();
     registerNetworkComponent<BossComponent>();
+    registerNetworkComponent<ScoreComponent>();
 
     _ecs.systems.addSystem<BackgroundSystem>();
     _ecs.systems.addSystem<RenderSystem>();
@@ -125,6 +130,57 @@ void ClientGameEngine::processNetworkEvents() {
             _localPlayerEntity = packet.entityId;
         }
     }
+
+    // Nouveau: Gérer le message S_GAME_OVER
+    if (pending.count(network::GameEvents::S_GAME_OVER)) {
+        auto& msgs = pending.at(network::GameEvents::S_GAME_OVER);
+        for (auto& msg : msgs) {
+            network::GameOverPacket packet;
+            msg >> packet;
+            
+            // CRITICAL: Validate packet data before use
+            if (packet.player_count > 8) {
+                continue;
+            }
+            
+            // Créer un composant pour signaler le game over au GameManager
+            Entity gameOverEntity = _ecs.registry.createEntity();
+            GameOverNotification notification;
+            notification.victory = packet.victory;
+            _ecs.registry.addComponent<GameOverNotification>(gameOverEntity, notification);
+            
+            // Créer des entités temporaires pour tous les joueurs avec leurs scores
+            // Le GameManager pourra les lire pour afficher le leaderboard complet
+            for (uint32_t i = 0; i < packet.player_count; i++) {
+                Entity playerScoreEntity = _ecs.registry.createEntity();
+                
+                // Tag comme joueur pour le leaderboard
+                TagComponent tags;
+                tags.tags.push_back("PLAYER");
+                tags.tags.push_back("LEADERBOARD_DATA");
+                _ecs.registry.addComponent<TagComponent>(playerScoreEntity, tags);
+                
+                // Score du joueur
+                ScoreComponent score;
+                score.current_score = packet.players[i].score;
+                score.high_score = 0;
+                _ecs.registry.addComponent<ScoreComponent>(playerScoreEntity, score);
+                
+                // État vivant/mort
+                HealthComponent health;
+                health.current_hp = packet.players[i].is_alive ? 1 : 0;
+                health.max_hp = 1;
+                health.last_damage_time = 0;
+                _ecs.registry.addComponent<HealthComponent>(playerScoreEntity, health);
+                
+                // IMPORTANT: Stocker le client_id dans NetworkIdentity pour l'affichage
+                NetworkIdentity net_id;
+                net_id.guid = packet.players[i].client_id;
+                net_id.ownerId = packet.players[i].client_id;
+                _ecs.registry.addComponent<NetworkIdentity>(playerScoreEntity, net_id);
+            }
+        }
+    }
 }
 
 int ClientGameEngine::run() {
@@ -138,6 +194,7 @@ int ClientGameEngine::run() {
                               _clientId};
     auto last_time = std::chrono::high_resolution_clock::now();
 
+    // Environment mode: CLIENT for multiplayer (server handles all game logic)
     Environment env(_ecs, _texture_manager, _sound_manager, _music_manager, EnvMode::CLIENT);
 
     this->init();

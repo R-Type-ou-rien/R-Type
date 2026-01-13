@@ -27,18 +27,10 @@ inline void serialize(std::vector<uint8_t>& buffer, const AudioSourceComponent& 
 
 inline AudioSourceComponent deserialize_audio_source(const std::vector<uint8_t>& buffer, size_t& offset) {
     AudioSourceComponent component;
-    try {
-        std::cout << "[AUDIO_DESERIALIZE] Start. Offset: " << offset << " BufferSize: " << buffer.size() << std::endl;
-        component.sound_name = deserialize<std::string>(buffer, offset);
-        std::cout << "[AUDIO_DESERIALIZE] SoundName: " << component.sound_name << std::endl;
-        component.play_on_start = deserialize<bool>(buffer, offset);
-        component.loop = deserialize<bool>(buffer, offset);
-        component.destroy_entity_on_finish = deserialize<bool>(buffer, offset);
-        std::cout << "[AUDIO_DESERIALIZE] Success. Play: " << component.play_on_start << std::endl;
-    } catch (const std::exception& e) {
-        std::cerr << "[AUDIO_DESERIALIZE] ERROR: " << e.what() << std::endl;
-        // Return mostly empty component to avoid blocking, but logging is key
-    }
+    component.sound_name = deserialize<std::string>(buffer, offset);
+    component.play_on_start = deserialize<bool>(buffer, offset);
+    component.loop = deserialize<bool>(buffer, offset);
+    component.destroy_entity_on_finish = deserialize<bool>(buffer, offset);
     return component;
 }
 
@@ -63,6 +55,13 @@ inline PatternComponent deserialize_pattern_component(const std::vector<uint8_t>
     PatternComponent component;
     component.type = deserialize<PatternComponent::PatternType>(buffer, offset);
     uint32_t waypoints_size = deserialize<uint32_t>(buffer, offset);
+
+    // Safety: corrupted packets can contain absurd sizes and crash on resize.
+    constexpr uint32_t MAX_WAYPOINTS = 512;
+    if (waypoints_size > MAX_WAYPOINTS) {
+        waypoints_size = 0;
+    }
+
     component.waypoints.resize(waypoints_size);
     for (uint32_t i = 0; i < waypoints_size; ++i) {
         component.waypoints[i].first = deserialize<float>(buffer, offset);
@@ -203,7 +202,6 @@ inline sprite2D_component_s deserialize_sprite_2d_component(const std::vector<ui
     if (!name.empty()) {
         if (resourceManager.is_loaded(name)) {
             component.handle = resourceManager.get_handle(name).value();
-            std::cout << "[SPRITE_DESERIALIZE] Using existing texture: " << name << std::endl;
         } else {
             // Load the texture if not already loaded (critical for client-side rendering)
 #if defined(CLIENT_BUILD)
@@ -218,22 +216,23 @@ inline sprite2D_component_s deserialize_sprite_2d_component(const std::vector<ui
             if (!loaded) {
                 std::cerr << "Client: CRITICAL ERROR: Failed to load texture: " << name << " from any path."
                           << std::endl;
-            } else {
-                std::cout << "[SPRITE_DESERIALIZE] Loaded NEW texture: " << name << std::endl;
             }
             component.handle = resourceManager.load(name, texture);
 #else
             component.handle = resourceManager.load(name, TextureAsset(name));
 #endif
         }
-    } else {
-        std::cout << "[SPRITE_DESERIALIZE] WARNING: Empty texture name received!" << std::endl;
     }
     component.dimension = deserialize_rect(buffer, offset);
-    std::cout << "[SPRITE_DESERIALIZE] Dimension: x=" << component.dimension.x << " y=" << component.dimension.y
-              << " w=" << component.dimension.width << " h=" << component.dimension.height << std::endl;
     component.is_animated = deserialize<bool>(buffer, offset);
     uint32_t frames_size = deserialize<uint32_t>(buffer, offset);
+
+    // Safety: avoid std::length_error on corrupted packets
+    constexpr uint32_t MAX_FRAMES = 256;
+    if (frames_size > MAX_FRAMES) {
+        frames_size = 0;
+    }
+
     component.frames.resize(frames_size);
     for (uint32_t i = 0; i < frames_size; ++i) {
         component.frames[i] = deserialize_rect(buffer, offset);

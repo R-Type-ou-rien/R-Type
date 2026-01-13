@@ -16,11 +16,7 @@ inline void serialize(std::vector<uint8_t>& buffer, const CollidedEntity& compon
 
 inline CollidedEntity deserialize_collided_entity(const std::vector<uint8_t>& buffer, size_t& offset) {
     CollidedEntity component;
-    uint32_t size = deserialize<uint32_t>(buffer, offset);
-    component.tags.resize(size);
-    for (uint32_t i = 0; i < size; ++i) {
-        component.tags[i] = deserialize<Entity>(buffer, offset);
-    }
+    component.tags = deserialize_vector<Entity>(buffer, offset);
     return component;
 }
 

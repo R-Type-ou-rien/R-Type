@@ -18,9 +18,12 @@
 #include "src/RType/Common/Systems/animation_helper.hpp"
 #include "src/RType/Common/Systems/powerup.hpp"
 #include "src/RType/Common/Systems/boss_patterns.hpp"
+#include "src/RType/Common/Systems/boss_tail.hpp"
 #include "src/RType/Common/Systems/projectile_cleanup.hpp"
 #include "src/RType/Common/Systems/pod_system.hpp"
 #include "src/RType/Common/Systems/status_display.hpp"
+#include "src/RType/Common/Systems/level_transition.hpp"
+#include "src/RType/Common/Systems/game_state_system.hpp"
 #include "src/Engine/Lib/Systems/PatternSystem/PatternSystem.hpp"
 #include "src/Engine/Lib/Systems/PlayerBoundsSystem.hpp"
 #include "src/Engine/Core/Scene/SceneLoader.hpp"
@@ -34,16 +37,12 @@
 void GameManager::initSystems(Environment& env) {
     auto& ecs = env.getECS();
 
-    // --- Systèmes Logiques (Serveur & Standalone) ---
+    // Game logic systems - server only (NOT client)
+    // Le serveur gère toute la logique du jeu
+    // Le client reçoit juste les snapshots et affiche
     if (!env.isClient()) {
-        // Physique et Collisions
-        ecs.systems.addSystem<BoxCollision>();
-        ecs.systems.addSystem<PhysicsSystem>();
-        ecs.systems.addSystem<WallCollisionSystem>();
-        ecs.systems.addSystem<BoundsSystem>();
-        ecs.systems.addSystem<PlayerBoundsSystem>();
-
-        // Combat et Santé
+        std::cout << "[GameManager] Initializing gameplay systems (Server mode)" << std::endl;
+        ecs.systems.addSystem<BoxCollision>();  // Collision detection must run before damage
         ecs.systems.addSystem<ShooterSystem>();
         ecs.systems.addSystem<Damage>();
         ecs.systems.addSystem<HealthSystem>();
@@ -57,9 +56,17 @@ void GameManager::initSystems(Environment& env) {
 
         // Gameplay
         ecs.systems.addSystem<PodSystem>();
-        ecs.systems.addSystem<PowerUpSystem>();
+        ecs.systems.addSystem<AIBehaviorSystem>();
+        ecs.systems.addSystem<BossPatternSystem>();  // Nouveau : Patterns complexes du boss
+        ecs.systems.addSystem<BossTailSystem>();  // Nouveau : Animation de la queue du boss
+        ecs.systems.addSystem<BoundsSystem>();
+        ecs.systems.addSystem<PlayerBoundsSystem>();
         ecs.systems.addSystem<ScoreSystem>();
+        ecs.systems.addSystem<GameStateSystem>();  // Nouveau : Détecte game over et envoie messages réseau
+        ecs.systems.addSystem<PhysicsSystem>();
         ecs.systems.addSystem<ActionScriptSystem>();
+    } else {
+        std::cout << "[GameManager] Skipping gameplay systems (Client mode - server handles all logic)" << std::endl;
     }
 
     // --- Systèmes Communs ---
@@ -68,6 +75,7 @@ void GameManager::initSystems(Environment& env) {
     // --- Systèmes Visuels (Client & Standalone) ---
     if (!env.isServer()) {
         ecs.systems.addSystem<StatusDisplaySystem>();
+        ecs.systems.addSystem<LevelTransitionSystem>();
     }
 }
 

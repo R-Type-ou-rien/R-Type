@@ -21,12 +21,20 @@ class RenderSystem : public ISystem {
     void update(Registry& registry, system_context context) override;
 
    private:
-    void drawEntity(const transform_component_s& transform, sprite2D_component_s& spriteData,
-                    const system_context& context);
+    void drawEntity(Entity entity, const transform_component_s& transform, sprite2D_component_s& spriteData,
+                    Registry& registry, const system_context& context);
 
     void drawText(const TextComponent& textComp, const system_context& context);
 
    private:
     sf::Font _font;
     bool _fontLoaded = false;
+
+    struct HitFlashState {
+        int last_hp = -1;
+        float timer = 0.0f;
+    };
+
+    std::unordered_map<Entity, HitFlashState> _bossHitFlash;
+    float _bossHitFlashDuration = 0.10f;
 };
