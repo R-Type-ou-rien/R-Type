@@ -2,7 +2,7 @@
 #include "damage.hpp"
 #include "Components/StandardComponents.hpp"
 #include "score.hpp"
-#include "ai_behavior.hpp"
+#include "behavior.hpp"
 
 #include "../Components/last_damage_dealer.hpp"
 

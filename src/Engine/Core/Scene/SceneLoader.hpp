@@ -57,6 +57,8 @@ class SceneLoader {
                 parseEnemyEntry(config, value);
             } else if (current_section == "TURRET") {
                 parseTurretEntry(config, value);
+            } else if (current_section == "DECOR") {
+                parseDecorEntry(config, value);
             }
         }
 
@@ -83,6 +85,8 @@ class SceneLoader {
             config.enemies_config = value;
         else if (key == "boss_config")
             config.boss_config = value;
+        else if (key == "boss_section")
+            config.boss_section = value;
         else if (key == "game_config")
             config.game_config = value;
         else if (key == "spawn_script")
@@ -163,6 +167,37 @@ class SceneLoader {
         }
         if (tokens.size() >= 5) {
             entity.properties["sprite"] = tokens[4];
+        }
+
+        config.entities.push_back(entity);
+    }
+
+    static void parseDecorEntry(LevelConfig& config, const std::string& value) {
+        SceneEntityConfig entity;
+        entity.type = "Decor";
+
+        std::stringstream ss(value);
+        std::string token;
+        std::vector<std::string> tokens;
+
+        while (std::getline(ss, token, ',')) {
+            tokens.push_back(trim(token));
+        }
+
+        // Format: x, y, sprite_path, scale, z_index, scroll_speed_mult
+        if (tokens.size() >= 3) {
+            entity.properties["x"] = std::stof(tokens[0]);
+            entity.properties["y"] = std::stof(tokens[1]);
+            entity.properties["sprite"] = tokens[2];
+        }
+        if (tokens.size() >= 4) {
+            entity.properties["scale"] = std::stof(tokens[3]);
+        }
+        if (tokens.size() >= 5) {
+            entity.properties["z_index"] = std::stoi(tokens[4]);
+        }
+        if (tokens.size() >= 6) {
+            entity.properties["scroll_speed_mult"] = std::stof(tokens[5]);
         }
 
         config.entities.push_back(entity);

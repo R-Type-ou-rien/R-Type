@@ -82,6 +82,12 @@ const ConfigBinder<EntityConfig>& ConfigLoader::getBinder<EntityConfig>() {
         binder.bind("start_y", &EntityConfig::start_y);
         binder.bind("min_charge_time", &EntityConfig::min_charge_time);
         binder.bind("max_charge_time", &EntityConfig::max_charge_time);
+        binder.bind("oscillation_amplitude", &EntityConfig::oscillation_amplitude);
+        binder.bind("oscillation_frequency", &EntityConfig::oscillation_frequency);
+        binder.bind("attack_pattern_interval", &EntityConfig::attack_pattern_interval);
+        binder.bind("death_duration", &EntityConfig::death_duration);
+        binder.bind("max_phases", &EntityConfig::max_phases);
+        binder.bind("total_weak_points", &EntityConfig::total_weak_points);
         binder.bind("can_shoot", &EntityConfig::can_shoot);
         binder.bind("shoot_at_player", &EntityConfig::shoot_at_player);
         binder.bind("follow_player", &EntityConfig::follow_player);
@@ -89,6 +95,38 @@ const ConfigBinder<EntityConfig>& ConfigLoader::getBinder<EntityConfig>() {
         binder.bind("shoot_pattern", &EntityConfig::shoot_pattern);
         binder.bind("pattern", &EntityConfig::pattern);
         binder.bind("collision_tags", &EntityConfig::collision_tags);
+
+        // Boss position configuration
+        binder.bind("margin_right", &EntityConfig::margin_right);
+        binder.bind("spawn_offset_x", &EntityConfig::spawn_offset_x);
+        binder.bind("z_index", &EntityConfig::z_index);
+
+        // Boss tail configuration
+        binder.bind("tail_segment_count", &EntityConfig::tail_segment_count);
+        binder.bind("tail_sprite_width", &EntityConfig::tail_sprite_width);
+        binder.bind("tail_sprite_height", &EntityConfig::tail_sprite_height);
+        binder.bind("tail_scale_multiplier", &EntityConfig::tail_scale_multiplier);
+        binder.bind("tail_spacing_ratio", &EntityConfig::tail_spacing_ratio);
+        binder.bind("tail_sine_phase_offset", &EntityConfig::tail_sine_phase_offset);
+        binder.bind("tail_height_multiplier", &EntityConfig::tail_height_multiplier);
+        binder.bind("tail_hp", &EntityConfig::tail_hp);
+        binder.bind("tail_collision_damage", &EntityConfig::tail_collision_damage);
+        binder.bind("tail_sprite_x", &EntityConfig::tail_sprite_x);
+        binder.bind("tail_sprite_y", &EntityConfig::tail_sprite_y);
+        binder.bind("tail_z_index", &EntityConfig::tail_z_index);
+        binder.bind("tail_sprite_path", &EntityConfig::tail_sprite_path);
+
+        binder.bindCustom("sub_entity", [](EntityConfig& cfg, const std::string& v) {
+            std::vector<std::string> parts = ParsingUtils::parse<std::vector<std::string>>(v);
+            if (parts.size() >= 4) {
+                BossSubEntityConfig sub;
+                sub.type = parts[0];
+                sub.offset_x = std::stof(parts[1]);
+                sub.offset_y = std::stof(parts[2]);
+                sub.fire_rate = std::stof(parts[3]);
+                cfg.boss_sub_entities.push_back(sub);
+            }
+        });
     }
     return binder;
 }

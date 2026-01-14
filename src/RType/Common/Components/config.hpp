@@ -10,6 +10,7 @@
 #include <stdexcept>
 #include <sstream>
 #include <SFML/Graphics/Color.hpp>
+#include "boss_component.hpp"
 
 // struct pour toute les donnees
 struct EntityConfig {
@@ -33,6 +34,12 @@ struct EntityConfig {
     std::optional<float> start_y;
     std::optional<float> min_charge_time;
     std::optional<float> max_charge_time;
+    std::optional<float> oscillation_amplitude;
+    std::optional<float> oscillation_frequency;
+    std::optional<float> attack_pattern_interval;
+    std::optional<float> death_duration;
+    std::optional<int> max_phases;
+    std::optional<int> total_weak_points;
     std::optional<bool> can_shoot;
     std::optional<bool> shoot_at_player;
     std::optional<bool> follow_player;
@@ -40,6 +47,61 @@ struct EntityConfig {
     std::optional<std::string> pattern;
     std::optional<std::string> sprite_path;
     std::vector<std::string> collision_tags;
+    std::vector<BossSubEntityConfig> boss_sub_entities;
+
+    // Boss position configuration (loaded from boss.cfg)
+    std::optional<float> margin_right;
+    std::optional<float> spawn_offset_x;
+    std::optional<int> z_index;
+
+    // Boss tail configuration (loaded from boss.cfg)
+    std::optional<int> tail_segment_count;
+    std::optional<float> tail_sprite_width;
+    std::optional<float> tail_sprite_height;
+    std::optional<float> tail_scale_multiplier;
+    std::optional<float> tail_spacing_ratio;
+    std::optional<float> tail_sine_phase_offset;
+    std::optional<float> tail_height_multiplier;
+    std::optional<int> tail_hp;
+    std::optional<int> tail_collision_damage;
+    std::optional<float> tail_sprite_x;
+    std::optional<float> tail_sprite_y;
+    std::optional<int> tail_z_index;
+    std::optional<std::string> tail_sprite_path;
+
+    /**
+     * @brief Creates a BossPositionConfig from this EntityConfig.
+     * Uses BossDefaults as fallback for missing values.
+     */
+    BossPositionConfig toBossPositionConfig() const {
+        BossPositionConfig config;
+        config.margin_right = margin_right.value_or(BossDefaults::Position::MARGIN_RIGHT);
+        config.spawn_offset_x = spawn_offset_x.value_or(BossDefaults::Position::SPAWN_OFFSET_X);
+        config.z_index = z_index.value_or(BossDefaults::Sprite::Z_INDEX);
+        return config;
+    }
+
+    /**
+     * @brief Creates a BossTailConfig from this EntityConfig.
+     * Uses BossDefaults as fallback for missing values.
+     */
+    BossTailConfig toBossTailConfig() const {
+        BossTailConfig config;
+        config.segment_count = tail_segment_count.value_or(BossDefaults::Tail::SEGMENT_COUNT);
+        config.sprite_width = tail_sprite_width.value_or(BossDefaults::Tail::SPRITE_WIDTH);
+        config.sprite_height = tail_sprite_height.value_or(BossDefaults::Tail::SPRITE_HEIGHT);
+        config.scale_multiplier = tail_scale_multiplier.value_or(BossDefaults::Tail::SCALE_MULTIPLIER);
+        config.spacing_ratio = tail_spacing_ratio.value_or(BossDefaults::Tail::SPACING_RATIO);
+        config.sine_phase_offset = tail_sine_phase_offset.value_or(BossDefaults::Tail::SINE_PHASE_OFFSET);
+        config.height_multiplier = tail_height_multiplier.value_or(BossDefaults::Tail::HEIGHT_MULTIPLIER);
+        config.hp = tail_hp.value_or(BossDefaults::Tail::HP);
+        config.collision_damage = tail_collision_damage.value_or(BossDefaults::Tail::COLLISION_DAMAGE);
+        config.sprite_x = tail_sprite_x.value_or(BossDefaults::Tail::SPRITE_X);
+        config.sprite_y = tail_sprite_y.value_or(BossDefaults::Tail::SPRITE_Y);
+        config.z_index = tail_z_index.value_or(BossDefaults::Tail::Z_INDEX);
+        config.sprite_path = tail_sprite_path.value_or(BossDefaults::TAIL_SPRITE_PATH);
+        return config;
+    }
 };
 
 // Interface user config struct

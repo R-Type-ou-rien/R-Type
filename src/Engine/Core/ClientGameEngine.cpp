@@ -23,7 +23,7 @@
 #include "../../../RType/Common/Components/game_timer.hpp"
 #include "../../../RType/Common/Components/pod_component.hpp"
 #include "../../../RType/Common/Components/game_over_notification.hpp"
-#include "../../../RType/Common/Systems/ai_behavior.hpp"
+#include "../../../RType/Common/Systems/behavior.hpp"
 #include "Components/StandardComponents.hpp"
 #include "Components/NetworkComponents.hpp"
 
@@ -57,8 +57,9 @@ int ClientGameEngine::init() {
     // R-Type specific components
     registerNetworkComponent<PodComponent>();
     registerNetworkComponent<PlayerPodComponent>();
-    registerNetworkComponent<AIBehaviorComponent>();
+    registerNetworkComponent<BehaviorComponent>();
     registerNetworkComponent<BossComponent>();
+    registerNetworkComponent<BossSubEntityComponent>();
     registerNetworkComponent<ScoreComponent>();
 
     _ecs.systems.addSystem<BackgroundSystem>();

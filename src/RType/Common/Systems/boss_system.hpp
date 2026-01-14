@@ -2,13 +2,13 @@
 
 #include "ISystem.hpp"
 #include "registry.hpp"
-#include "ai_behavior.hpp"
+#include "behavior.hpp"
 #include "../Components/boss_component.hpp"
 
-class BossPatternSystem : public ISystem {
+class BossSystem : public ISystem {
    public:
-    BossPatternSystem() = default;
-    ~BossPatternSystem() = default;
+    BossSystem() = default;
+    ~BossSystem() = default;
     void update(Registry& registry, system_context context) override;
     
    private:
@@ -31,8 +31,8 @@ class BossPatternSystem : public ISystem {
     
     // Gestion des sous-entités
     void updateSubEntities(Registry& registry, system_context context);
-    void spawnTentacle(Registry& registry, Entity boss_entity, int index, float offset_x, float offset_y);
-    void spawnCannon(Registry& registry, Entity boss_entity, int index, float offset_x, float offset_y);
+    void spawnTentacle(Registry& registry, Entity boss_entity, int index, float offset_x, float offset_y, float fire_rate);
+    void spawnCannon(Registry& registry, Entity boss_entity, int index, float offset_x, float offset_y, float fire_rate);
     
     // Création de projectiles boss
     void createBossProjectile(Registry& registry, system_context context, 

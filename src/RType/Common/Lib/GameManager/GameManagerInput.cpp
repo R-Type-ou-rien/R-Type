@@ -5,14 +5,11 @@
 #include "src/RType/Common/Components/pod_component.hpp"
 
 void GameManager::setupMovementControls(InputManager& inputs) {
-    // Key bindings are needed on client to detect input and send packets to server
-    // The actual action callbacks are set in Player constructor (server-side)
     inputs.bindAction("move_left", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Left});
     inputs.bindAction("move_right", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Right});
     inputs.bindAction("move_up", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Up});
     inputs.bindAction("move_down", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Down});
 
-    // In standalone mode, also set up player callbacks directly
     if (_player) {
         float player_speed = _player_config.speed.value();
 
@@ -70,10 +67,8 @@ void GameManager::setupMovementControls(InputManager& inputs) {
 }
 
 void GameManager::setupShootingControls(InputManager& inputs) {
-    // Key binding needed on client to send input packets
     inputs.bindAction("shoot", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Space});
 
-    // In standalone mode, also set up player callbacks directly
     if (_player) {
         _player->bindActionCallbackPressed("shoot", [](Registry& registry, system_context context, Entity entity) {
             if (registry.hasComponent<ShooterComponent>(entity)) {
@@ -101,10 +96,8 @@ void GameManager::setupShootingControls(InputManager& inputs) {
 }
 
 void GameManager::setupPodControls(InputManager& inputs) {
-    // Key binding needed on client to send input packets
     inputs.bindAction("toggle_pod", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::E});
 
-    // In standalone mode, also set up player callbacks directly
     if (_player) {
         _player->bindActionCallbackPressed("toggle_pod", [](Registry& registry, system_context context, Entity entity) {
             if (registry.hasComponent<PlayerPodComponent>(entity)) {

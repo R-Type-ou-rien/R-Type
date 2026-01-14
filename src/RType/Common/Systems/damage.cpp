@@ -6,7 +6,7 @@
 #include "shooter.hpp"
 #include "../Components/team_component.hpp"
 #include "../Components/charged_shot.hpp"
-#include "../Components/ai_behavior_component.hpp"
+#include "../Components/behavior_component.hpp"
 #include "../Components/last_damage_dealer.hpp"
 
 void Damage::update(Registry& registry, system_context context) {
