@@ -40,7 +40,6 @@ void GameManager::init(Environment& env, InputManager& inputs) {
         music.destroy_entity_on_finish = false;
         ecs.registry.addComponent<AudioSourceComponent>(musicEntity, music);
 
-        // Input bindings only needed on client - server players have bindings set in Player constructor
         loadInputSetting(inputs);
     }
 }
