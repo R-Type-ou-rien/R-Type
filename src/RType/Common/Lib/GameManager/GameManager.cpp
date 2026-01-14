@@ -5,15 +5,32 @@
 #include <cmath>
 #include <ctime>
 #include <algorithm>
+#include <iostream>
 #include <thread>
 #include <chrono>
 #include <SFML/Window/Mouse.hpp>
 #include <SFML/Window/Keyboard.hpp>
 
 GameManager::GameManager() {
-    _player_config = ConfigLoader::loadEntityConfig("src/RType/Common/content/config/player.cfg",
-                                                    ConfigLoader::getRequiredPlayerFields());
-    _current_level_scene = "src/RType/Common/content/config/level1.scene";
+    try {
+        _master_config = ConfigLoader::loadMasterConfig("src/RType/Common/content/config/master.cfg");
+        _player_config = ConfigLoader::loadEntityConfig(_master_config.player_config,
+                                                        ConfigLoader::getRequiredPlayerFields());
+        _game_config = ConfigLoader::loadGameConfig(_master_config.game_config,
+                                                    ConfigLoader::getRequiredGameFields());
+        if (!_master_config.levels.empty()) {
+            _current_level_scene = _master_config.levels[0];
+        } else {
+            _current_level_scene = "src/RType/Common/content/config/level1.scene";
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "Error loading master config: " << e.what() << std::endl;
+        _current_level_scene = "src/RType/Common/content/config/level1.scene";
+    }
+
+    _gameOver = false;
+    _victory = false;
+    _leaderboardDisplayed = false;
 
 #ifdef CLIENT_BUILD
     // Initialize voice manager
@@ -29,7 +46,12 @@ GameManager::GameManager() {
 
 void GameManager::init(Environment& env, InputManager& inputs) {
     initSystems(env);
-    env.loadGameResources("src/RType/Common/content/config/r-type.json");
+
+    if (!_master_config.resources_config.empty()) {
+        env.loadGameResources(_master_config.resources_config);
+    } else {
+        env.loadGameResources("src/RType/Common/content/config/r-type.json");
+    }
 
     if (!env.isServer()) {
         initAuthScreen(env);
@@ -46,7 +68,13 @@ void GameManager::startGame(Environment& env, InputManager& inputs) {
     LevelConfig level_config;
     try {
         level_config = SceneLoader::loadFromFile(_current_level_scene);
-    } catch (...) {}
+        if (!level_config.game_config.empty()) {
+            _game_config = ConfigLoader::loadGameConfig(level_config.game_config,
+                                                        ConfigLoader::getRequiredGameFields());
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "Error loading master config: " << e.what() << std::endl;
+    }
 
     initBackground(env, level_config);
     initBounds(env);
@@ -69,6 +97,7 @@ void GameManager::startGame(Environment& env, InputManager& inputs) {
 
     _gameInitialized = true;
     _currentState = GameState::PLAYING;
+    return;
 }
 
 void GameManager::update(Environment& env, InputManager& inputs) {
@@ -893,7 +922,13 @@ void GameManager::updateInLobby(Environment& env, InputManager& inputs) {
         LevelConfig level_config;
         try {
             level_config = SceneLoader::loadFromFile(_current_level_scene);
-        } catch (...) {}
+            if (!level_config.game_config.empty()) {
+                _game_config = ConfigLoader::loadGameConfig(level_config.game_config,
+                                                            ConfigLoader::getRequiredGameFields());
+            }
+        } catch (const std::exception& e) {
+            std::cerr << "Error loading master config: " << e.what() << std::endl;
+        }
 
         initBackground(env, level_config);
         initBounds(env);

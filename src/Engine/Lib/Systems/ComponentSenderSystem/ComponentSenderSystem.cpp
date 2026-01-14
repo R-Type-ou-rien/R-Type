@@ -51,30 +51,6 @@ void ComponentSenderSystem::update(Registry& reg, system_context ctx) {
         printed_hashes = true;
     }
 
-    // Debug: Check if PLAYER entities have sprite components
-    static int debug_counter = 0;
-    debug_counter++;
-    if (debug_counter % 300 == 0) {  // Every ~5 seconds at 60fps
-        // Find player entities and check their components
-        for (auto& [type, pool] : component_pools) {
-            auto entities = pool->getIdList();
-            for (auto entity : entities) {
-                if (reg.hasComponent<TagComponent>(entity)) {
-                    auto& tag = reg.getConstComponent<TagComponent>(entity);
-                    for (const auto& t : tag.tags) {
-                        if (t == "PLAYER") {
-                            std::cout << "[DEBUG] PLAYER entity " << entity
-                                      << " has sprite=" << reg.hasComponent<sprite2D_component_s>(entity)
-                                      << " transform=" << reg.hasComponent<transform_component_s>(entity)
-                                      << " network=" << reg.hasComponent<NetworkIdentity>(entity) << std::endl;
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     // Iterate over pools to send only updated (dirty) components
     for (auto& [type, pool] : component_pools) {
         // Skip components that are not registered for network replication
@@ -98,19 +74,6 @@ void ComponentSenderSystem::update(Registry& reg, system_context ctx) {
             packet = pool->createPacket(entity, s_ctx);
             packet.entity_guid = reg.getConstComponent<NetworkIdentity>(entity).guid;
 
-            // Debug: Log player entities being sent
-            if (reg.hasComponent<TagComponent>(entity)) {
-                auto& tag = reg.getConstComponent<TagComponent>(entity);
-                for (const auto& t : tag.tags) {
-                    if (t == "PLAYER") {
-                        std::cout << "[ComponentSenderSystem] Sending PLAYER entity guid=" << packet.entity_guid
-                                  << " component_type=" << typeHash << std::endl;
-                        break;
-                    }
-                }
-            }
-
-            // Send to all IN_GAME lobbies
             for (auto const& [lobbyId, lobby] : lobbies) {
                 if (lobby.getState() != engine::core::Lobby::State::IN_GAME) {
                     continue;

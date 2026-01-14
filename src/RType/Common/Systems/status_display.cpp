@@ -174,7 +174,22 @@ void StatusDisplaySystem::drawScore(Registry& registry, system_context& context)
 
     auto& scoreDisplay = registry.getConstComponent<ScoreDisplayComponent>(scoreDisplayEntities[0]);
 
-    int score = ScoreSystem::getScore(registry);
+    int score = 0;
+    bool resolved = false;
+
+    auto& statusEntities = registry.getEntities<StatusDisplayComponent>();
+    if (!statusEntities.empty()) {
+        const auto& status = registry.getConstComponent<StatusDisplayComponent>(statusEntities[0]);
+        if (status.player_entity != -1 && registry.hasComponent<ScoreComponent>(status.player_entity)) {
+            const auto& scoreComp = registry.getConstComponent<ScoreComponent>(status.player_entity);
+            score = scoreComp.current_score;
+            resolved = true;
+        }
+    }
+
+    if (!resolved) {
+        score = ScoreSystem::getScore(registry);
+    }
 
     std::ostringstream oss;
     oss << std::setw(scoreDisplay.digit_count) << std::setfill('0') << score;

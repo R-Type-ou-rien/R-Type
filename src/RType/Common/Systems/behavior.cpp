@@ -1,4 +1,4 @@
-#include "ai_behavior.hpp"
+#include "behavior.hpp"
 #include "Components/StandardComponents.hpp"
 #include "../Components/team_component.hpp"
 #include "shooter.hpp"
@@ -6,7 +6,7 @@
 #include "src/Engine/Lib/Systems/PlayerBoundsSystem.hpp"
 #include <cmath>
 
-void AIBehaviorSystem::update(Registry& registry, system_context context) {
+void BehaviorSystem::update(Registry& registry, system_context context) {
     Entity player_entity = -1;
     auto& teams = registry.getEntities<TeamComponent>();
     for (auto entity : teams) {
@@ -29,9 +29,9 @@ void AIBehaviorSystem::update(Registry& registry, system_context context) {
     if (player_entity == -1)
         return;
 
-    auto& behaviors = registry.getEntities<AIBehaviorComponent>();
+    auto& behaviors = registry.getEntities<BehaviorComponent>();
     for (auto entity : behaviors) {
-        auto& behavior = registry.getComponent<AIBehaviorComponent>(entity);
+        auto& behavior = registry.getComponent<BehaviorComponent>(entity);
 
         if (behavior.follow_player) {
             updateFollowPlayer(registry, context, entity, player_entity);
@@ -41,84 +41,16 @@ void AIBehaviorSystem::update(Registry& registry, system_context context) {
             updateShootAtPlayer(registry, entity, player_entity);
         }
     }
-
-    auto& bosses = registry.getEntities<BossComponent>();
-    for (auto boss_entity : bosses) {
-        auto& boss = registry.getComponent<BossComponent>(boss_entity);
-
-        // Phase d'arrivée
-        if (!boss.has_arrived && registry.hasComponent<transform_component_s>(boss_entity)) {
-            auto& transform = registry.getComponent<transform_component_s>(boss_entity);
-
-            if (transform.x <= boss.target_x) {
-                transform.x = boss.target_x;
-                boss.has_arrived = true;
-
-                if (registry.hasComponent<Velocity2D>(boss_entity)) {
-                    auto& vel = registry.getComponent<Velocity2D>(boss_entity);
-                    vel.vx = 0.0f;
-                    vel.vy = 0.0f;
-                }
-            }
-        }
-        
-        // Gestion des phases du boss
-        if (boss.has_arrived && registry.hasComponent<HealthComponent>(boss_entity)) {
-            auto& health = registry.getConstComponent<HealthComponent>(boss_entity);
-            float health_percent = static_cast<float>(health.current_hp) / static_cast<float>(health.max_hp);
-            
-            int new_phase = boss.current_phase;
-            if (health_percent <= 0.33f && boss.current_phase < 3) {
-                new_phase = 3;  // Phase finale
-            } else if (health_percent <= 0.66f && boss.current_phase < 2) {
-                new_phase = 2;  // Phase intermédiaire
-            }
-            
-            // Transition de phase
-            if (new_phase != boss.current_phase) {
-                boss.current_phase = new_phase;
-                
-                // Augmenter le fire rate en fonction de la phase
-                if (registry.hasComponent<ShooterComponent>(boss_entity)) {
-                    auto& shooter = registry.getComponent<ShooterComponent>(boss_entity);
-                    shooter.fire_rate = 0.3f / boss.current_phase;  // Plus rapide à chaque phase
-                }
-            }
-            
-            // Pattern d'attaque
-            boss.attack_pattern_timer += context.dt;
-            if (boss.attack_pattern_timer >= boss.attack_pattern_interval) {
-                boss.attack_pattern_timer = 0.0f;
-                boss.current_attack_pattern = (boss.current_attack_pattern + 1) % 3;
-                
-                // Changer le pattern de tir
-                if (registry.hasComponent<ShooterComponent>(boss_entity)) {
-                    auto& shooter = registry.getComponent<ShooterComponent>(boss_entity);
-                    switch (boss.current_attack_pattern) {
-                        case 0:
-                            shooter.pattern = ShooterComponent::STRAIGHT;
-                            break;
-                        case 1:
-                            shooter.pattern = ShooterComponent::AIM_PLAYER;
-                            break;
-                        case 2:
-                            shooter.pattern = ShooterComponent::SPREAD;
-                            break;
-                    }
-                }
-            }
-        }
-    }
 }
 
-void AIBehaviorSystem::updateFollowPlayer(Registry& registry, system_context context, Entity enemy, Entity player) {
+void BehaviorSystem::updateFollowPlayer(Registry& registry, system_context context, Entity enemy, Entity player) {
     if (!registry.hasComponent<transform_component_s>(enemy) || !registry.hasComponent<transform_component_s>(player)) {
         return;
     }
 
     auto& enemy_transform = registry.getComponent<transform_component_s>(enemy);
     auto& player_transform = registry.getConstComponent<transform_component_s>(player);
-    auto& behavior = registry.getConstComponent<AIBehaviorComponent>(enemy);
+    auto& behavior = registry.getConstComponent<BehaviorComponent>(enemy);
 
     float dx = player_transform.x - enemy_transform.x;
     float dy = player_transform.y - enemy_transform.y;
@@ -133,9 +65,7 @@ void AIBehaviorSystem::updateFollowPlayer(Registry& registry, system_context con
     }
 }
 
-void AIBehaviorSystem::updateShootAtPlayer(Registry& registry, Entity enemy, Entity player) {
-    // La direction du tir sera calculée dans le ShooterSystem
-    // On stocke juste la position du joueur pour référence
+void BehaviorSystem::updateShootAtPlayer(Registry& registry, Entity enemy, Entity player) {
 }
 
 void BoundsSystem::update(Registry& registry, system_context context) {

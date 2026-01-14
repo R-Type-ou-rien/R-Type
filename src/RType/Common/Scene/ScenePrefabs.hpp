@@ -16,7 +16,7 @@
 #include "../Components/team_component.hpp"
 #include "../Systems/health.hpp"
 #include "../Systems/shooter.hpp"
-#include "../Systems/ai_behavior.hpp"
+#include "../Systems/behavior.hpp"
 #include "../Systems/score.hpp"
 
 class ScenePrefabs {
@@ -24,6 +24,7 @@ class ScenePrefabs {
     static void registerAll(SceneManager& scene_manager, ResourceManager<TextureAsset>& texture_manager) {
         registerWallPrefab(scene_manager, texture_manager);
         registerTurretPrefab(scene_manager, texture_manager);
+        registerDecorPrefab(scene_manager, texture_manager);
     }
 
    private:
@@ -49,7 +50,11 @@ class ScenePrefabs {
                     destructible = std::any_cast<bool>(props.at("destructible"));
 
                 registry.addComponent<transform_component_s>(entity, {x, y});
-                registry.addComponent<Velocity2D>(entity, {-100.0f, 0.0f});
+                
+                float scroll_speed = -100.0f;
+                if (props.count("scroll_speed"))
+                    scroll_speed = std::any_cast<float>(props.at("scroll_speed"));
+                registry.addComponent<Velocity2D>(entity, {scroll_speed, 0.0f});
 
                 WallComponent wall;
                 wall.is_destructible = destructible;
@@ -112,7 +117,11 @@ class ScenePrefabs {
                     sprite_path = std::any_cast<std::string>(props.at("sprite"));
 
                 registry.addComponent<transform_component_s>(entity, {x, y});
-                registry.addComponent<Velocity2D>(entity, {-100.0f, 0.0f});
+                
+                float scroll_speed = 0.0f;
+                if (props.count("scroll_speed"))
+                    scroll_speed = std::any_cast<float>(props.at("scroll_speed"));
+                registry.addComponent<Velocity2D>(entity, {scroll_speed, 0.0f});
 
                 registry.addComponent<HealthComponent>(entity, {80, 80, 0.0f, 0.5f});
                 registry.addComponent<TeamComponent>(entity, {TeamComponent::ENEMY});
@@ -139,10 +148,11 @@ class ScenePrefabs {
                 registry.addComponent<ShooterComponent>(entity, shooter);
 
                 if (shoot_pattern == "AIM_PLAYER") {
-                    AIBehaviorComponent behavior;
+                    BehaviorComponent behavior;
                     behavior.shoot_at_player = true;
                     behavior.follow_player = false;
-                    registry.addComponent<AIBehaviorComponent>(entity, behavior);
+                    behavior.follow_speed = 100.0f;
+                    registry.addComponent<BehaviorComponent>(entity, behavior);
                 }
 
                 handle_t<TextureAsset> handle = texture_manager.load(sprite_path, TextureAsset(sprite_path));
@@ -173,7 +183,44 @@ class ScenePrefabs {
                 tags.tags.push_back("TURRET");
                 registry.addComponent<TagComponent>(entity, tags);
 
-                // Add NetworkIdentity for network replication
+                registry.addComponent<NetworkIdentity>(entity, {static_cast<uint32_t>(entity), 0});
+            });
+    }
+
+    static void registerDecorPrefab(SceneManager& scene_manager, ResourceManager<TextureAsset>& texture_manager) {
+        scene_manager.registerPrefab(
+            "Decor", [&texture_manager](Registry& registry, Entity entity,
+                                        const std::unordered_map<std::string, std::any>& props) {
+                float x = 0, y = 0;
+                std::string sprite_path;
+                float scale = 1.0f;
+                int z_index = 0;
+                float scroll_speed_mult = 1.0f;
+
+                if (props.count("x"))
+                    x = std::any_cast<float>(props.at("x"));
+                if (props.count("y"))
+                    y = std::any_cast<float>(props.at("y"));
+                if (props.count("sprite"))
+                    sprite_path = std::any_cast<std::string>(props.at("sprite"));
+                if (props.count("scale"))
+                    scale = std::any_cast<float>(props.at("scale"));
+                if (props.count("z_index"))
+                    z_index = std::any_cast<int>(props.at("z_index"));
+                if (props.count("scroll_speed_mult"))
+                    scroll_speed_mult = std::any_cast<float>(props.at("scroll_speed_mult"));
+
+                registry.addComponent<transform_component_s>(entity, {x, y, scale, scale});       
+                registry.addComponent<Velocity2D>(entity, {-100.0f * scroll_speed_mult, 0.0f});
+
+                if (!sprite_path.empty()) {
+                    handle_t<TextureAsset> handle = texture_manager.load(sprite_path, TextureAsset(sprite_path));
+                    sprite2D_component_s sprite;
+                    sprite.handle = handle;
+                    sprite.z_index = z_index;
+                    sprite.dimension = {0, 0, 0, 0};
+                    registry.addComponent<sprite2D_component_s>(entity, sprite);
+                }
                 registry.addComponent<NetworkIdentity>(entity, {static_cast<uint32_t>(entity), 0});
             });
     }

@@ -13,16 +13,32 @@
 const float WORLD_WIDTH = 1920.0f;
 const float WORLD_HEIGHT = 1080.0f;
 
-void EnemySpawnSystem::loadConfigs(const std::string& enemies, const std::string& boss, const std::string& game) {
+void EnemySpawnSystem::loadConfigs(const std::string& enemies, const std::string& boss, const std::string& boss_section, const std::string& game) {
     if (_configs_loaded)
         return;
 
     std::string enemies_path = enemies.empty() ? "src/RType/Common/content/config/enemies.cfg" : enemies;
     std::string boss_path = boss.empty() ? "src/RType/Common/content/config/boss.cfg" : boss;
     std::string game_path = game.empty() ? "src/RType/Common/content/config/game.cfg" : game;
+    std::string section = boss_section.empty() ? "DEFAULT" : boss_section;
 
     _enemy_configs = ConfigLoader::loadEnemiesConfig(enemies_path, ConfigLoader::getRequiredEnemyFields());
-    _boss_config = ConfigLoader::loadEntityConfig(boss_path, ConfigLoader::getRequiredBossFields());
+    
+    // Load boss config from the specified section
+    auto boss_configs = ConfigLoader::loadMap<EntityConfig>(boss_path, ConfigLoader::getRequiredBossFields());
+    if (boss_configs.find(section) != boss_configs.end()) {
+        _boss_config = boss_configs[section];
+        std::cout << "Loaded boss config from section: " << section << std::endl;
+    } else if (boss_configs.find("DEFAULT") != boss_configs.end()) {
+        _boss_config = boss_configs["DEFAULT"];
+        std::cout << "Boss section '" << section << "' not found, using DEFAULT" << std::endl;
+    } else if (!boss_configs.empty()) {
+        _boss_config = boss_configs.begin()->second;
+        std::cout << "Boss section '" << section << "' not found, using first available: " << boss_configs.begin()->first << std::endl;
+    } else {
+        std::cerr << "No boss configurations found in " << boss_path << std::endl;
+    }
+    
     _game_config = ConfigLoader::loadGameConfig(game_path, ConfigLoader::getRequiredGameFields());
 
     for (const auto& pair : _enemy_configs) {
@@ -202,7 +218,7 @@ void EnemySpawnSystem::update(Registry& registry, system_context context) {
         auto& spawn_comp = registry.getComponent<EnemySpawnComponent>(spawner);
 
         // Load configurations if not yet loaded
-        loadConfigs(spawn_comp.enemies_config_path, spawn_comp.boss_config_path, spawn_comp.game_config_path);
+        loadConfigs(spawn_comp.enemies_config_path, spawn_comp.boss_config_path, spawn_comp.boss_section, spawn_comp.game_config_path);
 
         if (spawn_comp.random_seed == 0) {
             spawn_comp.random_seed = static_cast<unsigned int>(std::time(nullptr));
@@ -257,32 +273,15 @@ bool EnemySpawnSystem::handleBossSpawn(Registry& registry, system_context contex
         // Arrêter immédiatement le spawn de nouvelles vagues
         spawn_comp.is_active = false;
 
-        auto& enemies = registry.getEntities<TagComponent>();
-        int enemy_count = 0;
-        for (auto entity : enemies) {
-            auto& tags = registry.getConstComponent<TagComponent>(entity);
-            bool is_ai = false, is_boss = false;
-            for (const auto& tag : tags.tags) {
-                if (tag == "AI")
-                    is_ai = true;
-                if (tag == "BOSS")
-                    is_boss = true;
-            }
-            if (is_ai && !is_boss)
-                enemy_count++;
-        }
+        // Spawn immédiat du boss sans attendre la fin des ennemis
+        spawn_comp.boss_spawned = true;
+        spawn_comp.boss_intro_timer = 0.0f;
 
-        // Attendre que tous les ennemis soient éliminés
-        if (enemy_count == 0) {
-            spawn_comp.boss_spawned = true;
-            spawn_comp.boss_intro_timer = 0.0f;
-
-            // Stop background
-            auto& backgrounds = registry.getEntities<BackgroundComponent>();
-            for (auto bg_entity : backgrounds) {
-                auto& bg = registry.getComponent<BackgroundComponent>(bg_entity);
-                bg.scroll_speed = 0.0f;
-            }
+        // Stop background
+        auto& backgrounds = registry.getEntities<BackgroundComponent>();
+        for (auto bg_entity : backgrounds) {
+            auto& bg = registry.getComponent<BackgroundComponent>(bg_entity);
+            bg.scroll_speed = 0.0f;
         }
     }
 

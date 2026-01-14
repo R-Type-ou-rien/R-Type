@@ -10,7 +10,8 @@
 #include "../../../../RType/Common/Components/charged_shot.hpp"
 #include "../../../../RType/Common/Components/spawn.hpp"
 #include "../../../../RType/Common/Components/pod_component.hpp"
-#include "../../../../RType/Common/Components/ai_behavior_component.hpp"
+#include "../../../../RType/Common/Components/behavior_component.hpp"
+#include "../../../../RType/Common/Components/boss_component.hpp"
 #include "../../../../RType/Common/Systems/health.hpp"
 #include "Components/NetworkComponents.hpp"
 #include "Components/AudioComponent.hpp"
@@ -27,18 +28,10 @@ inline void serialize(std::vector<uint8_t>& buffer, const AudioSourceComponent& 
 
 inline AudioSourceComponent deserialize_audio_source(const std::vector<uint8_t>& buffer, size_t& offset) {
     AudioSourceComponent component;
-    try {
-        std::cout << "[AUDIO_DESERIALIZE] Start. Offset: " << offset << " BufferSize: " << buffer.size() << std::endl;
-        component.sound_name = deserialize<std::string>(buffer, offset);
-        std::cout << "[AUDIO_DESERIALIZE] SoundName: " << component.sound_name << std::endl;
-        component.play_on_start = deserialize<bool>(buffer, offset);
-        component.loop = deserialize<bool>(buffer, offset);
-        component.destroy_entity_on_finish = deserialize<bool>(buffer, offset);
-        std::cout << "[AUDIO_DESERIALIZE] Success. Play: " << component.play_on_start << std::endl;
-    } catch (const std::exception& e) {
-        std::cerr << "[AUDIO_DESERIALIZE] ERROR: " << e.what() << std::endl;
-        // Return mostly empty component to avoid blocking, but logging is key
-    }
+    component.sound_name = deserialize<std::string>(buffer, offset);
+    component.play_on_start = deserialize<bool>(buffer, offset);
+    component.loop = deserialize<bool>(buffer, offset);
+    component.destroy_entity_on_finish = deserialize<bool>(buffer, offset);
     return component;
 }
 
@@ -63,6 +56,13 @@ inline PatternComponent deserialize_pattern_component(const std::vector<uint8_t>
     PatternComponent component;
     component.type = deserialize<PatternComponent::PatternType>(buffer, offset);
     uint32_t waypoints_size = deserialize<uint32_t>(buffer, offset);
+
+    // Safety: corrupted packets can contain absurd sizes and crash on resize.
+    constexpr uint32_t MAX_WAYPOINTS = 512;
+    if (waypoints_size > MAX_WAYPOINTS) {
+        waypoints_size = 0;
+    }
+
     component.waypoints.resize(waypoints_size);
     for (uint32_t i = 0; i < waypoints_size; ++i) {
         component.waypoints[i].first = deserialize<float>(buffer, offset);
@@ -203,7 +203,6 @@ inline sprite2D_component_s deserialize_sprite_2d_component(const std::vector<ui
     if (!name.empty()) {
         if (resourceManager.is_loaded(name)) {
             component.handle = resourceManager.get_handle(name).value();
-            std::cout << "[SPRITE_DESERIALIZE] Using existing texture: " << name << std::endl;
         } else {
             // Load the texture if not already loaded (critical for client-side rendering)
 #if defined(CLIENT_BUILD)
@@ -218,22 +217,23 @@ inline sprite2D_component_s deserialize_sprite_2d_component(const std::vector<ui
             if (!loaded) {
                 std::cerr << "Client: CRITICAL ERROR: Failed to load texture: " << name << " from any path."
                           << std::endl;
-            } else {
-                std::cout << "[SPRITE_DESERIALIZE] Loaded NEW texture: " << name << std::endl;
             }
             component.handle = resourceManager.load(name, texture);
 #else
             component.handle = resourceManager.load(name, TextureAsset(name));
 #endif
         }
-    } else {
-        std::cout << "[SPRITE_DESERIALIZE] WARNING: Empty texture name received!" << std::endl;
     }
     component.dimension = deserialize_rect(buffer, offset);
-    std::cout << "[SPRITE_DESERIALIZE] Dimension: x=" << component.dimension.x << " y=" << component.dimension.y
-              << " w=" << component.dimension.width << " h=" << component.dimension.height << std::endl;
     component.is_animated = deserialize<bool>(buffer, offset);
     uint32_t frames_size = deserialize<uint32_t>(buffer, offset);
+
+    // Safety: avoid std::length_error on corrupted packets
+    constexpr uint32_t MAX_FRAMES = 256;
+    if (frames_size > MAX_FRAMES) {
+        frames_size = 0;
+    }
+
     component.frames.resize(frames_size);
     for (uint32_t i = 0; i < frames_size; ++i) {
         component.frames[i] = deserialize_rect(buffer, offset);
@@ -431,7 +431,7 @@ inline void serialize(std::vector<uint8_t>& buffer, const ChargedShotComponent& 
     serialize(buffer, component.charge_time);
     serialize(buffer, component.min_charge_time);
     serialize(buffer, component.max_charge_time);
-    serialize(buffer, component.medium_charge_threshold);
+    serialize(buffer, component.medium_charge);
 }
 
 inline ChargedShotComponent deserialize_charged_shot_component(const std::vector<uint8_t>& buffer, size_t& offset) {
@@ -440,7 +440,7 @@ inline ChargedShotComponent deserialize_charged_shot_component(const std::vector
     component.charge_time = deserialize<float>(buffer, offset);
     component.min_charge_time = deserialize<float>(buffer, offset);
     component.max_charge_time = deserialize<float>(buffer, offset);
-    component.medium_charge_threshold = deserialize<float>(buffer, offset);
+    component.medium_charge = deserialize<float>(buffer, offset);
     return component;
 }
 
@@ -531,15 +531,15 @@ inline PlayerPodComponent deserialize_player_pod_component(const std::vector<uin
     return component;
 }
 
-/** AIBehaviorComponent */
-inline void serialize(std::vector<uint8_t>& buffer, const AIBehaviorComponent& component) {
+/** BehaviorComponent */
+inline void serialize(std::vector<uint8_t>& buffer, const BehaviorComponent& component) {
     serialize(buffer, component.shoot_at_player);
     serialize(buffer, component.follow_player);
     serialize(buffer, component.follow_speed);
 }
 
-inline AIBehaviorComponent deserialize_ai_behavior_component(const std::vector<uint8_t>& buffer, size_t& offset) {
-    AIBehaviorComponent component;
+inline BehaviorComponent deserialize_behavior_component(const std::vector<uint8_t>& buffer, size_t& offset) {
+    BehaviorComponent component;
     component.shoot_at_player = deserialize<bool>(buffer, offset);
     component.follow_player = deserialize<bool>(buffer, offset);
     component.follow_speed = deserialize<float>(buffer, offset);
@@ -550,12 +550,47 @@ inline AIBehaviorComponent deserialize_ai_behavior_component(const std::vector<u
 inline void serialize(std::vector<uint8_t>& buffer, const BossComponent& component) {
     serialize(buffer, component.has_arrived);
     serialize(buffer, component.target_x);
+    serialize(buffer, static_cast<int>(component.current_state));
+    serialize(buffer, component.state_timer);
+    serialize(buffer, component.current_phase);
+    serialize(buffer, component.is_enraged);
 }
 
 inline BossComponent deserialize_boss_component(const std::vector<uint8_t>& buffer, size_t& offset) {
     BossComponent component;
     component.has_arrived = deserialize<bool>(buffer, offset);
     component.target_x = deserialize<float>(buffer, offset);
+    component.current_state = static_cast<BossComponent::BossState>(deserialize<int>(buffer, offset));
+    component.state_timer = deserialize<float>(buffer, offset);
+    component.current_phase = deserialize<int>(buffer, offset);
+    component.is_enraged = deserialize<bool>(buffer, offset);
+    return component;
+}
+
+/** BossSubEntityComponent */
+inline void serialize(std::vector<uint8_t>& buffer, const BossSubEntityComponent& component) {
+    serialize(buffer, component.boss_entity_id);
+    serialize(buffer, static_cast<int>(component.type));
+    serialize(buffer, component.sub_entity_index);
+    serialize(buffer, component.is_active);
+    serialize(buffer, component.is_destroyed);
+    serialize(buffer, component.offset_x);
+    serialize(buffer, component.offset_y);
+    serialize(buffer, component.fire_timer);
+    serialize(buffer, component.fire_rate);
+}
+
+inline BossSubEntityComponent deserialize_boss_sub_entity(const std::vector<uint8_t>& buffer, size_t& offset) {
+    BossSubEntityComponent component;
+    component.boss_entity_id = deserialize<int>(buffer, offset);
+    component.type = static_cast<BossSubEntityComponent::SubEntityType>(deserialize<int>(buffer, offset));
+    component.sub_entity_index = deserialize<int>(buffer, offset);
+    component.is_active = deserialize<bool>(buffer, offset);
+    component.is_destroyed = deserialize<bool>(buffer, offset);
+    component.offset_x = deserialize<float>(buffer, offset);
+    component.offset_y = deserialize<float>(buffer, offset);
+    component.fire_timer = deserialize<float>(buffer, offset);
+    component.fire_rate = deserialize<float>(buffer, offset);
     return component;
 }
 

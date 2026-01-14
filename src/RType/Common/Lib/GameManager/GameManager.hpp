@@ -53,8 +53,10 @@ class GameManager {
     Entity _chargeBarEntity;
     Entity _livesEntity;
     Entity _scoreDisplayEntity;
+    Entity _leaderboardEntity;
     bool _gameOver = false;
     bool _victory = false;
+    bool _leaderboardDisplayed = false;
 
     // Menu entities
     Entity _menuTitleEntity = static_cast<Entity>(-1);
@@ -128,7 +130,9 @@ class GameManager {
     bool _escapeWasPressed = false;
     bool _windowHasFocus = true;
 
+    MasterConfig _master_config;
     EntityConfig _player_config;
+    GameConfig _game_config;
     std::string _current_level_scene;
     sf::RenderWindow* _window = nullptr;
 
@@ -169,6 +173,7 @@ class GameManager {
     void updateUI(Environment& env);
     void checkGameState(Environment& env);
     void displayGameOver(Environment& env, bool victory);
+    void displayLeaderboard(Environment& env, bool victory);
 
     // Menu methods
     void initAuthScreen(Environment& env);
@@ -202,6 +207,8 @@ class GameManager {
 
    public:
     GameManager();
+    ~GameManager() = default;
+
     void init(Environment& env, InputManager& inputs);
     void update(Environment& env, InputManager& inputs);
     void loadInputSetting(InputManager& inputs);

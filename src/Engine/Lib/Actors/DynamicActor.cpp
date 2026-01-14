@@ -84,6 +84,9 @@ void DynamicActor::addEmptyEffect(const std::string res_name, std::function<void
 }
 
 void DynamicActor::setVelocity(std::pair<float, float> velocity) {
+    if (!_ecs.registry.hasComponent<Velocity2D>(_id)) {
+        return;
+    }
     Velocity2D& comp = _ecs.registry.getComponent<Velocity2D>(_id);
 
     comp.vx = velocity.first;
@@ -92,6 +95,9 @@ void DynamicActor::setVelocity(std::pair<float, float> velocity) {
 }
 
 std::pair<float, float> DynamicActor::getvelocity() {
+    if (!_ecs.registry.hasComponent<Velocity2D>(_id)) {
+        return {0.0f, 0.0f};
+    }
     Velocity2D comp = _ecs.registry.getConstComponent<Velocity2D>(_id);
 
     return std::pair<float, float>(comp.vx, comp.vy);

@@ -10,7 +10,9 @@
 #include "NetworkEngine/NetworkEngine.hpp"
 #include "Components/StandardComponents.hpp"
 #include "Components/serialize/StandardComponents_serialize.hpp"
+#include "Components/serialize/score_component_serialize.hpp"
 #include "../../RType/Common/Systems/health.hpp"
+#include "../../RType/Common/Systems/score.hpp"
 #include "../../RType/Common/Components/spawn.hpp"
 #include "../../RType/Common/Components/shooter_component.hpp"
 #include "../../RType/Common/Components/charged_shot.hpp"
@@ -20,7 +22,7 @@
 #include "../../RType/Common/Components/pod_component.hpp"
 #include "../../RType/Common/Components/charged_shot.hpp"
 #include "../../RType/Common/Components/scripted_spawn.hpp"
-#include "../../RType/Common/Systems/ai_behavior.hpp"
+#include "../../RType/Common/Systems/behavior.hpp"
 #include "../../RType/Common/Entities/Player/Player.hpp"
 #include "../../RType/Common/Systems/spawn.hpp"
 #include "CollisionSystem.hpp"
@@ -59,8 +61,10 @@ int ServerGameEngine::init() {
     // R-Type specific components
     registerNetworkComponent<PodComponent>();
     registerNetworkComponent<PlayerPodComponent>();
-    registerNetworkComponent<AIBehaviorComponent>();
+    registerNetworkComponent<BehaviorComponent>();
     registerNetworkComponent<BossComponent>();
+    registerNetworkComponent<BossSubEntityComponent>();
+    registerNetworkComponent<ScoreComponent>();
 
     return SUCCESS;
 }
@@ -223,6 +227,15 @@ void ServerGameEngine::processNetworkEvents() {
                 player_pod.pod_attached = false;
                 player_pod.last_known_hp = 5;
                 _ecs.registry.addComponent<PlayerPodComponent>(newPlayer->getId(), player_pod);
+
+                    // Add ScoreComponent for individual player score tracking
+                    if (!_ecs.registry.hasComponent<ScoreComponent>(newPlayer->getId())) {
+                        ScoreComponent playerScore;
+                        playerScore.current_score = 0;
+                        playerScore.high_score = 0;
+                        _ecs.registry.addComponent<ScoreComponent>(newPlayer->getId(), playerScore);
+                        std::cout << "SERVER: Added ScoreComponent to player " << newPlayer->getId() << std::endl;
+                    }
 
                 // Store player
                 _players[clientId] = newPlayer;

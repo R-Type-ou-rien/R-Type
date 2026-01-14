@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <cstdint>
+#include <cstddef>
 #include "StandardComponents_serialize.hpp"
 #include "tag_component_serialize.hpp"
 
@@ -196,10 +197,10 @@ struct ComponentTraits<PlayerPodComponent> {
 };
 
 template <>
-struct ComponentTraits<AIBehaviorComponent> {
-    static AIBehaviorComponent deserialize(const std::vector<uint8_t>& buffer, size_t& offset,
+struct ComponentTraits<BehaviorComponent> {
+    static BehaviorComponent deserialize(const std::vector<uint8_t>& buffer, size_t& offset,
                                            ResourceManager<TextureAsset>&) {
-        return deserialize_ai_behavior_component(buffer, offset);
+        return deserialize_behavior_component(buffer, offset);
     }
 };
 
@@ -208,6 +209,22 @@ struct ComponentTraits<BossComponent> {
     static BossComponent deserialize(const std::vector<uint8_t>& buffer, size_t& offset,
                                      ResourceManager<TextureAsset>&) {
         return deserialize_boss_component(buffer, offset);
+    }
+};
+
+template <>
+struct ComponentTraits<BossSubEntityComponent> {
+    static BossSubEntityComponent deserialize(const std::vector<uint8_t>& buffer, size_t& offset,
+                                     ResourceManager<TextureAsset>&) {
+        return deserialize_boss_sub_entity(buffer, offset);
+    }
+};
+
+template <>
+struct ComponentTraits<AudioSourceComponent> {
+    static AudioSourceComponent deserialize(const std::vector<uint8_t>& buffer, size_t& offset,
+                                            ResourceManager<TextureAsset>&) {
+        return deserialize_audio_source(buffer, offset);
     }
 };
 

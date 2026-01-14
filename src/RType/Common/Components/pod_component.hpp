@@ -1,23 +1,19 @@
 #pragma once
 
-#include "registry.hpp"
-
 enum class PodState { FLOATING, ATTACHED, DETACHED };
 
 struct PodComponent {
-    static constexpr auto name = "PodComponent";  // constexpr c'est pour qu'il doit connu au moment de la compilation
+    static constexpr auto name = "PodComponent";
 
     PodState state = PodState::FLOATING;
     Entity owner_id = -1;
     float auto_fire_rate = 0.6f;
     float last_shot_time = 0.0f;
     int projectile_damage = 15;
-
-    // Floating movement parameters
     float float_time = 0.0f;
-    float wave_amplitude = 50.0f;  // Amplitude of vertical wave
-    float wave_frequency = 2.0f;   // Speed of wave oscillation
-    float base_y = 0.0f;           // Original Y position for wave calculation
+    float wave_amplitude = 50.0f;
+    float wave_frequency = 2.0f;
+    float base_y = 0.0f;
 };
 
 struct PlayerPodComponent {
@@ -29,9 +25,8 @@ struct PlayerPodComponent {
     bool detach_requested = false;
     int last_known_hp = -1;
 
-    // Pod laser fire rate (when attached) - fast like R-Type
-    float pod_laser_fire_rate = 0.08f;  // Time between pod laser shots (fast)
-    float pod_laser_cooldown = 0.0f;    // Current cooldown timer
+    float pod_laser_fire_rate = 1.5f;
+    float pod_laser_cooldown = 1.0f;
 };
 
 struct PodSpawnComponent {

@@ -2,53 +2,63 @@
 #include "Player.hpp"
 #include "src/RType/Common/Systems/health.hpp"
 #include "src/RType/Common/Systems/damage.hpp"
+#include "src/RType/Common/Systems/score.hpp"
 #include "CollisionSystem.hpp"
 
-Player::Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<float, float> pos)
+Player::Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<float, float> pos, const EntityConfig& config)
     : DynamicActor(ecs, true, textures, "PLAYER") {
+    int hp = config.hp.value_or(5);
+    float speed = config.speed.value_or(200.0f);
+
     ResourceStat lifepoint;
-    lifepoint.max = 5;
-    lifepoint.current = 5;
+    lifepoint.max = static_cast<float>(hp);
+    lifepoint.current = static_cast<float>(hp);
     lifepoint.regenRate = 0;
 
     addResourceStat("lifepoint", lifepoint);
     setPosition(pos);
     _ecs.registry.addComponent<TeamComponent>(_id, {TeamComponent::Team::ALLY});
-    _ecs.registry.addComponent<ShooterComponent>(_id, {});
-    // Système de vie avec invincibilité de 1.5s après un dégât
-    _ecs.registry.addComponent<HealthComponent>(_id, {5, 5, 0.0f, 1.5f});
-    // CRITIQUE : Le joueur doit pouvoir recevoir des dégâts (valeur = 0 car on veut juste les dégâts entrants)
+    
+    ShooterComponent shooter;
+    shooter.fire_rate = config.fire_rate.value_or(0.25f);
+    _ecs.registry.addComponent<ShooterComponent>(_id, shooter);
+    _ecs.registry.addComponent<ScoreComponent>(_id, {0, 0});
+    _ecs.registry.addComponent<HealthComponent>(_id, {hp, hp, 0.0f, 1.5f});
     _ecs.registry.addComponent<DamageOnCollision>(_id, {0});
 
-    // Movement Bindings
-    bindActionCallbackPressed("move_left", [this](Registry&, system_context, Entity) {
-        this->setVelocity({-200.0f, this->getvelocity().second});
+    bindActionCallbackPressed("move_left", [this, speed](Registry&, system_context, Entity) {
+        this->setVelocity({-speed, this->getvelocity().second});
     });
+
     bindActionCallbackOnReleased("move_left", [this](Registry&, system_context, Entity) {
         this->setVelocity({0.0f, this->getvelocity().second});
     });
 
-    bindActionCallbackPressed("move_right", [this](Registry&, system_context, Entity) {
-        this->setVelocity({200.0f, this->getvelocity().second});
+    bindActionCallbackPressed("move_right", [this, speed](Registry&, system_context, Entity) {
+        this->setVelocity({speed, this->getvelocity().second});
     });
+
     bindActionCallbackOnReleased("move_right", [this](Registry&, system_context, Entity) {
         this->setVelocity({0.0f, this->getvelocity().second});
     });
 
-    bindActionCallbackPressed("move_up", [this](Registry&, system_context, Entity) {
-        this->setVelocity({this->getvelocity().first, -200.0f});
+    bindActionCallbackPressed("move_up", [this, speed](Registry&, system_context, Entity) {
+        this->setVelocity({this->getvelocity().first, -speed});
     });
-    bindActionCallbackOnReleased(
-        "move_up", [this](Registry&, system_context, Entity) { this->setVelocity({this->getvelocity().first, 0.0f}); });
 
-    bindActionCallbackPressed("move_down", [this](Registry&, system_context, Entity) {
-        this->setVelocity({this->getvelocity().first, 200.0f});
+    bindActionCallbackOnReleased(
+        "move_up", [this](Registry&, system_context, Entity) {
+            this->setVelocity({this->getvelocity().first, 0.0f});
+        });
+
+    bindActionCallbackPressed("move_down", [this, speed](Registry&, system_context, Entity) {
+        this->setVelocity({this->getvelocity().first, speed});
     });
+
     bindActionCallbackOnReleased("move_down", [this](Registry&, system_context, Entity) {
         this->setVelocity({this->getvelocity().first, 0.0f});
     });
 
-    // Shooting
     bindActionCallbackPressed("shoot", [this](Registry& registry, system_context, Entity entity) {
         if (registry.hasComponent<ShooterComponent>(entity)) {
             auto& shoot = registry.getComponent<ShooterComponent>(entity);
@@ -56,6 +66,7 @@ Player::Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<floa
             shoot.trigger_pressed = true;
         }
     });
+
     bindActionCallbackOnReleased("shoot", [this](Registry& registry, system_context, Entity entity) {
         if (registry.hasComponent<ShooterComponent>(entity)) {
             auto& shoot = registry.getComponent<ShooterComponent>(entity);
@@ -72,7 +83,6 @@ Player::Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<floa
         }
     });
 
-    // Pod Controls
     bindActionCallbackPressed("toggle_pod", [this](Registry& registry, system_context, Entity entity) {
         if (registry.hasComponent<PlayerPodComponent>(entity)) {
             auto& player_pod = registry.getComponent<PlayerPodComponent>(entity);
