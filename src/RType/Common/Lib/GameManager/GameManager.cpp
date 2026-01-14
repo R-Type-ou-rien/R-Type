@@ -20,7 +20,6 @@ void GameManager::init(Environment& env, InputManager& inputs) {
     try {
         level_config = SceneLoader::loadFromFile(_current_level_scene);
     } catch (...) {
-        // Fallback or handle error
     }
 
     initBackground(env, level_config);
@@ -70,7 +69,6 @@ void GameManager::predictionLogic(Entity e, Registry& r, const InputSnapshot& in
     if (inputs.isPressed("move_right"))
         vel.vx = speed;
 
-    // Application
     pos.x += vel.vx * dt;
     pos.y += vel.vy * dt;
 

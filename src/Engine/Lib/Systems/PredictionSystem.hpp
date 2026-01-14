@@ -60,9 +60,6 @@ class PredictionSystem {
         float dy = serverState.y - historyStep.state.y;
 
         if ((dx * dx + dy * dy) > 1.0f) {
-            std::cout << "[LAG] Correction: " << dx << ", " << dy << " (Tick " << serverTick << ")" << std::endl;
-
-            // Snap directly to the server's state. No more re-simulation loop.
             currentTransform = serverState;
         } else {
             if (!pred.history.empty()) {
