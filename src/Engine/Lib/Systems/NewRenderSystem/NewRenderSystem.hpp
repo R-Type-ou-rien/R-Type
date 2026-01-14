@@ -15,7 +15,7 @@
 #include "../../Components/Sprite/AnimatedSprite2D.hpp"
 
 #include "Components/StandardComponents.hpp"
-#include "../../../Core/ECS/ISystem.hpp"
+#include "ISystem.hpp"
 
 class RenderSystem : public ISystem {
 public:
