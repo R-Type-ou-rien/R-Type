@@ -17,7 +17,7 @@ struct ClientInfo {
 };
 
 class Lobby {
-public:
+   public:
     enum class State {
         WAITING,
         IN_GAME,
@@ -28,7 +28,7 @@ public:
 
     bool addClient(const ClientInfo& client);
     bool removeClient(uint32_t clientId);
-    
+
     uint32_t getId() const { return _id; }
     const std::string& getName() const { return _name; }
     State getState() const { return _state; }
@@ -38,7 +38,7 @@ public:
     const std::vector<ClientInfo>& getClients() const { return _clients; }
     bool isFull() const { return _clients.size() >= _maxPlayers; }
 
-private:
+   private:
     uint32_t _id;
     std::string _name;
     uint32_t _maxPlayers;
@@ -47,14 +47,14 @@ private:
 };
 
 class LobbyManager {
-public:
+   public:
     LobbyManager() = default;
 
     // Client Management
     void onClientConnected(uint32_t clientId, const std::string& name = "Anonymous");
     void onClientDisconnected(uint32_t clientId);
     std::optional<std::reference_wrapper<ClientInfo>> getClient(uint32_t clientId);
-    
+
     // Lobby Management
     Lobby& createLobby(std::string name, uint32_t maxPlayers);
     bool joinLobby(uint32_t lobbyId, uint32_t clientId);
@@ -63,12 +63,12 @@ public:
     std::optional<std::reference_wrapper<Lobby>> getLobbyForClient(uint32_t clientId);
     const std::map<uint32_t, Lobby>& getAllLobbies() const { return _lobbies; };
 
-private:
+   private:
     std::map<uint32_t, ClientInfo> _connectedClients;
     std::map<uint32_t, Lobby> _lobbies;
-    std::map<uint32_t, uint32_t> _clientToLobbyMap; // Map client ID to lobby ID
+    std::map<uint32_t, uint32_t> _clientToLobbyMap;  // Map client ID to lobby ID
     uint32_t _nextLobbyId = 1;
 };
 
-} // namespace core
-} // namespace engine
+}  // namespace core
+}  // namespace engine

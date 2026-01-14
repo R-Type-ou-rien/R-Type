@@ -17,7 +17,6 @@
 
 struct InputSnapshot;
 
-
 class GameManager {
    private:
     std::unique_ptr<Player> _player;

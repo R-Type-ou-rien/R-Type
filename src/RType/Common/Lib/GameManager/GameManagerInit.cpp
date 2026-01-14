@@ -40,7 +40,7 @@ void GameManager::initSystems(Environment& env) {
         ecs.systems.addSystem<BoxCollision>();  // Collision detection must run before damage
         ecs.systems.addSystem<ShooterSystem>();
         ecs.systems.addSystem<ProjectileCleanupSystem>();  // Nouveau : Nettoie projectiles hors écran
-        ecs.systems.addSystem<PowerUpSystem>();  // Nouveau : Power-Ups après collisions
+        ecs.systems.addSystem<PowerUpSystem>();            // Nouveau : Power-Ups après collisions
         ecs.systems.addSystem<Damage>();
         ecs.systems.addSystem<HealthSystem>();
         ecs.systems.addSystem<PatternSystem>();
@@ -153,7 +153,6 @@ void GameManager::initPlayer(Environment& env) {
 
         ecs.registry.addComponent<PredictionComponent>(_player->getId(), {});
     }
-
 }
 
 void GameManager::initSpawner(Environment& env, const LevelConfig& config) {
@@ -172,7 +171,7 @@ void GameManager::initSpawner(Environment& env, const LevelConfig& config) {
         EnemySpawnComponent spawn_comp;
         spawn_comp.spawn_interval = 2.0f;
         spawn_comp.is_active = true;
-        
+
         // Use configuration paths from LevelConfig
         spawn_comp.enemies_config_path = config.enemies_config;
         spawn_comp.boss_config_path = config.boss_config;
@@ -210,8 +209,8 @@ void GameManager::initUI(Environment& env) {
         // Boss HP UI (haut à droite)
         _bossHPEntity = ecs.registry.createEntity();
         ecs.registry.addComponent<TextComponent>(
-            _bossHPEntity, {"", "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 28,
-                           sf::Color::Red, 1400, 10});
+            _bossHPEntity,
+            {"", "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 28, sf::Color::Red, 1400, 10});
 
         // Score tracker
         _scoreTrackerEntity = ecs.registry.createEntity();

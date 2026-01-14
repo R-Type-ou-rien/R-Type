@@ -9,7 +9,7 @@
 using PhysicsSimulationCallback = std::function<void(Entity, Registry&, const InputSnapshot&, float)>;
 
 class PredictionSystem {
-public:
+   public:
     explicit PredictionSystem(PhysicsSimulationCallback logic) : _logic(logic) {}
 
     void updatePrediction(Registry& registry, ClientInputManager& inputManager, uint32_t currentTick, float dt) {
@@ -37,8 +37,10 @@ public:
         }
     }
 
-    void onServerUpdate(Registry& registry, Entity entity, const transform_component_s& serverState, uint32_t serverTick) {
-        if (!registry.hasComponent<PredictionComponent>(entity)) return;
+    void onServerUpdate(Registry& registry, Entity entity, const transform_component_s& serverState,
+                        uint32_t serverTick) {
+        if (!registry.hasComponent<PredictionComponent>(entity))
+            return;
 
         auto& pred = registry.getComponent<PredictionComponent>(entity);
         auto& currentTransform = registry.getComponent<transform_component_s>(entity);
@@ -49,14 +51,14 @@ public:
 
         if (pred.history.empty()) {
             currentTransform = serverState;
-            return; 
+            return;
         }
 
         auto& historyStep = pred.history.front();
 
         float dx = serverState.x - historyStep.state.x;
         float dy = serverState.y - historyStep.state.y;
-        
+
         if ((dx * dx + dy * dy) > 1.0f) {
             std::cout << "[LAG] Correction: " << dx << ", " << dy << " (Tick " << serverTick << ")" << std::endl;
 
@@ -69,6 +71,6 @@ public:
         }
     }
 
-private:
+   private:
     PhysicsSimulationCallback _logic;
 };

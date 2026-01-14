@@ -4,7 +4,7 @@
 #include <vector>
 #include <map>
 #include "StandardComponents.hpp"
-#include "../../Inputs/InputAction.hpp" // Pour l'enum Action
+#include "../../Inputs/InputAction.hpp"  // Pour l'enum Action
 
 struct InputSnapshot {
     std::map<Action, bool> actions;
@@ -24,7 +24,7 @@ struct SimulationStep {
 
 struct PredictionComponent {
     static constexpr auto name = "PredictionComponent";
-    
+
     std::deque<SimulationStep> history;
     size_t maxHistorySize = 120;
 };

@@ -50,28 +50,36 @@ void GameManager::update(Environment& env, InputManager& inputs) {
 }
 
 void GameManager::predictionLogic(Entity e, Registry& r, const InputSnapshot& inputs, float dt) {
-    if (!r.hasComponent<Velocity2D>(e) || !r.hasComponent<transform_component_s>(e)) 
+    if (!r.hasComponent<Velocity2D>(e) || !r.hasComponent<transform_component_s>(e))
         return;
 
     auto& vel = r.getComponent<Velocity2D>(e);
     auto& pos = r.getComponent<transform_component_s>(e);
 
-    float speed = _player_config.speed.value(); 
+    float speed = _player_config.speed.value();
 
     vel.vx = 0;
     vel.vy = 0;
 
-    if (inputs.isPressed("move_up"))    vel.vy = -speed;
-    if (inputs.isPressed("move_down"))  vel.vy = speed;
-    if (inputs.isPressed("move_left"))  vel.vx = -speed;
-    if (inputs.isPressed("move_right")) vel.vx = speed;
+    if (inputs.isPressed("move_up"))
+        vel.vy = -speed;
+    if (inputs.isPressed("move_down"))
+        vel.vy = speed;
+    if (inputs.isPressed("move_left"))
+        vel.vx = -speed;
+    if (inputs.isPressed("move_right"))
+        vel.vx = speed;
 
     // Application
     pos.x += vel.vx * dt;
     pos.y += vel.vy * dt;
 
-    if (pos.x < 0) pos.x = 0;
-    if (pos.y < 0) pos.y = 0;
-    if (pos.x > 1800) pos.x = WINDOW_W - SPRITE_SIZE; 
-    if (pos.y > 1000) pos.y = WINDOW_H - SPRITE_SIZE;
+    if (pos.x < 0)
+        pos.x = 0;
+    if (pos.y < 0)
+        pos.y = 0;
+    if (pos.x > 1800)
+        pos.x = WINDOW_W - SPRITE_SIZE;
+    if (pos.y > 1000)
+        pos.y = WINDOW_H - SPRITE_SIZE;
 }
