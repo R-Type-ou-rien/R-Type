@@ -33,14 +33,12 @@ void GameManager::updateUI(Environment& env) {
 
     Entity player_id = (_player) ? _player->getId() : findPlayerEntity(ecs.registry);
 
-    // Update Status Display
     if (player_id != -1 && _statusDisplayEntity != static_cast<Entity>(-1)) {
         if (ecs.registry.hasComponent<StatusDisplayComponent>(_statusDisplayEntity)) {
             ecs.registry.getComponent<StatusDisplayComponent>(_statusDisplayEntity).player_entity = player_id;
         }
     }
 
-    // Update Timer
     if (_timerEntity != static_cast<Entity>(-1) && ecs.registry.hasComponent<TextComponent>(_timerEntity)) {
         auto& game_timers = ecs.registry.getEntities<GameTimerComponent>();
         if (!game_timers.empty()) {
@@ -50,7 +48,6 @@ void GameManager::updateUI(Environment& env) {
         }
     }
 
-    // Update Boss HP
     if (_bossHPEntity != static_cast<Entity>(-1) && ecs.registry.hasComponent<TextComponent>(_bossHPEntity)) {
         auto& boss_hp_text = ecs.registry.getComponent<TextComponent>(_bossHPEntity);
         bool found_boss = false;
@@ -65,7 +62,6 @@ void GameManager::updateUI(Environment& env) {
                     boss_hp_text.text = "BOSS: " + std::to_string(health.current_hp) + "/" + 
                                        std::to_string(health.max_hp) + " (" + std::to_string(static_cast<int>(percent)) + "%)";
                     
-                    // Couleur dynamique
                     if (percent > 50) boss_hp_text.color = sf::Color::Red;
                     else if (percent > 25) boss_hp_text.color = sf::Color(255, 165, 0); // Orange
                     else boss_hp_text.color = sf::Color::Magenta;
@@ -82,7 +78,6 @@ void GameManager::updateUI(Environment& env) {
 void GameManager::checkGameState(Environment& env) {
     auto& ecs = env.getECS();
 
-    // CLIENT SEULEMENT : Vérifier si on a reçu S_GAME_OVER du serveur
     if (!env.isServer()) {
         auto& gameOverEntities = ecs.registry.getEntities<GameOverNotification>();
         if (!gameOverEntities.empty()) {
@@ -90,7 +85,6 @@ void GameManager::checkGameState(Environment& env) {
             _gameOver = !notification.victory;
             _victory = notification.victory;
             
-            // Supprimer le composant pour ne pas le traiter plusieurs fois
             ecs.registry.destroyEntity(gameOverEntities[0]);
             if (!_leaderboardDisplayed) {
                 displayLeaderboard(env, notification.victory);
@@ -100,7 +94,6 @@ void GameManager::checkGameState(Environment& env) {
         }
     } else if (!env.isClient()) {
         // Server/standalone: if we expected a player entity but it is missing, it's game over.
-        // (On client, we might just be waiting for spawn.)
         if (_player) {
             _gameOver = true;
             displayGameOver(env, false);
@@ -109,7 +102,6 @@ void GameManager::checkGameState(Environment& env) {
     }
 
     if (_gameOver || _victory) {
-        // Si le leaderboard n'a pas encore été affiché, l'afficher maintenant
         if (!_leaderboardDisplayed) {
             displayLeaderboard(env, _victory);
             _leaderboardDisplayed = true;
@@ -117,7 +109,6 @@ void GameManager::checkGameState(Environment& env) {
         return;
     }
 
-    // Compter le nombre de joueurs vivants et morts
     int total_players = 0;
     int alive_players = 0;
     int dead_players = 0;
@@ -249,7 +240,7 @@ void GameManager::checkGameState(Environment& env) {
                 Entity transitionEntity = ecs.registry.createEntity();
                 LevelTransitionComponent transition;
                 transition.state = LevelTransitionComponent::TransitionState::IDLE;
-                transition.next_level_name = "Level 2";  // À adapter selon votre système
+                transition.next_level_name = "src/RType/Common/content/config/level2_spawns.cfg";
                 ecs.registry.addComponent<LevelTransitionComponent>(transitionEntity, transition);
             }
         }
@@ -257,25 +248,24 @@ void GameManager::checkGameState(Environment& env) {
 }
 
 void GameManager::displayGameOver(Environment& env, bool victory) {
+    auto& ecs = env.getECS();
     if (env.isServer()) return;
 
-    if (!env.isServer()) {
-        _gameStateEntity = ecs.registry.createEntity();
+    _gameStateEntity = ecs.registry.createEntity();
 
-        std::string message = victory ? "VICTORY!" : "GAME OVER";
-        sf::Color color = victory ? sf::Color::Green : sf::Color::Red;
+    std::string message = victory ? "VICTORY!" : "GAME OVER";
+    sf::Color color = victory ? sf::Color::Green : sf::Color::Red;
 
-        ecs.registry.addComponent<TextComponent>(
-            _gameStateEntity,
-            {message, "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 72, color, 700, 350});
+    ecs.registry.addComponent<TextComponent>(
+        _gameStateEntity,
+        {message, "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 72, color, 700, 350});
 
-        // Message secondaire
-        Entity subMessage = ecs.registry.createEntity();
-        std::string subText = victory ? "Congratulations!" : "Better luck next time!";
-        ecs.registry.addComponent<TextComponent>(
-            subMessage, {subText, "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 28,
-                         sf::Color::White, 750, 430});
-    }
+    // Message secondaire
+    Entity subMessage = ecs.registry.createEntity();
+    std::string subText = victory ? "Congratulations!" : "Better luck next time!";
+    ecs.registry.addComponent<TextComponent>(
+        subMessage, {subText, "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 28,
+                     sf::Color::White, 750, 430});
 }
 
 void GameManager::displayLeaderboard(Environment& env, bool victory) {
@@ -493,4 +483,3 @@ void GameManager::displayLeaderboard(Environment& env, bool victory) {
         finalMsg, {final_text, "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 28,
                    sf::Color(180, 180, 180), 580, y_offset + 40});
 }
-

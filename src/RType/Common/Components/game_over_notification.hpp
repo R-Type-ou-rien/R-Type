@@ -7,13 +7,7 @@
 
 #pragma once
 
-#include "ECS.hpp"
-
-/**
- * Composant créé côté client quand on reçoit S_GAME_OVER du serveur
- * Le GameManager détecte ce composant et affiche le leaderboard
- */
 struct GameOverNotification {
     static constexpr auto name = "GameOverNotification";
-    bool victory;  // true = victoire, false = défaite
+    bool victory;
 };

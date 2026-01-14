@@ -30,10 +30,6 @@ class AnimationHelper {
         }
     }
 
-    // Nouvelle méthode générique pour définir une animation manuellement
-    // start_x, start_y : Coin haut-gauche du premier élément sur la sprite sheet
-    // width, height : Taille d'une seule frame
-    // padding_x : Espace vide entre deux frames (si nécessaire)
     static void setupAnimation(Registry& registry, Entity entity, float start_x, float start_y, float width,
                                float height, int num_frames, float animation_speed = 0.1f, float padding_x = 0.0f) {
         if (!registry.hasComponent<sprite2D_component_s>(entity)) {
@@ -45,8 +41,6 @@ class AnimationHelper {
         sprite.loop_animation = true;
         sprite.animation_speed = animation_speed;
         sprite.frames.clear();
-
-        // Définir dimension pour le système de collision
         sprite.dimension = {start_x, start_y, width, height};
 
         for (int i = 0; i < num_frames; i++) {

@@ -10,7 +10,8 @@
 #include "../../../../RType/Common/Components/charged_shot.hpp"
 #include "../../../../RType/Common/Components/spawn.hpp"
 #include "../../../../RType/Common/Components/pod_component.hpp"
-#include "../../../../RType/Common/Components/ai_behavior_component.hpp"
+#include "../../../../RType/Common/Components/behavior_component.hpp"
+#include "../../../../RType/Common/Components/boss_component.hpp"
 #include "../../../../RType/Common/Systems/health.hpp"
 #include "Components/NetworkComponents.hpp"
 #include "Components/AudioComponent.hpp"
@@ -530,15 +531,15 @@ inline PlayerPodComponent deserialize_player_pod_component(const std::vector<uin
     return component;
 }
 
-/** AIBehaviorComponent */
-inline void serialize(std::vector<uint8_t>& buffer, const AIBehaviorComponent& component) {
+/** BehaviorComponent */
+inline void serialize(std::vector<uint8_t>& buffer, const BehaviorComponent& component) {
     serialize(buffer, component.shoot_at_player);
     serialize(buffer, component.follow_player);
     serialize(buffer, component.follow_speed);
 }
 
-inline AIBehaviorComponent deserialize_ai_behavior_component(const std::vector<uint8_t>& buffer, size_t& offset) {
-    AIBehaviorComponent component;
+inline BehaviorComponent deserialize_behavior_component(const std::vector<uint8_t>& buffer, size_t& offset) {
+    BehaviorComponent component;
     component.shoot_at_player = deserialize<bool>(buffer, offset);
     component.follow_player = deserialize<bool>(buffer, offset);
     component.follow_speed = deserialize<float>(buffer, offset);
@@ -549,12 +550,47 @@ inline AIBehaviorComponent deserialize_ai_behavior_component(const std::vector<u
 inline void serialize(std::vector<uint8_t>& buffer, const BossComponent& component) {
     serialize(buffer, component.has_arrived);
     serialize(buffer, component.target_x);
+    serialize(buffer, static_cast<int>(component.current_state));
+    serialize(buffer, component.state_timer);
+    serialize(buffer, component.current_phase);
+    serialize(buffer, component.is_enraged);
 }
 
 inline BossComponent deserialize_boss_component(const std::vector<uint8_t>& buffer, size_t& offset) {
     BossComponent component;
     component.has_arrived = deserialize<bool>(buffer, offset);
     component.target_x = deserialize<float>(buffer, offset);
+    component.current_state = static_cast<BossComponent::BossState>(deserialize<int>(buffer, offset));
+    component.state_timer = deserialize<float>(buffer, offset);
+    component.current_phase = deserialize<int>(buffer, offset);
+    component.is_enraged = deserialize<bool>(buffer, offset);
+    return component;
+}
+
+/** BossSubEntityComponent */
+inline void serialize(std::vector<uint8_t>& buffer, const BossSubEntityComponent& component) {
+    serialize(buffer, component.boss_entity_id);
+    serialize(buffer, static_cast<int>(component.type));
+    serialize(buffer, component.sub_entity_index);
+    serialize(buffer, component.is_active);
+    serialize(buffer, component.is_destroyed);
+    serialize(buffer, component.offset_x);
+    serialize(buffer, component.offset_y);
+    serialize(buffer, component.fire_timer);
+    serialize(buffer, component.fire_rate);
+}
+
+inline BossSubEntityComponent deserialize_boss_sub_entity(const std::vector<uint8_t>& buffer, size_t& offset) {
+    BossSubEntityComponent component;
+    component.boss_entity_id = deserialize<int>(buffer, offset);
+    component.type = static_cast<BossSubEntityComponent::SubEntityType>(deserialize<int>(buffer, offset));
+    component.sub_entity_index = deserialize<int>(buffer, offset);
+    component.is_active = deserialize<bool>(buffer, offset);
+    component.is_destroyed = deserialize<bool>(buffer, offset);
+    component.offset_x = deserialize<float>(buffer, offset);
+    component.offset_y = deserialize<float>(buffer, offset);
+    component.fire_timer = deserialize<float>(buffer, offset);
+    component.fire_rate = deserialize<float>(buffer, offset);
     return component;
 }
 

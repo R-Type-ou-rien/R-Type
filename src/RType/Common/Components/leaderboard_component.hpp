@@ -2,7 +2,6 @@
 
 #include <vector>
 #include <string>
-#include "ECS.hpp"
 
 struct PlayerScoreEntry {
     Entity player_entity;
@@ -11,7 +10,6 @@ struct PlayerScoreEntry {
     bool is_alive;
 };
 
-// Composant pour le leaderboard
 struct LeaderboardComponent {
     static constexpr auto name = "LeaderboardComponent";
     std::vector<PlayerScoreEntry> entries;

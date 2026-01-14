@@ -21,7 +21,7 @@
 #include "../../RType/Common/Components/game_timer.hpp"
 #include "../../RType/Common/Components/pod_component.hpp"
 #include "../../RType/Common/Components/charged_shot.hpp"
-#include "../../RType/Common/Systems/ai_behavior.hpp"
+#include "../../RType/Common/Systems/behavior.hpp"
 #include "../../RType/Common/Entities/Player/Player.hpp"
 
 ServerGameEngine::ServerGameEngine() {
@@ -58,8 +58,9 @@ int ServerGameEngine::init() {
     // R-Type specific components
     registerNetworkComponent<PodComponent>();
     registerNetworkComponent<PlayerPodComponent>();
-    registerNetworkComponent<AIBehaviorComponent>();
+    registerNetworkComponent<BehaviorComponent>();
     registerNetworkComponent<BossComponent>();
+    registerNetworkComponent<BossSubEntityComponent>();
     registerNetworkComponent<ScoreComponent>();
 
     return SUCCESS;

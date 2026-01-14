@@ -18,6 +18,7 @@ struct LevelConfig {
     // Additional configuration paths for game modularity
     std::string enemies_config;
     std::string boss_config;
+    std::string boss_section = "DEFAULT";  // Section name in boss.cfg (e.g., "BOSS_LEVEL1", "BOSS_LEVEL2")
     std::string game_config;
     std::string spawn_script;
 

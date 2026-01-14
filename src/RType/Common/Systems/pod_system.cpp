@@ -46,7 +46,6 @@ bool PodSystem::allPlayersHavePods(Registry& registry) {
 }
 
 void PodSystem::spawnPod(Registry& registry, system_context context) {
-    // Pod sprite constants - defined first for use in transform
     constexpr float POD_FRAME_WIDTH = 34.0f;
     constexpr float POD_FRAME_HEIGHT = 18.0f;
     constexpr int POD_NUM_FRAMES = 6;

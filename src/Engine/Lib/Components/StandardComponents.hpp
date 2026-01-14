@@ -31,7 +31,7 @@ class Registry;
 /**  Comment: Split les components par 'context' d'utilisation ?? ex: visuel, sonore, physic etc...*/
 struct PatternComponent {
     static constexpr auto name = "PatternComponent";
-    enum PatternType { WAYPOINT, STRAIGHT, SINUSOIDAL };
+    enum PatternType { WAYPOINT, STRAIGHT, SINUSOIDAL, LINEAR, ZIGZAG, CIRCULAR };
     PatternType type = WAYPOINT;
     std::vector<std::pair<float, float>> waypoints;
     int current_index = 0;
