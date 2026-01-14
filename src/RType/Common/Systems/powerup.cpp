@@ -4,6 +4,24 @@
 #include "damage.hpp"
 #include "ResourceConfig.hpp"
 
+PowerUpSystem::PowerUpSystem() {
+    initialize_power_up_maps();
+}
+
+void PowerUpSystem::initialize_power_up_maps() {
+    apply_power_up[PowerUpComponent::SPEED_UP] = [](Registry& registry, Entity player, float value, float duration) {
+        if (registry.hasComponent<Velocity2D>(player)) {
+            if (!registry.hasComponent<ActivePowerUpComponent>(player)) {
+                registry.addComponent<ActivePowerUpComponent>(player, {PowerUpComponent::SPEED_UP, duration, 0.0f});
+            }
+        }
+    };
+
+    deactivate_power_up[PowerUpComponent::SPEED_UP] = [](Registry& registry, Entity player) {
+        if (registry.hasComponent<Velocity2D>(player)) {}
+    };
+}
+
 void PowerUpSystem::update(Registry& registry, system_context context) {
     updateActivePowerUps(registry, context);
     checkPowerUpCollisions(registry, context);
@@ -20,22 +38,15 @@ void PowerUpSystem::updateActivePowerUps(Registry& registry, system_context cont
             powerup.remaining_time -= context.dt;
             
             if (powerup.remaining_time <= 0) {
-                // Le power-up a expiré, restaurer les valeurs originales
                 expired_powerups.push_back({entity, powerup.type});
             }
         }
     }
 
-    // Restaurer les valeurs originales pour les power-ups expirés
     for (auto& [entity, type] : expired_powerups) {
-        auto& powerup = registry.getComponent<ActivePowerUpComponent>(entity);
-        
-        if (type == PowerUpComponent::SPEED_UP) {
-            if (registry.hasComponent<Velocity2D>(entity)) {
-                // Restaurer la vitesse originale
-                // Pour simplifier, on divise par le multiplicateur
-                // (dans une vraie implémentation, on stockerait la valeur originale)
-            }
+        auto it = deactivate_power_up.find(type);
+        if (it != deactivate_power_up.end()) {
+            it->second(registry, entity);
         }
         
         registry.removeComponent<ActivePowerUpComponent>(entity);
@@ -43,7 +54,6 @@ void PowerUpSystem::updateActivePowerUps(Registry& registry, system_context cont
 }
 
 void PowerUpSystem::checkPowerUpCollisions(Registry& registry, system_context context) {
-    // Trouver le joueur
     Entity player_entity = -1;
     auto& teams = registry.getEntities<TeamComponent>();
     for (auto entity : teams) {
@@ -66,7 +76,6 @@ void PowerUpSystem::checkPowerUpCollisions(Registry& registry, system_context co
     if (player_entity == -1)
         return;
 
-    // Vérifier les collisions avec les power-ups
     auto& powerups = registry.getEntities<PowerUpComponent>();
     for (auto powerup_entity : powerups) {
         if (!registry.hasComponent<BoxCollisionComponent>(powerup_entity))
@@ -74,14 +83,11 @@ void PowerUpSystem::checkPowerUpCollisions(Registry& registry, system_context co
             
         auto& collision = registry.getConstComponent<BoxCollisionComponent>(powerup_entity);
         
-        // Vérifier si le joueur est dans la liste des collisions
         for (auto collided : collision.collision.tags) {
             if (collided == player_entity) {
-                // Appliquer le power-up
                 auto& powerup = registry.getConstComponent<PowerUpComponent>(powerup_entity);
                 applyPowerUp(registry, player_entity, powerup.type, powerup.value, powerup.duration);
                 
-                // Détruire le power-up
                 if (!registry.hasComponent<PendingDestruction>(powerup_entity)) {
                     registry.addComponent<PendingDestruction>(powerup_entity, {});
                 }
@@ -93,32 +99,9 @@ void PowerUpSystem::checkPowerUpCollisions(Registry& registry, system_context co
 
 void PowerUpSystem::applyPowerUp(Registry& registry, Entity player, PowerUpComponent::PowerUpType type, 
                                   float value, float duration) {
-    switch (type) {
-        case PowerUpComponent::SPEED_UP: {
-            if (registry.hasComponent<Velocity2D>(player)) {
-                // Stocker l'effet actif
-                if (!registry.hasComponent<ActivePowerUpComponent>(player)) {
-                    registry.addComponent<ActivePowerUpComponent>(player, {type, duration, 0.0f});
-                }
-                
-                // Augmenter la vitesse de déplacement
-                // Note: dans un vrai système, on devrait modifier la vitesse max du joueur
-                // Pour l'instant, on marque juste qu'il a le power-up
-            }
-            break;
-        }
-        case PowerUpComponent::FIRE_RATE: {
-            // Augmenter le fire rate
-            break;
-        }
-        case PowerUpComponent::SHIELD: {
-            // Ajouter un bouclier
-            break;
-        }
-        case PowerUpComponent::WEAPON_UPGRADE: {
-            // Améliorer l'arme
-            break;
-        }
+    auto it = apply_power_up.find(type);
+    if (it != apply_power_up.end()) {
+        it->second(registry, player, value, duration);
     }
 }
 
@@ -126,15 +109,14 @@ void PowerUpSystem::spawnSpeedUp(Registry& registry, system_context context, flo
     Entity id = registry.createEntity();
     
     registry.addComponent<transform_component_s>(id, {x, y});
-    registry.addComponent<Velocity2D>(id, {-100.0f, 0.0f});  // Scroll vers la gauche
+    registry.addComponent<Velocity2D>(id, {-100.0f, 0.0f});
     
     PowerUpComponent powerup;
     powerup.type = PowerUpComponent::SPEED_UP;
-    powerup.duration = 10.0f;  // 10 secondes
-    powerup.value = 1.5f;      // +50% de vitesse
+    powerup.duration = 10.0f;
+    powerup.value = 1.5f;
     registry.addComponent<PowerUpComponent>(id, powerup);
     
-    // Visuel du power-up (utiliser r-typesheet3.gif pour les power-ups)
     handle_t<TextureAsset> handle =
         context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet3.gif",
                                      TextureAsset("src/RType/Common/content/sprites/r-typesheet3.gif"));
@@ -150,7 +132,6 @@ void PowerUpSystem::spawnSpeedUp(Registry& registry, system_context context, flo
     transform.scale_x = 2.5f;
     transform.scale_y = 2.5f;
     
-    // Collision
     BoxCollisionComponent collision;
     collision.tagCollision.push_back("PLAYER");
     registry.addComponent<BoxCollisionComponent>(id, collision);

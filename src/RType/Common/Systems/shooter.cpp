@@ -20,7 +20,6 @@ Velocity2D ShooterSystem::get_projectile_speed(ShooterComponent::ProjectileType 
     Velocity2D vel = {0, 0};
     double speed = 0;
 
-    // Enemy projectiles are slower than player projectiles
     if (team == TeamComponent::ENEMY) {
         speed = 300;  // Slower enemy projectiles (player speed is 350)
     } else {
@@ -31,14 +30,11 @@ Velocity2D ShooterSystem::get_projectile_speed(ShooterComponent::ProjectileType 
             case ShooterComponent::CHARG:
                 speed = 800;
                 break;
-            case ShooterComponent::RED:
-                speed = 650;
-                break;
-            case ShooterComponent::BLUE:
-                speed = 650;
-                break;
             case ShooterComponent::POD_LASER:
                 speed = 800;
+                break;
+            default:
+                speed = 700;
                 break;
         }
     }
@@ -92,7 +88,6 @@ void ShooterSystem::create_projectile_with_pattern(Registry& registry, Entity ow
     float offset_x = (team == TeamComponent::ALLY) ? 50.0f : -20.0f;
     registry.addComponent<transform_component_s>(id, {(pos.x + offset_x), (pos.y + 20)});
 
-    // Apply projectile scale
     if (projectile_scale > 1.0f) {
         auto& proj_transform = registry.getComponent<transform_component_s>(id);
         proj_transform.scale_x = projectile_scale;
@@ -110,35 +105,21 @@ void ShooterSystem::create_projectile_with_pattern(Registry& registry, Entity ow
     sprite_info.current_animation_frame = 0;
     sprite_info.z_index = 5;  // Au-dessus des autres sprites
 
-    // Différencier les sprites selon l'équipe
     if (team == TeamComponent::ENEMY) {
-        // Projectiles ennemis : petites boules rouges du boss (r-typesheet30.gif)
         handle_t<TextureAsset> handle =
             context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet30.gif",
                                          TextureAsset("src/RType/Common/content/sprites/r-typesheet30.gif"));
         sprite_info.handle = handle;
-        // Coordonnées des petites boules rouges/orange en bas du sprite du boss
-        sprite_info.dimension = {200, 230, 12, 12};  // Petite boule rouge
+        sprite_info.dimension = {200, 230, 12, 12};
     } else {
-        // Projectiles alliés : projectiles du joueur (r-typesheet1.gif)
         handle_t<TextureAsset> handle =
             context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet1.gif",
                                          TextureAsset("src/RType/Common/content/sprites/r-typesheet1.gif"));
         sprite_info.handle = handle;
 
-        // 3 modes de tirs avec des sprites différents
         switch (type) {
-            case ShooterComponent::RED:
-                // Laser rouge (r-typesheet1.gif)
-                sprite_info.dimension = {248, 84, 32, 14};
-                break;
-            case ShooterComponent::BLUE:
-                // Laser bleu (r-typesheet1.gif)
-                sprite_info.dimension = {248, 102, 32, 14};
-                break;
             case ShooterComponent::NORMAL:
             default:
-                // Projectile vert (par défaut)
                 sprite_info.dimension = {232, 103, 32, 14};
                 break;
         }
@@ -148,9 +129,8 @@ void ShooterSystem::create_projectile_with_pattern(Registry& registry, Entity ow
 
     auto& projectile_transform = registry.getComponent<transform_component_s>(id);
     if (team == TeamComponent::ENEMY) {
-        // Boules rouges ennemies : agrandir pour visibilité (pas de flip car c'est une boule)
-        projectile_transform.scale_x = 4.0f;  // Agrandir davantage pour être bien visible
-        projectile_transform.scale_y = 4.0f;  // Agrandir davantage pour être bien visible
+        projectile_transform.scale_x = 4.0f;
+        projectile_transform.scale_y = 4.0f;
     } else {
         projectile_transform.scale_x = 2.0f;
         projectile_transform.scale_y = 2.0f;
@@ -173,7 +153,6 @@ void ShooterSystem::create_projectile_with_pattern(Registry& registry, Entity ow
         registry.addComponent<AudioSourceComponent>(id, audio);
     }
 
-    // Add NetworkIdentity for network replication
     registry.addComponent<NetworkIdentity>(id, {static_cast<uint32_t>(id), 0});
 
     return;
@@ -215,12 +194,9 @@ void ShooterSystem::create_charged_projectile(Registry& registry, Entity owner_e
     int damage = static_cast<int>(50 + (150 * charge_ratio));
     registry.addComponent<DamageOnCollision>(id, {damage});
 
-    // Gestion de la pénétration selon le niveau de charge
     if (charge_ratio >= 1.0f) {
-        // Tir chargé max : traverse tout
         registry.addComponent<PenetratingProjectile>(id, {999, 0});
     } else if (charge_ratio >= 0.5f) {
-        // Tir middle : traverse 2 ennemis max (se détruit au 3ème impact)
         registry.addComponent<PenetratingProjectile>(id, {3, 0});
     }
 

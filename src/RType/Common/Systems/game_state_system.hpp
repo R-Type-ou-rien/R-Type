@@ -13,10 +13,6 @@
 #include "health.hpp"
 #include "Components/StandardComponents.hpp"
 
-/**
- * Système qui détecte la fin de partie (tous les joueurs morts ou boss vaincu)
- * et envoie les notifications réseau appropriées
- */
 class GameStateSystem : public ISystem {
    public:
     void update(Registry& registry, system_context context) override;

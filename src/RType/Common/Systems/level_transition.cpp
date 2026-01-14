@@ -7,6 +7,8 @@
 
 #include "level_transition.hpp"
 #include <iostream>
+#include "../Components/scripted_spawn.hpp"
+#include "../Components/spawn.hpp"
 
 void LevelTransitionSystem::update(Registry& registry, system_context context) {
     auto& transitions = registry.getEntities<LevelTransitionComponent>();
@@ -27,7 +29,6 @@ void LevelTransitionSystem::handleTransitionState(Registry& registry, Entity ent
     
     switch (transition.state) {
         case LevelTransitionComponent::TransitionState::IDLE:
-            // Attendre un moment avant de commencer
             if (transition.transition_time > 2.0f) {
                 transition.state = LevelTransitionComponent::TransitionState::FADING_OUT;
                 transition.transition_time = 0.0f;
@@ -35,7 +36,6 @@ void LevelTransitionSystem::handleTransitionState(Registry& registry, Entity ent
             break;
             
         case LevelTransitionComponent::TransitionState::FADING_OUT:
-            // Fade out progressif
             transition.fade_alpha = std::min(1.0f, transition.transition_time / transition.fade_duration);
             createFadeEffect(registry, transition.fade_alpha);
             
@@ -47,40 +47,53 @@ void LevelTransitionSystem::handleTransitionState(Registry& registry, Entity ent
             break;
             
         case LevelTransitionComponent::TransitionState::SHOW_LEVEL_COMPLETE:
-            // Afficher "LEVEL COMPLETE" pendant un moment
             if (transition.transition_time >= transition.display_duration) {
                 transition.state = LevelTransitionComponent::TransitionState::FADING_IN;
                 transition.transition_time = 0.0f;
                 
-                // TODO: Charger le niveau suivant ici
                 std::cout << "[LevelTransition] Loading next level: " 
                           << transition.next_level_name << std::endl;
+
+                // Réinitialiser les spawners avec le nouveau script
+                auto& spawners = registry.getEntities<ScriptedSpawnComponent>();
+                for (auto spawner : spawners) {
+                    auto& script = registry.getComponent<ScriptedSpawnComponent>(spawner);
+                    
+                    // Charger le nouveau fichier de niveau
+                    script.script_path = transition.next_level_name;
+                    script.spawn_events.clear();
+                    script.next_event_index = 0;
+                    script.level_time = 0.0f;
+                    script.all_events_completed = false;
+
+                    // Réinitialiser l'état du boss et du timer global
+                    if (registry.hasComponent<EnemySpawnComponent>(spawner)) {
+                        auto& enemySpawn = registry.getComponent<EnemySpawnComponent>(spawner);
+                        enemySpawn.boss_spawned = false;
+                        enemySpawn.boss_arrived = false;
+                        enemySpawn.total_time = 0.0f;
+                        enemySpawn.is_active = true;
+                    }
+                }
             }
             break;
             
         case LevelTransitionComponent::TransitionState::FADING_IN:
-            // Fade in vers le nouveau niveau
             transition.fade_alpha = 1.0f - std::min(1.0f, transition.transition_time / transition.fade_duration);
             createFadeEffect(registry, transition.fade_alpha);
             
             if (transition.transition_time >= transition.fade_duration) {
                 transition.state = LevelTransitionComponent::TransitionState::COMPLETE;
-                // Supprimer l'entité de transition
                 registry.destroyEntity(entity);
             }
             break;
             
         case LevelTransitionComponent::TransitionState::COMPLETE:
-            // Transition terminée
             break;
     }
 }
 
-void LevelTransitionSystem::createFadeEffect(Registry& registry, float alpha) {
-    // Créer un effet de fade avec un rectangle semi-transparent
-    // Note: Cette implémentation est simplifiée - dans un système de rendu complet,
-    // vous utiliseriez un sprite ou un rectangle dessiné directement
-    
+void LevelTransitionSystem::createFadeEffect(Registry& registry, float alpha) {    
     auto& fadeEntities = registry.getEntities<TagComponent>();
     bool fadeExists = false;
     
@@ -89,8 +102,6 @@ void LevelTransitionSystem::createFadeEffect(Registry& registry, float alpha) {
         for (const auto& tag : tags.tags) {
             if (tag == "FADE_OVERLAY") {
                 fadeExists = true;
-                // L'overlay existe déjà, on pourrait mettre à jour son alpha
-                // mais c'est géré par le système de rendu
                 break;
             }
         }
@@ -104,10 +115,8 @@ void LevelTransitionSystem::createFadeEffect(Registry& registry, float alpha) {
         tags.tags.push_back("FADE_OVERLAY");
         registry.addComponent<TagComponent>(fadeEntity, tags);
         
-        // Créer un texte pour simuler un overlay (solution simplifiée)
-        // Dans un vrai jeu, vous utiliseriez un composant graphique approprié
         TextComponent fadeText;
-        fadeText.text = "";  // Vide, juste pour marquer l'entité
+        fadeText.text = "";
         fadeText.fontPath = "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf";
         fadeText.characterSize = 1;
         fadeText.color = sf::Color(0, 0, 0, static_cast<uint8_t>(alpha * 255));
@@ -133,7 +142,6 @@ void LevelTransitionSystem::createLevelCompleteText(Registry& registry) {
          650,
          400});
     
-    // Texte secondaire
     Entity subText = registry.createEntity();
     registry.addComponent<TextComponent>(
         subText,

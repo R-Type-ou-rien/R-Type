@@ -20,9 +20,7 @@ void HealthSystem::update(Registry& registry, system_context context) {
             health.last_damage_time -= context.dt;
         }
         if (health.current_hp <= 0) {
-            // Ne pas détruire les boss immédiatement - ils ont une séquence de mort
             if (registry.hasComponent<BossComponent>(entity)) {
-                // Le BossPatternSystem gère la mort du boss
                 continue;
             }
             dead_entities.push_back(entity);
@@ -30,7 +28,6 @@ void HealthSystem::update(Registry& registry, system_context context) {
     }
     for (auto dead_entity : dead_entities) {
         if (registry.hasComponent<HealthComponent>(dead_entity)) {
-            // Ajouter le score si l'entité a une valeur de score
             if (registry.hasComponent<ScoreValueComponent>(dead_entity)) {
                 auto& score_value = registry.getConstComponent<ScoreValueComponent>(dead_entity);
                 bool awarded_to_player = false;

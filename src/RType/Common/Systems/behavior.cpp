@@ -66,8 +66,6 @@ void BehaviorSystem::updateFollowPlayer(Registry& registry, system_context conte
 }
 
 void BehaviorSystem::updateShootAtPlayer(Registry& registry, Entity enemy, Entity player) {
-    // La direction du tir sera calculée dans le ShooterSystem
-    // On stocke juste la position du joueur pour référence
 }
 
 void BoundsSystem::update(Registry& registry, system_context context) {

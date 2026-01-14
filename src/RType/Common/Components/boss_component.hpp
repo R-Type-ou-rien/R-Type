@@ -39,6 +39,69 @@ namespace BossDefaults {
     }
 
     inline const char* TAIL_SPRITE_PATH = "src/RType/Common/content/sprites/r-typesheet30.gif";
+
+    namespace Patterns {
+        constexpr float LINEAR_SPEED = -400.0f;
+        constexpr int LINEAR_DAMAGE = 25;
+        
+        constexpr float MISSILE_SPEED = -250.0f;
+        constexpr float MISSILE_OFFSET_Y = 100.0f;
+        constexpr int MISSILE_DAMAGE = 30;
+
+        constexpr float WALL_ANGLE_STEP = 15.0f;
+        constexpr float WALL_SPEED = -350.0f;
+        constexpr int WALL_DAMAGE = 35;
+        constexpr int WALL_COUNT_SIDE = 2;
+
+        constexpr float BOUNCE_SPEED_X = -300.0f;
+        constexpr float BOUNCE_OFFSET_Y = 200.0f;
+        constexpr int BOUNCE_DAMAGE = 35;
+
+        constexpr float SPIRAL_SPEED = -300.0f;
+        constexpr int SPIRAL_DAMAGE = 40;
+        constexpr int SPIRAL_COUNT = 8;
+        constexpr float SPIRAL_ROTATION_SPEED = 180.0f;
+
+        constexpr float DELAYED_SPEED = -200.0f;
+        constexpr int DELAYED_DAMAGE = 45;
+    }
+
+    namespace Projectile {
+        constexpr float OFFSET_X = -30.0f;
+        constexpr float SCALE = 2.0f;
+        constexpr float SPRITE_X = 241.0f;
+        constexpr float SPRITE_Y = 120.0f;
+        constexpr float SPRITE_W = 10.0f;
+        constexpr float SPRITE_H = 10.0f;
+        constexpr int Z_INDEX = 5;
+        inline const char* SPRITE_PATH = "src/RType/Common/content/sprites/r-typesheet1.gif";
+    }
+
+    namespace SubEntities {
+        constexpr float PROJECTILE_SPEED = -400.0f;
+        constexpr int PROJECTILE_DAMAGE = 20;
+        
+        namespace Tentacle {
+            constexpr int HP = 50;
+            constexpr int COLLISION_DAMAGE = 15;
+        }
+        namespace Cannon {
+            constexpr int HP = 80;
+            constexpr int COLLISION_DAMAGE = 20;
+        }
+    }
+    
+    namespace Phases {
+        constexpr float FIRE_RATE_PHASE_2 = 0.2f;
+        constexpr float FIRE_RATE_PHASE_3 = 0.15f;
+        constexpr float FIRE_RATE_ENRAGED = 0.1f;
+        constexpr float ENRAGED_SPEED_FACTOR = 2.0f;
+        constexpr float ENRAGED_AMPLITUDE = 150.0f;
+        constexpr float ENRAGED_ATTACK_INTERVAL = 0.8f;
+        constexpr float DYING_FALL_SPEED = 500.0f;
+        constexpr float PHASE3_VULNERABILITY_START = 1.0f;
+        constexpr float PHASE3_VULNERABILITY_END = 2.0f;
+    }
 }
 
 struct BossTailConfig {
@@ -70,6 +133,44 @@ struct BossSubEntityConfig {
     float fire_rate;
 };
 
+struct BossPatternConfig {
+    float linear_speed = BossDefaults::Patterns::LINEAR_SPEED;
+    int linear_damage = BossDefaults::Patterns::LINEAR_DAMAGE;
+    
+    float missile_speed = BossDefaults::Patterns::MISSILE_SPEED;
+    float missile_offset_y = BossDefaults::Patterns::MISSILE_OFFSET_Y;
+    int missile_damage = BossDefaults::Patterns::MISSILE_DAMAGE;
+
+    float wall_angle_step = BossDefaults::Patterns::WALL_ANGLE_STEP;
+    float wall_speed = BossDefaults::Patterns::WALL_SPEED;
+    int wall_damage = BossDefaults::Patterns::WALL_DAMAGE;
+    int wall_count_side = BossDefaults::Patterns::WALL_COUNT_SIDE;
+
+    float bounce_speed_x = BossDefaults::Patterns::BOUNCE_SPEED_X;
+    float bounce_offset_y = BossDefaults::Patterns::BOUNCE_OFFSET_Y;
+    int bounce_damage = BossDefaults::Patterns::BOUNCE_DAMAGE;
+
+    float spiral_speed = BossDefaults::Patterns::SPIRAL_SPEED;
+    int spiral_damage = BossDefaults::Patterns::SPIRAL_DAMAGE;
+    int spiral_count = BossDefaults::Patterns::SPIRAL_COUNT;
+    float spiral_rotation_speed = BossDefaults::Patterns::SPIRAL_ROTATION_SPEED;
+
+    float delayed_speed = BossDefaults::Patterns::DELAYED_SPEED;
+    int delayed_damage = BossDefaults::Patterns::DELAYED_DAMAGE;
+};
+
+struct BossPhaseConfig {
+    float fire_rate_phase_2 = BossDefaults::Phases::FIRE_RATE_PHASE_2;
+    float fire_rate_phase_3 = BossDefaults::Phases::FIRE_RATE_PHASE_3;
+    float fire_rate_enraged = BossDefaults::Phases::FIRE_RATE_ENRAGED;
+    float enraged_speed_factor = BossDefaults::Phases::ENRAGED_SPEED_FACTOR;
+    float enraged_amplitude = BossDefaults::Phases::ENRAGED_AMPLITUDE;
+    float enraged_attack_interval = BossDefaults::Phases::ENRAGED_ATTACK_INTERVAL;
+    float dying_fall_speed = BossDefaults::Phases::DYING_FALL_SPEED;
+    float phase3_vulnerability_start = BossDefaults::Phases::PHASE3_VULNERABILITY_START;
+    float phase3_vulnerability_end = BossDefaults::Phases::PHASE3_VULNERABILITY_END;
+};
+
 struct BossComponent {
     static constexpr auto name = "BossComponent";
 
@@ -91,6 +192,9 @@ struct BossComponent {
     float death_duration = 3.0f;
     float damage_flash_duration = 0.1f;
     std::vector<BossSubEntityConfig> sub_entities_config;
+    
+    BossPatternConfig patterns;
+    BossPhaseConfig phases;
 
     bool has_arrived = false;
     float target_x = 0.0f;

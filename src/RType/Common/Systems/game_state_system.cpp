@@ -14,8 +14,6 @@
 
 void GameStateSystem::update(Registry& registry, system_context context) {
 #if defined(SERVER_BUILD)
-    // SOLUTION: Utiliser le LobbyManager pour obtenir la liste des clients
-    // au lieu de chercher dans le registre ECS (les joueurs morts sont supprimés!)
     if (!context.lobby_manager) {
         return;
     }
@@ -32,7 +30,6 @@ void GameStateSystem::update(Registry& registry, system_context context) {
     int alive_count = 0;
     bool any_in_game_lobby = false;
     
-    // Parcourir TOUS les lobbies en jeu pour trouver TOUS les joueurs
     auto& lobbies = context.lobby_manager->getAllLobbies();
     for (auto const& [lobbyId, lobby] : lobbies) {
         if (lobby.getState() != engine::core::Lobby::State::IN_GAME) {
@@ -41,7 +38,6 @@ void GameStateSystem::update(Registry& registry, system_context context) {
 
         any_in_game_lobby = true;
         
-        // Pour chaque client dans le lobby
         for (const auto& client : lobby.getClients()) {
             PlayerInfo player;
             player.client_id = client.id;
@@ -50,7 +46,6 @@ void GameStateSystem::update(Registry& registry, system_context context) {
             player.score = 0;
             player.found_in_registry = false;
             
-            // Trouver l'entité du joueur via NetworkIdentity
             auto& entities_with_network_id = registry.getEntities<NetworkIdentity>();
             for (auto entity : entities_with_network_id) {
                 auto& net_id = registry.getConstComponent<NetworkIdentity>(entity);
@@ -58,14 +53,12 @@ void GameStateSystem::update(Registry& registry, system_context context) {
                     player.entity_id = entity;
                     player.found_in_registry = true;
                     
-                    // Récupérer HP
                     if (registry.hasComponent<HealthComponent>(entity)) {
                         auto& health = registry.getConstComponent<HealthComponent>(entity);
                         player.hp = health.current_hp;
                         if (player.hp > 0) alive_count++;
                     }
                     
-                    // Récupérer score
                     if (registry.hasComponent<ScoreComponent>(entity)) {
                         auto& score_comp = registry.getConstComponent<ScoreComponent>(entity);
                         player.score = score_comp.current_score;
@@ -78,9 +71,7 @@ void GameStateSystem::update(Registry& registry, system_context context) {
         }
     }
     
-    // Si aucun joueur, rien à faire
     if (all_players.empty()) {
-        // If no lobby is currently in-game, we're between matches: reset one-shot flags
         if (!any_in_game_lobby) {
             _gameOverSent = false;
             _victorySent = false;
@@ -88,21 +79,18 @@ void GameStateSystem::update(Registry& registry, system_context context) {
         return;
     }
 
-    // If we're not in an active match, reset flags and stop
     if (!any_in_game_lobby) {
         _gameOverSent = false;
         _victorySent = false;
         return;
     }
 
-    // SERVEUR SEULEMENT : Envoyer S_GAME_OVER quand tous les joueurs sont morts (prioritaire sur la victoire)
     if (alive_count == 0) {
         if (!_gameOverSent) {
             auto network_instance = context.network.getNetworkInstance();
             if (std::holds_alternative<std::shared_ptr<network::Server>>(network_instance)) {
                 auto server = std::get<std::shared_ptr<network::Server>>(network_instance);
 
-                // Créer le packet avec les scores de TOUS les joueurs
                 network::GameOverPacket gameOverPacket;
                 gameOverPacket.victory = false;
                 gameOverPacket.player_count = 0;
@@ -120,7 +108,6 @@ void GameStateSystem::update(Registry& registry, system_context context) {
                     gameOverPacket.player_count++;
                 }
 
-                // Envoyer à TOUS les clients dans les lobbies en jeu
                 for (auto const& [lobbyId, lobby] : lobbies) {
                     if (lobby.getState() != engine::core::Lobby::State::IN_GAME) {
                         continue;
@@ -135,11 +122,9 @@ void GameStateSystem::update(Registry& registry, system_context context) {
             }
         }
 
-        // Even if the boss is dead too, defeat must win.
         return;
     }
 
-    // Détection victoire: boss vaincu (uniquement s'il reste au moins 1 joueur vivant)
     bool boss_spawned = false;
     {
         auto& spawners = registry.getEntities<EnemySpawnComponent>();
@@ -193,7 +178,6 @@ void GameStateSystem::update(Registry& registry, system_context context) {
                 gameOverPacket.player_count++;
             }
 
-            // Envoyer à TOUS les clients dans les lobbies en jeu
             for (auto const& [lobbyId, lobby] : lobbies) {
                 if (lobby.getState() != engine::core::Lobby::State::IN_GAME) {
                     continue;

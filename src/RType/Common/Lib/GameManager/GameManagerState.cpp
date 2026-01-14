@@ -240,7 +240,7 @@ void GameManager::checkGameState(Environment& env) {
                 Entity transitionEntity = ecs.registry.createEntity();
                 LevelTransitionComponent transition;
                 transition.state = LevelTransitionComponent::TransitionState::IDLE;
-                transition.next_level_name = "Level 2";  // À adapter selon votre système
+                transition.next_level_name = "src/RType/Common/content/config/level2_spawns.cfg";
                 ecs.registry.addComponent<LevelTransitionComponent>(transitionEntity, transition);
             }
         }
@@ -483,4 +483,3 @@ void GameManager::displayLeaderboard(Environment& env, bool victory) {
         finalMsg, {final_text, "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 28,
                    sf::Color(180, 180, 180), 580, y_offset + 40});
 }
-
