@@ -1,0 +1,196 @@
+# ====================================================================
+# R-TYPE - LEVEL 1 CONFIGURATION
+# Config-driven level design - All parameters defined here
+# ====================================================================
+
+[METADATA]
+level_id=1
+level_name=Asteroid Field Assault
+level_description=Navigate through treacherous asteroid fields and defeat the alien forces
+difficulty=NORMAL
+recommended_level=1
+unlock_requirement=none
+
+# ====================================================================
+# VISUAL & AUDIO
+# ====================================================================
+[VISUALS]
+background_texture=src/RType/Common/content/sprites/test.png
+background_scroll_speed=60.0
+background_parallax_layers=1
+background_color=0,0,0,255
+
+music_track=theme
+music_volume=70.0
+ambient_sound=space_ambient
+ambient_volume=30.0
+
+# ====================================================================
+# LEVEL PROGRESSION
+# ====================================================================
+[PROGRESSION]
+level_length=15000
+# Duration in seconds before boss appears (if no script trigger)
+boss_spawn_time=120.0
+boss_intro_delay=3.0
+
+# Victory conditions
+victory_condition=DEFEAT_BOSS
+time_limit=300.0
+min_score_required=0
+
+# ====================================================================
+# PLAYER PARAMETERS (overrides for this level)
+# ====================================================================
+[PLAYER]
+start_x=100.0
+start_y=540.0
+max_lives=3
+continue_allowed=true
+invincibility_time=2.0
+
+# Power-up spawn rates (0.0 to 1.0)
+powerup_spawn_rate=0.15
+weapon_upgrade_rate=0.10
+shield_spawn_rate=0.08
+extra_life_rate=0.02
+
+# ====================================================================
+# DIFFICULTY SETTINGS
+# ====================================================================
+[DIFFICULTY]
+# Enemy health multiplier (1.0 = normal, 1.5 = 150% health)
+enemy_health_multiplier=1.0
+# Enemy damage multiplier
+enemy_damage_multiplier=1.0
+# Enemy speed multiplier
+enemy_speed_multiplier=1.0
+# Enemy fire rate multiplier (higher = faster shooting)
+enemy_fire_rate_multiplier=1.0
+# Boss health multiplier
+boss_health_multiplier=1.0
+# Score multiplier
+score_multiplier=1.0
+
+# ====================================================================
+# SPAWN SYSTEM
+# ====================================================================
+[SPAWNING]
+# Main spawn script
+spawn_script=src/RType/Common/content/config/level1_spawns.cfg
+# Enable random enemy waves between scripted spawns
+random_waves_enabled=false
+random_wave_interval=20.0
+random_wave_min_enemies=2
+random_wave_max_enemies=5
+
+# Pod spawn configuration
+pod_spawn_enabled=true
+pod_spawn_interval=15.0
+pod_min_spawn_interval=10.0
+pod_max_spawn_interval=20.0
+
+# ====================================================================
+# OBSTACLES & ENVIRONMENT
+# ====================================================================
+[OBSTACLES]
+# Scrolling obstacles (asteroids, debris)
+obstacle_enabled=false
+obstacle_start_time=999.0
+obstacle_end_time=999.0
+obstacle_interval=8.0
+obstacle_speed=120.0
+obstacle_hp=150
+obstacle_damage=1
+obstacle_score_value=50
+
+# ====================================================================
+# WALLS & STATIC ELEMENTS
+# ====================================================================
+[WALLS]
+# Format: wall_N=x,y,width,height,sprite_path,destructible,hp
+# Floor walls (bottom)
+wall_1=2000,900,800,180,src/RType/Common/content/sprites/r-typesheet14.gif,false,0
+wall_2=4000,920,600,160,src/RType/Common/content/sprites/r-typesheet14.gif,false,0
+wall_3=6500,880,1000,200,src/RType/Common/content/sprites/r-typesheet14.gif,false,0
+wall_4=9000,900,700,180,src/RType/Common/content/sprites/r-typesheet14.gif,false,0
+
+# Ceiling walls (top)
+wall_5=2500,0,600,150,src/RType/Common/content/sprites/r-typesheet14.gif,false,0
+wall_6=5000,0,800,180,src/RType/Common/content/sprites/r-typesheet14.gif,false,0
+wall_7=7500,0,500,200,src/RType/Common/content/sprites/r-typesheet14.gif,false,0
+wall_8=10000,0,900,160,src/RType/Common/content/sprites/r-typesheet14.gif,false,0
+
+# Narrow passage
+wall_9=12000,800,1500,280,src/RType/Common/content/sprites/r-typesheet14.gif,false,0
+wall_10=12000,0,1500,300,src/RType/Common/content/sprites/r-typesheet14.gif,false,0
+
+# ====================================================================
+# TURRETS & STATIC ENEMIES
+# ====================================================================
+[TURRETS]
+# Format: turret_N=x,y,hp,fire_rate,shoot_pattern,sprite_path,damage,projectile_speed
+# Floor turrets
+turret_1=2200,850,100,2.5,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif,10,200
+turret_2=2600,850,100,2.8,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif,10,200
+turret_3=4200,870,120,2.2,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif,15,220
+turret_4=6700,830,100,2.5,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif,10,200
+turret_5=7000,830,100,3.0,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif,10,200
+turret_6=9200,850,120,2.2,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif,15,220
+
+# Ceiling turrets
+turret_7=2700,150,100,2.5,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif,10,200
+turret_8=5200,180,120,2.2,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif,15,220
+turret_9=5500,180,100,2.8,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif,10,200
+turret_10=7700,200,120,2.2,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif,15,220
+turret_11=10200,160,100,3.0,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif,10,200
+
+# Narrow passage turrets
+turret_12=12200,750,150,2.5,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif,20,200
+turret_13=12600,750,150,2.2,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif,20,220
+turret_14=13000,750,150,2.5,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif,20,200
+turret_15=12400,300,150,2.2,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif,20,220
+turret_16=12800,300,150,2.8,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif,20,200
+
+# ====================================================================
+# BOSS CONFIGURATION
+# ====================================================================
+[BOSS]
+# Reference to boss configuration section in boss.cfg
+boss_config_file=src/RType/Common/content/config/boss.cfg
+boss_section=BOSS_LEVEL1
+# Boss spawn trigger
+boss_spawn_trigger=TIME
+boss_spawn_x=1600
+boss_spawn_y=540
+
+# ====================================================================
+# SCORING & REWARDS
+# ====================================================================
+[SCORING]
+# Base score for completion
+completion_bonus=10000
+# Time bonus (points per second remaining)
+time_bonus_multiplier=100
+# No damage bonus
+no_damage_bonus=5000
+# Perfect run bonus (no deaths)
+perfect_run_bonus=20000
+
+# Enemy score values (overrides default config)
+scout_score=100
+fighter_score=200
+tank_score=300
+shooter_score=250
+kamikaze_score=150
+boss_score=50000
+
+# ====================================================================
+# REFERENCES TO SHARED CONFIGS
+# ====================================================================
+[CONFIGS]
+enemies_config=src/RType/Common/content/config/enemies.cfg
+boss_config=src/RType/Common/content/config/boss.cfg
+game_config=src/RType/Common/content/config/game.cfg
+player_config=src/RType/Common/content/config/player.cfg
+ui_config=src/RType/Common/content/config/ui.cfg

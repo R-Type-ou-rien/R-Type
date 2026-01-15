@@ -26,22 +26,3 @@ struct GameStateComponent {
     bool transition_to_next_level = false;
     float transition_start_time = 0.0f;
 };
-
-struct LevelTransitionComponent {
-    static constexpr auto name = "LevelTransitionComponent";
-    
-    enum class TransitionState {
-        IDLE,
-        FADING_OUT,
-        SHOW_LEVEL_COMPLETE,
-        FADING_IN,
-        COMPLETE
-    };
-    
-    TransitionState state = TransitionState::IDLE;
-    float fade_alpha = 0.0f;
-    float transition_time = 0.0f;
-    float fade_duration = 1.0f;
-    float display_duration = 2.0f;
-    std::string next_level_name;
-};

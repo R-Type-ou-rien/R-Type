@@ -1,0 +1,183 @@
+# ====================================================================
+# R-TYPE - LEVEL 3 CONFIGURATION
+# Alien Mothership Final Assault - Very Hard
+# ====================================================================
+
+[METADATA]
+level_id=3
+level_name=Mothership Annihilation
+level_description=Infiltrate the alien mothership and destroy the hive queen
+difficulty=VERY_HARD
+recommended_level=3
+unlock_requirement=level02_completed
+
+# ====================================================================
+# VISUAL & AUDIO
+# ====================================================================
+[VISUALS]
+background_texture=src/RType/Common/content/sprites/mothership_bg.png
+background_scroll_speed=100.0
+background_parallax_layers=3
+background_color=60,20,20,255
+
+music_track=final_battle
+music_volume=80.0
+ambient_sound=mothership_rumble
+ambient_volume=50.0
+
+# ====================================================================
+# LEVEL PROGRESSION
+# ====================================================================
+[PROGRESSION]
+level_length=20000
+boss_spawn_time=180.0
+boss_intro_delay=5.0
+
+victory_condition=DEFEAT_BOSS
+time_limit=500.0
+min_score_required=0
+
+# ====================================================================
+# PLAYER PARAMETERS
+# ====================================================================
+[PLAYER]
+start_x=100.0
+start_y=540.0
+max_lives=3
+continue_allowed=true
+invincibility_time=1.5
+
+powerup_spawn_rate=0.10
+weapon_upgrade_rate=0.06
+shield_spawn_rate=0.12
+extra_life_rate=0.04
+
+# ====================================================================
+# DIFFICULTY SETTINGS
+# ====================================================================
+[DIFFICULTY]
+enemy_health_multiplier=1.6
+enemy_damage_multiplier=1.5
+enemy_speed_multiplier=1.3
+enemy_fire_rate_multiplier=1.5
+boss_health_multiplier=2.0
+score_multiplier=2.0
+
+# ====================================================================
+# SPAWN SYSTEM
+# ====================================================================
+[SPAWNING]
+spawn_script=src/RType/Common/content/config/level3_spawns.cfg
+random_waves_enabled=true
+random_wave_interval=10.0
+random_wave_min_enemies=4
+random_wave_max_enemies=8
+
+pod_spawn_enabled=true
+pod_spawn_interval=10.0
+pod_min_spawn_interval=6.0
+pod_max_spawn_interval=15.0
+
+# ====================================================================
+# OBSTACLES & ENVIRONMENT
+# ====================================================================
+[OBSTACLES]
+obstacle_enabled=true
+obstacle_start_time=20.0
+obstacle_end_time=170.0
+obstacle_interval=5.0
+obstacle_speed=160.0
+obstacle_hp=250
+obstacle_damage=3
+obstacle_score_value=100
+
+# ====================================================================
+# WALLS & STATIC ELEMENTS
+# ====================================================================
+[WALLS]
+# Organic mothership walls - destructible biomass
+wall_1=1200,800,1500,280,src/RType/Common/content/sprites/organic_wall.gif,true,500
+wall_2=3200,850,1200,230,src/RType/Common/content/sprites/organic_wall.gif,true,600
+wall_3=5500,880,1800,200,src/RType/Common/content/sprites/organic_wall.gif,true,700
+wall_4=8000,900,1000,180,src/RType/Common/content/sprites/organic_wall.gif,true,500
+
+wall_5=1800,0,1000,250,src/RType/Common/content/sprites/organic_wall.gif,true,500
+wall_6=4000,0,1500,280,src/RType/Common/content/sprites/organic_wall.gif,true,600
+wall_7=6500,0,1200,200,src/RType/Common/content/sprites/organic_wall.gif,true,700
+wall_8=9000,0,1400,230,src/RType/Common/content/sprites/organic_wall.gif,true,500
+
+# Critical narrow bio-passages
+wall_9=10500,700,2500,380,src/RType/Common/content/sprites/organic_wall.gif,true,800
+wall_10=10500,0,2500,400,src/RType/Common/content/sprites/organic_wall.gif,true,800
+wall_11=14000,750,1500,330,src/RType/Common/content/sprites/organic_wall.gif,true,1000
+wall_12=14000,0,1500,350,src/RType/Common/content/sprites/organic_wall.gif,true,1000
+wall_13=16500,800,1000,280,src/RType/Common/content/sprites/organic_wall.gif,true,600
+wall_14=16500,0,1000,300,src/RType/Common/content/sprites/organic_wall.gif,true,600
+
+# ====================================================================
+# TURRETS & STATIC ENEMIES
+# ====================================================================
+[TURRETS]
+# Biological turrets - high damage, fast fire rate
+turret_1=1500,750,200,1.2,SPIRAL,src/RType/Common/content/sprites/bio_turret.gif,30,280
+turret_2=2000,750,200,1.0,AIM_PLAYER,src/RType/Common/content/sprites/bio_turret.gif,35,300
+turret_3=3400,800,250,0.8,BURST,src/RType/Common/content/sprites/bio_turret.gif,40,320
+turret_4=5700,830,200,1.0,SPREAD,src/RType/Common/content/sprites/bio_turret.gif,30,280
+turret_5=8200,850,250,1.2,SPIRAL,src/RType/Common/content/sprites/bio_turret.gif,35,300
+
+turret_6=2000,250,200,1.0,AIM_PLAYER,src/RType/Common/content/sprites/bio_turret.gif,30,280
+turret_7=4200,280,250,0.8,BURST,src/RType/Common/content/sprites/bio_turret.gif,35,300
+turret_8=6700,200,200,1.0,SPREAD,src/RType/Common/content/sprites/bio_turret.gif,40,320
+turret_9=9200,230,250,1.2,SPIRAL,src/RType/Common/content/sprites/bio_turret.gif,30,280
+
+# Heavy defense bio-cannons
+turret_10=10700,650,300,0.8,AIM_PLAYER,src/RType/Common/content/sprites/bio_cannon.gif,50,340
+turret_11=11400,650,300,0.6,BURST,src/RType/Common/content/sprites/bio_cannon.gif,60,360
+turret_12=12100,650,300,0.8,SPREAD,src/RType/Common/content/sprites/bio_cannon.gif,50,340
+turret_13=12800,650,300,1.0,SPIRAL,src/RType/Common/content/sprites/bio_cannon.gif,55,350
+turret_14=11000,400,300,0.6,AIM_PLAYER,src/RType/Common/content/sprites/bio_cannon.gif,50,340
+turret_15=11700,400,300,0.8,BURST,src/RType/Common/content/sprites/bio_cannon.gif,60,360
+turret_16=12400,400,300,1.0,SPREAD,src/RType/Common/content/sprites/bio_cannon.gif,50,340
+
+# Final approach gauntlet
+turret_17=14200,700,350,0.8,SPIRAL,src/RType/Common/content/sprites/bio_cannon.gif,70,380
+turret_18=14800,700,350,0.6,AIM_PLAYER,src/RType/Common/content/sprites/bio_cannon.gif,70,380
+turret_19=14500,350,350,0.8,BURST,src/RType/Common/content/sprites/bio_cannon.gif,70,380
+turret_20=16700,750,400,1.0,SPREAD,src/RType/Common/content/sprites/bio_cannon.gif,80,400
+turret_21=16700,350,400,1.0,SPIRAL,src/RType/Common/content/sprites/bio_cannon.gif,80,400
+
+# ====================================================================
+# BOSS CONFIGURATION
+# ====================================================================
+[BOSS]
+boss_config_file=src/RType/Common/content/config/boss.cfg
+boss_section=BOSS_LEVEL3
+boss_spawn_trigger=TIME
+boss_spawn_x=1600
+boss_spawn_y=540
+
+# ====================================================================
+# SCORING & REWARDS
+# ====================================================================
+[SCORING]
+completion_bonus=50000
+time_bonus_multiplier=200
+no_damage_bonus=20000
+perfect_run_bonus=100000
+
+scout_score=200
+fighter_score=400
+tank_score=600
+shooter_score=500
+kamikaze_score=300
+boss_score=150000
+
+# ====================================================================
+# REFERENCES TO SHARED CONFIGS
+# ====================================================================
+[CONFIGS]
+enemies_config=src/RType/Common/content/config/enemies.cfg
+boss_config=src/RType/Common/content/config/boss.cfg
+game_config=src/RType/Common/content/config/game.cfg
+player_config=src/RType/Common/content/config/player.cfg
+ui_config=src/RType/Common/content/config/ui.cfg

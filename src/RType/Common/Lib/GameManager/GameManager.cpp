@@ -10,13 +10,14 @@ GameManager::GameManager() {
                                                         ConfigLoader::getRequiredPlayerFields());
         _game_config = ConfigLoader::loadGameConfig(_master_config.game_config,
                                                     ConfigLoader::getRequiredGameFields());
+        
         if (!_master_config.levels.empty()) {
             _current_level_scene = _master_config.levels[0];
         } else {
             _current_level_scene = "src/RType/Common/content/config/level1.scene";
         }
     } catch (const std::exception& e) {
-        std::cerr << "Error loading master config: " << e.what() << std::endl;
+        std::cerr << "[GameManager] Error loading master config: " << e.what() << std::endl;
         _current_level_scene = "src/RType/Common/content/config/level1.scene";
     }
     
@@ -37,12 +38,13 @@ void GameManager::init(Environment& env, InputManager& inputs) {
     LevelConfig level_config;
     try {
         level_config = SceneLoader::loadFromFile(_current_level_scene);
+        
         if (!level_config.game_config.empty()) {
             _game_config = ConfigLoader::loadGameConfig(level_config.game_config,
                                                         ConfigLoader::getRequiredGameFields());
         }
     } catch (const std::exception& e) {
-        std::cerr << "Error loading master config: " << e.what() << std::endl;
+        std::cerr << "[GameManager] Error loading level config: " << e.what() << std::endl;
     }
 
     initBackground(env, level_config);
@@ -62,7 +64,6 @@ void GameManager::init(Environment& env, InputManager& inputs) {
         music.destroy_entity_on_finish = false;
         ecs.registry.addComponent<AudioSourceComponent>(musicEntity, music);
 
-        // Input bindings only needed on client - server players have bindings set in Player constructor
         loadInputSetting(inputs);
     }
 }
