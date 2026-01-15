@@ -13,6 +13,6 @@ struct ChargedShotComponent {
 struct PenetratingProjectile {
     static constexpr auto name = "PenetratingProjectile";
 
-    int max_penetrations = 999;
+    int max_penetrations = 1;
     int current_penetrations = 0;
 };
