@@ -15,4 +15,6 @@ struct LeaderboardComponent {
     std::vector<PlayerScoreEntry> entries;
     bool is_displayed = false;
     float display_start_time = 0.0f;
+    bool ui_created = false;
+    bool victory = false;
 };

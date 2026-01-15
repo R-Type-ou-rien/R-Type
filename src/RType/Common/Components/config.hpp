@@ -48,13 +48,9 @@ struct EntityConfig {
     std::optional<std::string> sprite_path;
     std::vector<std::string> collision_tags;
     std::vector<BossSubEntityConfig> boss_sub_entities;
-
-    // Boss position configuration (loaded from boss.cfg)
     std::optional<float> margin_right;
     std::optional<float> spawn_offset_x;
     std::optional<int> z_index;
-
-    // Boss tail configuration (loaded from boss.cfg)
     std::optional<int> tail_segment_count;
     std::optional<float> tail_sprite_width;
     std::optional<float> tail_sprite_height;
@@ -69,10 +65,6 @@ struct EntityConfig {
     std::optional<int> tail_z_index;
     std::optional<std::string> tail_sprite_path;
 
-    /**
-     * @brief Creates a BossPositionConfig from this EntityConfig.
-     * Uses BossDefaults as fallback for missing values.
-     */
     BossPositionConfig toBossPositionConfig() const {
         BossPositionConfig config;
         config.margin_right = margin_right.value_or(BossDefaults::Position::MARGIN_RIGHT);
@@ -81,10 +73,6 @@ struct EntityConfig {
         return config;
     }
 
-    /**
-     * @brief Creates a BossTailConfig from this EntityConfig.
-     * Uses BossDefaults as fallback for missing values.
-     */
     BossTailConfig toBossTailConfig() const {
         BossTailConfig config;
         config.segment_count = tail_segment_count.value_or(BossDefaults::Tail::SEGMENT_COUNT);

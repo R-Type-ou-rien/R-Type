@@ -22,7 +22,7 @@
 #include "src/RType/Common/Systems/projectile_cleanup.hpp"
 #include "src/RType/Common/Systems/pod_system.hpp"
 #include "src/RType/Common/Systems/status_display.hpp"
-#include "src/RType/Common/Systems/level_transition.hpp"
+#include "src/RType/Common/Systems/leaderboard_system.hpp"
 #include "src/RType/Common/Systems/game_state_system.hpp"
 #include "src/Engine/Lib/Systems/PatternSystem/PatternSystem.hpp"
 #include "src/Engine/Lib/Systems/PlayerBoundsSystem.hpp"
@@ -65,7 +65,7 @@ void GameManager::initSystems(Environment& env) {
 
     if (!env.isServer()) {
         ecs.systems.addSystem<StatusDisplaySystem>();
-        ecs.systems.addSystem<LevelTransitionSystem>();
+        ecs.systems.addSystem<LeaderboardSystem>();
     }
 }
 
@@ -137,6 +137,7 @@ void GameManager::initPlayer(Environment& env) {
         player_pod.pod_attached = false;
         player_pod.last_known_hp = _player_config.hp.value_or(5);
         ecs.registry.addComponent<PlayerPodComponent>(_player->getId(), player_pod);
+        ecs.registry.addComponent<ScoreComponent>(_player->getId(), {0, 0});
     }
 }
 
