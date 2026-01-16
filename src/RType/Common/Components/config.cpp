@@ -185,8 +185,8 @@ const ConfigBinder<MasterConfig>& ConfigLoader::getBinder<MasterConfig>() {
         binder.bind("boss", &MasterConfig::boss_config);
         binder.bind("game", &MasterConfig::game_config);
         binder.bind("ui", &MasterConfig::ui_config);
-        binder.bind("resources", &MasterConfig::resources_config);        
-        binder.bindCustom("level", [](MasterConfig& cfg, const std::string& v) {
+        binder.bind("resources", &MasterConfig::resources_config);
+        binder.bindCustom("levels", [](MasterConfig& cfg, const std::string& v) {
             cfg.levels.push_back(ParsingUtils::trim(v));
         });
     }
