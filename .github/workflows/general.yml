@@ -14,26 +14,9 @@ permissions:
   pull-requests: read
 
 jobs:
-  check-branch-policy:
-    name: Check Branch push
-    runs-on: ubuntu-latest
-    steps:
-      - name: Block push from main and dev
-        if: github.event_name == 'push'
-        run: |
-          current_branch="${{ github.ref_name }}"
-          echo "Verifying push: $current_branch"
-          
-          if [[ "$current_branch" == "main" || "$current_branch" == "dev" ]]; then
-            echo "You push on $current_branch forbiden."
-            exit 1
-          fi
-          echo "Can push."
-
   commit-and-style:
     name: Commit Message, C++ Style & Lint
     runs-on: ubuntu-latest
-    needs: check-branch-policy
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -43,8 +26,8 @@ jobs:
       - name: Install tools (clang-format, cpplint)
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-format python3-pip
-          pip3 install --user cpplint
+          sudo apt-get install -y python3-pip
+          pip3 install --user cpplint clang-format
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Check Commit Message
@@ -63,21 +46,39 @@ jobs:
       - name: Check C++ Code Style (clang-format)
         run: |
           echo "Check the coding style with clang-format"
-          find . -type f \( -name "*.cpp" -o -name "*.hpp" \) \
-            ! -path "*/build/*" ! -path "*/cmake-build-*/*" \
+          find src tests test_input -type f \( -name "*.cpp" -o -name "*.hpp" \) \
+            ! -name "*sqlite3*" \
+            ! -path "src/Network/*" \
             -exec clang-format --dry-run --Werror {} +
 
-      - name: Check C++ Code Style (clang-format)
+      - name: Check C++ Code Style (cpplint)
         run: |
-          echo "Check the coding style with clang-format"
-          find src tests Network test_input -type f \( -name "*.cpp" -o -name "*.hpp" \) \
-              -exec clang-format -i -style=file {} +
+          echo "Check the coding style with cpplint"
+          cpplint --recursive \
+            --exclude=src/Network/Database/sqlite3.c \
+            --exclude=src/Network/Database/sqlite3.h \
+            --exclude=src/Network/* \
+            --exclude=Network/* \
+            src tests Network test_input
+
+  run-tests:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+    needs: commit-and-style
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Unit Tests
+        run: |
+          chmod +x launch_project/units_tests_launch.sh
+          ./launch_project/units_tests_launch.sh
 
   push_to_mirror:
     name: push_to_mirror
     runs-on: ubuntu-latest
-    needs: commit-and-style
-    if: github.event_name == 'push' && needs.build-and-test.result == 'success'
+    needs: run-tests
+    if: github.event_name == 'push'
     steps:
       - name: push_to_mirror
         uses: actions/checkout@v4

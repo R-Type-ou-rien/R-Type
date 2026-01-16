@@ -5,6 +5,6 @@
     "sfml",
     "asio",
     "opengl",
-    "sqlite3"
+    "nlohmann-json"
   ]
 }

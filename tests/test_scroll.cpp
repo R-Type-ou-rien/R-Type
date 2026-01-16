@@ -12,9 +12,7 @@ class ScrollTest : public ::testing::Test {
     sf::RenderWindow window;
     system_context context = {1.0f, texture_manager, window};
 
-    void SetUp() override {
-    }
-
+    void SetUp() override {}
 };
 
 TEST_F(ScrollTest, ScrollsEntityCorrectly) {

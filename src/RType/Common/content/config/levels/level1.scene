@@ -1,0 +1,55 @@
+# Level 1 - Super R-Type Style
+# Rock walls, turrets
+
+[LEVEL]
+name=Level 1 - Asteroid Field
+background=src/RType/Common/content/sprites/test.png
+music=theme
+enemies_config=src/RType/Common/content/config/enemies.cfg
+boss_config=src/RType/Common/content/config/boss.cfg
+boss_section=BOSS_LEVEL1
+game_config=src/RType/Common/content/config/game.cfg
+spawn_script=src/RType/Common/content/config/levels/level1_spawns.cfg
+next_level=src/RType/Common/content/config/levels/level2.scene
+
+# Walls - Format: wall=x,y,width,height,sprite_path,destructible
+# Floor walls (bottom)
+[WALL]
+wall=2000,900,800,180,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=4000,920,600,160,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=6500,880,1000,200,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=9000,900,700,180,src/RType/Common/content/sprites/r-typesheet14.gif,false
+
+# Ceiling walls (top)
+wall=2500,0,600,150,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=5000,0,800,180,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=7500,0,500,200,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=10000,0,900,160,src/RType/Common/content/sprites/r-typesheet14.gif,false
+
+# Narrow passage
+wall=12000,800,1500,280,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=12000,0,1500,300,src/RType/Common/content/sprites/r-typesheet14.gif,false
+
+# Turrets - Format: turret=x,y,fire_rate,shoot_pattern,sprite_path
+# Fire rate ajusté pour Super R-Type style (2-3 secondes entre tirs)
+[TURRET]
+turret=2200,850,2.5,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=2600,850,2.8,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=4200,870,2.2,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=6700,830,2.5,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=7000,830,3.0,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=9200,850,2.2,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+
+# Ceiling turrets
+turret=2700,150,2.5,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=5200,180,2.2,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=5500,180,2.8,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=7700,200,2.2,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=10200,160,3.0,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+
+# Narrow passage turrets
+turret=12200,750,2.5,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=12600,750,2.2,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=13000,750,2.5,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=12400,300,2.2,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=12800,300,2.8,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
