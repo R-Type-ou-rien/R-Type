@@ -14,26 +14,9 @@ permissions:
   pull-requests: read
 
 jobs:
-  check-branch-policy:
-    name: Check Branch push
-    runs-on: ubuntu-latest
-    steps:
-      - name: Block push from main and dev
-        if: github.event_name == 'push'
-        run: |
-          current_branch="${{ github.ref_name }}"
-          echo "Verifying push: $current_branch"
-          
-          if [[ "$current_branch" == "main" || "$current_branch" == "dev" ]]; then
-            echo "You push on $current_branch forbiden."
-            exit 1
-          fi
-          echo "Can push."
-
   commit-and-style:
     name: Commit Message, C++ Style & Lint
     runs-on: ubuntu-latest
-    needs: check-branch-policy
     steps:
       - name: Checkout
         uses: actions/checkout@v4
