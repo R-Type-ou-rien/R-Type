@@ -139,7 +139,7 @@ class Registry {
         A function to get the entities from a component pool
     */
     template <typename Component>
-    std::vector<std::size_t>& getEntities() {
+    std::vector<Entity>& getEntities() {
         return getPool<Component>().getIdList();
     }
 
