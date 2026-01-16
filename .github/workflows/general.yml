@@ -70,7 +70,12 @@ jobs:
       - name: Check C++ Code Style (cpplint)
         run: |
           echo "Check the coding style with cpplint"
-          cpplint --recursive --exclude=src/Network/Database/sqlite3.c --exclude=src/Network/Database/sqlite3.h --exclude=src/Network/* --exclude=Network/* src tests Network test_input
+          cpplint --recursive \
+            --exclude=src/Network/Database/sqlite3.c \
+            --exclude=src/Network/Database/sqlite3.h \
+            --exclude=src/Network/* \
+            --exclude=Network/* \
+            src tests Network test_input
 
   run-tests:
     name: Run Unit Tests
