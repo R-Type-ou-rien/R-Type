@@ -30,11 +30,12 @@ class ServerGameEngine : public GameEngineBase<ServerGameEngine> {
     static constexpr bool IsServer = true;
 
    private:
+    std::shared_ptr<Environment> _env;
+
     engine::core::LobbyManager _lobbyManager;
     std::map<uint32_t, Entity> _clientToEntityMap;
     std::map<uint32_t, std::shared_ptr<Player>> _players;
     std::set<uint32_t> _pendingFullState;  // Clients waiting for UDP confirmation to receive full state
-
    public:
     int init();
     int run();

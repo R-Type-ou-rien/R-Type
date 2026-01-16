@@ -34,11 +34,11 @@
 #include "src/Engine/Lib/Systems/ActionScriptSystem.hpp"
 #include "src/Engine/Lib/Systems/DestructionSystem.hpp"
 
-void GameManager::initSystems(Environment& env) {
-    auto& ecs = env.getECS();
+void GameManager::initSystems(std::shared_ptr<Environment> env) {
+    auto& ecs = env->getECS();
 
     // Game logic systems - server only (NOT client)
-    if (!env.isClient()) {
+    if (!env->isClient()) {
         std::cout << "[GameManager] Initializing gameplay systems (Server mode)" << std::endl;
         ecs.systems.addSystem<BoxCollision>();
         ecs.systems.addSystem<ShooterSystem>();
@@ -63,35 +63,35 @@ void GameManager::initSystems(Environment& env) {
 
     ecs.systems.addSystem<DestructionSystem>();
 
-    if (!env.isServer()) {
+    if (!env->isServer()) {
         ecs.systems.addSystem<StatusDisplaySystem>();
         ecs.systems.addSystem<LevelTransitionSystem>();
     }
 }
 
-void GameManager::initBackground(Environment& env, const LevelConfig& config) {
-    if (!env.isServer()) {
+void GameManager::initBackground(std::shared_ptr<Environment> env, const LevelConfig& config) {
+    if (!env->isServer()) {
         std::string bgPath = config.background_texture;
         if (bgPath.empty()) {
             bgPath = "src/RType/Common/content/sprites/test.png";
         }
 
-        auto& ecs = env.getECS();
+        auto& ecs = env->getECS();
         Entity bgEntity = ecs.registry.createEntity();
 
         BackgroundComponent bg{};
         bg.x_offset = 0.f;
         bg.scroll_speed = _game_config.scroll_speed.value_or(60.f);
 
-        bg.texture_handle = env.loadTexture(bgPath);
+        bg.texture_handle = env->loadTexture(bgPath);
 
         ecs.registry.addComponent<BackgroundComponent>(bgEntity, bg);
     }
 }
 
-void GameManager::initBounds(Environment& env) {
+void GameManager::initBounds(std::shared_ptr<Environment> env) {
     WorldBoundsComponent bounds;
-    auto& ecs = env.getECS();
+    auto& ecs = env->getECS();
 
     _boundsEntity = ecs.registry.createEntity();
     bounds.min_x = 0.0f;
@@ -100,17 +100,17 @@ void GameManager::initBounds(Environment& env) {
     ecs.registry.addComponent<WorldBoundsComponent>(_boundsEntity, bounds);
 }
 
-void GameManager::initPlayer(Environment& env) {
-    if (env.isServer() || env.isClient()) {
+void GameManager::initPlayer(std::shared_ptr<Environment> env) {
+    if (env->isServer() || env->isClient()) {
         std::cout << "[GameManager] Multiplayer mode: Player spawning handled by network replication" << std::endl;
         return;
     }
 
-    auto& ecs = env.getECS();
+    auto& ecs = env->getECS();
     float start_x = _player_config.start_x.value_or(150.0f);
     float start_y = _player_config.start_y.value_or(500.0f);
 
-    _player = env.spawn<Player>(SpawnPolicy::PREDICTED, std::pair<float, float>{start_x, start_y}, _player_config);
+    _player = env->spawn<Player>(SpawnPolicy::PREDICTED, std::pair<float, float>{start_x, start_y}, _player_config);
     if (_player) {
         _player->setTexture(_player_config.sprite_path.value_or(""));
         Entity player_id = _player->getId();
@@ -140,10 +140,10 @@ void GameManager::initPlayer(Environment& env) {
     }
 }
 
-void GameManager::initSpawner(Environment& env, const LevelConfig& config) {
-    auto& ecs = env.getECS();
+void GameManager::initSpawner(std::shared_ptr<Environment> env, const LevelConfig& config) {
+    auto& ecs = env->getECS();
 
-    if (!env.isClient()) {
+    if (!env->isClient()) {
         Entity timer_entity = ecs.registry.createEntity();
         ecs.registry.addComponent<GameTimerComponent>(timer_entity, {0.0f});
         NetworkIdentity timer_net_id;
@@ -178,13 +178,15 @@ void GameManager::initSpawner(Environment& env, const LevelConfig& config) {
     }
 }
 
-void GameManager::initUI(Environment& env) {
-    if (env.isServer()) return;
+void GameManager::initUI(std::shared_ptr<Environment> env) {
+    if (env->isServer())
+        return;
 
-    auto& ecs = env.getECS();
+    auto& ecs = env->getECS();
     UIConfig ui;
     try {
-        std::string ui_path = _master_config.ui_config.empty() ? "src/RType/Common/content/config/ui.cfg" : _master_config.ui_config;
+        std::string ui_path =
+            _master_config.ui_config.empty() ? "src/RType/Common/content/config/ui.cfg" : _master_config.ui_config;
         ui = ConfigLoader::loadUIConfig(ui_path);
     } catch (const std::exception& e) {
         std::cerr << "[GameManager] Failed to load UI config: " << e.what() << ", using default values" << std::endl;
@@ -216,7 +218,8 @@ void GameManager::initUI(Environment& env) {
     ecs.registry.addComponent<ScoreComponent>(_scoreTrackerEntity, {0, 0});
 
     _statusDisplayEntity = ecs.registry.createEntity();
-    ecs.registry.addComponent<StatusDisplayComponent>(_statusDisplayEntity, StatusDisplayFactory::createStatusDisplay());
+    ecs.registry.addComponent<StatusDisplayComponent>(_statusDisplayEntity,
+                                                      StatusDisplayFactory::createStatusDisplay());
 
     _chargeBarEntity = ecs.registry.createEntity();
     ecs.registry.addComponent<ChargeBarComponent>(_chargeBarEntity, StatusDisplayFactory::createChargeBar(ui));
@@ -228,18 +231,18 @@ void GameManager::initUI(Environment& env) {
     ecs.registry.addComponent<ScoreDisplayComponent>(_scoreDisplayEntity, StatusDisplayFactory::createScoreDisplay(ui));
 }
 
-void GameManager::initScene(Environment& env, const LevelConfig& config) {
+void GameManager::initScene(std::shared_ptr<Environment> env, const LevelConfig& config) {
     // Only server loads the scene - clients receive entities via network replication
-    if (env.isClient()) {
+    if (env->isClient()) {
         std::cout << "GameManager: Client mode - scene will be received from server" << std::endl;
         return;
     }
 
-    auto& ecs = env.getECS();
+    auto& ecs = env->getECS();
 
     _scene_manager = std::make_unique<SceneManager>(ecs.registry);
 
-    ScenePrefabs::registerAll(*_scene_manager, env.getTextureManager());
+    ScenePrefabs::registerAll(*_scene_manager, env->getTextureManager());
 
     try {
         _scene_manager->loadScene(config);
@@ -247,4 +250,56 @@ void GameManager::initScene(Environment& env, const LevelConfig& config) {
     } catch (const std::exception& e) {
         std::cerr << "GameManager: Failed to load scene: " << e.what() << std::endl;
     }
+}
+
+std::shared_ptr<Player> GameManager::createPlayerForClient(std::shared_ptr<Environment> env, uint32_t clientId, float x,
+                                                           float y) {
+    auto& ecs = env->getECS();
+
+    auto newPlayer = env->spawn<Player>(SpawnPolicy::PREDICTED, std::pair<float, float>{x, y}, _player_config);
+    if (!newPlayer) {
+        std::cerr << "[GameManager] Failed to spawn player for client " << clientId << std::endl;
+        return nullptr;
+    }
+
+    newPlayer->setTexture(_player_config.sprite_path.value_or("src/RType/Common/content/sprites/r-typesheet42.gif"));
+    newPlayer->setTextureDimension({static_cast<float>(_player_config.sprite_x.value_or(0)),
+                                    static_cast<float>(_player_config.sprite_y.value_or(0)),
+                                    static_cast<float>(_player_config.sprite_w.value_or(33)),
+                                    static_cast<float>(_player_config.sprite_h.value_or(17))});
+
+    if (_player_config.scale.has_value()) {
+        newPlayer->setScale({_player_config.scale.value(), _player_config.scale.value()});
+    } else {
+        newPlayer->setScale({2.5f, 2.5f});
+    }
+
+    for (const auto& tag : _player_config.collision_tags) {
+        newPlayer->addCollisionTag(tag);
+    }
+
+    // Add NetworkIdentity for replication and input handling
+    ecs.registry.addComponent<NetworkIdentity>(newPlayer->getId(), {newPlayer->getId(), clientId});
+
+    // Add ChargedShotComponent
+    ChargedShotComponent charged_shot;
+    charged_shot.min_charge_time = _player_config.min_charge_time.value_or(0.5f);
+    charged_shot.max_charge_time = _player_config.max_charge_time.value_or(2.0f);
+    ecs.registry.addComponent<ChargedShotComponent>(newPlayer->getId(), charged_shot);
+
+    // Add PlayerPodComponent
+    PlayerPodComponent player_pod;
+    player_pod.has_pod = false;
+    player_pod.pod_entity = -1;
+    player_pod.pod_attached = false;
+    player_pod.last_known_hp = _player_config.hp.value_or(5);
+    ecs.registry.addComponent<PlayerPodComponent>(newPlayer->getId(), player_pod);
+
+    // Add ScoreComponent
+    ScoreComponent playerScore{0, 0};
+    ecs.registry.addComponent<ScoreComponent>(newPlayer->getId(), playerScore);
+
+    std::cout << "[GameManager] Created player entity " << newPlayer->getId() << " for client " << clientId
+              << std::endl;
+    return newPlayer;
 }

@@ -7,12 +7,16 @@
 #include <utility>
 #include <memory>
 #include <nlohmann/json.hpp>
+#include <any>
+#include <unordered_map>
+#include <queue>
 
 enum class SpawnPolicy { AUTHORITATIVE, PREDICTED, LOCAL_ONLY };
 
 enum class EnvMode { SERVER, CLIENT, STANDALONE };
 
 class Environment {
+   public:
    private:
     ECS& _ecs;
     ResourceManager<TextureAsset>& _textures;
@@ -21,6 +25,23 @@ class Environment {
     EnvMode _mode;
 
    public:
+    enum class GameState {
+        SERVER,
+        AUTHSCREEN,
+        MAIN_MENU,
+        LOBBY_LIST,
+        LOBBY,
+        IN_GAME,
+        INCORRECT_PASSWORD,
+        CORRECT_PASSWORD,
+        END_GAME
+    };
+
+    enum class State : uint32_t {
+        WAITING_FOR_PLAYERS,
+        IN_GAME,
+    };
+
     Environment(ECS& ecs, ResourceManager<TextureAsset>& textures, ResourceManager<SoundAsset>& sounds,
                 ResourceManager<MusicAsset>& musics, EnvMode mode)
         : _ecs(ecs), _textures(textures), _sounds(sounds), _musics(musics), _mode(mode) {}
@@ -132,4 +153,39 @@ class Environment {
     ECS& getECS() { return _ecs; }
 
     ResourceManager<TextureAsset>& getTextureManager() { return _textures; }
+
+    GameState getGameState() { return _state; }
+    void setGameState(GameState state) { _state = state; }
+
+   private:
+    GameState _state;
+
+    std::unordered_map<std::string, std::any> _functions;
+    std::queue<uint32_t> _textInputs;
+
+   public:
+    template <typename Func>
+    void addFunction(const std::string& name, Func func) {
+        _functions[name] = func;
+    }
+
+    template <typename Func>
+    Func getFunction(const std::string& name) {
+        if (_functions.find(name) != _functions.end()) {
+            return std::any_cast<Func>(_functions[name]);
+        }
+        return nullptr;
+    }
+
+    bool hasFunction(const std::string& name) const { return _functions.find(name) != _functions.end(); }
+
+    void pushTextInput(uint32_t unicode) { _textInputs.push(unicode); }
+    bool hasTextInput() const { return !_textInputs.empty(); }
+    uint32_t popTextInput() {
+        if (_textInputs.empty())
+            return 0;
+        uint32_t val = _textInputs.front();
+        _textInputs.pop();
+        return val;
+    }
 };

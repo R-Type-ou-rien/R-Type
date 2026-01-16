@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <string>
 #include <functional>
 #include <unordered_set>
@@ -19,7 +20,7 @@
 
 #define SUCCESS 0
 #define FAILURE -1
-#define USER_FUNCTION_SIGNATURE void(Environment & env, InputManager & inputs)
+#define USER_FUNCTION_SIGNATURE void(std::shared_ptr<Environment> env, InputManager & inputs)
 #define DESERIALIZER_FUNCTION std::function<void(Registry&, Entity, const std::vector<uint8_t>&)>
 
 template <class Derived>
@@ -34,7 +35,7 @@ class GameEngineBase {
     std::function<USER_FUNCTION_SIGNATURE> _loop_function;
     std::function<USER_FUNCTION_SIGNATURE> _init_function;
 
-    std::unique_ptr<engine::core::NetworkEngine> _network;
+    std::shared_ptr<engine::core::NetworkEngine> _network;
     std::unordered_map<uint32_t, DESERIALIZER_FUNCTION> _deserializers;
     std::unordered_set<uint32_t> _networkedComponentTypes;  // Hash of component types that can be sent over network
     std::unordered_map<uint32_t, Entity> _networkToLocalEntity;
@@ -115,5 +116,5 @@ class GameEngineBase {
     engine::core::NetworkEngine& getNetwork() { return *_network; }
 
    protected:
-    void processNetworkEvents() { static_cast<Derived*>(this)->processNetworkEvents(); }
+    void processNetworkEvents(Environment& env) { static_cast<Derived*>(this)->processNetworkEvents(env); }
 };

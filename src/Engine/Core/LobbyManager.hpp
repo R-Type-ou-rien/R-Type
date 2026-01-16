@@ -13,6 +13,7 @@ namespace core {
 struct ClientInfo {
     uint32_t id;
     std::string name;
+    bool isReady = false;
     // We can add more client-specific data here later, like authentication status
 };
 
@@ -28,6 +29,8 @@ class Lobby {
 
     bool addClient(const ClientInfo& client);
     bool removeClient(uint32_t clientId);
+    void setPlayerReady(uint32_t clientId, bool ready);
+    bool areAllPlayersReady() const;
 
     uint32_t getId() const { return _id; }
     const std::string& getName() const { return _name; }

@@ -72,7 +72,9 @@ void ComponentSenderSystem::update(Registry& reg, system_context ctx) {
             }
 
             packet = pool->createPacket(entity, s_ctx);
-            packet.entity_guid = reg.getConstComponent<NetworkIdentity>(entity).guid;
+            auto& netId = reg.getConstComponent<NetworkIdentity>(entity);
+            packet.entity_guid = netId.guid;
+            packet.owner_id = netId.ownerId;  // Explicitly set owner_id
 
             for (auto const& [lobbyId, lobby] : lobbies) {
                 if (lobby.getState() != engine::core::Lobby::State::IN_GAME) {

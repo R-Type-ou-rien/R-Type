@@ -19,6 +19,7 @@
 #include "WindowManager.hpp"
 #include "LobbyState.hpp"
 #include "Voice/VoiceManager.hpp"
+#include "NetworkEngine/NetworkEngine.hpp"
 
 #define SUCCESS 0
 #define FAILURE -1
@@ -36,15 +37,12 @@ struct AvailableLobby {
 
 class ClientGameEngine : public GameEngineBase<ClientGameEngine> {
    public:
-    enum class GameScene { MAIN_MENU, LOBBY, IN_GAME };
-
    private:
     WindowManager _window_manager;
     uint32_t _serverId = 0;
     uint32_t _clientId = 0;
     std::optional<Entity> _localPlayerEntity;
     engine::core::LobbyState _lobbyState;
-    GameScene _currentScene = GameScene::MAIN_MENU;
     std::vector<engine::core::AvailableLobby> _availableLobbies;
 
    public:
@@ -72,32 +70,8 @@ class ClientGameEngine : public GameEngineBase<ClientGameEngine> {
     void sendLogin(const std::string& username, const std::string& password);
     void sendRegister(const std::string& username, const std::string& password);
     void sendAnonymousLogin();
-    void setAuthSuccessCallback(std::function<void()> cb) { _authSuccessCallback = cb; }
-    void setAuthFailedCallback(std::function<void()> cb) { _authFailedCallback = cb; }
-
-    // Lobby callbacks setters
-    void setPlayerJoinedCallback(std::function<void(const engine::core::LobbyPlayerInfo&)> cb) {
-        _playerJoinedCallback = cb;
-    }
-    void setPlayerLeftCallback(std::function<void(uint32_t)> cb) { _playerLeftCallback = cb; }
-    void setNewHostCallback(std::function<void(uint32_t)> cb) { _newHostCallback = cb; }
-    void setReadyChangedCallback(std::function<void(uint32_t, bool)> cb) { _readyChangedCallback = cb; }
-    void setLobbyJoinedCallback(
-        std::function<void(uint32_t, const std::string&, const std::vector<engine::core::LobbyPlayerInfo>&, uint32_t)>
-            cb) {
-        _lobbyJoinedCallback = cb;
-    }
-    void setGameStartedCallback(std::function<void()> cb) { _gameStartedCallback = cb; }
-    void setChatMessageCallback(std::function<void(const std::string&, const std::string&)> cb) {
-        _chatMessageCallback = cb;
-    }
-    void setFocusChangedCallback(std::function<void(bool)> cb) { _focusChangedCallback = cb; }
-    void setVoicePacketCallback(std::function<void(const engine::voice::VoicePacket&)> cb) {
-        _voicePacketCallback = cb;
-    }
 
     // Lobby methods
-    GameScene getCurrentScene() const { return _currentScene; }
     const engine::core::LobbyState& getLobbyState() const { return _lobbyState; }
     void sendReady();
     void sendUnready();
@@ -109,14 +83,30 @@ class ClientGameEngine : public GameEngineBase<ClientGameEngine> {
     void sendVoicePacket(const engine::voice::VoicePacket& packet);
     void requestLobbyList();
     const std::vector<engine::core::AvailableLobby>& getAvailableLobbies() const { return _availableLobbies; }
+    bool getReady() const { return _lobbyState.localPlayerReady; }
+    bool getUnready() const { return !_lobbyState.localPlayerReady; }
     uint32_t getClientId() const { return _network ? _network->getClientId() : 0; }
     sf::RenderWindow& getWindow() { return _window_manager.getWindow(); }
+    void setReadyChangedCallback(std::function<void(uint32_t, bool)> callback) { _readyChangedCallback = callback; }
+    void setPlayerJoinedCallback(std::function<void(const engine::core::LobbyPlayerInfo&)> callback) {
+        _playerJoinedCallback = callback;
+    }
+    void setPlayerLeftCallback(std::function<void(uint32_t)> callback) { _playerLeftCallback = callback; }
+    void setNewHostCallback(std::function<void(uint32_t)> callback) { _newHostCallback = callback; }
+    void setLobbyJoinedCallback(
+        std::function<void(uint32_t, const std::string&, const std::vector<engine::core::LobbyPlayerInfo>&, uint32_t)>
+            callback) {
+        _lobbyJoinedCallback = callback;
+    }
+    void setGameStartedCallback(std::function<void()> callback) { _gameStartedCallback = callback; }
 
    private:
     void handleEvent();
     void processNetworkEvents();
     void processLobbyEvents(std::map<engine::core::NetworkEngine::EventType,
                                      std::vector<network::message<engine::core::NetworkEngine::EventType>>>& pending);
+
+    std::shared_ptr<Environment> _env;
 
     std::function<void()> _authSuccessCallback;
     std::function<void()> _authFailedCallback;

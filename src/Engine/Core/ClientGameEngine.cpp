@@ -9,6 +9,7 @@
 #include "Components/StandardComponents.hpp"
 #include "Components/serialize/StandardComponents_serialize.hpp"
 #include "Components/serialize/score_component_serialize.hpp"
+#include "GameEngineBase.hpp"
 #include "Network.hpp"
 #include "NetworkEngine/NetworkEngine.hpp"
 #include "AudioSystem.hpp"
@@ -27,8 +28,10 @@
 #include "Components/StandardComponents.hpp"
 #include "Components/NetworkComponents.hpp"
 
-ClientGameEngine::ClientGameEngine(std::string window_name) : _window_manager(WINDOW_W, WINDOW_H, window_name) {
-    _network = std::make_unique<engine::core::NetworkEngine>(engine::core::NetworkEngine::NetworkRole::CLIENT);
+ClientGameEngine::ClientGameEngine(std::string window_name)
+    : _window_manager(WINDOW_W, WINDOW_H, window_name),
+      _env(std::make_shared<Environment>(_ecs, _texture_manager, _sound_manager, _music_manager, EnvMode::CLIENT)) {
+    _network = std::make_shared<engine::core::NetworkEngine>(engine::core::NetworkEngine::NetworkRole::CLIENT);
 }
 
 int ClientGameEngine::init() {
@@ -73,6 +76,59 @@ int ClientGameEngine::init() {
     // _ecs.systems.addSystem<ActionScriptSystem>();
     // _ecs.systems.addSystem<PatternSystem>();
     // _ecs.systems.addSystem<SpawnSystem>();
+
+    // Register Network Actions (GameManager -> Engine)
+    _env->addFunction("sendLogin", std::function<void(const std::string&, const std::string&)>(
+                                       [this](const std::string& u, const std::string& p) { this->sendLogin(u, p); }));
+    _env->addFunction("sendRegister",
+                      std::function<void(const std::string&, const std::string&)>(
+                          [this](const std::string& u, const std::string& p) { this->sendRegister(u, p); }));
+    _env->addFunction("sendAnonymousLogin", std::function<void()>([this]() { this->sendAnonymousLogin(); }));
+    _env->addFunction("createLobby",
+                      std::function<void(const std::string&)>([this](const std::string& n) { this->createLobby(n); }));
+    _env->addFunction("joinLobby", std::function<void(uint32_t)>([this](uint32_t id) { this->joinLobby(id); }));
+    _env->addFunction("leaveLobby", std::function<void(uint32_t)>([this](uint32_t id) { this->sendLeaveLobby(id); }));
+    _env->addFunction("requestLobbyList", std::function<void()>([this]() { this->requestLobbyList(); }));
+    _env->addFunction("sendReady",
+                      std::function<void(bool)>([this](bool r) { r ? this->sendReady() : this->sendUnready(); }));
+    _env->addFunction("startGame", std::function<void(uint32_t)>([this](uint32_t) { this->sendStartGame(); }));
+    _env->addFunction("sendChatMessage", std::function<void(const std::string&)>(
+                                             [this](const std::string& m) { this->sendChatMessage(m); }));
+    _env->addFunction("sendVoicePacket",
+                      std::function<void(const engine::voice::VoicePacket&)>(
+                          [this](const engine::voice::VoicePacket& p) { this->sendVoicePacket(p); }));
+
+    // Data Access
+    _env->addFunction("getLocalPlayerId", std::function<uint32_t()>([this]() { return this->getClientId(); }));
+    _env->addFunction("getAvailableLobbies", std::function<std::vector<engine::core::AvailableLobby>()>(
+                                                 [this]() { return this->getAvailableLobbies(); }));
+    _env->addFunction("getReady", std::function<bool()>([this]() { return this->getReady(); }));
+    _env->addFunction("getUnready", std::function<bool()>([this]() { return this->getUnready(); }));
+    _env->addFunction("setReadyChangedCallback",
+                      std::function<void(std::function<void(uint32_t, bool)>)>(
+                          [this](std::function<void(uint32_t, bool)> cb) { this->setReadyChangedCallback(cb); }));
+    _env->addFunction("setPlayerJoinedCallback",
+                      std::function<void(std::function<void(const engine::core::LobbyPlayerInfo&)>)>(
+                          [this](std::function<void(const engine::core::LobbyPlayerInfo&)> cb) {
+                              this->setPlayerJoinedCallback(cb);
+                          }));
+    _env->addFunction("setPlayerLeftCallback",
+                      std::function<void(std::function<void(uint32_t)>)>(
+                          [this](std::function<void(uint32_t)> cb) { this->setPlayerLeftCallback(cb); }));
+    _env->addFunction("setNewHostCallback",
+                      std::function<void(std::function<void(uint32_t)>)>(
+                          [this](std::function<void(uint32_t)> cb) { this->setNewHostCallback(cb); }));
+    _env->addFunction(
+        "setLobbyJoinedCallback",
+        std::function<void(std::function<void(uint32_t, const std::string&,
+                                              const std::vector<engine::core::LobbyPlayerInfo>&, uint32_t)>)>(
+            [this](std::function<void(uint32_t, const std::string&, const std::vector<engine::core::LobbyPlayerInfo>&,
+                                      uint32_t)>
+                       cb) { this->setLobbyJoinedCallback(cb); }));
+    _env->addFunction("setGameStartedCallback",
+                      std::function<void(std::function<void()>)>(
+                          [this](std::function<void()> cb) { this->setGameStartedCallback(cb); }));
+
     return 0;
 }
 
@@ -90,6 +146,9 @@ void ClientGameEngine::handleEvent() {
             if (_focusChangedCallback)
                 _focusChangedCallback(true);
         }
+        if (auto* textEvent = event->getIf<sf::Event::TextEntered>()) {
+            _env->pushTextInput(textEvent->unicode);
+        }
     }
 }
 
@@ -97,32 +156,35 @@ void ClientGameEngine::processNetworkEvents() {
     _network->processIncomingPackets(_currentTick);
     auto pending = _network->getPendingEvents();
 
-    // Process lobby events first
-    // Process lobby events first
-    // Process lobby events first
     processLobbyEvents(pending);
+
+    if (pending.count(network::GameEvents::S_SEND_ID)) {
+        auto& msgs = pending.at(network::GameEvents::S_SEND_ID);
+        for (const auto& msg : msgs) {
+            auto mutable_msg = msg;
+            uint32_t id;
+            mutable_msg >> id;
+            _clientId = id;
+            std::cout << "[CLIENT] Received Client ID: " << _clientId << std::endl;
+        }
+    }
 
     if (pending.count(network::GameEvents::S_REGISTER_OK)) {
         std::cout << "[CLIENT] Registration success!" << std::endl;
-        if (_authSuccessCallback)
-            _authSuccessCallback();
+        _env->setGameState(Environment::GameState::CORRECT_PASSWORD);
     }
     if (pending.count(network::GameEvents::S_LOGIN_OK)) {
         std::cout << "[CLIENT] Login success!" << std::endl;
-        if (_authSuccessCallback)
-            _authSuccessCallback();
+        _env->setGameState(Environment::GameState::CORRECT_PASSWORD);
     }
     if (pending.count(network::GameEvents::S_LOGIN_KO)) {
         std::cout << "[CLIENT] Login failed!" << std::endl;
-        if (_authFailedCallback)
-            _authFailedCallback();
+        _env->setGameState(Environment::GameState::INCORRECT_PASSWORD);
     }
     if (pending.count(network::GameEvents::S_INVALID_TOKEN)) {
         std::cout << "[CLIENT] Invalid token, please login again." << std::endl;
-        if (_authFailedCallback)
-            _authFailedCallback();
+        _env->setGameState(Environment::GameState::INCORRECT_PASSWORD);
     }
-
     if (pending.count(network::GameEvents::S_SNAPSHOT)) {
         auto& snapshot_packets = pending.at(network::GameEvents::S_SNAPSHOT);
 
@@ -130,7 +192,7 @@ void ClientGameEngine::processNetworkEvents() {
             auto mutable_msg = msg;
             ComponentPacket packet;
             mutable_msg >> packet;
-            processComponentPacket(packet.entity_guid, packet.component_type, packet.data);
+            processComponentPacket(packet.entity_guid, packet.component_type, packet.data, packet.owner_id);
         }
     }
 
@@ -166,42 +228,42 @@ void ClientGameEngine::processNetworkEvents() {
     //     for (auto& msg : msgs) {
     //         network::GameOverPacket packet;
     //         msg >> packet;
-            
+
     //         // CRITICAL: Validate packet data before use
     //         if (packet.player_count > 8) {
     //             continue;
     //         }
-            
+
     //         // Créer un composant pour signaler le game over au GameManager
     //         Entity gameOverEntity = _ecs.registry.createEntity();
     //         GameOverNotification notification;
     //         notification.victory = packet.victory;
     //         _ecs.registry.addComponent<GameOverNotification>(gameOverEntity, notification);
-            
+
     //         // Créer des entités temporaires pour tous les joueurs avec leurs scores
     //         // Le GameManager pourra les lire pour afficher le leaderboard complet
     //         for (uint32_t i = 0; i < packet.player_count; i++) {
     //             Entity playerScoreEntity = _ecs.registry.createEntity();
-                
+
     //             // Tag comme joueur pour le leaderboard
     //             TagComponent tags;
     //             tags.tags.push_back("PLAYER");
     //             tags.tags.push_back("LEADERBOARD_DATA");
     //             _ecs.registry.addComponent<TagComponent>(playerScoreEntity, tags);
-                
+
     //             // Score du joueur
     //             ScoreComponent score;
     //             score.current_score = packet.players[i].score;
     //             score.high_score = 0;
     //             _ecs.registry.addComponent<ScoreComponent>(playerScoreEntity, score);
-                
+
     //             // État vivant/mort
     //             HealthComponent health;
     //             health.current_hp = packet.players[i].is_alive ? 1 : 0;
     //             health.max_hp = 1;
     //             health.last_damage_time = 0;
     //             _ecs.registry.addComponent<HealthComponent>(playerScoreEntity, health);
-                
+
     //             // IMPORTANT: Stocker le client_id dans NetworkIdentity pour l'affichage
     //             NetworkIdentity net_id;
     //             net_id.guid = packet.players[i].client_id;
@@ -227,9 +289,9 @@ void ClientGameEngine::processLobbyEvents(
             _lobbyState.hostId = info.hostId;
             _lobbyState.localClientId = _network->getClientId();  // Set local client ID
             // Players will be populated by S_PLAYER_JOINED separately, or we can trust S_ROOM_JOINED's size?
-            // Wait, S_ROOM_JOINED contains ID list. We should probably use it if S_PLAYER_JOINED is not guaranteed for
-            // initial state? But we decided to handle S_PLAYER_JOINED.
-            _currentScene = GameScene::LOBBY;
+            // Wait, S_ROOM_JOINED contains ID list. We should probably use it if S_PLAYER_JOINED is not guaranteed
+            // for initial state? But we decided to handle S_PLAYER_JOINED.
+            _env->setGameState(Environment::GameState::LOBBY);
             std::cout << "[CLIENT] Joined lobby " << info.id << " (" << info.name << ") with " << info.nbPlayers
                       << " players" << std::endl;
             if (_lobbyJoinedCallback) {
@@ -266,10 +328,26 @@ void ClientGameEngine::processLobbyEvents(
                 newPlayer.id = playerData.id;
                 newPlayer.name = playerData.username;
                 newPlayer.isReady = false;
-                newPlayer.isHost = false;
-                _lobbyState.players.push_back(newPlayer);
-                std::cout << "[CLIENT] Player " << playerData.username << " (" << playerData.id << ") joined lobby"
-                          << std::endl;
+                newPlayer.isHost = (newPlayer.id == _lobbyState.hostId);
+
+                bool found = false;
+                for (auto& p : _lobbyState.players) {
+                    if (p.id == newPlayer.id) {
+                        p.name = newPlayer.name;  // Update name
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found) {
+                    _lobbyState.players.push_back(newPlayer);
+                    std::cout << "[CLIENT] Player " << playerData.username << " (" << playerData.id << ") joined lobby"
+                              << std::endl;
+                } else {
+                    std::cout << "[CLIENT] Player " << playerData.username << " (" << playerData.id
+                              << ") already in lobby (updated)" << std::endl;
+                }
+
                 if (_playerJoinedCallback)
                     _playerJoinedCallback(newPlayer);
             } catch (const std::exception& e) {
@@ -322,7 +400,7 @@ void ClientGameEngine::processLobbyEvents(
 
     // Handle game start
     if (pending.count(network::GameEvents::S_GAME_START)) {
-        _currentScene = GameScene::IN_GAME;
+        _env->setGameState(Environment::GameState::IN_GAME);
         std::cout << "[CLIENT] Game starting!" << std::endl;
         if (_gameStartedCallback)
             _gameStartedCallback();
@@ -346,8 +424,13 @@ void ClientGameEngine::processLobbyEvents(
                     msg.body.resize(msg.body.size() - sizeof(network::chat_message));
                 }
                 std::cout << "[CLIENT] Chat from " << chatMsg.sender_name << ": " << chatMsg.message << std::endl;
-                if (_chatMessageCallback)
-                    _chatMessageCallback(chatMsg.sender_name, chatMsg.message);
+                // if (_chatMessageCallback)
+                //     _chatMessageCallback(chatMsg.sender_name, chatMsg.message);
+                if (_env->hasFunction("receiveChatMessage")) {
+                    auto func = _env->getFunction<std::function<void(const std::string&, const std::string&)>>(
+                        "receiveChatMessage");
+                    func(chatMsg.sender_name, chatMsg.message);
+                }
             } catch (const std::exception& e) {
                 std::cerr << "[CLIENT_ERROR] Failed to process chat message: " << e.what() << std::endl;
             }
@@ -383,6 +466,11 @@ void ClientGameEngine::processLobbyEvents(
 
                     if (_voicePacketCallback) {
                         _voicePacketCallback(packet);
+                    }
+                    if (_env->hasFunction("receiveVoicePacket")) {
+                        auto func = _env->getFunction<std::function<void(const engine::voice::VoicePacket&)>>(
+                            "receiveVoicePacket");
+                        func(packet);
                     }
                 }
             } catch (const std::exception& e) {
@@ -431,7 +519,17 @@ void ClientGameEngine::processLobbyEvents(
             _lobbyState.lobbyName = name;
             _lobbyState.localClientId = _network->getClientId();  // Set local client ID
             _lobbyState.hostId = _network->getClientId();         // Creator is always the host
-            _currentScene = GameScene::LOBBY;
+            _env->setGameState(Environment::GameState::LOBBY);
+
+            for (auto& p : _lobbyState.players) {
+                p.isHost = (p.id == _lobbyState.hostId);
+            }
+
+            if (_lobbyJoinedCallback) {
+                _lobbyJoinedCallback(_lobbyState.lobbyId, _lobbyState.lobbyName, _lobbyState.players,
+                                     _lobbyState.hostId);
+            }
+
             std::cout << "[CLIENT] Lobby '" << name << "' created successfully (hostId=" << _lobbyState.hostId
                       << ", localId=" << _lobbyState.localClientId << ")" << std::endl;
         }
@@ -440,22 +538,28 @@ void ClientGameEngine::processLobbyEvents(
 
 // Lobby action methods
 void ClientGameEngine::sendReady() {
-    if (_currentScene != GameScene::LOBBY)
+    if (_env->getGameState() != Environment::GameState::LOBBY) {
+        std::cout << "[CLIENT] Cannot send ready - not in lobby" << std::endl;
         return;
+    }
     _network->transmitEvent<uint32_t>(network::GameEvents::C_READY, _lobbyState.lobbyId, 0, 0);
     std::cout << "[CLIENT] Sending ready" << std::endl;
 }
 
 void ClientGameEngine::sendUnready() {
-    if (_currentScene != GameScene::LOBBY)
+    if (_env->getGameState() != Environment::GameState::LOBBY) {
+        std::cout << "[CLIENT] Cannot send unready - not in lobby" << std::endl;
         return;
+    }
     _network->transmitEvent<uint32_t>(network::GameEvents::C_CANCEL_READY, _lobbyState.lobbyId, 0, 0);
     std::cout << "[CLIENT] Sending unready" << std::endl;
 }
 
 void ClientGameEngine::sendStartGame() {
-    if (_currentScene != GameScene::LOBBY)
+    if (_env->getGameState() != Environment::GameState::LOBBY) {
+        std::cout << "[CLIENT] Cannot send start game - not in lobby" << std::endl;
         return;
+    }
     if (!_lobbyState.isLocalPlayerHost()) {
         std::cout << "[CLIENT] Cannot start game - not host" << std::endl;
         return;
@@ -483,8 +587,10 @@ void ClientGameEngine::sendLeaveLobby(uint32_t lobbyId) {
 }
 
 void ClientGameEngine::sendChatMessage(const std::string& message) {
-    if (_currentScene != GameScene::LOBBY)
+    if (_env->getGameState() != Environment::GameState::LOBBY) {
+        std::cout << "[CLIENT] Cannot send chat message - not in lobby" << std::endl;
         return;
+    }
     char msgBuffer[256] = {0};
     std::strncpy(msgBuffer, message.c_str(), 255);
     _network->transmitEvent<char[256]>(network::GameEvents::C_TEAM_CHAT, msgBuffer, 0, 0);
@@ -492,9 +598,10 @@ void ClientGameEngine::sendChatMessage(const std::string& message) {
 }
 
 void ClientGameEngine::sendVoicePacket(const engine::voice::VoicePacket& packet) {
-    if (_currentScene != GameScene::LOBBY)
+    if (_env->getGameState() != Environment::GameState::LOBBY) {
+        std::cout << "[CLIENT] Cannot send voice packet - not in lobby" << std::endl;
         return;
-
+    }
     // Use fixed-size struct for network transmission
     network::voice_packet netPacket;
     std::memset(&netPacket, 0, sizeof(netPacket));
@@ -550,12 +657,10 @@ int ClientGameEngine::run() {
                               _clientId};
     auto last_time = std::chrono::high_resolution_clock::now();
 
-    // Environment mode: CLIENT for multiplayer (server handles all game logic)
-    Environment env(_ecs, _texture_manager, _sound_manager, _music_manager, EnvMode::CLIENT);
-
     this->init();
+
     if (_init_function)
-        _init_function(env, input_manager);
+        _init_function(_env, input_manager);
 
     while (_window_manager.isOpen()) {
         auto now = std::chrono::high_resolution_clock::now();
@@ -571,7 +676,7 @@ int ClientGameEngine::run() {
         _window_manager.clear();
 
         if (_loop_function)
-            _loop_function(env, input_manager);
+            _loop_function(_env, input_manager);
         _ecs.update(context);
 
         _window_manager.display();

@@ -185,7 +185,7 @@ class VoiceManager {
     std::atomic<State> _state{State::STOPPED};
     std::atomic<bool> _shouldRun{false};
     std::atomic<bool> _muted{false};
-    std::atomic<float> _inputVolume{1.0f};
+    std::atomic<float> _inputVolume{0.35f};
     std::atomic<float> _outputVolume{1.0f};
     std::atomic<uint32_t> _localPlayerId{0};
     std::atomic<uint32_t> _sequenceNumber{0};

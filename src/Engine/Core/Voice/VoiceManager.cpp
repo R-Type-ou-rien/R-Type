@@ -639,11 +639,7 @@ void VoiceManager::captureThreadFunc() {
         if (samplesRead < samplesNeeded)
             continue;
 
-        // Apply 5.0x gain (Compensate for low 25% sys volume)
-        for (auto& s : captureBuffer) {
-            int32_t amplified = static_cast<int32_t>(s) * 5;
-            s = static_cast<int16_t>(std::clamp(amplified, -32767, 32767));
-        }
+        // Attenuation is now handled dynamically via _inputVolume below.
 
         // Check if there's actual audio (not silence)
         int32_t maxSample = 0;
@@ -651,8 +647,8 @@ void VoiceManager::captureThreadFunc() {
             maxSample = std::max(maxSample, static_cast<int32_t>(std::abs(s)));
         }
 
-        // Lower threshold to detect voice at low levels
-        bool talking = (maxSample > 100);
+        // Lower threshold to detect voice at low levels - Raised from 100 to 800 to filter background noise
+        bool talking = (maxSample > 800);
         _isTalking.store(talking);
 
         // Skip if muted

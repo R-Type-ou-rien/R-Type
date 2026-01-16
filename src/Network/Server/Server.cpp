@@ -434,6 +434,7 @@ void Server::OnClientLeaveLobby(std::shared_ptr<Connection<GameEvents>> client, 
             AddMessageToLobby(GameEvents::S_PLAYER_LEAVE, lobbyID, client->GetID());
             BroadcastLobbyList();
             message<GameEvents> return_msg;
+            return_msg.header.user_id = client->GetID();
             return_msg << lobbyID;
             _toGameMessages.push({GameEvents::S_PLAYER_LEAVE, client->GetID(), return_msg});
             break;
@@ -512,7 +513,12 @@ void Server::BroadcastLobbyList() {
     listMsg << nb_lobbys;
 
     std::cout << "[SERVER] Broadcasting new lobby list (count: " << nb_lobbys << ")" << std::endl;
-    MessageAllClients(listMsg);
+    // MessageAllClients(listMsg); // Unsafe during disconnect
+    for (auto& [client, state] : _clientStates) {
+        if (client && client->IsConnected()) {
+            MessageClient(client, listMsg);
+        }
+    }
 }
 
 void Server::onClientStartGame(std::shared_ptr<Connection<GameEvents>> client, message<GameEvents> msg) {
