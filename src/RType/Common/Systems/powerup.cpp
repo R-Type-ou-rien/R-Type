@@ -37,7 +37,7 @@ void PowerUpSystem::updateActivePowerUps(Registry& registry, system_context cont
             powerup.remaining_time -= context.dt;
 
             if (powerup.remaining_time <= 0) {
-                expired_powerups.push_back({entity, powerup.type});
+                expired_powerups.push_back({static_cast<Entity>(entity), powerup.type});
             }
         }
     }
