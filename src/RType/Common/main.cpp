@@ -17,6 +17,23 @@ void setupPrediction(T& engine, GameManager& gm) {
     }
 }
 
+void registerComponents(GameEngine& engine)
+{
+    engine.registerNetworkComponent<DamageOnCollision>();
+    engine.registerNetworkComponent<::GameTimerComponent>();
+    engine.registerNetworkComponent<ChargedShotComponent>();
+    engine.registerNetworkComponent<ShooterComponent>();
+    engine.registerNetworkComponent<PatternComponent>();
+    engine.registerNetworkComponent<ProjectileComponent>();
+    engine.registerNetworkComponent<TeamComponent>();
+    engine.registerNetworkComponent<PodComponent>();
+    engine.registerNetworkComponent<PlayerPodComponent>();
+    engine.registerNetworkComponent<AIBehaviorComponent>();
+    engine.registerNetworkComponent<BossComponent>();
+    engine.registerNetworkComponent<HealthComponent>();
+    engine.registerNetworkComponent<EnemySpawnComponent>();
+}
+
 int main() {
     GameEngine engine;
     GameManager gm;

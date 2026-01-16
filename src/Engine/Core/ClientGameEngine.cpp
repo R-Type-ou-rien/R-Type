@@ -36,39 +36,18 @@ int ClientGameEngine::init() {
     registerNetworkComponent<Velocity2D>();
     registerNetworkComponent<BoxCollisionComponent>();
     registerNetworkComponent<TagComponent>();
-    registerNetworkComponent<HealthComponent>();
-    registerNetworkComponent<EnemySpawnComponent>();
-    registerNetworkComponent<ShooterComponent>();
-    registerNetworkComponent<ChargedShotComponent>();
     registerNetworkComponent<TextComponent>();
     registerNetworkComponent<ResourceComponent>();
     registerNetworkComponent<BackgroundComponent>();
-    registerNetworkComponent<PatternComponent>();
-    registerNetworkComponent<ProjectileComponent>();
-    registerNetworkComponent<TeamComponent>();
-    registerNetworkComponent<DamageOnCollision>();
     registerNetworkComponent<NetworkIdentity>();
-    registerNetworkComponent<::GameTimerComponent>();
     registerNetworkComponent<AudioSourceComponent>();
     registerNetworkComponent<PredictionComponent>();
-
-    // R-Type specific components
-    registerNetworkComponent<PodComponent>();
-    registerNetworkComponent<PlayerPodComponent>();
-    registerNetworkComponent<AIBehaviorComponent>();
-    registerNetworkComponent<BossComponent>();
 
     _ecs.systems.addSystem<BackgroundSystem>();
     _ecs.systems.addSystem<RenderSystem>();
     _ecs.systems.addSystem<AudioSystem>();
-    //_ecs.systems.addSystem<InputSystem>(input_manager);
 
-    // Physics and game logic handled by server - client only renders
     _ecs.systems.addSystem<PhysicsSystem>();
-    // _ecs.systems.addSystem<BoxCollision>();
-    // _ecs.systems.addSystem<ActionScriptSystem>();
-    // _ecs.systems.addSystem<PatternSystem>();
-    // _ecs.systems.addSystem<SpawnSystem>();
 
     if (!_physicsLogic) {
         _physicsLogic = [](Entity, Registry&, const InputSnapshot&, float) {};
