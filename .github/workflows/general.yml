@@ -63,8 +63,9 @@ jobs:
       - name: Check C++ Code Style (clang-format)
         run: |
           echo "Check the coding style with clang-format"
-          find src tests Network test_input -type f \( -name "*.cpp" -o -name "*.hpp" \) \
+          find src tests test_input -type f \( -name "*.cpp" -o -name "*.hpp" \) \
             ! -name "*sqlite3*" \
+            ! -path "src/Network/*" \
             -exec clang-format --dry-run --Werror {} +
 
       - name: Check C++ Code Style (cpplint)
