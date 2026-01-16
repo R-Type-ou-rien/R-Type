@@ -27,8 +27,8 @@
 #include "../../../RType/Common/Components/game_over_notification.hpp"
 #include "../../../RType/Common/Systems/behavior.hpp"
 
-ClientGameEngine::ClientGameEngine(std::string window_name) : _window_manager(WINDOW_W, WINDOW_H, window_name) {
-    _network = std::make_unique<engine::core::NetworkEngine>(engine::core::NetworkEngine::NetworkRole::CLIENT);
+ClientGameEngine::ClientGameEngine(std::string ip, std::string window_name) : _window_manager(WINDOW_W, WINDOW_H, window_name) {
+    _network = std::make_unique<engine::core::NetworkEngine>(engine::core::NetworkEngine::NetworkRole::CLIENT, ip);
 }
 
 int ClientGameEngine::init() {

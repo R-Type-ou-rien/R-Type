@@ -35,7 +35,7 @@ class ClientGameEngine : public GameEngineBase<ClientGameEngine> {
    public:
     int init();
     int run();
-    explicit ClientGameEngine(std::string window_name = "Default Name");
+    explicit ClientGameEngine(std::string ip = "127.0.0.1", std::string window_name = "Default Name");
     ~ClientGameEngine() {}
 
     std::optional<Entity> getLocalPlayerEntity() const {
