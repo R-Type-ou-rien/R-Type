@@ -12,7 +12,7 @@ void ScoreSystem::addScore(Registry& registry, int points) {
         std::cerr << "[ScoreSystem] ERROR: No ScoreComponent entity found!" << std::endl;
         return;
     }
-    
+
     for (auto entity : scoreEntities) {
         auto& score = registry.getComponent<ScoreComponent>(entity);
         int old_score = score.current_score;
@@ -20,7 +20,8 @@ void ScoreSystem::addScore(Registry& registry, int points) {
         if (score.current_score > score.high_score) {
             score.high_score = score.current_score;
         }
-        std::cout << "[ScoreSystem] Added " << points << " points. Score: " << old_score << " -> " << score.current_score << std::endl;
+        std::cout << "[ScoreSystem] Added " << points << " points. Score: " << old_score << " -> "
+                  << score.current_score << std::endl;
         break;
     }
 }

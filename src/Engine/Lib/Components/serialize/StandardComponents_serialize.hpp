@@ -1,5 +1,8 @@
 #pragma once
 
+#include <vector>
+#include <string>
+#include <iostream>
 #include "Components/StandardComponents.hpp"
 #include "ResourceConfig.hpp"
 #include "serialize.hpp"

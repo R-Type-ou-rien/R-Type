@@ -50,7 +50,7 @@ class ScenePrefabs {
                     destructible = std::any_cast<bool>(props.at("destructible"));
 
                 registry.addComponent<transform_component_s>(entity, {x, y});
-                
+
                 float scroll_speed = -100.0f;
                 if (props.count("scroll_speed"))
                     scroll_speed = std::any_cast<float>(props.at("scroll_speed"));
@@ -117,7 +117,7 @@ class ScenePrefabs {
                     sprite_path = std::any_cast<std::string>(props.at("sprite"));
 
                 registry.addComponent<transform_component_s>(entity, {x, y});
-                
+
                 float scroll_speed = 0.0f;
                 if (props.count("scroll_speed"))
                     scroll_speed = std::any_cast<float>(props.at("scroll_speed"));
@@ -210,7 +210,7 @@ class ScenePrefabs {
                 if (props.count("scroll_speed_mult"))
                     scroll_speed_mult = std::any_cast<float>(props.at("scroll_speed_mult"));
 
-                registry.addComponent<transform_component_s>(entity, {x, y, scale, scale});       
+                registry.addComponent<transform_component_s>(entity, {x, y, scale, scale});
                 registry.addComponent<Velocity2D>(entity, {-100.0f * scroll_speed_mult, 0.0f});
 
                 if (!sprite_path.empty()) {

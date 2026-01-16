@@ -51,11 +51,10 @@ void ShooterSystem::create_projectile(Registry& registry, Entity owner_entity, S
 }
 
 void ShooterSystem::create_projectile_with_pattern(Registry& registry, Entity owner_entity,
-                                                   ShooterComponent::ProjectileType type,
-                                                   TeamComponent::Team team, transform_component_s pos,
-                                                   system_context context, ShooterComponent::ShootPattern pattern,
-                                                   float target_x, float target_y, int projectile_damage,
-                                                   float projectile_scale) {
+                                                   ShooterComponent::ProjectileType type, TeamComponent::Team team,
+                                                   transform_component_s pos, system_context context,
+                                                   ShooterComponent::ShootPattern pattern, float target_x,
+                                                   float target_y, int projectile_damage, float projectile_scale) {
     int id = registry.createEntity();
     Velocity2D speed = get_projectile_speed(type, team);
 
@@ -286,8 +285,7 @@ void ShooterSystem::update(Registry& registry, system_context context) {
                 charged.charge_time += context.dt;
 
                 // Play charging sound when reaching medium threshold (50%)
-                if (charged.charge_time >= charged.medium_charge &&
-                    !registry.hasComponent<AudioSourceComponent>(id)) {
+                if (charged.charge_time >= charged.medium_charge && !registry.hasComponent<AudioSourceComponent>(id)) {
                     AudioSourceComponent audio;
                     audio.sound_name = "charg_start";
                     audio.play_on_start = true;
@@ -324,7 +322,7 @@ void ShooterSystem::update(Registry& registry, system_context context) {
                         create_charged_projectile(registry, id, team.team, pos, context, 1.0f);
                     } else if (charged.charge_time >= charged.medium_charge) {
                         // Medium charged shot (50%) - half power
-                            create_charged_projectile(registry, id, team.team, pos, context, 0.5f);
+                        create_charged_projectile(registry, id, team.team, pos, context, 0.5f);
                     } else {
                         // Normal shot - no charge
                         create_projectile(registry, id, shooter.type, team.team, pos, context, proj_damage,
@@ -373,8 +371,7 @@ void ShooterSystem::update(Registry& registry, system_context context) {
                 }
             } else if (shooter.pattern == ShooterComponent::SPREAD && team.team == TeamComponent::ENEMY) {
                 create_projectile_with_pattern(registry, id, shooter.type, team.team, pos, context,
-                                               ShooterComponent::STRAIGHT, 0, 0, proj_damage,
-                                               shooter.projectile_scale);
+                                               ShooterComponent::STRAIGHT, 0, 0, proj_damage, shooter.projectile_scale);
 
                 transform_component_s pos_up = pos;
                 pos_up.y -= 20;
@@ -393,8 +390,7 @@ void ShooterSystem::update(Registry& registry, system_context context) {
                                                shooter.projectile_scale);
             } else {
                 create_projectile_with_pattern(registry, id, shooter.type, team.team, pos, context,
-                                               ShooterComponent::STRAIGHT, 0, 0, proj_damage,
-                                               shooter.projectile_scale);
+                                               ShooterComponent::STRAIGHT, 0, 0, proj_damage, shooter.projectile_scale);
             }
             shooter.last_shot = 0.f;
         }

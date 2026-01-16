@@ -5,7 +5,8 @@
 #include "src/RType/Common/Systems/score.hpp"
 #include "CollisionSystem.hpp"
 
-Player::Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<float, float> pos, const EntityConfig& config)
+Player::Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<float, float> pos,
+               const EntityConfig& config)
     : DynamicActor(ecs, true, textures, "PLAYER") {
     int hp = config.hp.value_or(5);
     float speed = config.speed.value_or(200.0f);
@@ -18,7 +19,7 @@ Player::Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<floa
     addResourceStat("lifepoint", lifepoint);
     setPosition(pos);
     _ecs.registry.addComponent<TeamComponent>(_id, {TeamComponent::Team::ALLY});
-    
+
     ShooterComponent shooter;
     shooter.fire_rate = config.fire_rate.value_or(0.25f);
     _ecs.registry.addComponent<ShooterComponent>(_id, shooter);
@@ -47,9 +48,7 @@ Player::Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<floa
     });
 
     bindActionCallbackOnReleased(
-        "move_up", [this](Registry&, system_context, Entity) {
-            this->setVelocity({this->getvelocity().first, 0.0f});
-        });
+        "move_up", [this](Registry&, system_context, Entity) { this->setVelocity({this->getvelocity().first, 0.0f}); });
 
     bindActionCallbackPressed("move_down", [this, speed](Registry&, system_context, Entity) {
         this->setVelocity({this->getvelocity().first, speed});

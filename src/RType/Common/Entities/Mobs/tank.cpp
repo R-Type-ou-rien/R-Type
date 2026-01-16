@@ -17,8 +17,8 @@ void TankSpawner::spawn(Registry& registry, system_context context, float x, flo
 
     registry.addComponent<transform_component_s>(id, {x, y});
     registry.addComponent<Velocity2D>(id, {-config.speed.value(), 0.0f});
-    registry.addComponent<HealthComponent>(id, 
-        MobComponentFactory::createHealth(config, MobDefaults::Health::DAMAGE_FLASH_DURATION_TANK));
+    registry.addComponent<HealthComponent>(
+        id, MobComponentFactory::createHealth(config, MobDefaults::Health::DAMAGE_FLASH_DURATION_TANK));
     registry.addComponent<TeamComponent>(id, {TeamComponent::ENEMY});
     registry.addComponent<DamageOnCollision>(id, {config.damage.value()});
     registry.addComponent<ScoreValueComponent>(id, {config.score_value.value()});
@@ -28,8 +28,8 @@ void TankSpawner::spawn(Registry& registry, system_context context, float x, flo
     }
 
     if (config.shoot_at_player.value_or(false)) {
-        registry.addComponent<BehaviorComponent>(id, 
-            MobComponentFactory::createBehavior(config, MobDefaults::Behavior::FOLLOW_SPEED_TANK));
+        registry.addComponent<BehaviorComponent>(
+            id, MobComponentFactory::createBehavior(config, MobDefaults::Behavior::FOLLOW_SPEED_TANK));
     }
 
     handle_t<TextureAsset> handle =

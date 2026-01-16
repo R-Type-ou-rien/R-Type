@@ -1,6 +1,7 @@
 #include "damage.hpp"
 
 #include <set>
+#include <iostream>
 #include <vector>
 #include "health.hpp"
 #include "shooter.hpp"
@@ -78,8 +79,8 @@ void Damage::update(Registry& registry, system_context context) {
 
             if (health.current_hp - damage_value <= 0) {
                 health.current_hp = 0;
-                std::cout << "[Damage] Entity " << hit_id << " killed by entity " << attacker << " (damage: " << damage_value
-                          << ")" << std::endl;
+                std::cout << "[Damage] Entity " << hit_id << " killed by entity " << attacker
+                          << " (damage: " << damage_value << ")" << std::endl;
             } else {
                 health.current_hp -= damage_value;
                 std::cout << "[Damage] Entity " << hit_id << " took " << damage_value

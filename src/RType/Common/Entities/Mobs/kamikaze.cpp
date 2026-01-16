@@ -16,12 +16,13 @@ void KamikazeSpawner::spawn(Registry& registry, system_context context, float x,
 
     registry.addComponent<transform_component_s>(id, {x, y});
     registry.addComponent<Velocity2D>(id, {0.0f, 0.0f});
-    registry.addComponent<HealthComponent>(id, 
-        MobComponentFactory::createHealth(config, MobDefaults::Health::DAMAGE_FLASH_DURATION_KAMIKAZE));
+    registry.addComponent<HealthComponent>(
+        id, MobComponentFactory::createHealth(config, MobDefaults::Health::DAMAGE_FLASH_DURATION_KAMIKAZE));
     registry.addComponent<TeamComponent>(id, {TeamComponent::ENEMY});
     registry.addComponent<DamageOnCollision>(id, {config.damage.value()});
     registry.addComponent<ScoreValueComponent>(id, {config.score_value.value()});
-    BehaviorComponent behavior = MobComponentFactory::createBehavior(config, MobDefaults::Behavior::FOLLOW_SPEED_KAMIKAZE);
+    BehaviorComponent behavior =
+        MobComponentFactory::createBehavior(config, MobDefaults::Behavior::FOLLOW_SPEED_KAMIKAZE);
     behavior.follow_player = config.follow_player.value_or(true);
     registry.addComponent<BehaviorComponent>(id, behavior);
 

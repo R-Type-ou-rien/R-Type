@@ -11,7 +11,8 @@
 
 class Player : public DynamicActor {
    public:
-    Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<float, float> pos, const EntityConfig& config = EntityConfig());
+    Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<float, float> pos,
+           const EntityConfig& config = EntityConfig());
     void setProjectileType(ShooterComponent::ProjectileType type);
     ShooterComponent::ProjectileType getProjectileType();
     void setShootingState(bool state);
