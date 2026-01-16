@@ -6,49 +6,49 @@
 #include "mob_spawner.hpp"
 
 class ScoutSpawner : public IMobSpawner {
-public:
+   public:
     void spawn(Registry& registry, system_context context, float x, float y, const EntityConfig& config) override;
     std::string getTypeName() const override { return "SCOUT"; }
 };
 
 class FighterSpawner : public IMobSpawner {
-public:
+   public:
     void spawn(Registry& registry, system_context context, float x, float y, const EntityConfig& config) override;
     std::string getTypeName() const override { return "FIGHTER"; }
 };
 
 class TankSpawner : public IMobSpawner {
-public:
+   public:
     void spawn(Registry& registry, system_context context, float x, float y, const EntityConfig& config) override;
     std::string getTypeName() const override { return "TANK"; }
 };
 
 class ShooterSpawner : public IMobSpawner {
-public:
+   public:
     void spawn(Registry& registry, system_context context, float x, float y, const EntityConfig& config) override;
     std::string getTypeName() const override { return "SHOOTER"; }
 };
 
 class KamikazeSpawner : public IMobSpawner {
-public:
+   public:
     void spawn(Registry& registry, system_context context, float x, float y, const EntityConfig& config) override;
     std::string getTypeName() const override { return "KAMIKAZE"; }
 };
 
 class BossSpawner : public IMobSpawner {
-public:
+   public:
     void spawn(Registry& registry, system_context context, float x, float y, const EntityConfig& config) override;
     std::string getTypeName() const override { return "BOSS"; }
 };
 
 class ObstacleSpawner : public IMobSpawner {
-public:
+   public:
     void spawn(Registry& registry, system_context context, float x, float y, const EntityConfig& config) override;
     std::string getTypeName() const override { return "OBSTACLE"; }
 };
 
 class MobSpawnerFactory {
-public:
+   public:
     static std::map<std::string, std::unique_ptr<IMobSpawner>> createSpawners() {
         std::map<std::string, std::unique_ptr<IMobSpawner>> spawners;
         spawners["SCOUT"] = std::make_unique<ScoutSpawner>();

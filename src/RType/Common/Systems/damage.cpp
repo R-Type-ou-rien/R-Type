@@ -48,7 +48,7 @@ void Damage::update(Registry& registry, system_context context) {
                 if (registry.hasComponent<PenetratingProjectile>(attacker)) {
                     auto& penetrating = registry.getComponent<PenetratingProjectile>(attacker);
                     penetrating.current_penetrations++;
-                    
+
                     if (penetrating.current_penetrations >= penetrating.max_penetrations) {
                         registry.destroyEntity(attacker);
                         break;

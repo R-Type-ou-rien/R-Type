@@ -3,15 +3,13 @@
 #include "GameEngineBase.hpp"
 
 GameManager::GameManager() {
-    _player_config = ConfigLoader::loadEntityConfig(
-        "content/config/player.cfg", 
-        ConfigLoader::getRequiredPlayerFields()
-    );
+    _player_config =
+        ConfigLoader::loadEntityConfig("content/config/player.cfg", ConfigLoader::getRequiredPlayerFields());
 }
 
 void GameManager::init(Environment& env, InputManager& inputs) {
     initSystems(env);
-    
+
     env.loadGameResources("content/config/r-type.json");
 
     initBackground(env);
@@ -19,7 +17,7 @@ void GameManager::init(Environment& env, InputManager& inputs) {
     initPlayer(env);
     initSpawner(env);
     initUI(env);
-    
+
     if (!env.isServer()) {
         auto& ecs = env.getECS();
         Entity musicEntity = ecs.registry.createEntity();

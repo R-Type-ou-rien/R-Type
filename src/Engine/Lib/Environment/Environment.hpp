@@ -4,6 +4,9 @@
 #include <iostream>
 #include <fstream>
 #include <nlohmann/json.hpp>
+#include <string>
+#include <memory>
+#include <utility>
 
 enum class SpawnPolicy { AUTHORITATIVE, PREDICTED, LOCAL_ONLY };
 
@@ -18,7 +21,8 @@ class Environment {
     EnvMode _mode;
 
    public:
-    Environment(ECS& ecs, ResourceManager<TextureAsset>& textures, ResourceManager<SoundAsset>& sounds, ResourceManager<MusicAsset>& musics, EnvMode mode)
+    Environment(ECS& ecs, ResourceManager<TextureAsset>& textures, ResourceManager<SoundAsset>& sounds,
+                ResourceManager<MusicAsset>& musics, EnvMode mode)
         : _ecs(ecs), _textures(textures), _sounds(sounds), _musics(musics), _mode(mode) {}
 
     handle_t<TextureAsset> loadTexture(const std::string& path) {
@@ -88,7 +92,6 @@ class Environment {
                     }
                 }
             }
-
         } catch (const nlohmann::json::parse_error& e) {
             std::cerr << "[ERROR] JSON parse error in " << jsonPath << ": " << e.what() << std::endl;
         }

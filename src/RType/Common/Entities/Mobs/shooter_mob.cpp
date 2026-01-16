@@ -31,13 +31,14 @@ void ShooterSpawner::spawn(Registry& registry, system_context context, float x, 
     behavior.follow_player = false;
     registry.addComponent<AIBehaviorComponent>(id, behavior);
 
-    handle_t<TextureAsset> handle = context.texture_manager.load(config.sprite_path.value(), TextureAsset(config.sprite_path.value()));
+    handle_t<TextureAsset> handle =
+        context.texture_manager.load(config.sprite_path.value(), TextureAsset(config.sprite_path.value()));
 
     sprite2D_component_s sprite_info;
     sprite_info.handle = handle;
-    sprite_info.dimension = {static_cast<float>(config.sprite_x.value()), static_cast<float>(config.sprite_y.value()), 
+    sprite_info.dimension = {static_cast<float>(config.sprite_x.value()), static_cast<float>(config.sprite_y.value()),
                              static_cast<float>(config.sprite_w.value()), static_cast<float>(config.sprite_h.value())};
-    
+
     sprite_info.z_index = 1;
     registry.addComponent<sprite2D_component_s>(id, sprite_info);
 

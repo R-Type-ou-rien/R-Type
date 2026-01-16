@@ -12,7 +12,7 @@ using ResourceManager = ServerResourceManager<T>;
 struct TextureData {
     std::string pathname;
     TextureData() = default;
-    TextureData(std::string path) { this->pathname = path; }
+    explicit TextureData(std::string path) { this->pathname = path; }
 };
 
 using TextureAsset = TextureData;

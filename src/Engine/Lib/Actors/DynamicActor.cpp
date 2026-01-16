@@ -3,6 +3,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <unordered_map>
 
 #include "Components/StandardComponents.hpp"
 
@@ -174,9 +175,7 @@ void DynamicActor::setPatternType(PatternComponent::PatternType type) {
     return;
 }
 
-std::vector<std::pair<float, float>> DynamicActor::getPattern()
-
-{
+std::vector<std::pair<float, float>> DynamicActor::getPattern() {
     if (_playable)
         return std::vector<std::pair<float, float>>();
     PatternComponent comp = _ecs.registry.getConstComponent<PatternComponent>(_id);

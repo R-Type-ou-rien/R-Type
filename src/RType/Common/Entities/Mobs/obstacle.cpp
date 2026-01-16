@@ -19,7 +19,7 @@ void ObstacleSpawner::spawn(Registry& registry, system_context context, float x,
     sprite2D_component_s sprite_info;
     sprite_info.handle = handle;
     sprite_info.dimension = {0, 0, 32, 32};
-    
+
     sprite_info.z_index = 1;
     registry.addComponent<sprite2D_component_s>(id, sprite_info);
 

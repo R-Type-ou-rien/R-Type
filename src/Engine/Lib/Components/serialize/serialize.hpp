@@ -5,6 +5,7 @@
 #include <string>
 #include <map>
 #include <tuple>
+#include <algorithm>
 
 namespace serialize {
 

@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <string>
 #include "NetworkManager.hpp"
 
 class NetworkManagerTest : public ::testing::Test {

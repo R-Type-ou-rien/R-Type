@@ -16,7 +16,7 @@ class GameManager {
     Entity _scoreTrackerEntity;
     bool _gameOver = false;
     bool _victory = false;
-    
+
     EntityConfig _player_config;
 
     void initSystems(Environment& env);

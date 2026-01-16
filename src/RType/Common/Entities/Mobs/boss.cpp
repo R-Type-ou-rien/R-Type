@@ -16,7 +16,8 @@ void BossSpawner::spawn(Registry& registry, system_context context, float x, flo
 
     float boss_target_x = windowWidth - config.sprite_w.value() - 50.0f;
 
-    registry.addComponent<transform_component_s>(id, {windowWidth + 50.0f, windowHeight / 2.0f - config.sprite_h.value() / 2.0f});
+    registry.addComponent<transform_component_s>(
+        id, {windowWidth + 50.0f, windowHeight / 2.0f - config.sprite_h.value() / 2.0f});
     registry.addComponent<Velocity2D>(id, {-config.speed.value(), 0.0f});
 
     registry.addComponent<HealthComponent>(id, {config.hp.value(), config.hp.value(), 0.0f, 2.0f});
@@ -36,13 +37,14 @@ void BossSpawner::spawn(Registry& registry, system_context context, float x, flo
     boss_shooter.last_shot = 0.0f;
     registry.addComponent<ShooterComponent>(id, boss_shooter);
 
-    handle_t<TextureAsset> handle = context.texture_manager.load(config.sprite_path.value(), TextureAsset(config.sprite_path.value()));
+    handle_t<TextureAsset> handle =
+        context.texture_manager.load(config.sprite_path.value(), TextureAsset(config.sprite_path.value()));
 
     sprite2D_component_s sprite_info;
     sprite_info.handle = handle;
-    sprite_info.dimension = {static_cast<float>(config.sprite_x.value()), static_cast<float>(config.sprite_y.value()), 
+    sprite_info.dimension = {static_cast<float>(config.sprite_x.value()), static_cast<float>(config.sprite_y.value()),
                              static_cast<float>(config.sprite_w.value()), static_cast<float>(config.sprite_h.value())};
-    
+
     sprite_info.z_index = 2;
     registry.addComponent<sprite2D_component_s>(id, sprite_info);
 

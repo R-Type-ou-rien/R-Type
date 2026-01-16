@@ -1,11 +1,11 @@
-// /*
-// ** EPITECH PROJECT, 2025
-// ** R-Type
-// ** File description:
-// ** InputManager.cpp
-// */
+/*
+** EPITECH PROJECT, 2025
+** R-Type
+** File description:
+** InputManager.cpp
+*/
 
-// #include "InputManager.hpp"
+#include "InputManager.hpp"
 
 // void InputManager::bindAction(Action action, const InputBinding& binding) {
 //     _actionRegistry.registerAction(action);

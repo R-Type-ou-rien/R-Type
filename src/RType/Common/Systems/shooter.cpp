@@ -4,6 +4,7 @@
 #include <iterator>
 #include <ostream>
 #include <cmath>
+#include <algorithm>
 
 #include "Components/StandardComponents.hpp"
 #include "ISystem.hpp"
@@ -99,10 +100,10 @@ void ShooterSystem::create_projectile(Registry& registry, ShooterComponent::Proj
     return;
 }
 
-void ShooterSystem::create_charged_projectile(Registry& registry, TeamComponent::Team team,
-                                             transform_component_s pos, system_context context, float charge_ratio) {
+void ShooterSystem::create_charged_projectile(Registry& registry, TeamComponent::Team team, transform_component_s pos,
+                                              system_context context, float charge_ratio) {
     int id = registry.createEntity();
-    
+
     Velocity2D speed = {700, 0};
     if (team == TeamComponent::ENEMY) {
         speed.vx = -speed.vx;
@@ -120,15 +121,15 @@ void ShooterSystem::create_charged_projectile(Registry& registry, TeamComponent:
     registry.addComponent<transform_component_s>(id, {(pos.x + 50), (pos.y)});
     registry.addComponent<Velocity2D>(id, speed);
     registry.addComponent<TagComponent>(id, tags);
-    
+
     int damage = static_cast<int>(50 + (150 * charge_ratio));
     registry.addComponent<DamageOnCollision>(id, {damage});
-    
+
     registry.addComponent<PenetratingProjectile>(id, {});
 
     // Utiliser r-typesheet1.gif qui a les projectiles (zone avec énergie)
     handle_t<TextureAsset> handle = context.texture_manager.load("content/sprites/r-typesheet1.gif",
-                                                                TextureAsset("content/sprites/r-typesheet1.gif"));
+                                                                 TextureAsset("content/sprites/r-typesheet1.gif"));
 
     sprite2D_component_s sprite_info;
     sprite_info.handle = handle;
@@ -176,10 +177,10 @@ void ShooterSystem::update(Registry& registry, system_context context) {
         }
         ShooterComponent& shooter = registry.getComponent<ShooterComponent>(id);
         shooter.last_shot += context.dt;
-        
+
         if (registry.hasComponent<ChargedShotComponent>(id)) {
             ChargedShotComponent& charged = registry.getComponent<ChargedShotComponent>(id);
-            
+
             if (shooter.trigger_pressed && shooter.is_shooting) {
                 if (!charged.is_charging) {
                     AudioSourceComponent audio;
@@ -188,7 +189,7 @@ void ShooterSystem::update(Registry& registry, system_context context) {
                     audio.loop = false;
                     audio.next_sound_name = "charg_loop";
                     audio.next_sound_loop = true;
-                    audio.destroy_entity_on_finish = false; // Le joueur ne doit pas être détruit
+                    audio.destroy_entity_on_finish = false;  // Le joueur ne doit pas être détruit
                     registry.addComponent<AudioSourceComponent>(id, audio);
                 }
 
@@ -199,7 +200,7 @@ void ShooterSystem::update(Registry& registry, system_context context) {
                 }
                 continue;
             }
-            
+
             if (!shooter.trigger_pressed && charged.is_charging) {
                 if (registry.hasComponent<AudioSourceComponent>(id)) {
                     auto& audio = registry.getComponent<AudioSourceComponent>(id);
@@ -209,26 +210,25 @@ void ShooterSystem::update(Registry& registry, system_context context) {
 
                 const transform_component_s& pos = registry.getConstComponent<transform_component_s>(id);
                 const TeamComponent& team = registry.getConstComponent<TeamComponent>(id);
-                
+
                 if (charged.charge_time >= charged.min_charge_time && shooter.last_shot >= shooter.fire_rate) {
-                    float charge_ratio = (charged.charge_time - charged.min_charge_time) / 
-                                        (charged.max_charge_time - charged.min_charge_time);
+                    float charge_ratio = (charged.charge_time - charged.min_charge_time) /
+                                         (charged.max_charge_time - charged.min_charge_time);
                     charge_ratio = std::min(1.0f, charge_ratio);
                     create_charged_projectile(registry, team.team, pos, context, charge_ratio);
                     shooter.last_shot = 0.f;
-                } 
-                else if (charged.charge_time < charged.min_charge_time && shooter.last_shot >= shooter.fire_rate) {
+                } else if (charged.charge_time < charged.min_charge_time && shooter.last_shot >= shooter.fire_rate) {
                     create_projectile(registry, shooter.type, team.team, pos, context);
                     shooter.last_shot = 0.f;
                 }
-                
+
                 charged.is_charging = false;
                 charged.charge_time = 0.0f;
                 shooter.is_shooting = false;
                 continue;
             }
         }
-        
+
         if (!shooter.is_shooting)
             continue;
         const transform_component_s& pos = registry.getConstComponent<transform_component_s>(id);

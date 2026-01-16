@@ -30,6 +30,6 @@ class ShooterSystem : public ISystem {
     Velocity2D get_projectile_speed(ShooterComponent::ProjectileType type, TeamComponent::Team team);
     void create_projectile(Registry& registry, ShooterComponent::ProjectileType type, TeamComponent::Team team,
                            transform_component_s pos, system_context context);
-    void create_charged_projectile(Registry& registry, TeamComponent::Team team,
-                                   transform_component_s pos, system_context context, float charge_ratio);
+    void create_charged_projectile(Registry& registry, TeamComponent::Team team, transform_component_s pos,
+                                   system_context context, float charge_ratio);
 };

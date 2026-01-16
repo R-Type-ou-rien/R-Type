@@ -2,6 +2,8 @@
 
 #include "ResourceConfig.hpp"
 #include "InputConfig.hpp"
+#include "ClientResourceManager.hpp"
+#include <SFML/Graphics/RenderWindow.hpp>
 
 #if defined(SERVER_BUILD)
 #include "ServerResourceManager.hpp"
@@ -13,9 +15,6 @@ struct system_context {
     InputManager& input;
 };
 #elif defined(CLIENT_BUILD)
-#include "ClientResourceManager.hpp"
-#include <SFML/Graphics/RenderWindow.hpp>
-#include "InputConfig.hpp"
 struct system_context {
     float dt;
     ResourceManager<TextureAsset>& texture_manager;
