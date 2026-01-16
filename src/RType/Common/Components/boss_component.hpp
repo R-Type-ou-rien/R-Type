@@ -12,97 +12,97 @@
 #include <optional>
 
 namespace BossDefaults {
-    namespace Position {
-        constexpr float MARGIN_RIGHT = 100.0f;
-        constexpr float SPAWN_OFFSET_X = 50.0f;
-    }
+namespace Position {
+constexpr float MARGIN_RIGHT = 100.0f;
+constexpr float SPAWN_OFFSET_X = 50.0f;
+}  // namespace Position
 
-    namespace Tail {
-        constexpr int SEGMENT_COUNT = 18;
-        constexpr float SPRITE_WIDTH = 15.0f;
-        constexpr float SPRITE_HEIGHT = 15.0f;
-        constexpr float SCALE_MULTIPLIER = 2.0f;
-        constexpr float SPACING_RATIO = 0.4f;
-        constexpr float SINE_PHASE_OFFSET = 0.5f;
-        constexpr float HEIGHT_MULTIPLIER = 2.0f;
-        constexpr int HP = 50;
-        constexpr float INVINCIBILITY_TIME = 0.0f;
-        constexpr float DAMAGE_FLASH_DURATION = 0.5f;
-        constexpr int COLLISION_DAMAGE = 30;
-        constexpr float SPRITE_X = 596.0f;
-        constexpr float SPRITE_Y = 2061.0f;
-        constexpr int Z_INDEX = 1;
-    }
+namespace Tail {
+constexpr int SEGMENT_COUNT = 18;
+constexpr float SPRITE_WIDTH = 15.0f;
+constexpr float SPRITE_HEIGHT = 15.0f;
+constexpr float SCALE_MULTIPLIER = 2.0f;
+constexpr float SPACING_RATIO = 0.4f;
+constexpr float SINE_PHASE_OFFSET = 0.5f;
+constexpr float HEIGHT_MULTIPLIER = 2.0f;
+constexpr int HP = 50;
+constexpr float INVINCIBILITY_TIME = 0.0f;
+constexpr float DAMAGE_FLASH_DURATION = 0.5f;
+constexpr int COLLISION_DAMAGE = 30;
+constexpr float SPRITE_X = 596.0f;
+constexpr float SPRITE_Y = 2061.0f;
+constexpr int Z_INDEX = 1;
+}  // namespace Tail
 
-    namespace Sprite {
-        constexpr int Z_INDEX = 2;
-    }
-
-    inline const char* TAIL_SPRITE_PATH = "src/RType/Common/content/sprites/r-typesheet30.gif";
-
-    namespace Patterns {
-        constexpr float LINEAR_SPEED = -400.0f;
-        constexpr int LINEAR_DAMAGE = 25;
-        
-        constexpr float MISSILE_SPEED = -250.0f;
-        constexpr float MISSILE_OFFSET_Y = 100.0f;
-        constexpr int MISSILE_DAMAGE = 30;
-
-        constexpr float WALL_ANGLE_STEP = 15.0f;
-        constexpr float WALL_SPEED = -350.0f;
-        constexpr int WALL_DAMAGE = 35;
-        constexpr int WALL_COUNT_SIDE = 2;
-
-        constexpr float BOUNCE_SPEED_X = -300.0f;
-        constexpr float BOUNCE_OFFSET_Y = 200.0f;
-        constexpr int BOUNCE_DAMAGE = 35;
-
-        constexpr float SPIRAL_SPEED = -300.0f;
-        constexpr int SPIRAL_DAMAGE = 40;
-        constexpr int SPIRAL_COUNT = 8;
-        constexpr float SPIRAL_ROTATION_SPEED = 180.0f;
-
-        constexpr float DELAYED_SPEED = -200.0f;
-        constexpr int DELAYED_DAMAGE = 45;
-    }
-
-    namespace Projectile {
-        constexpr float OFFSET_X = -30.0f;
-        constexpr float SCALE = 2.0f;
-        constexpr float SPRITE_X = 241.0f;
-        constexpr float SPRITE_Y = 120.0f;
-        constexpr float SPRITE_W = 10.0f;
-        constexpr float SPRITE_H = 10.0f;
-        constexpr int Z_INDEX = 5;
-        inline const char* SPRITE_PATH = "src/RType/Common/content/sprites/r-typesheet1.gif";
-    }
-
-    namespace SubEntities {
-        constexpr float PROJECTILE_SPEED = -400.0f;
-        constexpr int PROJECTILE_DAMAGE = 20;
-        
-        namespace Tentacle {
-            constexpr int HP = 50;
-            constexpr int COLLISION_DAMAGE = 15;
-        }
-        namespace Cannon {
-            constexpr int HP = 80;
-            constexpr int COLLISION_DAMAGE = 20;
-        }
-    }
-    
-    namespace Phases {
-        constexpr float FIRE_RATE_PHASE_2 = 0.2f;
-        constexpr float FIRE_RATE_PHASE_3 = 0.15f;
-        constexpr float FIRE_RATE_ENRAGED = 0.1f;
-        constexpr float ENRAGED_SPEED_FACTOR = 2.0f;
-        constexpr float ENRAGED_AMPLITUDE = 150.0f;
-        constexpr float ENRAGED_ATTACK_INTERVAL = 0.8f;
-        constexpr float DYING_FALL_SPEED = 500.0f;
-        constexpr float PHASE3_VULNERABILITY_START = 1.0f;
-        constexpr float PHASE3_VULNERABILITY_END = 2.0f;
-    }
+namespace Sprite {
+constexpr int Z_INDEX = 2;
 }
+
+inline const char* TAIL_SPRITE_PATH = "src/RType/Common/content/sprites/r-typesheet30.gif";
+
+namespace Patterns {
+constexpr float LINEAR_SPEED = -400.0f;
+constexpr int LINEAR_DAMAGE = 25;
+
+constexpr float MISSILE_SPEED = -250.0f;
+constexpr float MISSILE_OFFSET_Y = 100.0f;
+constexpr int MISSILE_DAMAGE = 30;
+
+constexpr float WALL_ANGLE_STEP = 15.0f;
+constexpr float WALL_SPEED = -350.0f;
+constexpr int WALL_DAMAGE = 35;
+constexpr int WALL_COUNT_SIDE = 2;
+
+constexpr float BOUNCE_SPEED_X = -300.0f;
+constexpr float BOUNCE_OFFSET_Y = 200.0f;
+constexpr int BOUNCE_DAMAGE = 35;
+
+constexpr float SPIRAL_SPEED = -300.0f;
+constexpr int SPIRAL_DAMAGE = 40;
+constexpr int SPIRAL_COUNT = 8;
+constexpr float SPIRAL_ROTATION_SPEED = 180.0f;
+
+constexpr float DELAYED_SPEED = -200.0f;
+constexpr int DELAYED_DAMAGE = 45;
+}  // namespace Patterns
+
+namespace Projectile {
+constexpr float OFFSET_X = -30.0f;
+constexpr float SCALE = 2.0f;
+constexpr float SPRITE_X = 241.0f;
+constexpr float SPRITE_Y = 120.0f;
+constexpr float SPRITE_W = 10.0f;
+constexpr float SPRITE_H = 10.0f;
+constexpr int Z_INDEX = 5;
+inline const char* SPRITE_PATH = "src/RType/Common/content/sprites/r-typesheet1.gif";
+}  // namespace Projectile
+
+namespace SubEntities {
+constexpr float PROJECTILE_SPEED = -400.0f;
+constexpr int PROJECTILE_DAMAGE = 20;
+
+namespace Tentacle {
+constexpr int HP = 50;
+constexpr int COLLISION_DAMAGE = 15;
+}  // namespace Tentacle
+namespace Cannon {
+constexpr int HP = 80;
+constexpr int COLLISION_DAMAGE = 20;
+}  // namespace Cannon
+}  // namespace SubEntities
+
+namespace Phases {
+constexpr float FIRE_RATE_PHASE_2 = 0.2f;
+constexpr float FIRE_RATE_PHASE_3 = 0.15f;
+constexpr float FIRE_RATE_ENRAGED = 0.1f;
+constexpr float ENRAGED_SPEED_FACTOR = 2.0f;
+constexpr float ENRAGED_AMPLITUDE = 150.0f;
+constexpr float ENRAGED_ATTACK_INTERVAL = 0.8f;
+constexpr float DYING_FALL_SPEED = 500.0f;
+constexpr float PHASE3_VULNERABILITY_START = 1.0f;
+constexpr float PHASE3_VULNERABILITY_END = 2.0f;
+}  // namespace Phases
+}  // namespace BossDefaults
 
 struct BossTailConfig {
     int segment_count = BossDefaults::Tail::SEGMENT_COUNT;
@@ -136,7 +136,7 @@ struct BossSubEntityConfig {
 struct BossPatternConfig {
     float linear_speed = BossDefaults::Patterns::LINEAR_SPEED;
     int linear_damage = BossDefaults::Patterns::LINEAR_DAMAGE;
-    
+
     float missile_speed = BossDefaults::Patterns::MISSILE_SPEED;
     float missile_offset_y = BossDefaults::Patterns::MISSILE_OFFSET_Y;
     int missile_damage = BossDefaults::Patterns::MISSILE_DAMAGE;
@@ -174,15 +174,7 @@ struct BossPhaseConfig {
 struct BossComponent {
     static constexpr auto name = "BossComponent";
 
-    enum BossState {
-        SPAWN,
-        PHASE_1,
-        PHASE_2,
-        PHASE_3,
-        ENRAGED,
-        DYING,
-        DEAD
-    };
+    enum BossState { SPAWN, PHASE_1, PHASE_2, PHASE_3, ENRAGED, DYING, DEAD };
 
     int max_phases = 3;
     float attack_pattern_interval = 3.0f;
@@ -192,7 +184,7 @@ struct BossComponent {
     float death_duration = 3.0f;
     float damage_flash_duration = 0.1f;
     std::vector<BossSubEntityConfig> sub_entities_config;
-    
+
     BossPatternConfig patterns;
     BossPhaseConfig phases;
 
@@ -216,7 +208,7 @@ struct BossComponent {
 
 struct BossWeakPointComponent {
     static constexpr auto name = "BossWeakPointComponent";
-    
+
     int boss_entity_id;
     int weak_point_index;
     bool is_destroyed = false;
@@ -226,13 +218,9 @@ struct BossWeakPointComponent {
 
 struct BossSubEntityComponent {
     static constexpr auto name = "BossSubEntityComponent";
-    
-    enum SubEntityType {
-        TENTACLE,
-        CANNON,
-        SHIELD
-    };
-    
+
+    enum SubEntityType { TENTACLE, CANNON, SHIELD };
+
     int boss_entity_id;
     SubEntityType type;
     int sub_entity_index;
@@ -246,10 +234,10 @@ struct BossSubEntityComponent {
 
 struct BossTailSegmentComponent {
     static constexpr auto name = "BossTailSegmentComponent";
-    
+
     int boss_entity_id;
     int segment_index;
-    int parent_segment_id;    
+    int parent_segment_id;
     float sine_offset = 0.0f;
     float base_offset_x = 0.0f;
     float base_offset_y = 0.0f;

@@ -30,8 +30,7 @@ void ObstacleSpawner::spawn(Registry& registry, system_context context, float x,
         static_cast<float>(config.sprite_x.value_or(static_cast<int>(MobDefaults::Obstacle::SPRITE_X))),
         static_cast<float>(config.sprite_y.value_or(static_cast<int>(MobDefaults::Obstacle::SPRITE_Y))),
         static_cast<float>(config.sprite_w.value_or(static_cast<int>(MobDefaults::Obstacle::SPRITE_W))),
-        static_cast<float>(config.sprite_h.value_or(static_cast<int>(MobDefaults::Obstacle::SPRITE_H)))
-    };
+        static_cast<float>(config.sprite_h.value_or(static_cast<int>(MobDefaults::Obstacle::SPRITE_H)))};
     sprite_info.z_index = MobDefaults::Sprite::Z_INDEX;
     registry.addComponent<sprite2D_component_s>(id, sprite_info);
 

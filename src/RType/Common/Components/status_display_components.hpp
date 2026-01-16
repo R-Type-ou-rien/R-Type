@@ -11,32 +11,32 @@
 #include "../Components/config.hpp"
 
 namespace StatusDisplayDefaults {
-    constexpr float STATUS_BAR_Y = 1030.0f;
-    constexpr float STATUS_BAR_HEIGHT = 50.0f;
-    constexpr float MARGIN = 20.0f;
+constexpr float STATUS_BAR_Y = 1030.0f;
+constexpr float STATUS_BAR_HEIGHT = 50.0f;
+constexpr float MARGIN = 20.0f;
 
-    namespace ChargeBar {
-        constexpr float X = 860.0f;
-        constexpr float Y = STATUS_BAR_Y;
-        constexpr float WIDTH = 200.0f;
-        constexpr float HEIGHT = 20.0f;
-        constexpr float MAX_CHARGE = 1.0f;
-    }
+namespace ChargeBar {
+constexpr float X = 860.0f;
+constexpr float Y = STATUS_BAR_Y;
+constexpr float WIDTH = 200.0f;
+constexpr float HEIGHT = 20.0f;
+constexpr float MAX_CHARGE = 1.0f;
+}  // namespace ChargeBar
 
-    namespace Lives {
-        constexpr float X = 50.0f;
-        constexpr float Y = STATUS_BAR_Y;
-        constexpr float ICON_SIZE = 32.0f;
-        constexpr float ICON_SPACING = 40.0f;
-        constexpr int MAX_LIVES = 3;
-    }
+namespace Lives {
+constexpr float X = 50.0f;
+constexpr float Y = STATUS_BAR_Y;
+constexpr float ICON_SIZE = 32.0f;
+constexpr float ICON_SPACING = 40.0f;
+constexpr int MAX_LIVES = 3;
+}  // namespace Lives
 
-    namespace Score {
-        constexpr float X = 1650.0f;
-        constexpr float Y = STATUS_BAR_Y;
-        constexpr int DIGIT_COUNT = 7;
-    }
-}
+namespace Score {
+constexpr float X = 1650.0f;
+constexpr float Y = STATUS_BAR_Y;
+constexpr int DIGIT_COUNT = 7;
+}  // namespace Score
+}  // namespace StatusDisplayDefaults
 
 struct StatusDisplayComponent {
     static constexpr auto name = "StatusDisplayComponent";
@@ -75,13 +75,13 @@ struct LivesDisplayComponent {
     float icon_size = StatusDisplayDefaults::Lives::ICON_SIZE;
     float icon_spacing = StatusDisplayDefaults::Lives::ICON_SPACING;
 
-
     static LivesDisplayComponent fromConfig(const UIConfig::Element& element) {
         LivesDisplayComponent component;
         component.x = element.x != 0.0f ? element.x : StatusDisplayDefaults::Lives::X;
         component.y = element.y != 0.0f ? element.y : StatusDisplayDefaults::Lives::Y;
         component.icon_size = element.icon_size != 0.0f ? element.icon_size : StatusDisplayDefaults::Lives::ICON_SIZE;
-        component.icon_spacing = element.icon_spacing != 0.0f ? element.icon_spacing : StatusDisplayDefaults::Lives::ICON_SPACING;
+        component.icon_spacing =
+            element.icon_spacing != 0.0f ? element.icon_spacing : StatusDisplayDefaults::Lives::ICON_SPACING;
         return component;
     }
 };
@@ -98,13 +98,14 @@ struct ScoreDisplayComponent {
         ScoreDisplayComponent component;
         component.x = element.x != 0.0f ? element.x : StatusDisplayDefaults::Score::X;
         component.y = element.y != 0.0f ? element.y : StatusDisplayDefaults::Score::Y;
-        component.digit_count = element.digit_count != 0 ? element.digit_count : StatusDisplayDefaults::Score::DIGIT_COUNT;
+        component.digit_count =
+            element.digit_count != 0 ? element.digit_count : StatusDisplayDefaults::Score::DIGIT_COUNT;
         return component;
     }
 };
 
 class StatusDisplayFactory {
-public:
+   public:
     static ChargeBarComponent createChargeBar(const UIConfig& config, const std::string& elementName = "ChargeBar") {
         auto it = config.elements.find(elementName);
         if (it != config.elements.end()) {
@@ -113,7 +114,8 @@ public:
         return ChargeBarComponent{};
     }
 
-    static LivesDisplayComponent createLivesDisplay(const UIConfig& config, const std::string& elementName = "LivesDisplay") {
+    static LivesDisplayComponent createLivesDisplay(const UIConfig& config,
+                                                    const std::string& elementName = "LivesDisplay") {
         auto it = config.elements.find(elementName);
         if (it != config.elements.end()) {
             return LivesDisplayComponent::fromConfig(it->second);
@@ -121,7 +123,8 @@ public:
         return LivesDisplayComponent{};
     }
 
-    static ScoreDisplayComponent createScoreDisplay(const UIConfig& config, const std::string& elementName = "ScoreDisplay") {
+    static ScoreDisplayComponent createScoreDisplay(const UIConfig& config,
+                                                    const std::string& elementName = "ScoreDisplay") {
         auto it = config.elements.find(elementName);
         if (it != config.elements.end()) {
             return ScoreDisplayComponent::fromConfig(it->second);

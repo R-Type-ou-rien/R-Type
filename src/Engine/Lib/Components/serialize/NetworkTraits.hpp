@@ -199,7 +199,7 @@ struct ComponentTraits<PlayerPodComponent> {
 template <>
 struct ComponentTraits<BehaviorComponent> {
     static BehaviorComponent deserialize(const std::vector<uint8_t>& buffer, size_t& offset,
-                                           ResourceManager<TextureAsset>&) {
+                                         ResourceManager<TextureAsset>&) {
         return deserialize_behavior_component(buffer, offset);
     }
 };
@@ -215,7 +215,7 @@ struct ComponentTraits<BossComponent> {
 template <>
 struct ComponentTraits<BossSubEntityComponent> {
     static BossSubEntityComponent deserialize(const std::vector<uint8_t>& buffer, size_t& offset,
-                                     ResourceManager<TextureAsset>&) {
+                                              ResourceManager<TextureAsset>&) {
         return deserialize_boss_sub_entity(buffer, offset);
     }
 };

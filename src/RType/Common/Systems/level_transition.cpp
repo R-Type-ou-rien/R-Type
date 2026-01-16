@@ -10,5 +10,4 @@
 #include "../Components/scripted_spawn.hpp"
 #include "../Components/spawn.hpp"
 
-void LevelTransitionSystem::update(Registry& registry, system_context context) {
-}
+void LevelTransitionSystem::update(Registry& registry, system_context context) {}

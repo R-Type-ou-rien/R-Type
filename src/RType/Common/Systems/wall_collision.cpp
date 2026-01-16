@@ -77,7 +77,8 @@ void WallCollisionSystem::update(Registry& registry, system_context context) {
 
             if (collides) {
                 if (is_player && wall.blocks_player) {
-                    std::cout << "[WallCollision] Player " << entity << " collided with wall " << wall_entity << std::endl;
+                    std::cout << "[WallCollision] Player " << entity << " collided with wall " << wall_entity
+                              << std::endl;
                     handlePlayerWallCollision(registry, entity, wall_entity);
                 } else if (is_projectile && wall.blocks_projectiles) {
                     handleProjectileWallCollision(registry, entity, wall_entity);
@@ -94,7 +95,8 @@ void WallCollisionSystem::handlePlayerWallCollision(Registry& registry, Entity p
     }
 
     auto& health = registry.getComponent<HealthComponent>(player);
-    std::cout << "[WallCollision] Killing player " << player << " (HP before: " << health.current_hp << ")" << std::endl;
+    std::cout << "[WallCollision] Killing player " << player << " (HP before: " << health.current_hp << ")"
+              << std::endl;
     health.current_hp = 0;  // Instant kill
 }
 

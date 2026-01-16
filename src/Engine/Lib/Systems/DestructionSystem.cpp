@@ -1,6 +1,8 @@
 #include "DestructionSystem.hpp"
 #include <iostream>
 #include <variant>
+#include <vector>
+#include <memory>
 #include "Components/StandardComponents.hpp"
 #include "Components/NetworkComponents.hpp"
 #include "Context.hpp"

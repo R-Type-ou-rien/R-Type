@@ -179,12 +179,14 @@ void GameManager::initSpawner(Environment& env, const LevelConfig& config) {
 }
 
 void GameManager::initUI(Environment& env) {
-    if (env.isServer()) return;
+    if (env.isServer())
+        return;
 
     auto& ecs = env.getECS();
     UIConfig ui;
     try {
-        std::string ui_path = _master_config.ui_config.empty() ? "src/RType/Common/content/config/ui.cfg" : _master_config.ui_config;
+        std::string ui_path =
+            _master_config.ui_config.empty() ? "src/RType/Common/content/config/ui.cfg" : _master_config.ui_config;
         ui = ConfigLoader::loadUIConfig(ui_path);
     } catch (const std::exception& e) {
         std::cerr << "[GameManager] Failed to load UI config: " << e.what() << ", using default values" << std::endl;
@@ -216,7 +218,8 @@ void GameManager::initUI(Environment& env) {
     ecs.registry.addComponent<ScoreComponent>(_scoreTrackerEntity, {0, 0});
 
     _statusDisplayEntity = ecs.registry.createEntity();
-    ecs.registry.addComponent<StatusDisplayComponent>(_statusDisplayEntity, StatusDisplayFactory::createStatusDisplay());
+    ecs.registry.addComponent<StatusDisplayComponent>(_statusDisplayEntity,
+                                                      StatusDisplayFactory::createStatusDisplay());
 
     _chargeBarEntity = ecs.registry.createEntity();
     ecs.registry.addComponent<ChargeBarComponent>(_chargeBarEntity, StatusDisplayFactory::createChargeBar(ui));

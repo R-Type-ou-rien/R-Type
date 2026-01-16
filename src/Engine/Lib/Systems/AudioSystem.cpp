@@ -2,6 +2,8 @@
 #include "Components/AudioComponent.hpp"
 #include <iostream>
 #include <vector>
+#include <memory>
+#include <utility>
 
 #if defined(CLIENT_BUILD)
 int AudioSystem::getAvailableSoundIndex() {

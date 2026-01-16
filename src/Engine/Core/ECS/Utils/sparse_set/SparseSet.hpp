@@ -55,8 +55,8 @@ void SparseSet<data_type>::addID(std::size_t id, const data_type& data) {
     // Safety: avoid gigantic resizes if an invalid entity id is used.
     // The engine defines MAX_ENTITIES; ids beyond that indicate a logic/network bug.
     if (id >= MAX_ENTITIES) {
-        std::cerr << "[SparseSet] Refusing to add component to entity id=" << id
-                  << " (MAX_ENTITIES=" << MAX_ENTITIES << ")" << std::endl;
+        std::cerr << "[SparseSet] Refusing to add component to entity id=" << id << " (MAX_ENTITIES=" << MAX_ENTITIES
+                  << ")" << std::endl;
         return;
     }
     if (id >= _sparse.size()) {

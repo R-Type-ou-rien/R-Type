@@ -1,3 +1,4 @@
+#include <vector>
 #include "powerup.hpp"
 #include "Components/StandardComponents.hpp"
 #include "../Components/team_component.hpp"
@@ -17,9 +18,7 @@ void PowerUpSystem::initialize_power_up_maps() {
         }
     };
 
-    deactivate_power_up[PowerUpComponent::SPEED_UP] = [](Registry& registry, Entity player) {
-        if (registry.hasComponent<Velocity2D>(player)) {}
-    };
+    deactivate_power_up[PowerUpComponent::SPEED_UP] = [](Registry& registry, Entity player) {};
 }
 
 void PowerUpSystem::update(Registry& registry, system_context context) {
@@ -33,10 +32,10 @@ void PowerUpSystem::updateActivePowerUps(Registry& registry, system_context cont
 
     for (auto entity : active_powerups) {
         auto& powerup = registry.getComponent<ActivePowerUpComponent>(entity);
-        
+
         if (powerup.remaining_time > 0) {
             powerup.remaining_time -= context.dt;
-            
+
             if (powerup.remaining_time <= 0) {
                 expired_powerups.push_back({entity, powerup.type});
             }
@@ -48,7 +47,7 @@ void PowerUpSystem::updateActivePowerUps(Registry& registry, system_context cont
         if (it != deactivate_power_up.end()) {
             it->second(registry, entity);
         }
-        
+
         registry.removeComponent<ActivePowerUpComponent>(entity);
     }
 }
@@ -80,14 +79,14 @@ void PowerUpSystem::checkPowerUpCollisions(Registry& registry, system_context co
     for (auto powerup_entity : powerups) {
         if (!registry.hasComponent<BoxCollisionComponent>(powerup_entity))
             continue;
-            
+
         auto& collision = registry.getConstComponent<BoxCollisionComponent>(powerup_entity);
-        
+
         for (auto collided : collision.collision.tags) {
             if (collided == player_entity) {
                 auto& powerup = registry.getConstComponent<PowerUpComponent>(powerup_entity);
                 applyPowerUp(registry, player_entity, powerup.type, powerup.value, powerup.duration);
-                
+
                 if (!registry.hasComponent<PendingDestruction>(powerup_entity)) {
                     registry.addComponent<PendingDestruction>(powerup_entity, {});
                 }
@@ -97,8 +96,8 @@ void PowerUpSystem::checkPowerUpCollisions(Registry& registry, system_context co
     }
 }
 
-void PowerUpSystem::applyPowerUp(Registry& registry, Entity player, PowerUpComponent::PowerUpType type, 
-                                  float value, float duration) {
+void PowerUpSystem::applyPowerUp(Registry& registry, Entity player, PowerUpComponent::PowerUpType type, float value,
+                                 float duration) {
     auto it = apply_power_up.find(type);
     if (it != apply_power_up.end()) {
         it->second(registry, player, value, duration);
@@ -107,35 +106,35 @@ void PowerUpSystem::applyPowerUp(Registry& registry, Entity player, PowerUpCompo
 
 void PowerUpSystem::spawnSpeedUp(Registry& registry, system_context context, float x, float y) {
     Entity id = registry.createEntity();
-    
+
     registry.addComponent<transform_component_s>(id, {x, y});
     registry.addComponent<Velocity2D>(id, {-100.0f, 0.0f});
-    
+
     PowerUpComponent powerup;
     powerup.type = PowerUpComponent::SPEED_UP;
     powerup.duration = 10.0f;
     powerup.value = 1.5f;
     registry.addComponent<PowerUpComponent>(id, powerup);
-    
+
     handle_t<TextureAsset> handle =
         context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet3.gif",
                                      TextureAsset("src/RType/Common/content/sprites/r-typesheet3.gif"));
-    
+
     sprite2D_component_s sprite_info;
     sprite_info.handle = handle;
     sprite_info.dimension = {1, 99, 16, 16};  // Power-up sprite
     sprite_info.z_index = 1;
     sprite_info.is_animated = false;
     registry.addComponent<sprite2D_component_s>(id, sprite_info);
-    
+
     auto& transform = registry.getComponent<transform_component_s>(id);
     transform.scale_x = 2.5f;
     transform.scale_y = 2.5f;
-    
+
     BoxCollisionComponent collision;
     collision.tagCollision.push_back("PLAYER");
     registry.addComponent<BoxCollisionComponent>(id, collision);
-    
+
     TagComponent tags;
     tags.tags.push_back("POWERUP");
     registry.addComponent<TagComponent>(id, tags);

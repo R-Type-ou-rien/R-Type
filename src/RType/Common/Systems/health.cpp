@@ -1,4 +1,5 @@
 #include <vector>
+#include <iostream>
 #include "damage.hpp"
 #include "Components/StandardComponents.hpp"
 #include "score.hpp"
@@ -46,10 +47,12 @@ void HealthSystem::update(Registry& registry, system_context context) {
 
                 if (!awarded_to_player) {
                     ScoreSystem::addScore(registry, score_value.value);
-                    std::cout << "[HealthSystem] Entity " << dead_entity << " died, adding score: " << score_value.value << std::endl;
+                    std::cout << "[HealthSystem] Entity " << dead_entity << " died, adding score: " << score_value.value
+                              << std::endl;
                 }
             } else {
-                std::cout << "[HealthSystem] Entity " << dead_entity << " died but has no ScoreValueComponent" << std::endl;
+                std::cout << "[HealthSystem] Entity " << dead_entity << " died but has no ScoreValueComponent"
+                          << std::endl;
             }
             registry.addComponent<PendingDestruction>(dead_entity, {});
         }
