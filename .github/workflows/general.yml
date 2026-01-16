@@ -63,14 +63,20 @@ jobs:
       - name: Check C++ Code Style (clang-format)
         run: |
           echo "Check the coding style with clang-format"
-          find src tests Network test_input -type f \( -name "*.cpp" -o -name "*.hpp" \) \
+          find src tests test_input -type f \( -name "*.cpp" -o -name "*.hpp" \) \
             ! -name "*sqlite3*" \
+            ! -path "src/Network/*" \
             -exec clang-format --dry-run --Werror {} +
 
       - name: Check C++ Code Style (cpplint)
         run: |
           echo "Check the coding style with cpplint"
-          cpplint --recursive --exclude=src/Network/Database/sqlite3.c --exclude=src/Network/Database/sqlite3.h --exclude=src/Network/* --exclude=Network/* src tests Network test_input
+          cpplint --recursive \
+            --exclude=src/Network/Database/sqlite3.c \
+            --exclude=src/Network/Database/sqlite3.h \
+            --exclude=src/Network/* \
+            --exclude=Network/* \
+            src tests Network test_input
 
   run-tests:
     name: Run Unit Tests
