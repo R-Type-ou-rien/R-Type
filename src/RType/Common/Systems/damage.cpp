@@ -39,9 +39,9 @@ void Damage::update(Registry& registry, system_context context) {
                     continue;
             }
 
-            if (health.last_damage_time > 0) {
-                continue;
-            }
+            // if (health.last_damage_time > 0) {
+            //     continue;
+            // }
 
             Entity dealer = attacker;
             if (registry.hasComponent<ProjectileComponent>(attacker)) {
@@ -86,7 +86,7 @@ void Damage::update(Registry& registry, system_context context) {
                           << " damage, HP remaining: " << health.current_hp << std::endl;
             }
 
-            health.last_damage_time = health.invincibility_duration;
+            // health.last_damage_time = health.invincibility_duration;
 
             if (registry.hasComponent<TeamComponent>(attacker) && registry.hasComponent<TeamComponent>(hit_id)) {
                 auto& teamA = registry.getConstComponent<TeamComponent>(attacker);

@@ -25,14 +25,19 @@ class GameManager {
     Entity _livesEntity;
     Entity _scoreDisplayEntity;
     Entity _leaderboardEntity;
+    Entity _transitionTimerEntity;
     bool _gameOver = false;
     bool _victory = false;
     bool _leaderboardDisplayed = false;
-
+    bool _inTransition = false;
+    bool _nextLevelLoaded = false;
     MasterConfig _master_config;
     EntityConfig _player_config;
     GameConfig _game_config;
     std::string _current_level_scene;
+    std::vector<std::string> _level_files;
+    int _current_level_index = 0;
+    LevelConfig _current_level_config;
 
     void initSystems(Environment& env);
     void initBackground(Environment& env, const LevelConfig& config);
@@ -48,6 +53,8 @@ class GameManager {
     void checkGameState(Environment& env);
     void displayGameOver(Environment& env, bool victory);
     void displayLeaderboard(Environment& env, bool victory);
+    void loadLevelFiles();
+    void loadNextLevel(Environment& env);
 
    public:
     GameManager();
