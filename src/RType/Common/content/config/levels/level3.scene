@@ -1,183 +1,110 @@
-# ====================================================================
-# R-TYPE - LEVEL 3 CONFIGURATION
-# Alien Mothership Final Assault - Very Hard
-# ====================================================================
+# Level 3 - Alien Mothership Interior
+# Organic corridors and bio-mechanical defenses
 
-[METADATA]
-level_id=3
-level_name=Mothership Annihilation
-level_description=Infiltrate the alien mothership and destroy the hive queen
-difficulty=VERY_HARD
-recommended_level=3
-unlock_requirement=level02_completed
-
-# ====================================================================
-# VISUAL & AUDIO
-# ====================================================================
-[VISUALS]
-background_texture=src/RType/Common/content/sprites/mothership_bg.png
-background_scroll_speed=100.0
-background_parallax_layers=3
-background_color=60,20,20,255
-
-music_track=final_battle
-music_volume=80.0
-ambient_sound=mothership_rumble
-ambient_volume=50.0
-
-# ====================================================================
-# LEVEL PROGRESSION
-# ====================================================================
-[PROGRESSION]
-level_length=20000
-boss_spawn_time=180.0
-boss_intro_delay=5.0
-
-victory_condition=DEFEAT_BOSS
-time_limit=500.0
-min_score_required=0
-
-# ====================================================================
-# PLAYER PARAMETERS
-# ====================================================================
-[PLAYER]
-start_x=100.0
-start_y=540.0
-max_lives=3
-continue_allowed=true
-invincibility_time=1.5
-
-powerup_spawn_rate=0.10
-weapon_upgrade_rate=0.06
-shield_spawn_rate=0.12
-extra_life_rate=0.04
-
-# ====================================================================
-# DIFFICULTY SETTINGS
-# ====================================================================
-[DIFFICULTY]
-enemy_health_multiplier=1.6
-enemy_damage_multiplier=1.5
-enemy_speed_multiplier=1.3
-enemy_fire_rate_multiplier=1.5
-boss_health_multiplier=2.0
-score_multiplier=2.0
-
-# ====================================================================
-# SPAWN SYSTEM
-# ====================================================================
-[SPAWNING]
-spawn_script=src/RType/Common/content/config/level3_spawns.cfg
-random_waves_enabled=true
-random_wave_interval=10.0
-random_wave_min_enemies=4
-random_wave_max_enemies=8
-
-pod_spawn_enabled=true
-pod_spawn_interval=10.0
-pod_min_spawn_interval=6.0
-pod_max_spawn_interval=15.0
-
-# ====================================================================
-# OBSTACLES & ENVIRONMENT
-# ====================================================================
-[OBSTACLES]
-obstacle_enabled=true
-obstacle_start_time=20.0
-obstacle_end_time=170.0
-obstacle_interval=5.0
-obstacle_speed=160.0
-obstacle_hp=250
-obstacle_damage=3
-obstacle_score_value=100
-
-# ====================================================================
-# WALLS & STATIC ELEMENTS
-# ====================================================================
-[WALLS]
-# Organic mothership walls - destructible biomass
-wall_1=1200,800,1500,280,src/RType/Common/content/sprites/organic_wall.gif,true,500
-wall_2=3200,850,1200,230,src/RType/Common/content/sprites/organic_wall.gif,true,600
-wall_3=5500,880,1800,200,src/RType/Common/content/sprites/organic_wall.gif,true,700
-wall_4=8000,900,1000,180,src/RType/Common/content/sprites/organic_wall.gif,true,500
-
-wall_5=1800,0,1000,250,src/RType/Common/content/sprites/organic_wall.gif,true,500
-wall_6=4000,0,1500,280,src/RType/Common/content/sprites/organic_wall.gif,true,600
-wall_7=6500,0,1200,200,src/RType/Common/content/sprites/organic_wall.gif,true,700
-wall_8=9000,0,1400,230,src/RType/Common/content/sprites/organic_wall.gif,true,500
-
-# Critical narrow bio-passages
-wall_9=10500,700,2500,380,src/RType/Common/content/sprites/organic_wall.gif,true,800
-wall_10=10500,0,2500,400,src/RType/Common/content/sprites/organic_wall.gif,true,800
-wall_11=14000,750,1500,330,src/RType/Common/content/sprites/organic_wall.gif,true,1000
-wall_12=14000,0,1500,350,src/RType/Common/content/sprites/organic_wall.gif,true,1000
-wall_13=16500,800,1000,280,src/RType/Common/content/sprites/organic_wall.gif,true,600
-wall_14=16500,0,1000,300,src/RType/Common/content/sprites/organic_wall.gif,true,600
-
-# ====================================================================
-# TURRETS & STATIC ENEMIES
-# ====================================================================
-[TURRETS]
-# Biological turrets - high damage, fast fire rate
-turret_1=1500,750,200,1.2,SPIRAL,src/RType/Common/content/sprites/bio_turret.gif,30,280
-turret_2=2000,750,200,1.0,AIM_PLAYER,src/RType/Common/content/sprites/bio_turret.gif,35,300
-turret_3=3400,800,250,0.8,BURST,src/RType/Common/content/sprites/bio_turret.gif,40,320
-turret_4=5700,830,200,1.0,SPREAD,src/RType/Common/content/sprites/bio_turret.gif,30,280
-turret_5=8200,850,250,1.2,SPIRAL,src/RType/Common/content/sprites/bio_turret.gif,35,300
-
-turret_6=2000,250,200,1.0,AIM_PLAYER,src/RType/Common/content/sprites/bio_turret.gif,30,280
-turret_7=4200,280,250,0.8,BURST,src/RType/Common/content/sprites/bio_turret.gif,35,300
-turret_8=6700,200,200,1.0,SPREAD,src/RType/Common/content/sprites/bio_turret.gif,40,320
-turret_9=9200,230,250,1.2,SPIRAL,src/RType/Common/content/sprites/bio_turret.gif,30,280
-
-# Heavy defense bio-cannons
-turret_10=10700,650,300,0.8,AIM_PLAYER,src/RType/Common/content/sprites/bio_cannon.gif,50,340
-turret_11=11400,650,300,0.6,BURST,src/RType/Common/content/sprites/bio_cannon.gif,60,360
-turret_12=12100,650,300,0.8,SPREAD,src/RType/Common/content/sprites/bio_cannon.gif,50,340
-turret_13=12800,650,300,1.0,SPIRAL,src/RType/Common/content/sprites/bio_cannon.gif,55,350
-turret_14=11000,400,300,0.6,AIM_PLAYER,src/RType/Common/content/sprites/bio_cannon.gif,50,340
-turret_15=11700,400,300,0.8,BURST,src/RType/Common/content/sprites/bio_cannon.gif,60,360
-turret_16=12400,400,300,1.0,SPREAD,src/RType/Common/content/sprites/bio_cannon.gif,50,340
-
-# Final approach gauntlet
-turret_17=14200,700,350,0.8,SPIRAL,src/RType/Common/content/sprites/bio_cannon.gif,70,380
-turret_18=14800,700,350,0.6,AIM_PLAYER,src/RType/Common/content/sprites/bio_cannon.gif,70,380
-turret_19=14500,350,350,0.8,BURST,src/RType/Common/content/sprites/bio_cannon.gif,70,380
-turret_20=16700,750,400,1.0,SPREAD,src/RType/Common/content/sprites/bio_cannon.gif,80,400
-turret_21=16700,350,400,1.0,SPIRAL,src/RType/Common/content/sprites/bio_cannon.gif,80,400
-
-# ====================================================================
-# BOSS CONFIGURATION
-# ====================================================================
-[BOSS]
-boss_config_file=src/RType/Common/content/config/boss.cfg
-boss_section=BOSS_LEVEL3
-boss_spawn_trigger=TIME
-boss_spawn_x=1600
-boss_spawn_y=540
-
-# ====================================================================
-# SCORING & REWARDS
-# ====================================================================
-[SCORING]
-completion_bonus=50000
-time_bonus_multiplier=200
-no_damage_bonus=20000
-perfect_run_bonus=100000
-
-scout_score=200
-fighter_score=400
-tank_score=600
-shooter_score=500
-kamikaze_score=300
-boss_score=150000
-
-# ====================================================================
-# REFERENCES TO SHARED CONFIGS
-# ====================================================================
-[CONFIGS]
+[LEVEL]
+name=Level 3 - Mothership Core
+background=src/RType/Common/content/sprites/test.png
+music=theme
 enemies_config=src/RType/Common/content/config/enemies.cfg
 boss_config=src/RType/Common/content/config/boss.cfg
+boss_section=BOSS_LEVEL3
 game_config=src/RType/Common/content/config/game.cfg
-player_config=src/RType/Common/content/config/player.cfg
-ui_config=src/RType/Common/content/config/ui.cfg
+spawn_script=src/RType/Common/content/config/levels/level3_spawns.cfg
+
+# Walls - Organic, irregular patterns (alien mothership interior)
+# Floor walls (bottom) - Organic undulating surfaces
+[WALL]
+wall=1200,920,700,160,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=2400,880,650,200,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=3600,900,800,180,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=5000,860,900,220,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=6500,890,750,190,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=8000,910,850,170,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=9500,870,950,210,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=11200,900,700,180,src/RType/Common/content/sprites/r-typesheet14.gif,false
+
+# Ceiling walls (top) - Organic ceiling structures
+wall=1500,0,600,180,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=2700,0,750,200,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=4100,0,700,160,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=5600,0,850,220,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=7200,0,650,190,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=8700,0,900,170,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=10300,0,800,210,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=11800,0,750,180,src/RType/Common/content/sprites/r-typesheet14.gif,false
+
+# Multiple narrow bio-passages - Very challenging
+wall=14000,820,1500,260,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=14000,0,1500,320,src/RType/Common/content/sprites/r-typesheet14.gif,false
+
+wall=17000,780,1000,300,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=17000,0,1000,380,src/RType/Common/content/sprites/r-typesheet14.gif,false
+
+wall=19500,850,1200,230,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=19500,0,1200,280,src/RType/Common/content/sprites/r-typesheet14.gif,false
+
+# Turrets - Bio-weapon systems (maximum density for final level)
+# Fire rate between 1.8-2.8 seconds (slightly faster for difficulty)
+[TURRET]
+# First organic section - floor
+turret=1400,870,2.2,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=1700,870,1.9,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=2600,830,2.0,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=2900,830,2.4,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=3800,850,1.8,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=4100,850,2.6,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=5200,810,2.1,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=5500,810,2.3,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=6700,840,1.9,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=7000,840,2.5,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=8200,860,2.2,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=8500,860,2.0,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=9700,820,1.8,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=10000,820,2.7,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=11400,850,2.3,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+
+# Ceiling bio-weapons
+turret=1700,180,2.1,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=2000,180,1.9,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=2900,200,2.4,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=3200,200,2.0,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=4300,160,1.8,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=4600,160,2.6,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=5800,220,2.2,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=6100,220,2.3,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=7400,190,1.9,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=7700,190,2.5,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=8900,170,2.1,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=9200,170,2.0,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=10500,210,2.4,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=10800,210,1.8,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=12000,180,2.7,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+
+# Bio-passage 1 - extreme defense
+turret=14200,770,1.8,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=14500,770,2.0,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=14800,770,1.8,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=15100,770,2.2,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=15400,770,1.9,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+
+turret=14300,320,2.1,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=14600,320,1.8,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=14900,320,2.3,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=15200,320,2.0,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=15500,320,2.5,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+
+# Bio-passage 2
+turret=17200,730,1.9,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=17500,730,1.8,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=17800,730,2.2,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=17400,380,2.0,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=17700,380,2.4,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+
+# Bio-passage 3 - final gauntlet
+turret=19700,800,1.8,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=20000,800,1.9,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=20300,800,1.8,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=20600,800,2.1,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=19800,280,2.0,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=20100,280,1.9,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=20400,280,2.3,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif

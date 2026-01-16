@@ -87,11 +87,6 @@ void GameManager::checkGameState(Environment& env) {
             _victory = notification.victory;
             
             ecs.registry.destroyEntity(gameOverEntities[0]);
-            if (!_leaderboardDisplayed) {
-                displayLeaderboard(env, notification.victory);
-                _leaderboardDisplayed = true;
-            }
-            return;
         }
     } else if (!env.isClient()) {
         // Server/standalone: if we expected a player entity but it is missing, it's game over.
@@ -106,6 +101,45 @@ void GameManager::checkGameState(Environment& env) {
         if (!_leaderboardDisplayed) {
             displayLeaderboard(env, _victory);
             _leaderboardDisplayed = true;
+            _nextLevelLoaded = false;
+
+            if (_victory && !env.isClient()) {
+                auto& spawners = ecs.registry.getEntities<EnemySpawnComponent>();
+                for (auto spawner : spawners) {
+                    if (!ecs.registry.hasComponent<EnemySpawnComponent>(spawner))
+                        continue;
+                    ecs.registry.getComponent<EnemySpawnComponent>(spawner).is_active = false;
+                }
+
+                auto& pod_spawners = ecs.registry.getEntities<PodSpawnComponent>();
+                for (auto spawner : pod_spawners) {
+                    if (!ecs.registry.hasComponent<PodSpawnComponent>(spawner))
+                        continue;
+                    ecs.registry.getComponent<PodSpawnComponent>(spawner).can_spawn = false;
+                }
+            }
+
+            if (_victory) {
+                _inTransition = true;
+            }
+        } else if (_victory) {
+            auto& leaderboard_entities = ecs.registry.getEntities<LeaderboardComponent>();
+            if (leaderboard_entities.empty() && !_nextLevelLoaded) {
+                if (!env.isClient()) {
+                    _nextLevelLoaded = true;
+                    loadNextLevel(env);
+                } else {
+                    _nextLevelLoaded = true;
+                }
+            }
+
+            if (env.isClient() && leaderboard_entities.empty() && _leaderboardDisplayed) {
+                _victory = false;
+                _leaderboardDisplayed = false;
+                _inTransition = false;
+                _nextLevelLoaded = false;
+                _gameOver = false;
+            }
         }
         return;
     }
@@ -144,7 +178,6 @@ void GameManager::checkGameState(Environment& env) {
             _gameOver = true;
             
             if (env.isStandalone() && !_leaderboardDisplayed) {
-                displayGameOver(env, false);
                 displayLeaderboard(env, false);
                 _leaderboardDisplayed = true;
             }
@@ -189,7 +222,6 @@ void GameManager::checkGameState(Environment& env) {
             _gameOver = true;
             
             if (env.isStandalone() && !_leaderboardDisplayed) {
-                displayGameOver(env, false);
                 displayLeaderboard(env, false);
                 _leaderboardDisplayed = true;
             }
@@ -212,7 +244,7 @@ void GameManager::checkGameState(Environment& env) {
     }
 
     // IMPORTANT: Vérifier si le boss existe seulement s'il a été spawné
-    if (boss_spawned) {
+    if (boss_spawned && !_inTransition) {
         for (auto entity : entities) {
             auto& tags = ecs.registry.getConstComponent<TagComponent>(entity);
             for (const auto& tag : tags.tags) {
@@ -226,12 +258,11 @@ void GameManager::checkGameState(Environment& env) {
         }
 
         // VICTOIRE seulement si : boss a été spawné ET boss n'existe plus ET au moins 1 joueur vivant
-        if (!boss_exists && alive_players > 0) {
+        if (!boss_exists && alive_players > 0 && !_victory) {
             _victory = true;
             
             // Afficher WIN à tous les joueurs
             if (!_leaderboardDisplayed) {
-                displayGameOver(env, true);
                 displayLeaderboard(env, true);
                 _leaderboardDisplayed = true;
             }
@@ -248,18 +279,21 @@ void GameManager::displayGameOver(Environment& env, bool victory) {
         return;
     }
 
-    _gameStateEntity = ecs.registry.createEntity();
-
-    ecs.registry.addComponent<TextComponent>(_gameStateEntity, {message, "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 72, color, 700, 350});
-
     if (victory == true) {
         message = "Victory";
         color = sf::Color::Green;
     } else {
         message = "Game over";
         color = sf::Color::Red;
-
     }
+
+    _gameStateEntity = ecs.registry.createEntity();
+    {
+        TagComponent tag;
+        tag.tags.push_back("LEADERBOARD");
+        ecs.registry.addComponent<TagComponent>(_gameStateEntity, tag);
+    }
+    ecs.registry.addComponent<TextComponent>(_gameStateEntity, {message, "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 72, color, 700, 350});
 }
 
 void GameManager::displayLeaderboard(Environment& env, bool victory) {

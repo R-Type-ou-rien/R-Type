@@ -24,6 +24,7 @@
 #include "src/RType/Common/Systems/status_display.hpp"
 #include "src/RType/Common/Systems/leaderboard_system.hpp"
 #include "src/RType/Common/Systems/game_state_system.hpp"
+#include "src/RType/Common/Systems/level_transition.hpp"
 #include "src/Engine/Lib/Systems/PatternSystem/PatternSystem.hpp"
 #include "src/Engine/Lib/Systems/PlayerBoundsSystem.hpp"
 #include "src/Engine/Core/Scene/SceneLoader.hpp"
@@ -39,7 +40,6 @@ void GameManager::initSystems(Environment& env) {
 
     // Game logic systems - server only (NOT client)
     if (!env.isClient()) {
-        std::cout << "[GameManager] Initializing gameplay systems (Server mode)" << std::endl;
         ecs.systems.addSystem<BoxCollision>();
         ecs.systems.addSystem<ShooterSystem>();
         ecs.systems.addSystem<Damage>();
@@ -57,8 +57,6 @@ void GameManager::initSystems(Environment& env) {
         ecs.systems.addSystem<GameStateSystem>();
         ecs.systems.addSystem<PhysicsSystem>();
         ecs.systems.addSystem<ActionScriptSystem>();
-    } else {
-        std::cout << "[GameManager] Skipping gameplay systems (Client mode - server handles all logic)" << std::endl;
     }
 
     ecs.systems.addSystem<DestructionSystem>();
@@ -66,6 +64,7 @@ void GameManager::initSystems(Environment& env) {
     if (!env.isServer()) {
         ecs.systems.addSystem<StatusDisplaySystem>();
         ecs.systems.addSystem<LeaderboardSystem>();
+        ecs.systems.addSystem<LevelTransitionSystem>();
     }
 }
 
