@@ -34,7 +34,8 @@ class ScenePrefabs {
                                        const std::unordered_map<std::string, std::any>& props) {
                 float x = 0, y = 0, width = 64, height = 64;
                 std::string sprite_path = "src/RType/Common/content/sprites/wall-level1.gif";
-                bool destructible = false;
+                bool destructible = true;
+                int hp = 1000;
 
                 if (props.count("x"))
                     x = std::any_cast<float>(props.at("x"));
@@ -48,6 +49,8 @@ class ScenePrefabs {
                     sprite_path = std::any_cast<std::string>(props.at("sprite"));
                 if (props.count("destructible"))
                     destructible = std::any_cast<bool>(props.at("destructible"));
+                if (props.count("hp"))
+                    hp = std::any_cast<int>(props.at("hp"));
 
                 registry.addComponent<transform_component_s>(entity, {x, y});
 
@@ -66,7 +69,8 @@ class ScenePrefabs {
                 registry.addComponent<WallComponent>(entity, wall);
 
                 if (destructible) {
-                    registry.addComponent<HealthComponent>(entity, {200, 200, 0.0f, 0.0f});
+                    registry.addComponent<HealthComponent>(entity, {hp, hp, 0.0f, 0.0f});
+                    registry.addComponent<ScoreValueComponent>(entity, {500});
                 }
 
                 handle_t<TextureAsset> handle = texture_manager.load(sprite_path, TextureAsset(sprite_path));
@@ -84,6 +88,7 @@ class ScenePrefabs {
                 BoxCollisionComponent collision;
                 collision.tagCollision.push_back("PLAYER");
                 collision.tagCollision.push_back("FRIENDLY_PROJECTILE");
+                collision.tagCollision.push_back("ENEMY_PROJECTILE");
                 registry.addComponent<BoxCollisionComponent>(entity, collision);
 
                 TagComponent tags;

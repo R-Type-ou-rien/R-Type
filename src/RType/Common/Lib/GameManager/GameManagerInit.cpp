@@ -58,6 +58,7 @@ void GameManager::initSystems(std::shared_ptr<Environment> env) {
         ecs.systems.addSystem<GameStateSystem>();
         ecs.systems.addSystem<PhysicsSystem>();
         ecs.systems.addSystem<ActionScriptSystem>();
+        ecs.systems.addSystem<WallCollisionSystem>();
     }
 
     ecs.systems.addSystem<DestructionSystem>();
@@ -315,6 +316,21 @@ std::shared_ptr<Player> GameManager::createPlayerForClient(std::shared_ptr<Envir
     charged_shot.min_charge_time = _player_config.min_charge_time.value_or(0.5f);
     charged_shot.max_charge_time = _player_config.max_charge_time.value_or(2.0f);
     ecs.registry.addComponent<ChargedShotComponent>(newPlayer->getId(), charged_shot);
+
+    ProjectileConfigComponent defaults;
+    ProjectileConfigComponent proj_config{
+        .projectile_sprite = _player_config.projectile_sprite.value_or(defaults.projectile_sprite),
+        .projectile_sprite_x = _player_config.projectile_sprite_x.value_or(defaults.projectile_sprite_x),
+        .projectile_sprite_y = _player_config.projectile_sprite_y.value_or(defaults.projectile_sprite_y),
+        .projectile_sprite_w = _player_config.projectile_sprite_w.value_or(defaults.projectile_sprite_w),
+        .projectile_sprite_h = _player_config.projectile_sprite_h.value_or(defaults.projectile_sprite_h),
+        .charged_sprite = _player_config.charged_sprite.value_or(defaults.charged_sprite),
+        .charged_sprite_x = _player_config.charged_sprite_x.value_or(defaults.charged_sprite_x),
+        .charged_sprite_y = _player_config.charged_sprite_y.value_or(defaults.charged_sprite_y),
+        .charged_sprite_w = _player_config.charged_sprite_w.value_or(defaults.charged_sprite_w),
+        .charged_sprite_h = _player_config.charged_sprite_h.value_or(defaults.charged_sprite_h),
+    };
+    ecs.registry.addComponent<ProjectileConfigComponent>(newPlayer->getId(), proj_config);
 
     // Add PlayerPodComponent
     PlayerPodComponent player_pod;

@@ -119,6 +119,9 @@ class SceneLoader {
         if (tokens.size() >= 6) {
             entity.properties["destructible"] = (tokens[5] == "true");
         }
+        if (tokens.size() >= 7) {
+            entity.properties["hp"] = std::stoi(tokens[6]);
+        }
 
         config.entities.push_back(entity);
     }

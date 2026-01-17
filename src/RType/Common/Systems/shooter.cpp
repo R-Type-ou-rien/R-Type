@@ -113,17 +113,22 @@ void ShooterSystem::create_projectile_with_pattern(Registry& registry, Entity ow
         sprite_info.handle = handle;
         sprite_info.dimension = {200, 230, 12, 12};
     } else {
-        handle_t<TextureAsset> handle =
-            context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet1.gif",
-                                         TextureAsset("src/RType/Common/content/sprites/r-typesheet1.gif"));
-        sprite_info.handle = handle;
+        // Check if owner has ProjectileConfigComponent for custom sprite
+        std::string sprite_path = "src/RType/Common/content/sprites/r-typesheet1.gif";
+        float sprite_x = 232, sprite_y = 103, sprite_w = 32, sprite_h = 14;
 
-        switch (type) {
-            case ShooterComponent::NORMAL:
-            default:
-                sprite_info.dimension = {232, 103, 32, 14};
-                break;
+        if (registry.hasComponent<ProjectileConfigComponent>(owner_entity)) {
+            const auto& proj_config = registry.getConstComponent<ProjectileConfigComponent>(owner_entity);
+            sprite_path = proj_config.projectile_sprite;
+            sprite_x = static_cast<float>(proj_config.projectile_sprite_x);
+            sprite_y = static_cast<float>(proj_config.projectile_sprite_y);
+            sprite_w = static_cast<float>(proj_config.projectile_sprite_w);
+            sprite_h = static_cast<float>(proj_config.projectile_sprite_h);
         }
+
+        handle_t<TextureAsset> handle = context.texture_manager.load(sprite_path, TextureAsset(sprite_path));
+        sprite_info.handle = handle;
+        sprite_info.dimension = {sprite_x, sprite_y, sprite_w, sprite_h};
     }
 
     registry.addComponent<sprite2D_component_s>(id, sprite_info);
@@ -207,20 +212,33 @@ void ShooterSystem::create_charged_projectile(Registry& registry, Entity owner_e
         registry.addComponent<PenetratingProjectile>(id, {3, 0});
     }
 
-    handle_t<TextureAsset> handle =
-        context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet1.gif",
-                                     TextureAsset("src/RType/Common/content/sprites/r-typesheet1.gif"));
+    // Get charged projectile sprite from config or use defaults
+    std::string sprite_path = "src/RType/Common/content/sprites/r-typesheet1.gif";
+    float sprite_x = 263, sprite_y = 120;
+    float base_w = 64, base_h = 56;
+
+    if (registry.hasComponent<ProjectileConfigComponent>(owner_entity)) {
+        const auto& proj_config = registry.getConstComponent<ProjectileConfigComponent>(owner_entity);
+        sprite_path = proj_config.charged_sprite;
+        sprite_x = static_cast<float>(proj_config.charged_sprite_x);
+        sprite_y = static_cast<float>(proj_config.charged_sprite_y);
+        base_w = static_cast<float>(proj_config.charged_sprite_w);
+        base_h = static_cast<float>(proj_config.charged_sprite_h);
+    }
+
+    handle_t<TextureAsset> handle = context.texture_manager.load(sprite_path, TextureAsset(sprite_path));
 
     sprite2D_component_s sprite_info;
     sprite_info.handle = handle;
     sprite_info.animation_speed = 0;
     sprite_info.current_animation_frame = 0;
+    // Scale sprite dimensions based on charge level
     if (charge_ratio >= 0.8f) {
-        sprite_info.dimension = {263, 120, 64, 56};
+        sprite_info.dimension = {sprite_x, sprite_y, base_w, base_h};
     } else if (charge_ratio >= 0.5f) {
-        sprite_info.dimension = {263, 120, 48, 42};
+        sprite_info.dimension = {sprite_x, sprite_y, base_w * 0.75f, base_h * 0.75f};
     } else {
-        sprite_info.dimension = {263, 120, 32, 28};
+        sprite_info.dimension = {sprite_x, sprite_y, base_w * 0.5f, base_h * 0.5f};
     }
     sprite_info.z_index = 2;
 

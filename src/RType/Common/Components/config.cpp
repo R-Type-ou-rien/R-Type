@@ -101,12 +101,10 @@ const ConfigBinder<EntityConfig>& ConfigLoader::getBinder<EntityConfig>() {
         binder.bind("pattern", &EntityConfig::pattern);
         binder.bind("collision_tags", &EntityConfig::collision_tags);
 
-        // Boss position configuration
         binder.bind("margin_right", &EntityConfig::margin_right);
         binder.bind("spawn_offset_x", &EntityConfig::spawn_offset_x);
         binder.bind("z_index", &EntityConfig::z_index);
 
-        // Boss tail configuration
         binder.bind("tail_segment_count", &EntityConfig::tail_segment_count);
         binder.bind("tail_sprite_width", &EntityConfig::tail_sprite_width);
         binder.bind("tail_sprite_height", &EntityConfig::tail_sprite_height);
@@ -120,6 +118,18 @@ const ConfigBinder<EntityConfig>& ConfigLoader::getBinder<EntityConfig>() {
         binder.bind("tail_sprite_y", &EntityConfig::tail_sprite_y);
         binder.bind("tail_z_index", &EntityConfig::tail_z_index);
         binder.bind("tail_sprite_path", &EntityConfig::tail_sprite_path);
+
+        binder.bind("projectile_sprite", &EntityConfig::projectile_sprite);
+        binder.bind("projectile_sprite_x", &EntityConfig::projectile_sprite_x);
+        binder.bind("projectile_sprite_y", &EntityConfig::projectile_sprite_y);
+        binder.bind("projectile_sprite_w", &EntityConfig::projectile_sprite_w);
+        binder.bind("projectile_sprite_h", &EntityConfig::projectile_sprite_h);
+
+        binder.bind("charged_sprite", &EntityConfig::charged_sprite);
+        binder.bind("charged_sprite_x", &EntityConfig::charged_sprite_x);
+        binder.bind("charged_sprite_y", &EntityConfig::charged_sprite_y);
+        binder.bind("charged_sprite_w", &EntityConfig::charged_sprite_w);
+        binder.bind("charged_sprite_h", &EntityConfig::charged_sprite_h);
 
         binder.bindCustom("sub_entity", [](EntityConfig& cfg, const std::string& v) {
             std::vector<std::string> parts = ParsingUtils::parse<std::vector<std::string>>(v);
@@ -201,7 +211,6 @@ UIConfig ConfigLoader::loadUIConfig(const std::string& filepath) {
     UIConfig config;
     const auto& binder = getBinder<UIConfig::Element>();
 
-    // parse when its a section for UI
     parseFile(filepath, [&](const std::string& section, const std::string& key, const std::string& value) {
         if (section.empty()) {
             return;
@@ -210,7 +219,6 @@ UIConfig ConfigLoader::loadUIConfig(const std::string& filepath) {
         auto it = binder.bindings.find(key);
 
         if (it != binder.bindings.end()) {
-            // get the specific element of the actual section with the value found
             it->second(config.elements[section], value);
         }
     });

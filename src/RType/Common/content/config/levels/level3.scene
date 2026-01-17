@@ -14,34 +14,34 @@ spawn_script=src/RType/Common/content/config/levels/level3_spawns.cfg
 # Walls - Organic, irregular patterns (alien mothership interior)
 # Floor walls (bottom) - Organic undulating surfaces
 [WALL]
-wall=1200,920,700,160,src/RType/Common/content/sprites/r-typesheet14.gif,false
-wall=2400,880,650,200,src/RType/Common/content/sprites/r-typesheet14.gif,false
-wall=3600,900,800,180,src/RType/Common/content/sprites/r-typesheet14.gif,false
-wall=5000,860,900,220,src/RType/Common/content/sprites/r-typesheet14.gif,false
-wall=6500,890,750,190,src/RType/Common/content/sprites/r-typesheet14.gif,false
-wall=8000,910,850,170,src/RType/Common/content/sprites/r-typesheet14.gif,false
-wall=9500,870,950,210,src/RType/Common/content/sprites/r-typesheet14.gif,false
-wall=11200,900,700,180,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=1200,920,700,160,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=2400,880,650,200,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=3600,900,800,180,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=5000,860,900,220,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=6500,890,750,190,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=8000,910,850,170,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=9500,870,950,210,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=11200,900,700,180,src/RType/Common/content/sprites/r-typesheet14.gif,true
 
 # Ceiling walls (top) - Organic ceiling structures
-wall=1500,0,600,180,src/RType/Common/content/sprites/r-typesheet14.gif,false
-wall=2700,0,750,200,src/RType/Common/content/sprites/r-typesheet14.gif,false
-wall=4100,0,700,160,src/RType/Common/content/sprites/r-typesheet14.gif,false
-wall=5600,0,850,220,src/RType/Common/content/sprites/r-typesheet14.gif,false
-wall=7200,0,650,190,src/RType/Common/content/sprites/r-typesheet14.gif,false
-wall=8700,0,900,170,src/RType/Common/content/sprites/r-typesheet14.gif,false
-wall=10300,0,800,210,src/RType/Common/content/sprites/r-typesheet14.gif,false
-wall=11800,0,750,180,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=1500,0,600,180,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=2700,0,750,200,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=4100,0,700,160,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=5600,0,850,220,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=7200,0,650,190,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=8700,0,900,170,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=10300,0,800,210,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=11800,0,750,180,src/RType/Common/content/sprites/r-typesheet14.gif,true
 
 # Multiple narrow bio-passages - Very challenging
-wall=14000,820,1500,260,src/RType/Common/content/sprites/r-typesheet14.gif,false
-wall=14000,0,1500,320,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=14000,820,1500,260,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=14000,0,1500,320,src/RType/Common/content/sprites/r-typesheet14.gif,true
 
-wall=17000,780,1000,300,src/RType/Common/content/sprites/r-typesheet14.gif,false
-wall=17000,0,1000,380,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=17000,780,1000,300,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=17000,0,1000,380,src/RType/Common/content/sprites/r-typesheet14.gif,true
 
-wall=19500,850,1200,230,src/RType/Common/content/sprites/r-typesheet14.gif,false
-wall=19500,0,1200,280,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=19500,850,1200,230,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=19500,0,1200,280,src/RType/Common/content/sprites/r-typesheet14.gif,true
 
 # Turrets - Bio-weapon systems (maximum density for final level)
 # Fire rate between 1.8-2.8 seconds (slightly faster for difficulty)
