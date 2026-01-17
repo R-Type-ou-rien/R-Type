@@ -93,13 +93,22 @@ void PodSystem::spawnPod(Registry& registry, system_context context) {
         context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet3.gif",
                                      TextureAsset("src/RType/Common/content/sprites/r-typesheet3.gif"));
 
-    sprite2D_component_s sprite_info;
-    sprite_info.handle = handle;
-    sprite_info.z_index = 1;
+    // sprite2D_component_s sprite_info;
+    // sprite_info.handle = handle;
+    // sprite_info.z_index = 1;
 
-    sprite_info.dimension = {1, 0, POD_FRAME_WIDTH, POD_FRAME_HEIGHT};
+    // sprite_info.dimension = {1, 0, POD_FRAME_WIDTH, POD_FRAME_HEIGHT};
 
-    registry.addComponent<sprite2D_component_s>(pod_id, sprite_info);
+    // registry.addComponent<sprite2D_component_s>(pod_id, sprite_info);
+
+    AnimatedSprite2D animation;
+    AnimationClip clip;
+
+    clip.handle = handle;
+    clip.frames.emplace_back(1, 0, POD_FRAME_WIDTH, POD_FRAME_HEIGHT);
+    animation.animations.emplace("idle", clip);
+    animation.currentAnimation = "idle";
+    registry.addComponent<AnimatedSprite2D>(pod_id, animation);
 
     // Animation: 6 frames horizontales, start à (1,0) avec padding de 0
     AnimationHelper::setupAnimation(registry, pod_id, 1.0f, 0.0f, POD_FRAME_WIDTH, POD_FRAME_HEIGHT, POD_NUM_FRAMES,
@@ -457,15 +466,27 @@ void PodSystem::createPodLaserProjectile(Registry& registry, system_context cont
         context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet1.gif",
                                      TextureAsset("src/RType/Common/content/sprites/r-typesheet1.gif"));
 
-    sprite2D_component_s sprite_info;
-    sprite_info.handle = handle;
-    sprite_info.animation_speed = 0;
-    sprite_info.current_animation_frame = 0;
-    // Coordonnées du petit projectile bleu circulaire
-    sprite_info.dimension = {263, 120, 32, 28};
-    sprite_info.z_index = 3;
+    // sprite2D_component_s sprite_info;
+    // sprite_info.handle = handle;
+    // sprite_info.animation_speed = 0;
+    // sprite_info.current_animation_frame = 0;
+    // // Coordonnées du petit projectile bleu circulaire
+    // sprite_info.dimension = {263, 120, 32, 28};
+    // sprite_info.z_index = 3;
 
-    registry.addComponent<sprite2D_component_s>(projectile_id, sprite_info);
+    // registry.addComponent<sprite2D_component_s>(projectile_id, sprite_info);
+
+    AnimatedSprite2D animation;
+    AnimationClip clip;
+
+    clip.handle = handle;
+    clip.frameDuration = 0;
+    // Coordonnées du petit projectile bleu circulaire
+    clip.frames.emplace_back(263, 120, 32, 28);
+    animation.animations.emplace("idle", clip);
+    animation.currentAnimation = "idle";
+
+    registry.addComponent<AnimatedSprite2D>(projectile_id, animation);
 
     BoxCollisionComponent collision;
     collision.tagCollision.emplace_back("AI");

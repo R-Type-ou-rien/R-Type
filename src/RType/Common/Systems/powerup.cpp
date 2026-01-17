@@ -121,12 +121,21 @@ void PowerUpSystem::spawnSpeedUp(Registry& registry, system_context context, flo
         context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet3.gif",
                                      TextureAsset("src/RType/Common/content/sprites/r-typesheet3.gif"));
     
-    sprite2D_component_s sprite_info;
-    sprite_info.handle = handle;
-    sprite_info.dimension = {1, 99, 16, 16};  // Power-up sprite
-    sprite_info.z_index = 1;
-    sprite_info.is_animated = false;
-    registry.addComponent<sprite2D_component_s>(id, sprite_info);
+    // sprite2D_component_s sprite_info;
+    // sprite_info.handle = handle;
+    // sprite_info.dimension = {1, 99, 16, 16};  // Power-up sprite
+    // sprite_info.z_index = 1;
+    // sprite_info.is_animated = false;
+    // registry.addComponent<sprite2D_component_s>(id, sprite_info);
+
+    AnimatedSprite2D animation;
+    AnimationClip clip;
+
+    clip.handle = handle;
+    clip.frames.emplace_back(1, 99, 16, 16);  // Power-up sprite
+    animation.animations.emplace("idle", clip);
+    animation.currentAnimation = "idle";
+    registry.addComponent<AnimatedSprite2D>(id, animation);
     
     auto& transform = registry.getComponent<transform_component_s>(id);
     transform.scale_x = 2.5f;

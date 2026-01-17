@@ -17,6 +17,8 @@
 #include "../Systems/behavior.hpp"
 #include "../Systems/score.hpp"
 #include "Components/StandardComponents.hpp"
+#include "Components/Sprite/AnimatedSprite2D.hpp"
+#include "Components/Sprite/Sprite2D.hpp"
 
 namespace MobDefaults {
     namespace Health {
@@ -100,6 +102,42 @@ public:
         behavior.follow_player = config.follow_player.value_or(false);
         behavior.follow_speed = config.speed.value_or(default_follow_speed);
         return behavior;
+    }
+
+    static Sprite2D createStaticSprite(const EntityConfig& config,
+                                                    handle_t<TextureAsset> handle,
+                                                    int z_index = MobDefaults::Sprite::Z_INDEX) {
+        Sprite2D sprite;
+
+        sprite.handle = handle;
+        sprite.rect = {
+            config.sprite_x.value(),
+            config.sprite_y.value(),
+            config.sprite_w.value(),
+            config.sprite_h.value()
+        };
+        sprite.layer = static_cast<RenderLayer>(z_index);
+        return sprite;
+    }
+
+    static AnimatedSprite2D createAnimatedSprite(const EntityConfig& config,
+                                                    handle_t<TextureAsset> handle,
+                                                    int z_index = MobDefaults::Sprite::Z_INDEX) {
+        AnimatedSprite2D animation;
+
+        AnimationClip clip;
+
+        clip.handle = handle;
+        clip.frames.emplace_back(
+            config.sprite_x.value(),
+            config.sprite_y.value(),
+            config.sprite_w.value(),
+            config.sprite_h.value()
+        );
+        animation.animations.emplace("idle", clip);
+        animation.currentAnimation = "idle";
+        animation.layer = static_cast<RenderLayer>(z_index);
+        return animation;
     }
 
     static sprite2D_component_s createSprite(const EntityConfig& config, 

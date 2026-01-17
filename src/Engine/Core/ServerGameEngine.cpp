@@ -23,6 +23,8 @@
 #include "../../RType/Common/Components/charged_shot.hpp"
 #include "../../RType/Common/Systems/behavior.hpp"
 #include "../../RType/Common/Entities/Player/Player.hpp"
+#include "Components/Sprite/Sprite2D.hpp"
+#include "Components/Sprite/AnimatedSprite2D.hpp"
 
 ServerGameEngine::ServerGameEngine() {
     _network = std::make_unique<engine::core::NetworkEngine>(engine::core::NetworkEngine::NetworkRole::SERVER);
@@ -35,6 +37,8 @@ int ServerGameEngine::init() {
     // Only add server-specific systems here
     _ecs.systems.addSystem<ComponentSenderSystem>();
 
+    registerNetworkComponent<Sprite2D>();
+    registerNetworkComponent<AnimatedSprite2D>();
     registerNetworkComponent<sprite2D_component_s>();
     registerNetworkComponent<transform_component_s>();
     registerNetworkComponent<Velocity2D>();
@@ -109,11 +113,14 @@ void ServerGameEngine::processNetworkEvents() {
                               << startY << std::endl;
 
                     auto newPlayer = std::make_shared<Player>(_ecs, _texture_manager, std::make_pair(startX, startY));
-
                     // Set player texture so it's visible
+                    std::cout << "laaaa" << std::endl;
                     newPlayer->setTexture("src/RType/Common/content/sprites/r-typesheet42.gif");
+                    std::cout << "caca" << std::endl;
                     newPlayer->setTextureDimension({0, 0, 33, 17});  // Frame dimensions for player sprite
+                    std::cout << "pipi" << std::endl;
                     newPlayer->setScale({2.5f, 2.5f});
+                    std::cout << "fiiii" << std::endl;
 
                     // Setup basic player stats
                     newPlayer->setLifePoint(5);
@@ -123,10 +130,9 @@ void ServerGameEngine::processNetworkEvents() {
                     newPlayer->addCollisionTag("OBSTACLE");
                     newPlayer->addCollisionTag("ITEM");
                     newPlayer->addCollisionTag("WALL");
-
+                    
                     // Add NetworkIdentity so it gets replicated and accepts inputs
                     _ecs.registry.addComponent<NetworkIdentity>(newPlayer->getId(), {newPlayer->getId(), newClientId});
-
                     // Add ChargedShotComponent for charged shooting
                     ChargedShotComponent charged_shot;
                     charged_shot.min_charge_time = 0.5f;
@@ -165,6 +171,26 @@ void ServerGameEngine::processNetworkEvents() {
                                   << " has sprite with texture: " << (textureName ? textureName.value() : "NONE")
                                   << " dim: " << playerSprite.dimension.width << "x" << playerSprite.dimension.height
                                   << std::endl;
+                    }
+
+                    if (_ecs.registry.hasComponent<Sprite2D>(playerId)) {
+                        auto& playerSprite = _ecs.registry.getConstComponent<Sprite2D>(playerId);
+                        auto textureName = _texture_manager.get_name(playerSprite.handle);
+                        std::cout << "SERVER: Player entity " << playerId
+                                  << " has sprite with texture: " << (textureName ? textureName.value() : "NONE")
+                                  << " dim: " << playerSprite.rect.width << "x" << playerSprite.rect.height
+                                  << std::endl;
+                    }
+
+                    if (_ecs.registry.hasComponent<AnimatedSprite2D>(playerId)) {
+                        auto& playerSprite = _ecs.registry.getConstComponent<AnimatedSprite2D>(playerId);
+                        std::cout << "SERVER: Player entity " << playerId;
+                        for (const auto& [name, clip] : playerSprite.animations) {
+                            auto textureName = _texture_manager.get_name(clip.handle);
+                            std::cout << "for clip name [" << name << "] has sprite with texture: " << (textureName ? textureName.value() : "NONE")
+                            << " dim: " << clip.frames.at(0).width << "x" << clip.frames.at(0).height
+                            << std::endl;
+                        }
                     }
 
                     // Send the NEW player to all OTHER clients

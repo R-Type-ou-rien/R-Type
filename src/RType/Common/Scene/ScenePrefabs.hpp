@@ -71,11 +71,21 @@ class ScenePrefabs {
 
                 handle_t<TextureAsset> handle = texture_manager.load(sprite_path, TextureAsset(sprite_path));
 
-                sprite2D_component_s sprite;
-                sprite.handle = handle;
-                sprite.dimension = {0, 0, 32, 32};
-                sprite.z_index = 3;
-                registry.addComponent<sprite2D_component_s>(entity, sprite);
+                // sprite2D_component_s sprite;
+                // sprite.handle = handle;
+                // sprite.dimension = {0, 0, 32, 32};
+                // sprite.z_index = 3;
+                // registry.addComponent<sprite2D_component_s>(entity, sprite);
+
+                AnimatedSprite2D animation;
+                AnimationClip clip;
+
+                clip.handle = handle;
+                clip.frames.emplace_back(0, 0, 32, 32);
+                animation.layer = RenderLayer::Foreground;
+                animation.animations.emplace("idle", clip);
+                animation.currentAnimation = "idle";
+                registry.addComponent<AnimatedSprite2D>(entity, animation);
 
                 auto& transform = registry.getComponent<transform_component_s>(entity);
                 transform.scale_x = width / 32.0f;
@@ -157,17 +167,30 @@ class ScenePrefabs {
 
                 handle_t<TextureAsset> handle = texture_manager.load(sprite_path, TextureAsset(sprite_path));
 
-                sprite2D_component_s sprite;
-                sprite.handle = handle;
-                sprite.dimension = {0, 0, 32, 32};
-                sprite.z_index = 2;
-                sprite.is_animated = true;
-                sprite.loop_animation = true;
-                sprite.animation_speed = 0.1f;
+                // sprite2D_component_s sprite;
+                // sprite.handle = handle;
+                // sprite.dimension = {0, 0, 32, 32};
+                // sprite.z_index = 2;
+                // sprite.is_animated = true;
+                // sprite.loop_animation = true;
+                // sprite.animation_speed = 0.1f;
+                // for (int i = 0; i < 4; i++) {
+                //     sprite.frames.push_back({static_cast<float>(i * 32), 0, 32, 32});
+                // }
+                // registry.addComponent<sprite2D_component_s>(entity, sprite);
+
+                AnimatedSprite2D animation;
+                AnimationClip clip;
+
+                clip.handle = handle;
+                animation.layer = RenderLayer::Midground;
+                clip.frameDuration = 0.1f;
                 for (int i = 0; i < 4; i++) {
-                    sprite.frames.push_back({static_cast<float>(i * 32), 0, 32, 32});
+                    clip.frames.emplace_back(static_cast<float>(i * 32), 0, 32, 32);
                 }
-                registry.addComponent<sprite2D_component_s>(entity, sprite);
+                animation.animations.emplace("idle", clip);
+                animation.currentAnimation = "idle";
+                registry.addComponent<AnimatedSprite2D>(entity, animation);
 
                 auto& transform = registry.getComponent<transform_component_s>(entity);
                 transform.scale_x = 2.5f;
@@ -215,11 +238,20 @@ class ScenePrefabs {
 
                 if (!sprite_path.empty()) {
                     handle_t<TextureAsset> handle = texture_manager.load(sprite_path, TextureAsset(sprite_path));
-                    sprite2D_component_s sprite;
-                    sprite.handle = handle;
-                    sprite.z_index = z_index;
-                    sprite.dimension = {0, 0, 0, 0};
-                    registry.addComponent<sprite2D_component_s>(entity, sprite);
+                    // sprite2D_component_s sprite;
+                    // sprite.handle = handle;
+                    // sprite.z_index = z_index;
+                    // sprite.dimension = {0, 0, 0, 0};
+                    // registry.addComponent<sprite2D_component_s>(entity, sprite);
+                    AnimatedSprite2D animation;
+                    AnimationClip clip;
+                    
+                    clip.handle = handle;
+                    animation.layer = RenderLayer::Midground;
+                    clip.frames.emplace_back(0, 0, 0, 0);
+                    animation.currentAnimation = "idle";
+                    animation.animations.emplace("idle", clip);
+                    registry.addComponent<AnimatedSprite2D>(entity, animation);
                 }
                 registry.addComponent<NetworkIdentity>(entity, {static_cast<uint32_t>(entity), 0});
             });

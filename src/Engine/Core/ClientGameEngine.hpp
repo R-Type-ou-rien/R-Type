@@ -13,6 +13,7 @@
 #include "InputSystem.hpp"
 #include "PhysicsSystem.hpp"
 #include "RenderSystem.hpp"
+#include "NewRenderSystem/NewRenderSystem.hpp"
 #include "BackgroundSystem.hpp"
 #include "ResourceConfig.hpp"
 #include "WindowManager.hpp"

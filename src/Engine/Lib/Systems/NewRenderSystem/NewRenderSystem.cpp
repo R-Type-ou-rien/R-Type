@@ -2,10 +2,11 @@
 ** EPITECH PROJECT, 2025
 ** Smash
 ** File description:
-** RenderSystem.cpp
+** NewRenderSystem.cpp
 */
 
 #include "NewRenderSystem.hpp"
+#include "Context.hpp"
 
 #include <algorithm>
 #include <iostream>
@@ -20,7 +21,7 @@ static void applyFlip(sf::Sprite& spr, bool flipX, bool flipY)
         spr.setScale({(flipX ? -1.f : 1.f), (flipY ? -1.f : 1.f)});
 }
 
-void RenderSystem::update(Registry& registry, system_context context)
+void NewRenderSystem::update(Registry& registry, system_context context)
 {
     std::vector<DrawCmd> cmds;
     const auto& spriteEntities = registry.getEntities<Sprite2D>();
@@ -63,13 +64,13 @@ void RenderSystem::update(Registry& registry, system_context context)
     }
 }
 
-void RenderSystem::drawSpriteEntity(const transform_component_s& transform,
+void NewRenderSystem::drawSpriteEntity(const transform_component_s& transform,
                                     const Sprite2D& spriteData,
                                     const system_context& context,
                                     std::vector<DrawCmd>& out,
                                     std::uint64_t& order)
 {
-    if (!context.texture_manager.has_resource(spriteData.handle))
+    if (!context.texture_manager.has(spriteData.handle))
         return;
 
     sf::Texture& texture = context.texture_manager.get_resource(spriteData.handle).value().get();
@@ -95,13 +96,13 @@ void RenderSystem::drawSpriteEntity(const transform_component_s& transform,
     });
 }
 
-void RenderSystem::drawAnimatedSpriteEntity(const transform_component_s& transform,
+void NewRenderSystem::drawAnimatedSpriteEntity(const transform_component_s& transform,
                                             const AnimatedSprite2D& spriteData,
                                             const system_context& context,
                                             std::vector<DrawCmd>& out,
                                             std::uint64_t& order)
 {
-    if (!context.texture_manager.has_resource(spriteData.animations.at(spriteData.currentAnimation).handle))
+    if (!context.texture_manager.has(spriteData.animations.at(spriteData.currentAnimation).handle))
         return;
 
     sf::Texture& texture = context.texture_manager.get_resource(spriteData.animations.at(spriteData.currentAnimation).handle).value().get();
@@ -127,7 +128,7 @@ void RenderSystem::drawAnimatedSpriteEntity(const transform_component_s& transfo
     });
 }
 
-void RenderSystem::drawText(const TextComponent& textComp, const system_context& context)
+void NewRenderSystem::drawText(const TextComponent& textComp, const system_context& context)
 {
     if (!_fontLoaded) {
         if (!_font.openFromFile(textComp.fontPath)) {

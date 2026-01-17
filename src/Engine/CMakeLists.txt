@@ -69,6 +69,7 @@ else()
         "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/ActionScriptSystem.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/BackgroundSystem.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/RenderSystem.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/NewRenderSystem/NewRenderSystem.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/AudioSystem.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/InputSystem.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Graphics/*.cpp"

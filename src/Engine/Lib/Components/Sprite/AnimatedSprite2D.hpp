@@ -17,6 +17,7 @@
 #include "../StructDatas/RenderLayer.hpp"
 
 #include "../../../Core/ECS/Utils/slot_map/slot_map.hpp"
+#include "../../../Resources/ResourceConfig.hpp"
 
 enum class AnimationMode {
     Loop,
@@ -25,7 +26,7 @@ enum class AnimationMode {
 };
     
 struct AnimationClip {
-    handle_t<sf::Texture> handle;
+    handle_t<TextureAsset> handle;
     std::vector<Rect2D> frames;
     float frameDuration = 0.1f;
     AnimationMode mode = AnimationMode::Loop;
@@ -33,6 +34,7 @@ struct AnimationClip {
 
 struct AnimatedSprite2D
 {
+    static constexpr auto name = "AnimatedSprite2DComponent";
     RenderLayer layer = RenderLayer::Midground;
 
     std::unordered_map<std::string, AnimationClip> animations;

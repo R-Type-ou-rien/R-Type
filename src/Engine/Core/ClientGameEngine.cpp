@@ -26,6 +26,8 @@
 #include "../../../RType/Common/Systems/behavior.hpp"
 #include "Components/StandardComponents.hpp"
 #include "Components/NetworkComponents.hpp"
+#include "Components/Sprite/Sprite2D.hpp"
+#include "Components/Sprite/AnimatedSprite2D.hpp"
 
 ClientGameEngine::ClientGameEngine(std::string window_name) : _window_manager(WINDOW_W, WINDOW_H, window_name) {
     _network = std::make_unique<engine::core::NetworkEngine>(engine::core::NetworkEngine::NetworkRole::CLIENT);
@@ -34,6 +36,8 @@ ClientGameEngine::ClientGameEngine(std::string window_name) : _window_manager(WI
 int ClientGameEngine::init() {
     _network->transmitEvent<int>(network::GameEvents::C_LOGIN_ANONYMOUS, 0, 0, 0);
 
+    registerNetworkComponent<Sprite2D>();
+    registerNetworkComponent<AnimatedSprite2D>();
     registerNetworkComponent<sprite2D_component_s>();
     registerNetworkComponent<transform_component_s>();
     registerNetworkComponent<Velocity2D>();
@@ -63,6 +67,8 @@ int ClientGameEngine::init() {
     registerNetworkComponent<ScoreComponent>();
 
     _ecs.systems.addSystem<BackgroundSystem>();
+    _ecs.systems.addSystem<BehaviorSystem>();
+    _ecs.systems.addSystem<NewRenderSystem>();
     _ecs.systems.addSystem<RenderSystem>();
     _ecs.systems.addSystem<AudioSystem>();
     //_ecs.systems.addSystem<InputSystem>(input_manager);

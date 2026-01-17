@@ -8,6 +8,9 @@
 #include <vector>
 
 #include "Components/StandardComponents.hpp"
+#include "Components/Sprite/Sprite2D.hpp"
+#include "Components/Sprite/AnimatedSprite2D.hpp"
+
 #include "ResourceConfig.hpp"
 #include "registry.hpp"
 
@@ -98,117 +101,262 @@ std::pair<float, float> AActor::getScale() {
 }
 
 void AActor::setTextureEnemy(const std::string pathname) {
-    sprite2D_component_s sprite;
-    sprite.animation_speed = 0.6f;
-    sprite.current_animation_frame = 0;
-    sprite.is_animated = true;
-    sprite.loop_animation = true;
+    AnimatedSprite2D animation;
+
+    AnimationClip clip;
+    clip.frameDuration = 0.6f;
+    clip.mode = AnimationMode::Loop;
+    
     for (float i = 0; i < 8; i++)
-        sprite.frames.push_back({i * 32, 0, 34, 34});
+        clip.frames.emplace_back(i * 32, 0, 34, 34);
     for (float i = 0; i < 8; i++)
-        sprite.frames.push_back({i * 32, 34, 34, 34});
+        clip.frames.emplace_back(i * 32, 34, 34, 34);
 
     if (_textures.is_loaded(pathname)) {
-        sprite.handle = _textures.get_handle(pathname).value();
+        clip.handle = _textures.get_handle(pathname).value();
     } else {
-        sprite.handle = _textures.load(pathname, TextureAsset(pathname));
+        clip.handle = _textures.load(pathname, TextureAsset(pathname));
     }
-    _ecs.registry.addComponent<sprite2D_component_s>(_id, sprite);
+    animation.animations.emplace("idle", clip);
+    animation.currentAnimation = "idle";
+    _ecs.registry.addComponent<AnimatedSprite2D>(_id, animation);
     return;
 }
+
+// void AActor::setTextureEnemy(const std::string pathname) {
+//     sprite2D_component_s sprite;
+//     sprite.animation_speed = 0.6f;
+//     sprite.current_animation_frame = 0;
+//     sprite.is_animated = true;
+//     sprite.loop_animation = true;
+//     for (float i = 0; i < 8; i++)
+//         sprite.frames.push_back({i * 32, 0, 34, 34});
+//     for (float i = 0; i < 8; i++)
+//         sprite.frames.push_back({i * 32, 34, 34, 34});
+
+//     if (_textures.is_loaded(pathname)) {
+//         sprite.handle = _textures.get_handle(pathname).value();
+//     } else {
+//         sprite.handle = _textures.load(pathname, TextureAsset(pathname));
+//     }
+//     _ecs.registry.addComponent<sprite2D_component_s>(_id, sprite);
+//     return;
+// }
 
 void AActor::setTextureBoss(const std::string pathname) {
-    sprite2D_component_s sprite;
-    sprite.animation_speed = 0.5f;
-    sprite.current_animation_frame = 0;
-    sprite.is_animated = true;
-    sprite.loop_animation = false;
+    AnimatedSprite2D animation;
+
+    AnimationClip clip;
+    clip.frameDuration = 0.5f;
+    clip.mode = AnimationMode::Loop;
+
     for (float i = 0; i < 4; i++) {
-        sprite.frames.push_back({260, i * 143, 260, 143});
-        sprite.frames.push_back({0, i * 143, 260, 143});
+        clip.frames.emplace_back(260, i * 143, 260, 143);
+        clip.frames.emplace_back(0, i * 143, 260, 143);
     }
 
     if (_textures.is_loaded(pathname)) {
-        sprite.handle = _textures.get_handle(pathname).value();
+        clip.handle = _textures.get_handle(pathname).value();
     } else {
-        sprite.handle = _textures.load(pathname, TextureAsset(pathname));
+        clip.handle = _textures.load(pathname, TextureAsset(pathname));
     }
-    _ecs.registry.addComponent<sprite2D_component_s>(_id, sprite);
+    animation.animations.emplace("idle", clip);
+    animation.currentAnimation = "idle";
+    _ecs.registry.addComponent<AnimatedSprite2D>(_id, animation);
     return;
 }
+
+// void AActor::setTextureBoss(const std::string pathname) {
+//     sprite2D_component_s sprite;
+//     sprite.animation_speed = 0.5f;
+//     sprite.current_animation_frame = 0;
+//     sprite.is_animated = true;
+//     sprite.loop_animation = false;
+//     for (float i = 0; i < 4; i++) {
+//         sprite.frames.push_back({260, i * 143, 260, 143});
+//         sprite.frames.push_back({0, i * 143, 260, 143});
+//     }
+
+//     if (_textures.is_loaded(pathname)) {
+//         sprite.handle = _textures.get_handle(pathname).value();
+//     } else {
+//         sprite.handle = _textures.load(pathname, TextureAsset(pathname));
+//     }
+//     _ecs.registry.addComponent<sprite2D_component_s>(_id, sprite);
+//     return;
+// }
 
 void AActor::setTexture(const std::string pathname) {
-    sprite2D_component_s sprite;
-    sprite.animation_speed = 0;
-    sprite.current_animation_frame = 0;
-    sprite.dimension = {0, 0, 0, 0};
-    sprite.z_index = 0;
+    AnimatedSprite2D animation;
+
+    AnimationClip clip;
+    clip.frameDuration = 0;
+    clip.mode = AnimationMode::Loop;
 
     if (_textures.is_loaded(pathname)) {
-        sprite.handle = _textures.get_handle(pathname).value();
+        clip.handle = _textures.get_handle(pathname).value();
     } else {
-        sprite.handle = _textures.load(pathname, TextureAsset(pathname));
+        clip.handle = _textures.load(pathname, TextureAsset(pathname));
     }
+    animation.animations.emplace("idle", clip);
+    animation.currentAnimation = "idle";
 
-    if (_ecs.registry.hasComponent<sprite2D_component_s>(_id)) {
-        sprite2D_component_s& comp = _ecs.registry.getComponent<sprite2D_component_s>(_id);
-        comp = sprite;
+    if (_ecs.registry.hasComponent<AnimatedSprite2D>(_id)) {
+        AnimatedSprite2D& comp = _ecs.registry.getComponent<AnimatedSprite2D>(_id);
+        comp = animation;
     } else {
-        _ecs.registry.addComponent<sprite2D_component_s>(_id, sprite);
+        _ecs.registry.addComponent<AnimatedSprite2D>(_id, animation);
     }
     return;
 }
 
-void AActor::setTextureDimension(rect dimension) {
-    sprite2D_component_s& comp = _ecs.registry.getComponent<sprite2D_component_s>(_id);
+// void AActor::setTexture(const std::string pathname) {
+//     sprite2D_component_s sprite;
+//     sprite.animation_speed = 0;
+//     sprite.current_animation_frame = 0;
+//     sprite.dimension = {0, 0, 0, 0};
+//     sprite.z_index = 0;
 
-    comp.dimension = dimension;
+//     if (_textures.is_loaded(pathname)) {
+//         sprite.handle = _textures.get_handle(pathname).value();
+//     } else {
+//         sprite.handle = _textures.load(pathname, TextureAsset(pathname));
+//     }
+
+//     if (_ecs.registry.hasComponent<sprite2D_component_s>(_id)) {
+//         sprite2D_component_s& comp = _ecs.registry.getComponent<sprite2D_component_s>(_id);
+//         comp = sprite;
+//     } else {
+//         _ecs.registry.addComponent<sprite2D_component_s>(_id, sprite);
+//     }
+//     return;
+// }
+
+void AActor::setTextureDimension(rect dimension) {
+    // sprite2D_component_s& comp = _ecs.registry.getComponent<sprite2D_component_s>(_id);
+    // comp.dimension = dimension;
+    // return;
+    if (_ecs.registry.hasComponent<AnimatedSprite2D>(_id)) {
+        AnimatedSprite2D& comp = _ecs.registry.getComponent<AnimatedSprite2D>(_id);
+        if (comp.animations.at(comp.currentAnimation).frames.empty()) {
+            comp.animations.at(comp.currentAnimation).frames.emplace_back(
+                static_cast<int>(dimension.width),
+                static_cast<int>(dimension.height),
+                static_cast<int>(dimension.x),
+                static_cast<int>(dimension.y)
+            );
+            return;
+        }
+        comp.animations.at(comp.currentAnimation).frames.at(comp.currentFrameIndex).width = static_cast<int>(dimension.width);
+        comp.animations.at(comp.currentAnimation).frames.at(comp.currentFrameIndex).height = static_cast<int>(dimension.height);
+        comp.animations.at(comp.currentAnimation).frames.at(comp.currentFrameIndex).x = static_cast<int>(dimension.x);
+        comp.animations.at(comp.currentAnimation).frames.at(comp.currentFrameIndex).y = static_cast<int>(dimension.y);
+        return;
+    }
+    Sprite2D& comp = _ecs.registry.getComponent<Sprite2D>(_id);
+    comp.rect.width = static_cast<int>(dimension.width);
+    comp.rect.height = static_cast<int>(dimension.height);
+    comp.rect.x = static_cast<int>(dimension.y);
+    comp.rect.y = static_cast<int>(dimension.y);
     return;
 }
 
 rect AActor::getDimension() {
-    sprite2D_component_s comp = _ecs.registry.getConstComponent<sprite2D_component_s>(_id);
+    // sprite2D_component_s comp = _ecs.registry.getConstComponent<sprite2D_component_s>(_id);
 
-    return comp.dimension;
+    // return comp.dimension;
+    rect dimension;
+    if (_ecs.registry.hasComponent<AnimatedSprite2D>(_id)) {
+        AnimatedSprite2D& comp = _ecs.registry.getComponent<AnimatedSprite2D>(_id);
+        dimension.width = static_cast<float>(comp.animations.at(comp.currentAnimation).frames.at(comp.currentFrameIndex).width);
+        dimension.height = static_cast<float>(comp.animations.at(comp.currentAnimation).frames.at(comp.currentFrameIndex).height);
+        dimension.x = static_cast<float>(comp.animations.at(comp.currentAnimation).frames.at(comp.currentFrameIndex).x);
+        dimension.y = static_cast<float>(comp.animations.at(comp.currentAnimation).frames.at(comp.currentFrameIndex).y);
+        return dimension;
+    }
+    Sprite2D& comp = _ecs.registry.getComponent<Sprite2D>(_id);
+    dimension.width = static_cast<float>(comp.rect.width);
+    dimension.height = static_cast<float>(comp.rect.height);
+    dimension.x = static_cast<float>(comp.rect.x);
+    dimension.y = static_cast<float>(comp.rect.y);
+    return dimension;
 }
 
 void AActor::setAnimation(bool state) {
-    sprite2D_component_s& comp = _ecs.registry.getComponent<sprite2D_component_s>(_id);
+    // sprite2D_component_s& comp = _ecs.registry.getComponent<sprite2D_component_s>(_id);
 
-    comp.is_animated = state;
+    // comp.is_animated = state;
+    // return;
+    // Cant change with the new component
+    if (_ecs.registry.hasComponent<AnimatedSprite2D>(_id)) {
+        AnimatedSprite2D& comp = _ecs.registry.getComponent<AnimatedSprite2D>(_id);
+        return;
+    }
+    Sprite2D& comp = _ecs.registry.getComponent<Sprite2D>(_id);
     return;
 }
 
 bool AActor::isAnimated() {
-    sprite2D_component_s comp = _ecs.registry.getConstComponent<sprite2D_component_s>(_id);
+    // sprite2D_component_s comp = _ecs.registry.getConstComponent<sprite2D_component_s>(_id);
 
-    return comp.is_animated;
+    // return comp.is_animated;
+    if (_ecs.registry.hasComponent<AnimatedSprite2D>(_id)) {
+        AnimatedSprite2D& comp = _ecs.registry.getComponent<AnimatedSprite2D>(_id);
+        return true;
+    }
+    Sprite2D& comp = _ecs.registry.getComponent<Sprite2D>(_id);
+    return false;
 }
 
 void AActor::setAnimationSpeed(float speed) {
-    sprite2D_component_s& comp = _ecs.registry.getComponent<sprite2D_component_s>(_id);
+    // sprite2D_component_s& comp = _ecs.registry.getComponent<sprite2D_component_s>(_id);
 
-    comp.animation_speed = speed;
+    // comp.animation_speed = speed;
+    if (_ecs.registry.hasComponent<AnimatedSprite2D>(_id)) {
+        AnimatedSprite2D& comp = _ecs.registry.getComponent<AnimatedSprite2D>(_id);
+        comp.animations.at(comp.currentAnimation).frameDuration = speed;
+        return;
+    }
+    Sprite2D& comp = _ecs.registry.getComponent<Sprite2D>(_id);
     return;
 }
 
 float AActor::getAnimationSpeed() {
-    sprite2D_component_s comp = _ecs.registry.getConstComponent<sprite2D_component_s>(_id);
+    // sprite2D_component_s comp = _ecs.registry.getConstComponent<sprite2D_component_s>(_id);
 
-    return comp.animation_speed;
+    // return comp.animation_speed;
+    if (_ecs.registry.hasComponent<AnimatedSprite2D>(_id)) {
+        AnimatedSprite2D& comp = _ecs.registry.getComponent<AnimatedSprite2D>(_id);
+        return comp.animations.at(comp.currentAnimation).frameDuration;
+    }
+    Sprite2D& comp = _ecs.registry.getComponent<Sprite2D>(_id);
+    return 0.f;
 }
 
 void AActor::setDisplayLayer(int layer) {
-    sprite2D_component_s& comp = _ecs.registry.getComponent<sprite2D_component_s>(_id);
+    // sprite2D_component_s& comp = _ecs.registry.getComponent<sprite2D_component_s>(_id);
 
-    comp.z_index = layer;
+    // comp.z_index = layer;
+    if (_ecs.registry.hasComponent<AnimatedSprite2D>(_id)) {
+        AnimatedSprite2D& comp = _ecs.registry.getComponent<AnimatedSprite2D>(_id);
+        comp.layer = static_cast<RenderLayer>(layer);
+        return;
+    }
+    Sprite2D& comp = _ecs.registry.getComponent<Sprite2D>(_id);
+    comp.layer = static_cast<RenderLayer>(layer);
     return;
 }
 
 int AActor::getDisplayLayer() {
-    sprite2D_component_s comp = _ecs.registry.getConstComponent<sprite2D_component_s>(_id);
+    // sprite2D_component_s comp = _ecs.registry.getConstComponent<sprite2D_component_s>(_id);
 
-    return comp.z_index;
+    // return comp.z_index;
+    if (_ecs.registry.hasComponent<AnimatedSprite2D>(_id)) {
+        AnimatedSprite2D& comp = _ecs.registry.getComponent<AnimatedSprite2D>(_id);
+        return static_cast<int>(comp.layer);
+    }
+    Sprite2D& comp = _ecs.registry.getComponent<Sprite2D>(_id);
+    return static_cast<int>(comp.layer);
 }
 
 void AActor::setCollisionTags(std::vector<std::string> tags) {

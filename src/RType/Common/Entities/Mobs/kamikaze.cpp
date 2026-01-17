@@ -27,7 +27,9 @@ void KamikazeSpawner::spawn(Registry& registry, system_context context, float x,
 
     handle_t<TextureAsset> handle =
         context.texture_manager.load(config.sprite_path.value(), TextureAsset(config.sprite_path.value()));
-    registry.addComponent<sprite2D_component_s>(id, MobComponentFactory::createSprite(config, handle));
+    // registry.addComponent<sprite2D_component_s>(id, MobComponentFactory::createSprite(config, handle));
+    registry.addComponent<AnimatedSprite2D>(id, MobComponentFactory::createAnimatedSprite(config, handle));
+
 
     auto [num_frames, anim_speed] = MobComponentFactory::getAnimationParams(config);
     if (num_frames > 1) {
