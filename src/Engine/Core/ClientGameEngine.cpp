@@ -39,6 +39,21 @@ ClientGameEngine::ClientGameEngine(std::string ip, std::string window_name)
 }
 
 int ClientGameEngine::init() {
+    // Verify connection status
+    auto& instance = _network->getNetworkInstance();
+    bool connected = false;
+    if (std::holds_alternative<std::shared_ptr<network::Client>>(instance)) {
+        auto client = std::get<std::shared_ptr<network::Client>>(instance);
+        if (client && client->IsConnected()) {
+            connected = true;
+        }
+    }
+
+    if (!connected) {
+        _window_manager.getWindow().setTitle("R-Type Client - CONNECTION FAILED");
+        std::cerr << "[CLIENT_ERROR] Failed to connect to server." << std::endl;
+    }
+
     _network->transmitEvent<int>(network::GameEvents::C_LOGIN_ANONYMOUS, 0, 0, 0);
 
     registerNetworkComponent<Sprite2D>();
