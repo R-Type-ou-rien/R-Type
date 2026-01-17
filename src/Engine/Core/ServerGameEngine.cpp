@@ -47,7 +47,7 @@
 #include "CollisionSystem.hpp"
 #include "../Lib/Systems/PhysicsSystem.hpp"
 
-ServerGameEngine::ServerGameEngine()
+ServerGameEngine::ServerGameEngine(std::string ip)
     : _env(std::make_shared<Environment>(_ecs, _texture_manager, _sound_manager, _music_manager, EnvMode::SERVER)) {
     _network = std::make_shared<engine::core::NetworkEngine>(engine::core::NetworkEngine::NetworkRole::SERVER);
     // No default lobby - wait for client requests (CREATE_LOBBY / JOIN_LOBBY)

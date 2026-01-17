@@ -32,10 +32,10 @@
 #include "Components/Sprite/Sprite2D.hpp"
 #include "Components/Sprite/AnimatedSprite2D.hpp"
 
-ClientGameEngine::ClientGameEngine(std::string window_name)
+ClientGameEngine::ClientGameEngine(std::string ip, std::string window_name)
     : _window_manager(WINDOW_W, WINDOW_H, window_name),
       _env(std::make_shared<Environment>(_ecs, _texture_manager, _sound_manager, _music_manager, EnvMode::CLIENT)) {
-    _network = std::make_shared<engine::core::NetworkEngine>(engine::core::NetworkEngine::NetworkRole::CLIENT);
+    _network = std::make_shared<engine::core::NetworkEngine>(engine::core::NetworkEngine::NetworkRole::CLIENT, ip);
 }
 
 int ClientGameEngine::init() {
