@@ -27,16 +27,37 @@
 #include "../../../RType/Common/Components/pod_component.hpp"
 #include "../../../RType/Common/Components/game_over_notification.hpp"
 #include "../../../RType/Common/Systems/behavior.hpp"
+#include "Components/StandardComponents.hpp"
+#include "Components/NetworkComponents.hpp"
+#include "Components/Sprite/Sprite2D.hpp"
+#include "Components/Sprite/AnimatedSprite2D.hpp"
 
-ClientGameEngine::ClientGameEngine(std::string window_name)
+ClientGameEngine::ClientGameEngine(std::string ip, std::string window_name)
     : _window_manager(WINDOW_W, WINDOW_H, window_name),
       _env(std::make_shared<Environment>(_ecs, _texture_manager, _sound_manager, _music_manager, EnvMode::CLIENT)) {
-    _network = std::make_shared<engine::core::NetworkEngine>(engine::core::NetworkEngine::NetworkRole::CLIENT);
+    _network = std::make_shared<engine::core::NetworkEngine>(engine::core::NetworkEngine::NetworkRole::CLIENT, ip);
 }
 
 int ClientGameEngine::init() {
+    // Verify connection status
+    auto& instance = _network->getNetworkInstance();
+    bool connected = false;
+    if (std::holds_alternative<std::shared_ptr<network::Client>>(instance)) {
+        auto client = std::get<std::shared_ptr<network::Client>>(instance);
+        if (client && client->IsConnected()) {
+            connected = true;
+        }
+    }
+
+    if (!connected) {
+        _window_manager.getWindow().setTitle("R-Type Client - CONNECTION FAILED");
+        std::cerr << "[CLIENT_ERROR] Failed to connect to server." << std::endl;
+    }
+
     _network->transmitEvent<int>(network::GameEvents::C_LOGIN_ANONYMOUS, 0, 0, 0);
 
+    registerNetworkComponent<Sprite2D>();
+    registerNetworkComponent<AnimatedSprite2D>();
     registerNetworkComponent<sprite2D_component_s>();
     registerNetworkComponent<transform_component_s>();
     registerNetworkComponent<Velocity2D>();
@@ -66,6 +87,9 @@ int ClientGameEngine::init() {
     registerNetworkComponent<ScoreComponent>();
 
     _ecs.systems.addSystem<BackgroundSystem>();
+    _ecs.systems.addSystem<BehaviorSystem>();
+    _ecs.systems.addSystem<NewRenderSystem>();
+    _ecs.systems.addSystem<AnimationSystem>();
     _ecs.systems.addSystem<RenderSystem>();
     _ecs.systems.addSystem<AudioSystem>();
 
