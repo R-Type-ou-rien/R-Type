@@ -617,7 +617,8 @@ int ClientGameEngine::run() {
                               _music_manager,
                               _window_manager.getWindow(),
                               input_manager,
-                              _clientId};
+                              _clientId,
+                              &_scene_manager};
     auto last_time = std::chrono::high_resolution_clock::now();
 
     this->init();

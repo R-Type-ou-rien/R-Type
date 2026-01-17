@@ -529,14 +529,14 @@ void GameManager::loadNextLevel(std::shared_ptr<Environment> env) {
     if (!_current_level_config.next_level.empty()) {
         next_level = _current_level_config.next_level;
     } else {
-        _current_level_index++;
+    _current_level_index++;
 
-        if (_current_level_index < static_cast<int>(_level_files.size())) {
-            next_level = _level_files[_current_level_index];
-        } else {
-            _inTransition = false;
-            return;
-        }
+    if (_current_level_index < static_cast<int>(_level_files.size())) {
+        next_level = _level_files[_current_level_index];
+    } else {
+        _inTransition = false;
+        return;
+    }
     }
 
     if (next_level.empty()) {
@@ -684,7 +684,7 @@ void GameManager::loadNextLevel(std::shared_ptr<Environment> env) {
     for (auto entity : untagged_health_entities) {
         ecs.registry.destroyEntity(entity);
     }
-
+    
     size_t total_cleaned = entities_to_destroy.size() + timers.size() + scripted_spawners.size() + pod_spawners.size() +
                            untagged_health_entities.size();
     std::cout << "[GameManager] Total cleaned: " << total_cleaned << " entities" << std::endl;
@@ -695,7 +695,7 @@ void GameManager::loadNextLevel(std::shared_ptr<Environment> env) {
     initScene(env, _current_level_config);
 
     _inTransition = false;
-
+    
     std::cout << "[GameManager] ===== LEVEL " << (_current_level_index + 1) << "/" << _level_files.size()
               << " LOADED SUCCESSFULLY! =====" << std::endl;
 }

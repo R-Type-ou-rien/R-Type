@@ -142,16 +142,16 @@ void GameManager::checkGameState(std::shared_ptr<Environment> env) {
             if (_victory) {
                 _inTransition = true;
             }
-        } else if (_victory) {
-            auto& leaderboard_entities = ecs.registry.getEntities<LeaderboardComponent>();
-            if (leaderboard_entities.empty() && !_nextLevelLoaded) {
-                if (!env->isClient()) {
-                    _nextLevelLoaded = true;
-                    loadNextLevel(env);
-                } else {
-                    _nextLevelLoaded = true;
+            } else if (_victory) {
+                auto& leaderboard_entities = ecs.registry.getEntities<LeaderboardComponent>();
+                if (leaderboard_entities.empty() && !_nextLevelLoaded) {
+                    if (!env->isClient()) {
+                        _nextLevelLoaded = true;
+                        loadNextLevel(env);
+                    } else {
+                        _nextLevelLoaded = true;
+                    }
                 }
-            }
 
             if (env->isClient() && leaderboard_entities.empty() && _leaderboardDisplayed) {
                 _victory = false;
@@ -271,11 +271,13 @@ void GameManager::checkGameState(std::shared_ptr<Environment> env) {
                 _leaderboardDisplayed = true;
             }
             // Transition logic for standalone...
+            /* Legacy LevelTransitionComponent creation removed
             Entity transitionEntity = ecs.registry.createEntity();
             LevelTransitionComponent transition;
             transition.state = LevelTransitionComponent::TransitionState::IDLE;
             transition.next_level_name = "src/RType/Common/content/config/level2_spawns.cfg";
             ecs.registry.addComponent<LevelTransitionComponent>(transitionEntity, transition);
+            */
         }
     }
 }

@@ -1,0 +1,29 @@
+# Level 8 - Cybernetic Fortress
+# High-tech base with advanced security
+
+[LEVEL]
+name=Level 8 - Cybernetic Fortress
+background=src/RType/Common/content/sprites/test.png
+music=theme
+enemies_config=src/RType/Common/content/config/enemies.cfg
+boss_config=src/RType/Common/content/config/boss.cfg
+boss_section=BOSS_LEVEL8
+game_config=src/RType/Common/content/config/game.cfg
+spawn_script=src/RType/Common/content/config/levels/level8_spawns.cfg
+next_level=none
+
+[WALL]
+wall=1500,900,1000,180,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=3000,0,1000,180,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=4500,900,1000,180,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=6000,0,1000,180,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=7500,900,1000,180,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=9000,0,1000,180,src/RType/Common/content/sprites/r-typesheet14.gif,false
+
+[TURRET]
+turret=1700,850,1.5,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=3200,180,1.5,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=4700,850,1.5,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=6200,180,1.5,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=7700,850,1.5,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=9200,180,1.5,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif

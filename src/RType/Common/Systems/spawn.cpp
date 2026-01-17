@@ -23,7 +23,7 @@ void EnemySpawnSystem::loadConfigs(const std::string& enemies, const std::string
     std::string boss_path = boss.empty() ? "src/RType/Common/content/config/boss.cfg" : boss;
     std::string game_path = game.empty() ? "src/RType/Common/content/config/game.cfg" : game;
     std::string section = boss_section.empty() ? "DEFAULT" : boss_section;
-
+    
     _enemy_configs = ConfigLoader::loadEnemiesConfig(enemies_path, ConfigLoader::getRequiredEnemyFields());
 
     // Load boss config from the specified section

@@ -93,6 +93,13 @@ class SceneLoader {
             config.spawn_script = value;
         else if (key == "next_level")
             config.next_level = value;
+        else if (key == "leaderboard_duration") {
+            try {
+                config.leaderboard_duration = std::stof(value);
+            } catch (...) {
+                std::cerr << "Warning: Invalid leaderboard_duration: " << value << std::endl;
+            }
+        }
     }
 
     static void parseWallEntry(LevelConfig& config, const std::string& value) {

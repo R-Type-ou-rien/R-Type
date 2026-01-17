@@ -42,5 +42,6 @@ class EnemySpawnSystem : public ISystem {
     std::vector<std::string> _enemy_types;
     std::map<std::string, std::unique_ptr<IMobSpawner>> _spawners;
     bool _configs_loaded = false;
+    std::string _current_boss_section = "";
     uint32_t _current_lobby_id = 0;
 };

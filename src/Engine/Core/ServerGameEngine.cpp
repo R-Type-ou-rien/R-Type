@@ -429,7 +429,7 @@ void ServerGameEngine::updateActions(ActionPacket& packet, uint32_t clientId) {
 int ServerGameEngine::run() {
     system_context ctx = {
         0,         _currentTick, _texture_manager, _sound_manager,           _music_manager, input_manager,
-        *_network, {},           &_lobbyManager,   &_networkedComponentTypes};
+        *_network, {},           &_lobbyManager,   &_networkedComponentTypes, &_scene_manager};
     auto last_time = std::chrono::high_resolution_clock::now();
 
     init();

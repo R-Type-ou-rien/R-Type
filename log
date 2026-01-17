@@ -1,0 +1,55 @@
+[CLIENT_DEBUG] Resolved Server UDP Endpoint: 127.0.0.1:4040
+[CLIENT_DEBUG] UDP Socket bound to local port: 50644
+  - src/RType/Common/content/config/levels/level1.scene
+  - src/RType/Common/content/config/levels/level2.scene
+  - src/RType/Common/content/config/levels/level3.scene
+  - src/RType/Common/content/config/levels/level4.scene
+  - src/RType/Common/content/config/levels/level5.scene
+  - src/RType/Common/content/config/levels/level6.scene
+  - src/RType/Common/content/config/levels/level7.scene
+  - src/RType/Common/content/config/levels/level8.scene
+[VoiceManager] Created
+[RESOURCE] Loaded texture: "src/RType/Common/content/sprites/background-R-Type.png"
+[RESOURCE] Loaded texture: "src/RType/Common/content/sprites/r-typesheet42.gif"
+[RESOURCE] Loaded texture: "src/RType/Common/content/sprites/r-typesheet8.gif"
+[AUDIO] Loaded sound: shoot from src/RType/Common/content/sounds/shoot.wav
+[RESOURCE] Loaded sound: "shoot"
+[AUDIO] Loaded sound: charg_start from src/RType/Common/content/sounds/charg_start.wav
+[RESOURCE] Loaded sound: "charg_start"
+[AUDIO] Loaded sound: charg_loop from src/RType/Common/content/sounds/charg_loop.wav
+[RESOURCE] Loaded sound: "charg_loop"
+[AUDIO] Registering music path: theme from src/RType/Common/content/music/theme_1.wav
+[RESOURCE] Loaded music: "theme"
+[CLIENT] ID Received: 10000
+[GameManager] Auth success, local ID set to: 10000
+[GameManager] onGameStarted called, setting pending game start flag
+[Client] Successfully loaded texture: src/RType/Common/content/sprites/r-typesheet14.gif
+[Client] Successfully loaded texture: src/RType/Common/content/sprites/r-typesheet13.gif
+[GameManager] Processing pending game start - initializing game scene
+[GameManager] Multiplayer mode: Player spawning handled by network replication
+[Client] Successfully loaded texture: src/RType/Common/content/sprites/r-typesheet1.gif
+[Client] Successfully loaded texture: src/RType/Common/content/sprites/r-typesheet9.gif
+[Client] Successfully loaded texture: src/RType/Common/content/sprites/r-typesheet30.gif
+[Client] Successfully loaded texture: src/RType/Common/content/sprites/r-typesheet3.gif
+[Client] Successfully loaded texture: src/RType/Common/content/sprites/r-typesheet10.gif
+[LevelTransition] Leaderboard detected. Starting timer for 10s.
+[LevelTransition] Timer: 1.009/10
+[LevelTransition] Timer: 2.017/10
+[LevelTransition] Timer: 3.025/10
+[LevelTransition] Timer: 4.033/10
+[LevelTransition] Timer: 5.04099/10
+[LevelTransition] Timer: 6.04998/10
+[LevelTransition] Timer: 7.05897/10
+[LevelTransition] Timer: 8.06795/10
+[LevelTransition] Timer: 9.07594/10
+[LevelTransition] Leaderboard duration expired. Destroying leaderboard to trigger next level.
+[LevelTransition] Leaderboard detected. Starting timer for 10s.
+[LevelTransition] Leaderboard duration expired. Destroying leaderboard to trigger next level.
+[LevelTransition] Leaderboard detected. Starting timer for 10s.
+[LevelTransition] Leaderboard duration expired. Destroying leaderboard to trigger next level.
+[LevelTransition] Leaderboard detected. Starting timer for 10s.
+[LevelTransition] Leaderboard duration expired. Destroying leaderboard to trigger next level.
+[LevelTransition] Leaderboard detected. Starting timer for 10s.
+[LevelTransition] Leaderboard duration expired. Destroying leaderboard to trigger next level.
+[LevelTransition] Leaderboard detected. Starting timer for 10s.
+[Client] Successfully loaded texture: src/RType/Common/content/sprites/r-typesheet11.gif

@@ -229,7 +229,7 @@ Entity BossSpawner::spawn(Registry& registry, system_context context, float x, f
     registry.addComponent<TagComponent>(id, createBossTags());
     registry.addComponent<NetworkIdentity>(id, {static_cast<uint32_t>(id), 0});
 
-    BossTailConfig tail_config;
+    BossTailConfig tail_config = config.toBossTailConfig();
     spawnTailSegments(registry, context, id, dims, config, tail_config);
 
     return id;

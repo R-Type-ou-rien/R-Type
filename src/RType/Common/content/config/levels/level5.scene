@@ -1,0 +1,41 @@
+# Level 5 - Crystal Caves
+# Glistening crystals and reflective surfaces
+
+[LEVEL]
+name=Level 5 - Crystal Caves
+background=src/RType/Common/content/sprites/test.png
+music=theme
+enemies_config=src/RType/Common/content/config/enemies.cfg
+boss_config=src/RType/Common/content/config/boss.cfg
+boss_section=BOSS_LEVEL5
+game_config=src/RType/Common/content/config/game.cfg
+spawn_script=src/RType/Common/content/config/levels/level5_spawns.cfg
+next_level=src/RType/Common/content/config/levels/level6.scene
+
+[WALL]
+wall=1200,920,700,160,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=2400,880,650,200,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=3600,900,800,180,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=5000,860,900,220,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=6500,890,750,190,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=8000,910,850,170,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=9500,870,950,210,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=11200,900,700,180,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=1500,0,600,180,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=2700,0,750,200,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=4100,0,700,160,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=5600,0,850,220,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=7200,0,650,190,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=8700,0,900,170,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=10300,0,800,210,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=11800,0,750,180,src/RType/Common/content/sprites/r-typesheet14.gif,false
+
+[TURRET]
+turret=1400,870,2.2,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=1700,870,1.9,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=2600,830,2.0,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=2900,830,2.4,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=3800,850,1.8,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=4100,850,2.6,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=5200,810,2.1,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=5500,810,2.3,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif

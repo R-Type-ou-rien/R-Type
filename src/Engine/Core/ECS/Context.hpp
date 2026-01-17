@@ -12,6 +12,7 @@ namespace engine::core {
 class LobbyManager;
 class NetworkEngine;
 }  // namespace engine::core
+class SceneManager;
 
 struct system_context {
     float dt;
@@ -23,7 +24,8 @@ struct system_context {
     engine::core::NetworkEngine& network;
     std::vector<uint32_t> active_clients;
     engine::core::LobbyManager* lobby_manager;
-    std::unordered_set<uint32_t>* networked_component_types = nullptr;  // Hash of component types to send over network
+    std::unordered_set<uint32_t>* networked_component_types = nullptr;
+    class SceneManager* scene_manager = nullptr;
 };
 
 #elif defined(CLIENT_BUILD)
@@ -38,6 +40,7 @@ struct system_context {
     sf::RenderWindow& window;
     InputManager& input;
     uint32_t player_id;
+    class SceneManager* scene_manager = nullptr;
 };
 #else
 #error "You must compile with -DSERVER_BUILD or -DCLIENT_BUILD"
