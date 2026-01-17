@@ -69,6 +69,7 @@ int ClientGameEngine::init() {
     _ecs.systems.addSystem<BackgroundSystem>();
     _ecs.systems.addSystem<BehaviorSystem>();
     _ecs.systems.addSystem<NewRenderSystem>();
+    _ecs.systems.addSystem<AnimationSystem>();
     _ecs.systems.addSystem<RenderSystem>();
     _ecs.systems.addSystem<AudioSystem>();
     //_ecs.systems.addSystem<InputSystem>(input_manager);
