@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <cstdint>
 
 struct EnemySpawnComponent {
     static constexpr auto name = "EnemySpawnComponent";
@@ -21,4 +22,7 @@ struct EnemySpawnComponent {
 
     unsigned int random_seed = 0;
     int random_state = 0;
+
+    // Lobby ID for spawned entities
+    uint32_t lobby_id = 0;
 };

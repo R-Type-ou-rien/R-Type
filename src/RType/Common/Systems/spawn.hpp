@@ -16,9 +16,11 @@ class EnemySpawnSystem : public ISystem {
     EnemySpawnSystem() = default;
     ~EnemySpawnSystem() = default;
     void update(Registry& registry, system_context context) override;
+    void setCurrentLobbyId(uint32_t lobbyId) { _current_lobby_id = lobbyId; }
 
    private:
-    void loadConfigs(const std::string& enemies, const std::string& boss, const std::string& boss_section, const std::string& game);
+    void loadConfigs(const std::string& enemies, const std::string& boss, const std::string& boss_section,
+                     const std::string& game);
     void spawnEnemy(Registry& registry, system_context context, float x, float y, const std::string& enemy_type);
     void spawnBoss(Registry& registry, system_context context);
     void spawnObstacle(Registry& registry, system_context context, float x, float y);
@@ -40,4 +42,5 @@ class EnemySpawnSystem : public ISystem {
     std::vector<std::string> _enemy_types;
     std::map<std::string, std::unique_ptr<IMobSpawner>> _spawners;
     bool _configs_loaded = false;
+    uint32_t _current_lobby_id = 0;
 };

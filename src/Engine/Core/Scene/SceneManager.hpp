@@ -2,6 +2,7 @@
 
 #include "LevelConfig.hpp"
 #include "../ECS/Registry/registry.hpp"
+#include "../../Lib/Components/LobbyIdComponent.hpp"
 #include <functional>
 #include <iostream>
 #include <string>
@@ -29,7 +30,12 @@ class SceneManager {
 
     void registerPrefab(const std::string& name, CreatorFn creator) { _prefabs[name] = creator; }
 
+    void setCurrentLobbyId(uint32_t lobbyId) { _currentLobbyId = lobbyId; }
+
     void loadScene(const LevelConfig& config) {
+        std::cout << "[SceneManager] Loading scene with " << config.entities.size() << " entities for lobby "
+                  << _currentLobbyId << std::endl;
+
         // 1. Create Background Entity
         if (!config.background_texture.empty()) {
             _createEntity("Background", {{"texture", config.background_texture}});
@@ -42,6 +48,7 @@ class SceneManager {
 
         // 2. Spawn Entities
         for (const auto& entConfig : config.entities) {
+            std::cout << "[SceneManager] Creating entity of type: " << entConfig.type << std::endl;
             _createEntity(entConfig.type, entConfig.properties);
         }
     }
@@ -55,8 +62,14 @@ class SceneManager {
 
         Entity e = _registry.createEntity();
         _prefabs[type](_registry, e, props);
+
+        // Tag entity with lobby ID
+        if (_currentLobbyId != 0) {
+            _registry.addComponent<LobbyIdComponent>(e, {_currentLobbyId});
+        }
     }
 
     Registry& _registry;
     std::unordered_map<std::string, CreatorFn> _prefabs;
+    uint32_t _currentLobbyId = 0;
 };

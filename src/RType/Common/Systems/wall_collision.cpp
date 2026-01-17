@@ -8,6 +8,8 @@
 #include "wall_collision.hpp"
 #include "Components/StandardComponents.hpp"
 #include "../Components/terrain_component.hpp"
+#include "../../../../Engine/Lib/Components/LobbyIdComponent.hpp"
+#include "../../../../Engine/Lib/Utils/LobbyUtils.hpp"
 #include "health.hpp"
 #include <algorithm>
 #include <cmath>
@@ -23,6 +25,8 @@ void WallCollisionSystem::update(Registry& registry, system_context context) {
         if (!registry.hasComponent<sprite2D_component_s>(wall_entity))
             continue;
 
+        uint32_t wall_lobby_id = engine::utils::getLobbyId(registry, wall_entity);
+
         const auto& wall = registry.getConstComponent<WallComponent>(wall_entity);
         const auto& wall_transform = registry.getConstComponent<transform_component_s>(wall_entity);
         const auto& wall_sprite = registry.getConstComponent<sprite2D_component_s>(wall_entity);
@@ -31,6 +35,13 @@ void WallCollisionSystem::update(Registry& registry, system_context context) {
         float wall_height = wall.height > 0 ? wall.height : wall_sprite.dimension.height * wall_transform.scale_y;
 
         for (auto entity : players) {
+            uint32_t entity_lobby_id = engine::utils::getLobbyId(registry, entity);
+
+            // Skip if different lobbies (and both are not 0)
+            if (wall_lobby_id != entity_lobby_id && wall_lobby_id != 0 && entity_lobby_id != 0) {
+                continue;
+            }
+
             if (entity == wall_entity)
                 continue;
             if (!registry.hasComponent<transform_component_s>(entity))
@@ -77,7 +88,6 @@ void WallCollisionSystem::update(Registry& registry, system_context context) {
 
             if (collides) {
                 if (is_player && wall.blocks_player) {
-                    std::cout << "[WallCollision] Player " << entity << " collided with wall " << wall_entity << std::endl;
                     handlePlayerWallCollision(registry, entity, wall_entity);
                 } else if (is_projectile && wall.blocks_projectiles) {
                     handleProjectileWallCollision(registry, entity, wall_entity);
@@ -89,12 +99,10 @@ void WallCollisionSystem::update(Registry& registry, system_context context) {
 
 void WallCollisionSystem::handlePlayerWallCollision(Registry& registry, Entity player, Entity wall) {
     if (!registry.hasComponent<HealthComponent>(player)) {
-        std::cout << "[WallCollision] Player " << player << " has no HealthComponent!" << std::endl;
         return;
     }
 
     auto& health = registry.getComponent<HealthComponent>(player);
-    std::cout << "[WallCollision] Killing player " << player << " (HP before: " << health.current_hp << ")" << std::endl;
     health.current_hp = 0;  // Instant kill
 }
 

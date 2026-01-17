@@ -2,6 +2,7 @@
 
 #include "../../../../RType/Common/Systems/score.hpp"
 #include "serialize.hpp"
+#include <vector>
 
 namespace serialize {
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <vector>
 #include <unordered_set>
 #include "ResourceConfig.hpp"
 #include "InputConfig.hpp"

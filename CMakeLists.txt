@@ -28,6 +28,17 @@ if(NOT EXISTS "${VCPKG_EXEC}")
     endif()
 endif()
 
+# Installation automatique des dépendances vcpkg
+message(STATUS "Installation des dépendances vcpkg...")
+execute_process(
+    COMMAND "${VCPKG_EXEC}" install --triplet=${VCPKG_TARGET_TRIPLET}
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+    RESULT_VARIABLE VCPKG_INSTALL_RES
+)
+if(NOT VCPKG_INSTALL_RES EQUAL 0)
+    message(WARNING "Attention: vcpkg install a retourné une erreur, les dépendances pourraient ne pas être installées correctement.")
+endif()
+
 set(CMAKE_TOOLCHAIN_FILE "${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain" FORCE)
 
 

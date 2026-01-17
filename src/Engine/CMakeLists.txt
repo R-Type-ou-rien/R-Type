@@ -60,10 +60,12 @@ if (BUILD_SERVER)
     target_sources(Engine PRIVATE ${COMMON_SYSTEM_SOURCES} ${SERVER_SOURCES})
 
 else()
-    target_compile_definitions(Engine PUBLIC CLIENT_BUILD)
+    target_compile_definitions(Engine PUBLIC CLIENT_BUILD RTYPE_USE_REAL_AUDIO)
 
     find_package(SFML REQUIRED COMPONENTS System)
-    target_link_libraries(Engine PUBLIC SFML::System)
+    find_package(portaudio CONFIG REQUIRED)
+    find_package(Opus CONFIG REQUIRED)
+    target_link_libraries(Engine PUBLIC SFML::System portaudio_static Opus::opus)
 
     file(GLOB_RECURSE CLIENT_SOURCES
         "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/ActionScriptSystem.cpp"
@@ -74,6 +76,7 @@ else()
         "${CMAKE_CURRENT_SOURCE_DIR}/Graphics/*.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Inputs/*.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Core/ClientGameEngine.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/Core/Voice/*.cpp"
     )
     target_sources(Engine PRIVATE ${COMMON_SYSTEM_SOURCES} ${CLIENT_SOURCES})
 

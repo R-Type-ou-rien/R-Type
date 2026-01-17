@@ -3,6 +3,7 @@
 #include "InputConfig.hpp"
 #include "src/RType/Common/Components/charged_shot.hpp"
 #include "src/RType/Common/Components/pod_component.hpp"
+#include "Components/StandardComponents.hpp"
 
 void GameManager::setupMovementControls(InputManager& inputs) {
     inputs.bindAction("move_left", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Left});
@@ -15,6 +16,9 @@ void GameManager::setupMovementControls(InputManager& inputs) {
 
         _player->bindActionCallbackPressed("move_left",
                                            [player_speed](Registry& registry, system_context context, Entity entity) {
+                                               if (registry.hasComponent<HealthComponent>(entity) &&
+                                                   registry.getComponent<HealthComponent>(entity).current_hp <= 0)
+                                                   return;
                                                if (registry.hasComponent<Velocity2D>(entity)) {
                                                    registry.getComponent<Velocity2D>(entity).vx = -player_speed;
                                                }
@@ -28,6 +32,9 @@ void GameManager::setupMovementControls(InputManager& inputs) {
 
         _player->bindActionCallbackPressed("move_right",
                                            [player_speed](Registry& registry, system_context context, Entity entity) {
+                                               if (registry.hasComponent<HealthComponent>(entity) &&
+                                                   registry.getComponent<HealthComponent>(entity).current_hp <= 0)
+                                                   return;
                                                if (registry.hasComponent<Velocity2D>(entity)) {
                                                    registry.getComponent<Velocity2D>(entity).vx = player_speed;
                                                }
@@ -41,6 +48,9 @@ void GameManager::setupMovementControls(InputManager& inputs) {
 
         _player->bindActionCallbackPressed("move_up",
                                            [player_speed](Registry& registry, system_context context, Entity entity) {
+                                               if (registry.hasComponent<HealthComponent>(entity) &&
+                                                   registry.getComponent<HealthComponent>(entity).current_hp <= 0)
+                                                   return;
                                                if (registry.hasComponent<Velocity2D>(entity)) {
                                                    registry.getComponent<Velocity2D>(entity).vy = -player_speed;
                                                }
@@ -53,6 +63,9 @@ void GameManager::setupMovementControls(InputManager& inputs) {
 
         _player->bindActionCallbackPressed("move_down",
                                            [player_speed](Registry& registry, system_context context, Entity entity) {
+                                               if (registry.hasComponent<HealthComponent>(entity) &&
+                                                   registry.getComponent<HealthComponent>(entity).current_hp <= 0)
+                                                   return;
                                                if (registry.hasComponent<Velocity2D>(entity)) {
                                                    registry.getComponent<Velocity2D>(entity).vy = player_speed;
                                                }
@@ -71,6 +84,9 @@ void GameManager::setupShootingControls(InputManager& inputs) {
 
     if (_player) {
         _player->bindActionCallbackPressed("shoot", [](Registry& registry, system_context context, Entity entity) {
+            if (registry.hasComponent<HealthComponent>(entity) &&
+                registry.getComponent<HealthComponent>(entity).current_hp <= 0)
+                return;
             if (registry.hasComponent<ShooterComponent>(entity)) {
                 ShooterComponent& shoot = registry.getComponent<ShooterComponent>(entity);
                 shoot.is_shooting = true;
@@ -100,6 +116,9 @@ void GameManager::setupPodControls(InputManager& inputs) {
 
     if (_player) {
         _player->bindActionCallbackPressed("toggle_pod", [](Registry& registry, system_context context, Entity entity) {
+            if (registry.hasComponent<HealthComponent>(entity) &&
+                registry.getComponent<HealthComponent>(entity).current_hp <= 0)
+                return;
             if (registry.hasComponent<PlayerPodComponent>(entity)) {
                 auto& player_pod = registry.getComponent<PlayerPodComponent>(entity);
                 if (player_pod.has_pod) {

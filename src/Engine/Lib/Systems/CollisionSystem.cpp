@@ -4,7 +4,10 @@
 #include <ostream>
 #include <vector>
 #include <utility>
+#include <algorithm>
 #include "Components/StandardComponents.hpp"
+#include "../Components/LobbyIdComponent.hpp"
+#include "../Utils/LobbyUtils.hpp"
 
 void BoxCollision::update(Registry& registry, system_context context) {
     auto& entities = registry.getEntities<BoxCollisionComponent>();
@@ -19,11 +22,20 @@ void BoxCollision::update(Registry& registry, system_context context) {
             continue;
         if (!registry.hasComponent<TagComponent>(entity_a))
             continue;
+
+        uint32_t lobby_a = engine::utils::getLobbyId(registry, entity_a);
+
         auto& transform_a = registry.getConstComponent<transform_component_s>(entity_a);
         auto& collision_comp = registry.getComponent<BoxCollisionComponent>(entity_a);
         for (auto entity_b : entities) {
             if (entity_a == entity_b)
                 continue;
+
+            // Skip collision if entities are from different lobbies
+            uint32_t lobby_b = engine::utils::getLobbyId(registry, entity_b);
+            if (lobby_a != lobby_b && lobby_a != 0 && lobby_b != 0)
+                continue;
+
             if (!registry.hasComponent<TagComponent>(entity_b))
                 continue;
             if (!hasTagToCollide(collision_comp, registry.getConstComponent<TagComponent>(entity_b)))

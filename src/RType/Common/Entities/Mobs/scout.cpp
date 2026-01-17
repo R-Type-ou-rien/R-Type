@@ -11,7 +11,7 @@
 #include "../../Components/mob_component.hpp"
 #include "../../Systems/animation_helper.hpp"
 
-void ScoutSpawner::spawn(Registry& registry, system_context context, float x, float y, const EntityConfig& config) {
+Entity ScoutSpawner::spawn(Registry& registry, system_context context, float x, float y, const EntityConfig& config) {
     Entity id = registry.createEntity();
 
     registry.addComponent<transform_component_s>(id, {x, y});
@@ -35,4 +35,6 @@ void ScoutSpawner::spawn(Registry& registry, system_context context, float x, fl
     registry.addComponent<BoxCollisionComponent>(id, MobComponentFactory::createEnemyCollision(config));
     registry.addComponent<TagComponent>(id, MobComponentFactory::createAITags());
     registry.addComponent<NetworkIdentity>(id, {static_cast<uint32_t>(id), 0});
+
+    return id;
 }

@@ -3,6 +3,8 @@
 #include "Components/NetworkComponents.hpp"
 #include "Guid/Guid.hpp"
 
+std::string g_DebugCurrentSystem = "Unknown";
+
 Entity Registry::createEntity() {
     uint32_t entity_id;
     if (!_deadEntities.empty()) {

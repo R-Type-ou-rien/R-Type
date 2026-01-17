@@ -14,7 +14,7 @@
 // #include <SFML/Graphics/Texture.hpp>
 
 #include "ISystem.hpp"
-#include "InputSystem.hpp"
+#include "../../Inputs/InputSystem.hpp"
 #include "Registry/registry.hpp"
 #include "SystemManager/SystemManager.hpp"
 

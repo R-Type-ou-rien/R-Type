@@ -9,7 +9,7 @@
 
 struct SpectatorComponent {
     static constexpr auto name = "SpectatorComponent";
-    
+
     Entity watching_player = -1;
     bool is_spectating = true;
     float spectate_start_time = 0.0f;
@@ -17,7 +17,7 @@ struct SpectatorComponent {
 
 struct GameStateComponent {
     static constexpr auto name = "GameStateComponent";
-    
+
     int total_players = 0;
     int alive_players = 0;
     int dead_players = 0;
