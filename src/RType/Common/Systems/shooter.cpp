@@ -158,8 +158,8 @@ void ShooterSystem::create_projectile_with_pattern(Registry& registry, Entity ow
         }
 
         handle_t<TextureAsset> handle = context.texture_manager.load(sprite_path, TextureAsset(sprite_path));
-        sprite_info.handle = handle;
-        sprite_info.dimension = {sprite_x, sprite_y, sprite_w, sprite_h};
+        clip.handle = handle;
+        clip.frames.emplace_back(sprite_x, sprite_y, sprite_w, sprite_h);
     }
     animation.animations.emplace("idle", clip);
     animation.currentAnimation = "idle";
@@ -261,17 +261,17 @@ void ShooterSystem::create_charged_projectile(Registry& registry, Entity owner_e
 
     handle_t<TextureAsset> handle = context.texture_manager.load(sprite_path, TextureAsset(sprite_path));
 
-    sprite2D_component_s sprite_info;
-    sprite_info.handle = handle;
-    sprite_info.animation_speed = 0;
-    sprite_info.current_animation_frame = 0;
-    // Scale sprite dimensions based on charge level
+    AnimatedSprite2D animation;
+    AnimationClip clip;
+
+    clip.handle = handle;
+    clip.frameDuration = 0;
     if (charge_ratio >= 0.8f) {
-        sprite_info.dimension = {sprite_x, sprite_y, base_w, base_h};
+        clip.frames.emplace_back(sprite_x, sprite_y, base_w, base_h);
     } else if (charge_ratio >= 0.5f) {
-        sprite_info.dimension = {sprite_x, sprite_y, base_w * 0.75f, base_h * 0.75f};
+        clip.frames.emplace_back(sprite_x, sprite_y, base_w * 0.75f, base_h * 0.75f);
     } else {
-        sprite_info.dimension = {sprite_x, sprite_y, base_w * 0.5f, base_h * 0.5f};
+        clip.frames.emplace_back(sprite_x, sprite_y, base_w * 0.5f, base_h * 0.5f);
     }
     animation.animations.emplace("idle", clip);
     animation.currentAnimation = "idle";
