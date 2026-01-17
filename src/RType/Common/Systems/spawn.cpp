@@ -30,14 +30,13 @@ void EnemySpawnSystem::loadConfigs(const std::string& enemies, const std::string
     auto boss_configs = ConfigLoader::loadMap<EntityConfig>(boss_path, ConfigLoader::getRequiredBossFields());
     if (boss_configs.find(section) != boss_configs.end()) {
         _boss_config = boss_configs[section];
-        std::cout << "Loaded boss config from section: " << section << std::endl;
+
     } else if (boss_configs.find("DEFAULT") != boss_configs.end()) {
         _boss_config = boss_configs["DEFAULT"];
-        std::cout << "Boss section '" << section << "' not found, using DEFAULT" << std::endl;
+
     } else if (!boss_configs.empty()) {
         _boss_config = boss_configs.begin()->second;
-        std::cout << "Boss section '" << section
-                  << "' not found, using first available: " << boss_configs.begin()->first << std::endl;
+
     } else {
         std::cerr << "No boss configurations found in " << boss_path << std::endl;
     }
@@ -102,7 +101,6 @@ void EnemySpawnSystem::loadScriptedSpawns(ScriptedSpawnComponent& scripted_spawn
             }
         }
     }
-    std::cout << "Loaded " << scripted_spawn.spawn_events.size() << " scripted spawn events." << std::endl;
 }
 
 void EnemySpawnSystem::handleScriptedSpawns(Registry& registry, system_context context,

@@ -252,7 +252,6 @@ void GameManager::initUI(std::shared_ptr<Environment> env) {
 void GameManager::initScene(std::shared_ptr<Environment> env, const LevelConfig& config) {
     // Only server loads the scene - clients receive entities via network replication
     if (env->isClient()) {
-        std::cout << "GameManager: Client mode - scene will be received from server" << std::endl;
         return;
     }
 
@@ -269,7 +268,7 @@ void GameManager::initScene(std::shared_ptr<Environment> env, const LevelConfig&
 
     try {
         _scene_manager->loadScene(config);
-        std::cout << "GameManager: Loaded scene '" << config.name << "' for lobby " << _currentLobbyId << std::endl;
+
     } catch (const std::exception& e) {
         std::cerr << "GameManager: Failed to load scene: " << e.what() << std::endl;
     }

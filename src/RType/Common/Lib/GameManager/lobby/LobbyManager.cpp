@@ -1,11 +1,7 @@
 #include "LobbyManager.hpp"
 #include <SFML/Window/Mouse.hpp>
 #include <SFML/Window/Keyboard.hpp>
-#include <cmath>
-#include <iostream>
-#include <thread>
-#include <chrono>
-#include <algorithm>
+
 #include "../../../../../Engine/Lib/Components/StandardComponents.hpp"
 #include "Voice/VoiceManager.hpp"
 #include "src/Engine/Core/ClientGameEngine.hpp"
@@ -366,7 +362,6 @@ void LobbyManager::initLobby(std::shared_ptr<Environment> env, uint32_t lobbyId,
         if (!vm->start()) {
             std::cerr << "[LobbyManager] Failed to start voice chat" << std::endl;
         } else {
-            std::cout << "[LobbyManager] Voice chat started" << std::endl;
         }
     }
 #endif
@@ -452,13 +447,6 @@ void LobbyManager::updateLobby(std::shared_ptr<Environment> env, sf::RenderWindo
 #endif
 
     if (mousePressed && !_mouseWasPressed) {
-        // DEBUG LOGGING
-        if (isMouseOverButton(window, startBtnX, startBtnY, startBtnW, startBtnH)) {
-            std::cout << "[LobbyManager DEBUG] Clicked Start area. Host? " << isLocalPlayerHost(localPlayerId)
-                      << " (Local: " << localPlayerId << ", Host: " << _hostId << ")"
-                      << " AllReady? " << areAllPlayersReady() << std::endl;
-        }
-
 #ifdef CLIENT_BUILD
         if (_voiceManager) {
             engine::voice::VoiceManager* vm = static_cast<engine::voice::VoiceManager*>(_voiceManager);
@@ -610,14 +598,11 @@ void LobbyManager::updateLobby(std::shared_ptr<Environment> env, sf::RenderWindo
 void LobbyManager::setPlayerReady(uint32_t id, bool ready) {
     for (auto& p : _playersInLobby) {
         if (p.id == id) {
-            std::cout << "[LobbyManager] Setting player " << id << " ready=" << ready << ". Old status=" << p.isReady
-                      << std::endl;
             p.isReady = ready;
             _playerListDirty = true;
             return;
         }
     }
-    std::cout << "[LobbyManager] Failed to set ready for player " << id << " (not found)" << std::endl;
 }
 
 void LobbyManager::updatePlayerListDisplay(std::shared_ptr<Environment> env) {
@@ -701,7 +686,6 @@ bool LobbyManager::areAllPlayersReady() const {
         return false;
     for (const auto& p : _playersInLobby) {
         if (!p.isReady) {
-            // std::cout << "[LobbyManager DEBUG] Player " << p.id << " (" << p.name << ") is NOT ready." << std::endl;
             return false;
         }
     }

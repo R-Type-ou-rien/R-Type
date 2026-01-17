@@ -3,8 +3,7 @@
 #include <algorithm>
 #include <map>
 #include <chrono>
-#include <cstring>
-#include <iostream>
+#include <cstring>  // Keep cstring as memset is used
 
 #ifdef RTYPE_USE_REAL_AUDIO
 #include <portaudio.h>
@@ -13,13 +12,8 @@
 
 namespace engine::voice {
 
-// ============================================================================
-// AUDIO BACKEND - Real or Stub based on RTYPE_USE_REAL_AUDIO
-// ============================================================================
-
 #ifdef RTYPE_USE_REAL_AUDIO
 
-// Ring buffer for lock-free audio data transfer
 template <typename T, size_t Capacity>
 class RingBuffer {
    public:
@@ -131,13 +125,12 @@ static std::atomic<bool> g_streamRunning{false};
 bool Pa_Init() {
     PaError err = Pa_Initialize();
     if (err != paNoError) {
-        std::cerr << "[VoiceManager] PortAudio init failed: " << Pa_GetErrorText(err) << std::endl;
         return false;
     }
     g_paInitialized = true;
     g_captureRing.clear();
     g_playbackRing.clear();
-    std::cout << "[VoiceManager] PortAudio initialized" << std::endl;
+
     return true;
 }
 
@@ -146,7 +139,6 @@ void Pa_Term() {
         g_streamRunning.store(false);
         Pa_Terminate();
         g_paInitialized = false;
-        std::cout << "[VoiceManager] PortAudio terminated" << std::endl;
     }
 }
 
@@ -154,18 +146,11 @@ PaStream* Pa_OpenInputStream(int sampleRate, int channels, int framesPerBuffer) 
     PaStream* stream = nullptr;
     PaStreamParameters params;
     params.device = Pa_GetDefaultInputDevice();
-    if (params.device == paNoDevice) {
-        std::cerr << "[VoiceManager] No input device found" << std::endl;
-        return nullptr;
-    }
 
     const PaDeviceInfo* deviceInfo = Pa_GetDeviceInfo(params.device);
     if (!deviceInfo) {
-        std::cerr << "[VoiceManager] Cannot get input device info" << std::endl;
         return nullptr;
     }
-    std::cout << "[VoiceManager] Input device: " << deviceInfo->name
-              << " (max channels: " << deviceInfo->maxInputChannels << ")" << std::endl;
 
     params.channelCount = channels;
     params.sampleFormat = paInt16;
@@ -182,10 +167,9 @@ PaStream* Pa_OpenInputStream(int sampleRate, int channels, int framesPerBuffer) 
     PaError err =
         Pa_OpenStream(&stream, &params, nullptr, sampleRate, framesPerBuffer, 0, inputCallback, &g_inputContext);
     if (err != paNoError) {
-        std::cerr << "[VoiceManager] Failed to open input: " << Pa_GetErrorText(err) << std::endl;
         return nullptr;
     }
-    std::cout << "[VoiceManager] Input stream opened (callback mode)" << std::endl;
+
     return stream;
 }
 
@@ -193,18 +177,11 @@ PaStream* Pa_OpenOutputStream(int sampleRate, int channels, int framesPerBuffer)
     PaStream* stream = nullptr;
     PaStreamParameters params;
     params.device = Pa_GetDefaultOutputDevice();
-    if (params.device == paNoDevice) {
-        std::cerr << "[VoiceManager] No output device found" << std::endl;
-        return nullptr;
-    }
 
     const PaDeviceInfo* deviceInfo = Pa_GetDeviceInfo(params.device);
     if (!deviceInfo) {
-        std::cerr << "[VoiceManager] Cannot get output device info" << std::endl;
         return nullptr;
     }
-    std::cout << "[VoiceManager] Output device: " << deviceInfo->name
-              << " (max channels: " << deviceInfo->maxOutputChannels << ")" << std::endl;
 
     params.channelCount = channels;
     params.sampleFormat = paInt16;
@@ -221,10 +198,9 @@ PaStream* Pa_OpenOutputStream(int sampleRate, int channels, int framesPerBuffer)
     PaError err =
         Pa_OpenStream(&stream, nullptr, &params, sampleRate, framesPerBuffer, 0, outputCallback, &g_outputContext);
     if (err != paNoError) {
-        std::cerr << "[VoiceManager] Failed to open output: " << Pa_GetErrorText(err) << std::endl;
         return nullptr;
     }
-    std::cout << "[VoiceManager] Output stream opened (callback mode)" << std::endl;
+
     return stream;
 }
 
@@ -234,10 +210,9 @@ bool StartStream(void* stream) {
     g_streamRunning.store(true);
     PaError err = ::Pa_StartStream(static_cast<PaStream*>(stream));
     if (err != paNoError) {
-        std::cerr << "[VoiceManager] Failed to start stream: " << Pa_GetErrorText(err) << std::endl;
         return false;
     }
-    std::cout << "[VoiceManager] Stream started" << std::endl;
+
     return true;
 }
 
@@ -263,7 +238,6 @@ OpusEncoder* Opus_CreateEncoder(int sampleRate, int channels, int application) {
     int error;
     OpusEncoder* encoder = opus_encoder_create(sampleRate, channels, application, &error);
     if (error != OPUS_OK) {
-        std::cerr << "[VoiceManager] Opus encoder error: " << opus_strerror(error) << std::endl;
         return nullptr;
     }
     opus_encoder_ctl(encoder, OPUS_SET_BITRATE(28000));  // Slightly higher bitrate
@@ -271,8 +245,7 @@ OpusEncoder* Opus_CreateEncoder(int sampleRate, int channels, int application) {
     opus_encoder_ctl(encoder, OPUS_SET_VBR(1));          // Variable Bit Rate (better quality)
     opus_encoder_ctl(encoder, OPUS_SET_SIGNAL(OPUS_SIGNAL_VOICE));
     opus_encoder_ctl(encoder, OPUS_SET_BANDWIDTH(OPUS_BANDWIDTH_WIDEBAND));  // Cut freqs > 8kHz (Kills screeching)
-    // opus_encoder_ctl(encoder, OPUS_SET_LSB_DEPTH, 16); // Removed unsupported macro
-    std::cout << "[VoiceManager] Opus encoder created" << std::endl;
+
     return encoder;
 }
 
@@ -280,11 +253,8 @@ OpusDecoder* Opus_CreateDecoder(int sampleRate, int channels) {
     int error;
     OpusDecoder* decoder = opus_decoder_create(sampleRate, channels, &error);
     if (error != OPUS_OK) {
-        std::cerr << "[VoiceManager] Opus decoder error: " << opus_strerror(error) << std::endl;
         return nullptr;
     }
-    // Set 16-bit depth on decoder too
-    // Note: opus_decoder_ctl doesn't support OPUS_SET_LSB_DEPTH generally, but we can set gain/etc if needed.
     return decoder;
 }
 
@@ -305,7 +275,6 @@ std::vector<uint8_t> Opus_Encode(void* encoder, const int16_t* samples, size_t f
     int encodedBytes =
         opus_encode(static_cast<OpusEncoder*>(encoder), samples, frameSize, output.data(), output.size());
     if (encodedBytes < 0) {
-        std::cerr << "[VoiceManager] Encode error: " << opus_strerror(encodedBytes) << std::endl;
         return {};
     }
     output.resize(encodedBytes);
@@ -319,7 +288,6 @@ std::vector<int16_t> Opus_Decode(void* decoder, const std::vector<uint8_t>& data
     int decoded =
         opus_decode(static_cast<OpusDecoder*>(decoder), data.data(), data.size(), output.data(), frameSize, 0);
     if (decoded < 0) {
-        std::cerr << "[VoiceManager] Decode error: " << opus_strerror(decoded) << std::endl;
         return {};
     }
     output.resize(decoded * channels);
@@ -337,13 +305,12 @@ static bool g_paInitialized = false;
 
 bool Pa_Init() {
     g_paInitialized = true;
-    std::cout << "[VoiceManager] Audio subsystem initialized (stub)" << std::endl;
+
     return true;
 }
 
 void Pa_Term() {
     g_paInitialized = false;
-    std::cout << "[VoiceManager] Audio subsystem terminated (stub)" << std::endl;
 }
 
 void* Pa_OpenInputStream(int sampleRate, int channels, int framesPerBuffer) {
@@ -386,7 +353,7 @@ void* Opus_CreateEncoder(int sampleRate, int channels, int application) {
     (void)sampleRate;
     (void)channels;
     (void)application;
-    std::cout << "[VoiceManager] Opus encoder created (stub)" << std::endl;
+
     return reinterpret_cast<void*>(0x3);
 }
 
@@ -422,22 +389,14 @@ std::vector<int16_t> Opus_Decode(void* decoder, const std::vector<uint8_t>& data
 
 #endif  // RTYPE_USE_REAL_AUDIO
 
-// ============================================================================
-// VoiceManager Implementation
-// ============================================================================
-
-VoiceManager::VoiceManager() {
-    std::cout << "[VoiceManager] Created" << std::endl;
-}
+VoiceManager::VoiceManager() {}
 
 VoiceManager::~VoiceManager() {
     stopAndWait();
-    std::cout << "[VoiceManager] Destroyed" << std::endl;
 }
 
 void VoiceManager::setConfig(const VoiceConfig& config) {
     if (_state.load() != State::STOPPED) {
-        std::cerr << "[VoiceManager] Cannot change config while running" << std::endl;
         return;
     }
     _config = config;
@@ -458,11 +417,8 @@ bool VoiceManager::start() {
 
     // Already running or starting
     if (_state.load() != State::STOPPED) {
-        std::cout << "[VoiceManager] Already running or transitioning" << std::endl;
         return _state.load() == State::RUNNING;
     }
-
-    std::cout << "[VoiceManager] Starting voice chat..." << std::endl;
 
     // Transition to STARTING state
     _state.store(State::STARTING);
@@ -470,14 +426,12 @@ bool VoiceManager::start() {
 
     // Initialize audio subsystems
     if (!initializeAudio()) {
-        std::cerr << "[VoiceManager] Failed to initialize audio" << std::endl;
         _state.store(State::STOPPED);
         notifyStateChange(State::STOPPED);
         return false;
     }
 
     if (!initializeOpus()) {
-        std::cerr << "[VoiceManager] Failed to initialize Opus" << std::endl;
         shutdownAudio();
         _state.store(State::STOPPED);
         notifyStateChange(State::STOPPED);
@@ -495,7 +449,6 @@ bool VoiceManager::start() {
     notifyStateChange(State::RUNNING);
     _stateCV.notify_all();
 
-    std::cout << "[VoiceManager] Voice chat started successfully" << std::endl;
     return true;
 }
 
@@ -507,7 +460,6 @@ void VoiceManager::stop() {
         return;
     }
 
-    std::cout << "[VoiceManager] Stopping voice chat..." << std::endl;
     notifyStateChange(State::STOPPING);
 
     // Signal threads to stop
@@ -544,28 +496,21 @@ VoiceManager::State VoiceManager::getState() const {
 
 void VoiceManager::receivePacket(const VoicePacket& packet) {
     if (_state.load() != State::RUNNING) {
-        std::cout << "[VoiceManager] receivePacket: state is not RUNNING" << std::endl;
         return;
     }
 
     // Don't play back our own voice
     uint32_t localId = _localPlayerId.load();
     if (packet.senderId == localId) {
-        static uint32_t selfPacketsIgnored = 0;
-        selfPacketsIgnored++;
-        if (selfPacketsIgnored % 50 == 1) {
-            std::cout << "[VoiceManager] Ignoring own packet (senderId=" << packet.senderId << ", localId=" << localId
-                      << ")" << std::endl;
-        }
+        // static uint32_t selfPacketsIgnored = 0;
+        // selfPacketsIgnored++;
+        // if (selfPacketsIgnored % 50 == 1) {}
         return;
     }
 
-    static uint32_t packetsReceived = 0;
-    packetsReceived++;
-    if (packetsReceived % 50 == 1) {
-        std::cout << "[VoiceManager] Received " << packetsReceived << " voice packets from player " << packet.senderId
-                  << " (localId=" << localId << ", dataSize=" << packet.encodedData.size() << ")" << std::endl;
-    }
+    // static uint32_t packetsReceived = 0;
+    // packetsReceived++;
+    // if (packetsReceived % 50 == 1) {}
 
     {
         std::lock_guard<std::mutex> lock(_incomingMutex);
@@ -578,13 +523,11 @@ void VoiceManager::receivePacket(const VoicePacket& packet) {
 }
 
 void VoiceManager::setLocalPlayerId(uint32_t id) {
-    std::cout << "[VoiceManager] Setting local player ID to " << id << std::endl;
     _localPlayerId.store(id);
 }
 
 void VoiceManager::setMuted(bool muted) {
     _muted.store(muted);
-    std::cout << "[VoiceManager] Microphone " << (muted ? "muted" : "unmuted") << std::endl;
 }
 
 bool VoiceManager::isMuted() const {
@@ -599,10 +542,6 @@ void VoiceManager::setOutputVolume(float volume) {
     _outputVolume.store(std::clamp(volume, 0.0f, 1.0f));
 }
 
-// ============================================================================
-// Private Methods
-// ============================================================================
-
 void VoiceManager::notifyStateChange(State newState) {
     std::lock_guard<std::mutex> lock(_callbackMutex);
     if (_stateChangeCallback) {
@@ -611,14 +550,12 @@ void VoiceManager::notifyStateChange(State newState) {
 }
 
 void VoiceManager::captureThreadFunc() {
-    std::cout << "[VoiceManager] Capture thread started" << std::endl;
-
     const size_t bufferSize = static_cast<size_t>(_config.framesPerBuffer) * _config.channels;
     std::vector<int16_t> captureBuffer(bufferSize);
     const auto frameInterval = std::chrono::milliseconds(20);  // 20ms per frame
-    uint32_t packetsSent = 0;
-    uint32_t silentFrames = 0;
-    int16_t lastSample = 0;
+    // uint32_t packetsSent = 0;
+    // uint32_t silentFrames = 0;
+    // int16_t lastSample = 0;
 
     while (_shouldRun.load()) {
         auto frameStart = std::chrono::steady_clock::now();
@@ -677,16 +614,11 @@ void VoiceManager::captureThreadFunc() {
                     std::lock_guard<std::mutex> lock(_callbackMutex);
                     if (_sendCallback) {
                         _sendCallback(packet);
-                        packetsSent++;
-                        if (packetsSent % 50 == 1) {  // Log every 50 packets (~1 second)
-                            std::cout << "[VoiceManager] Sent " << packetsSent
-                                      << " voice packets (audio level: " << maxSample
-                                      << ", encoded size: " << packet.encodedData.size() << " bytes)" << std::endl;
-                        }
+                        // packetsSent++;
+                        // if (packetsSent % 50 == 1) {  // Log every 50 packets (~1 second)
+                        // }
                     } else {
-                        if (packetsSent == 0) {
-                            std::cerr << "[VoiceManager] WARNING: No send callback set!" << std::endl;
-                        }
+                        // if (packetsSent == 0) {}
                     }
                 }
             }
@@ -698,17 +630,12 @@ void VoiceManager::captureThreadFunc() {
             std::this_thread::sleep_for(frameInterval - elapsed);
         }
     }
-
-    std::cout << "[VoiceManager] Capture thread stopped" << std::endl;
 }
 
 void VoiceManager::playbackThreadFunc() {
-    std::cout << "[VoiceManager] Playback thread started" << std::endl;
-    uint32_t packetsPlayed = 0;
+    // uint32_t packetsPlayed = 0;
 
-    // Jitter buffer: accumulate packets before starting playback
-    // Using a dynamic buffer
-    std::mutex jitterMutex;
+    // std::mutex jitterMutex; // Not used
     std::map<uint32_t, std::queue<VoicePacket>> playerJitterBuffers;
     const size_t TARGET_JITTER_SIZE = 4;  // Start playing after 4 packets (~80ms)
 
@@ -719,7 +646,6 @@ void VoiceManager::playbackThreadFunc() {
         VoicePacket packet;
         bool hasPacket = false;
 
-        // 1. Fetch incoming packet from network queue
         {
             std::unique_lock<std::mutex> lock(_incomingMutex);
             if (_incomingCV.wait_for(lock, std::chrono::milliseconds(5),
@@ -735,26 +661,18 @@ void VoiceManager::playbackThreadFunc() {
             }
         }
 
-        // 2. Add to player-specific jitter buffer
         if (hasPacket) {
             auto& queue = playerJitterBuffers[packet.senderId];
 
-            // Limit queue size to prevent latency (max 10 packets = 200ms)
             while (queue.size() >= 10) {
                 queue.pop();
             }
             queue.push(packet);
 
-            // If we have enough packets, mark as playing
             if (!isPlaying[packet.senderId] && queue.size() >= TARGET_JITTER_SIZE) {
                 isPlaying[packet.senderId] = true;
-                std::cout << "[VoiceManager] Started playback for player " << packet.senderId << std::endl;
             }
         }
-
-        // 3. Process playback for all active players
-        // We mix audio from all players (simple addition with clamping)
-        // Since we output mono 48k, we can just mix 960 samples from each player
 
         std::vector<int16_t> mixedBuffer;
         bool mixed = false;
@@ -771,7 +689,7 @@ void VoiceManager::playbackThreadFunc() {
             if (queue.empty()) {
                 // Buffer underrun - stop playing this user to rebuild buffer
                 isPlaying[playerId] = false;
-                std::cout << "[VoiceManager] Buffer underrun for player " << playerId << std::endl;
+
                 ++it;
                 continue;
             }
@@ -824,21 +742,17 @@ void VoiceManager::playbackThreadFunc() {
                 std::this_thread::sleep_for(std::chrono::microseconds(500));
                 retryCount++;
                 if (retryCount > 200) {
-                    std::cerr << "[VoiceManager] Output buffer full, dropping mixed frame" << std::endl;
+                    // Log::warn("VoiceManager: Playback buffer full, dropping frames.");
                     break;
                 }
             }
-        } else {
-            // If no audio from anyone, we need to prevent CPU spin but no sleep needed if we waited on CV
-            // Actually, if we woke up due to timeout but have no audio to play, we loop
         }
     }
-
-    std::cout << "[VoiceManager] Playback thread stopped" << std::endl;
+    // Log::info("VoiceManager: Playback thread stopped.");
 }
 
 void VoiceManager::cleanupThread() {
-    std::cout << "[VoiceManager] Cleanup thread started" << std::endl;
+    // Log::info("VoiceManager: Cleanup thread started.");
 
     // Join capture thread
     if (_captureThread && _captureThread->joinable()) {
@@ -867,8 +781,6 @@ void VoiceManager::cleanupThread() {
     _state.store(State::STOPPED);
     notifyStateChange(State::STOPPED);
     _stateCV.notify_all();
-
-    std::cout << "[VoiceManager] Cleanup complete, voice chat stopped" << std::endl;
 }
 
 bool VoiceManager::initializeAudio() {
@@ -880,7 +792,6 @@ bool VoiceManager::initializeAudio() {
     // Open input stream (microphone) - but don't start it yet
     _inputStream = audio_backend::Pa_OpenInputStream(_config.sampleRate, _config.channels, _config.framesPerBuffer);
     if (!_inputStream) {
-        std::cerr << "[VoiceManager] Failed to open input stream" << std::endl;
         audio_backend::Pa_Term();
         return false;
     }
@@ -888,7 +799,6 @@ bool VoiceManager::initializeAudio() {
     // Open output stream (speakers) - but don't start it yet
     _outputStream = audio_backend::Pa_OpenOutputStream(_config.sampleRate, _config.channels, _config.framesPerBuffer);
     if (!_outputStream) {
-        std::cerr << "[VoiceManager] Failed to open output stream" << std::endl;
         audio_backend::CloseStream(_inputStream);
         _inputStream = nullptr;
         audio_backend::Pa_Term();
@@ -900,7 +810,6 @@ bool VoiceManager::initializeAudio() {
 
     // Start output stream first
     if (!audio_backend::StartStream(_outputStream)) {
-        std::cerr << "[VoiceManager] Failed to start output stream" << std::endl;
         audio_backend::CloseStream(_inputStream);
         audio_backend::CloseStream(_outputStream);
         _inputStream = nullptr;
@@ -908,14 +817,12 @@ bool VoiceManager::initializeAudio() {
         audio_backend::Pa_Term();
         return false;
     }
-    std::cout << "[VoiceManager] Output stream started" << std::endl;
 
     // Small delay between starting streams
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
     // Start input stream
     if (!audio_backend::StartStream(_inputStream)) {
-        std::cerr << "[VoiceManager] Failed to start input stream" << std::endl;
         audio_backend::CloseStream(_inputStream);
         audio_backend::CloseStream(_outputStream);
         _inputStream = nullptr;
@@ -923,7 +830,6 @@ bool VoiceManager::initializeAudio() {
         audio_backend::Pa_Term();
         return false;
     }
-    std::cout << "[VoiceManager] Input stream started" << std::endl;
 
     // Another small delay to ensure streams are stable
     std::this_thread::sleep_for(std::chrono::milliseconds(50));

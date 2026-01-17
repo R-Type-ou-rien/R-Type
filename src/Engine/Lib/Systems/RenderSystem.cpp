@@ -8,8 +8,7 @@
 #include "RenderSystem.hpp"
 
 #include <SFML/Graphics/Texture.hpp>
-#include <iostream>
-#include <iterator>
+
 #include "../../../RType/Common/Systems/health.hpp"
 
 void RenderSystem::update(Registry& registry, system_context context) {
@@ -58,11 +57,6 @@ void RenderSystem::drawText(const TextComponent& textComp, const system_context&
 void RenderSystem::drawEntity(Entity entity, const transform_component_s& transform, sprite2D_component_s& spriteData,
                               Registry& registry, const system_context& context) {
     if (!context.texture_manager.has(spriteData.handle)) {
-        static int missingTextureLogCount = 0;
-        if (missingTextureLogCount++ < 100) {
-            std::cout << "[RenderSystem] Missing texture for entity " << entity << ", handle=" << spriteData.handle.id
-                      << std::endl;
-        }
         return;
     }
 
