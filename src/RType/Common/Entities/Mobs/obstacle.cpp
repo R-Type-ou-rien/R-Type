@@ -9,6 +9,7 @@
 #include "Components/StandardComponents.hpp"
 #include "ResourceConfig.hpp"
 #include "../../Components/mob_component.hpp"
+#include "../../Components/terrain_component.hpp"
 #include <string>
 
 Entity ObstacleSpawner::spawn(Registry& registry, system_context context, float x, float y,
@@ -58,6 +59,12 @@ Entity ObstacleSpawner::spawn(Registry& registry, system_context context, float 
     registry.addComponent<BoxCollisionComponent>(id, MobComponentFactory::createEnemyCollision(config));
     registry.addComponent<TagComponent>(id, MobComponentFactory::createObstacleTags());
     registry.addComponent<NetworkIdentity>(id, {static_cast<uint32_t>(id), 0});
+
+    WallComponent wall;
+    wall.blocks_player = true;
+    wall.blocks_projectiles = true;
+    wall.is_destructible = true;
+    registry.addComponent<WallComponent>(id, wall);
 
     return id;
 }

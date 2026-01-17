@@ -50,7 +50,7 @@ void GameManager::updateUI(std::shared_ptr<Environment> env) {
     // On Server/Standalone, we can assign it here.
     if (!env->isClient() && player_id != -1 && _statusDisplayEntity != static_cast<Entity>(-1)) {
         if (ecs.registry.hasComponent<StatusDisplayComponent>(_statusDisplayEntity)) {
-            ecs.registry.getComponent<StatusDisplayComponent>(_statusDisplayEntity).player_entity = player_id;
+            ecs.registry.getComponent<StatusDisplayComponent>(_statusDisplayEntity).setPlayerEntity(player_id);
         }
     }
 

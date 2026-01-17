@@ -20,11 +20,10 @@
 
 void StatusDisplaySystem::update(Registry& registry, system_context context) {
 #if defined(CLIENT_BUILD)
-    // Try to find the player entity if not already set in StatusDisplayComponent
     auto& statusEntities = registry.getEntities<StatusDisplayComponent>();
     if (!statusEntities.empty()) {
         auto& status = registry.getComponent<StatusDisplayComponent>(statusEntities[0]);
-        if (status.player_entity == -1) {
+        if (status.getPlayerEntity() == -1) {
             auto& teams = registry.getEntities<TeamComponent>();
             for (auto entity : teams) {
                 auto& team = registry.getConstComponent<TeamComponent>(entity);
@@ -37,7 +36,7 @@ void StatusDisplaySystem::update(Registry& registry, system_context context) {
                                 if (registry.hasComponent<NetworkIdentity>(entity)) {
                                     auto& netId = registry.getConstComponent<NetworkIdentity>(entity);
                                     if (netId.ownerId == context.player_id) {
-                                        status.player_entity = entity;
+                                        status.setPlayerEntity(entity);
                                         break;
                                     }
                                 }
@@ -45,7 +44,7 @@ void StatusDisplaySystem::update(Registry& registry, system_context context) {
                         }
                     }
                 }
-                if (status.player_entity != -1)
+                if (status.getPlayerEntity() != -1)
                     break;
             }
         }
@@ -70,13 +69,13 @@ void StatusDisplaySystem::drawChargeBar(Registry& registry, system_context& cont
     }
 
     auto& status = registry.getConstComponent<StatusDisplayComponent>(statusEntities[0]);
-    if (status.player_entity == -1) {
+    if (status.getPlayerEntity() == -1) {
         return;
     }
 
     float charge_ratio = 0.0f;
-    if (registry.hasComponent<ChargedShotComponent>(status.player_entity)) {
-        auto& charged = registry.getConstComponent<ChargedShotComponent>(status.player_entity);
+    if (registry.hasComponent<ChargedShotComponent>(status.getPlayerEntity())) {
+        auto& charged = registry.getConstComponent<ChargedShotComponent>(status.getPlayerEntity());
         if (charged.is_charging) {
             charge_ratio = charged.charge_time / charged.max_charge_time;
         }
@@ -84,10 +83,10 @@ void StatusDisplaySystem::drawChargeBar(Registry& registry, system_context& cont
 
     auto& chargeBar = registry.getConstComponent<ChargeBarComponent>(chargeBarEntities[0]);
 
-    float bar_x = chargeBar.x;
-    float bar_y = chargeBar.y;
-    float bar_width = chargeBar.bar_width;
-    float bar_height = chargeBar.bar_height;
+    float bar_x = chargeBar.getX();
+    float bar_y = chargeBar.getY();
+    float bar_width = chargeBar.getBarWidth();
+    float bar_height = chargeBar.getBarHeight();
 
     sf::RectangleShape background({bar_width + 4, bar_height + 4});
     background.setPosition({bar_x - 2, bar_y - 2});
@@ -148,21 +147,21 @@ void StatusDisplaySystem::drawLives(Registry& registry, system_context& context)
     }
 
     auto& status = registry.getConstComponent<StatusDisplayComponent>(statusEntities[0]);
-    if (status.player_entity == -1) {
+    if (status.getPlayerEntity() == -1) {
         return;
     }
 
     int current_lives = 0;
-    if (registry.hasComponent<HealthComponent>(status.player_entity)) {
-        auto& health = registry.getConstComponent<HealthComponent>(status.player_entity);
+    if (registry.hasComponent<HealthComponent>(status.getPlayerEntity())) {
+        auto& health = registry.getConstComponent<HealthComponent>(status.getPlayerEntity());
         current_lives = health.current_hp;
     }
 
     auto& livesDisplay = registry.getConstComponent<LivesDisplayComponent>(livesEntities[0]);
 
     for (int i = 0; i < current_lives && i < 5; i++) {
-        sf::RectangleShape lifeIcon({livesDisplay.icon_size, livesDisplay.icon_size * 0.6f});
-        lifeIcon.setPosition({livesDisplay.x + i * livesDisplay.icon_spacing, livesDisplay.y});
+        sf::RectangleShape lifeIcon({livesDisplay.getIconSize(), livesDisplay.getIconSize() * 0.6f});
+        lifeIcon.setPosition({livesDisplay.getX() + i * livesDisplay.getIconSpacing(), livesDisplay.getY()});
         lifeIcon.setFillColor(sf::Color(50, 150, 255));
         lifeIcon.setOutlineColor(sf::Color::White);
         lifeIcon.setOutlineThickness(1);
@@ -186,8 +185,8 @@ void StatusDisplaySystem::drawScore(Registry& registry, system_context& context)
     auto& statusEntities = registry.getEntities<StatusDisplayComponent>();
     if (!statusEntities.empty()) {
         const auto& status = registry.getConstComponent<StatusDisplayComponent>(statusEntities[0]);
-        if (status.player_entity != -1 && registry.hasComponent<ScoreComponent>(status.player_entity)) {
-            const auto& scoreComp = registry.getConstComponent<ScoreComponent>(status.player_entity);
+        if (status.getPlayerEntity() != -1 && registry.hasComponent<ScoreComponent>(status.getPlayerEntity())) {
+            const auto& scoreComp = registry.getConstComponent<ScoreComponent>(status.getPlayerEntity());
             score = scoreComp.current_score;
             resolved = true;
         }
@@ -198,7 +197,7 @@ void StatusDisplaySystem::drawScore(Registry& registry, system_context& context)
     }
 
     std::ostringstream oss;
-    oss << std::setw(scoreDisplay.digit_count) << std::setfill('0') << score;
+    oss << std::setw(scoreDisplay.getDigitCount()) << std::setfill('0') << score;
     std::string scoreStr = oss.str();
 
     if (!_fontLoaded) {
@@ -213,14 +212,14 @@ void StatusDisplaySystem::drawScore(Registry& registry, system_context& context)
     scoreLabel.setString("SCORE");
     scoreLabel.setCharacterSize(16);
     scoreLabel.setFillColor(sf::Color::White);
-    scoreLabel.setPosition({scoreDisplay.x, scoreDisplay.y - 25});
+    scoreLabel.setPosition({scoreDisplay.getX(), scoreDisplay.getY() - 25});
     context.window.draw(scoreLabel);
 
     sf::Text scoreText(_font);
     scoreText.setString(scoreStr);
     scoreText.setCharacterSize(28);
     scoreText.setFillColor(sf::Color::Yellow);
-    scoreText.setPosition({scoreDisplay.x, scoreDisplay.y});
+    scoreText.setPosition({scoreDisplay.getX(), scoreDisplay.getY()});
     context.window.draw(scoreText);
 #endif
 }

@@ -65,6 +65,24 @@ struct EntityConfig {
     std::optional<int> tail_z_index;
     std::optional<std::string> tail_sprite_path;
 
+    std::optional<std::string> projectile_sprite;
+    std::optional<int> projectile_sprite_x;
+    std::optional<int> projectile_sprite_y;
+    std::optional<int> projectile_sprite_w;
+    std::optional<int> projectile_sprite_h;
+
+    std::optional<std::string> medium_sprite;
+    std::optional<int> medium_sprite_x;
+    std::optional<int> medium_sprite_y;
+    std::optional<int> medium_sprite_w;
+    std::optional<int> medium_sprite_h;
+
+    std::optional<std::string> charged_sprite;
+    std::optional<int> charged_sprite_x;
+    std::optional<int> charged_sprite_y;
+    std::optional<int> charged_sprite_w;
+    std::optional<int> charged_sprite_h;
+
     BossPositionConfig toBossPositionConfig() const {
         BossPositionConfig config;
         config.margin_right = margin_right.value_or(BossDefaults::Position::MARGIN_RIGHT);

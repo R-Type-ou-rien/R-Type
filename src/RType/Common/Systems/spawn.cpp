@@ -366,8 +366,9 @@ void EnemySpawnSystem::spawnBoss(Registry& registry, system_context context) {
 void EnemySpawnSystem::spawnObstacle(Registry& registry, system_context context, float x, float y) {
     auto spawner_it = _spawners.find("OBSTACLE");
     if (spawner_it != _spawners.end()) {
-        EntityConfig dummy;
-        Entity id = spawner_it->second->spawn(registry, context, x, y, dummy);
+        auto config_it = _enemy_configs.find("OBSTACLE");
+        const EntityConfig& config = (config_it != _enemy_configs.end()) ? config_it->second : EntityConfig{};
+        Entity id = spawner_it->second->spawn(registry, context, x, y, config);
         // Add LobbyIdComponent if current lobby is set
         if (_current_lobby_id != 0) {
             registry.addComponent<LobbyIdComponent>(id, {_current_lobby_id});

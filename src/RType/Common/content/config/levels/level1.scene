@@ -15,20 +15,20 @@ next_level=src/RType/Common/content/config/levels/level2.scene
 # Walls - Format: wall=x,y,width,height,sprite_path,destructible
 # Floor walls (bottom)
 [WALL]
-wall=2000,900,800,180,src/RType/Common/content/sprites/r-typesheet14.gif,false
-wall=4000,920,600,160,src/RType/Common/content/sprites/r-typesheet14.gif,false
-wall=6500,880,1000,200,src/RType/Common/content/sprites/r-typesheet14.gif,false
-wall=9000,900,700,180,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=2000,900,800,180,src/RType/Common/content/sprites/wall.gif,true
+wall=4000,920,600,160,src/RType/Common/content/sprites/wall.gif,true
+wall=6500,880,1000,200,src/RType/Common/content/sprites/wall.gif,true
+wall=9000,900,700,180,src/RType/Common/content/sprites/wall.gif,true
 
 # Ceiling walls (top)
-wall=2500,0,600,150,src/RType/Common/content/sprites/r-typesheet14.gif,false
-wall=5000,0,800,180,src/RType/Common/content/sprites/r-typesheet14.gif,false
-wall=7500,0,500,200,src/RType/Common/content/sprites/r-typesheet14.gif,false
-wall=10000,0,900,160,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=2500,0,600,150,src/RType/Common/content/sprites/wall.gif,true
+wall=5000,0,800,180,src/RType/Common/content/sprites/wall.gif,true
+wall=7500,0,500,200,src/RType/Common/content/sprites/wall.gif,true
+wall=10000,0,900,160,src/RType/Common/content/sprites/wall.gif,true
 
 # Narrow passage
-wall=12000,800,1500,280,src/RType/Common/content/sprites/r-typesheet14.gif,false
-wall=12000,0,1500,300,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=12000,800,1500,280,src/RType/Common/content/sprites/wall.gif,true
+wall=12000,0,1500,300,src/RType/Common/content/sprites/wall.gif,true
 
 # Turrets - Format: turret=x,y,fire_rate,shoot_pattern,sprite_path
 # Fire rate ajusté pour Super R-Type style (2-3 secondes entre tirs)
