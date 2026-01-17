@@ -21,6 +21,7 @@ struct LevelConfig {
     std::string boss_section = "DEFAULT";  // Section name in boss.cfg (e.g., "BOSS_LEVEL1", "BOSS_LEVEL2")
     std::string game_config;
     std::string spawn_script;
+    std::string next_level;  // Path to next level scene
 
     std::vector<SceneEntityConfig> entities;
 };

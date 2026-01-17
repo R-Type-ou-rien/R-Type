@@ -1,6 +1,7 @@
 #include "LobbyManager.hpp"
 #include <algorithm>
 #include <utility>
+#include <string>
 
 namespace engine {
 namespace core {

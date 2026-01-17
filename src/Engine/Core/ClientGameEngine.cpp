@@ -4,6 +4,8 @@
 #include <cstring>
 #include <iostream>
 #include <ostream>
+#include <string>
+#include <memory>
 
 #include "Components/NetworkComponents.hpp"
 #include "Components/StandardComponents.hpp"
@@ -25,8 +27,6 @@
 #include "../../../RType/Common/Components/pod_component.hpp"
 #include "../../../RType/Common/Components/game_over_notification.hpp"
 #include "../../../RType/Common/Systems/behavior.hpp"
-#include "Components/StandardComponents.hpp"
-#include "Components/NetworkComponents.hpp"
 
 ClientGameEngine::ClientGameEngine(std::string window_name)
     : _window_manager(WINDOW_W, WINDOW_H, window_name),
@@ -68,9 +68,11 @@ int ClientGameEngine::init() {
     _ecs.systems.addSystem<BackgroundSystem>();
     _ecs.systems.addSystem<RenderSystem>();
     _ecs.systems.addSystem<AudioSystem>();
-    //_ecs.systems.addSystem<InputSystem>(input_manager);
+
+    // _ecs.systems.addSystem<InputSystem>(input_manager);
 
     // Physics and game logic handled by server - client only renders
+
     _ecs.systems.addSystem<PhysicsSystem>();
     // _ecs.systems.addSystem<BoxCollision>();
     // _ecs.systems.addSystem<ActionScriptSystem>();
@@ -165,24 +167,19 @@ void ClientGameEngine::processNetworkEvents() {
             uint32_t id;
             mutable_msg >> id;
             _clientId = id;
-            std::cout << "[CLIENT] Received Client ID: " << _clientId << std::endl;
         }
     }
 
     if (pending.count(network::GameEvents::S_REGISTER_OK)) {
-        std::cout << "[CLIENT] Registration success!" << std::endl;
         _env->setGameState(Environment::GameState::CORRECT_PASSWORD);
     }
     if (pending.count(network::GameEvents::S_LOGIN_OK)) {
-        std::cout << "[CLIENT] Login success!" << std::endl;
         _env->setGameState(Environment::GameState::CORRECT_PASSWORD);
     }
     if (pending.count(network::GameEvents::S_LOGIN_KO)) {
-        std::cout << "[CLIENT] Login failed!" << std::endl;
         _env->setGameState(Environment::GameState::INCORRECT_PASSWORD);
     }
     if (pending.count(network::GameEvents::S_INVALID_TOKEN)) {
-        std::cout << "[CLIENT] Invalid token, please login again." << std::endl;
         _env->setGameState(Environment::GameState::INCORRECT_PASSWORD);
     }
     if (pending.count(network::GameEvents::S_SNAPSHOT)) {
@@ -208,7 +205,6 @@ void ClientGameEngine::processNetworkEvents() {
                 Entity localId = it->second;
                 _ecs.registry.destroyEntity(localId);
                 _networkToLocalEntity.erase(it);
-                std::cout << "[CLIENT] Destroyed entity guid=" << guid << " localId=" << localId << std::endl;
             }
         }
     }
@@ -222,78 +218,96 @@ void ClientGameEngine::processNetworkEvents() {
         }
     }
 
-    // // Nouveau: Gérer le message S_GAME_OVER
-    // if (pending.count(network::GameEvents::S_GAME_OVER)) {
-    //     auto& msgs = pending.at(network::GameEvents::S_GAME_OVER);
-    //     for (auto& msg : msgs) {
-    //         network::GameOverPacket packet;
-    //         msg >> packet;
+    // Nouveau: Gérer le message S_GAME_OVER
+    if (pending.count(network::GameEvents::S_GAME_OVER)) {
+        auto& msgs = pending.at(network::GameEvents::S_GAME_OVER);
+        for (auto& msg : msgs) {
+            network::GameOverPacket packet;
+            msg >> packet;
 
-    //         // CRITICAL: Validate packet data before use
-    //         if (packet.player_count > 8) {
-    //             continue;
-    //         }
+            // CRITICAL: Validate packet data before use
+            if (packet.player_count > 8) {
+                continue;
+            }
 
-    //         // Créer un composant pour signaler le game over au GameManager
-    //         Entity gameOverEntity = _ecs.registry.createEntity();
-    //         GameOverNotification notification;
-    //         notification.victory = packet.victory;
-    //         _ecs.registry.addComponent<GameOverNotification>(gameOverEntity, notification);
+            // Créer un composant pour signaler le game over au GameManager
+            Entity gameOverEntity = _ecs.registry.createEntity();
+            GameOverNotification notification;
+            notification.victory = packet.victory;
+            _ecs.registry.addComponent<GameOverNotification>(gameOverEntity, notification);
 
-    //         // Créer des entités temporaires pour tous les joueurs avec leurs scores
-    //         // Le GameManager pourra les lire pour afficher le leaderboard complet
-    //         for (uint32_t i = 0; i < packet.player_count; i++) {
-    //             Entity playerScoreEntity = _ecs.registry.createEntity();
+            // Créer des entités temporaires pour tous les joueurs avec leurs scores
+            // Le GameManager pourra les lire pour afficher le leaderboard complet
+            for (uint32_t i = 0; i < packet.player_count; i++) {
+                Entity playerScoreEntity = _ecs.registry.createEntity();
 
-    //             // Tag comme joueur pour le leaderboard
-    //             TagComponent tags;
-    //             tags.tags.push_back("PLAYER");
-    //             tags.tags.push_back("LEADERBOARD_DATA");
-    //             _ecs.registry.addComponent<TagComponent>(playerScoreEntity, tags);
+                // Tag comme joueur pour le leaderboard
+                TagComponent tags;
+                tags.tags.push_back("PLAYER");
+                tags.tags.push_back("LEADERBOARD_DATA");
+                _ecs.registry.addComponent<TagComponent>(playerScoreEntity, tags);
 
-    //             // Score du joueur
-    //             ScoreComponent score;
-    //             score.current_score = packet.players[i].score;
-    //             score.high_score = 0;
-    //             _ecs.registry.addComponent<ScoreComponent>(playerScoreEntity, score);
+                // Score du joueur
+                ScoreComponent score;
+                score.current_score = packet.players[i].score;
+                score.high_score = 0;
+                _ecs.registry.addComponent<ScoreComponent>(playerScoreEntity, score);
 
-    //             // État vivant/mort
-    //             HealthComponent health;
-    //             health.current_hp = packet.players[i].is_alive ? 1 : 0;
-    //             health.max_hp = 1;
-    //             health.last_damage_time = 0;
-    //             _ecs.registry.addComponent<HealthComponent>(playerScoreEntity, health);
+                // État vivant/mort
+                HealthComponent health;
+                health.current_hp = packet.players[i].is_alive ? 1 : 0;
+                health.max_hp = 1;
+                health.last_damage_time = 0;
+                _ecs.registry.addComponent<HealthComponent>(playerScoreEntity, health);
 
-    //             // IMPORTANT: Stocker le client_id dans NetworkIdentity pour l'affichage
-    //             NetworkIdentity net_id;
-    //             net_id.guid = packet.players[i].client_id;
-    //             net_id.ownerId = packet.players[i].client_id;
-    //             _ecs.registry.addComponent<NetworkIdentity>(playerScoreEntity, net_id);
-    //         }
-    //     }
-    // }
+                // IMPORTANT: Stocker le client_id dans NetworkIdentity pour l'affichage
+                NetworkIdentity net_id;
+                net_id.guid = packet.players[i].client_id;
+                net_id.ownerId = packet.players[i].client_id;
+                _ecs.registry.addComponent<NetworkIdentity>(playerScoreEntity, net_id);
+            }
+        }
+    }
 }
 
 void ClientGameEngine::processLobbyEvents(
     std::map<engine::core::NetworkEngine::EventType,
              std::vector<network::message<engine::core::NetworkEngine::EventType>>>& pending) {
+    // Handle ready state broadcast
+    if (pending.count(network::GameEvents::S_READY_RETURN)) {
+        auto& msgs = pending.at(network::GameEvents::S_READY_RETURN);
+        for (auto& msg : msgs) {
+            try {
+                if (msg.body.size() < sizeof(uint32_t)) {
+                    continue;
+                }
+                uint32_t clientId;
+                msg >> clientId;
+                _lobbyState.setPlayerReady(clientId, true);
+                if (_readyChangedCallback) {
+                    _readyChangedCallback(clientId, true);
+                }
+            } catch (const std::exception& e) {
+                std::cerr << "[CLIENT_ERROR] Error processing S_READY_RETURN: " << e.what() << std::endl;
+            }
+        }
+    }
+
     // Handle lobby joined
     if (pending.count(network::GameEvents::S_ROOM_JOINED)) {
         auto& msgs = pending.at(network::GameEvents::S_ROOM_JOINED);
         for (auto& msg : msgs) {
+            if (msg.body.size() < sizeof(network::lobby_in_info)) {
+                continue;
+            }
             network::lobby_in_info info;
             msg >> info;
             _lobbyState.lobbyId = info.id;
             _lobbyState.lobbyName = info.name;
             _lobbyState.players.clear();
             _lobbyState.hostId = info.hostId;
-            _lobbyState.localClientId = _network->getClientId();  // Set local client ID
-            // Players will be populated by S_PLAYER_JOINED separately, or we can trust S_ROOM_JOINED's size?
-            // Wait, S_ROOM_JOINED contains ID list. We should probably use it if S_PLAYER_JOINED is not guaranteed
-            // for initial state? But we decided to handle S_PLAYER_JOINED.
+            _lobbyState.localClientId = _network->getClientId();
             _env->setGameState(Environment::GameState::LOBBY);
-            std::cout << "[CLIENT] Joined lobby " << info.id << " (" << info.name << ") with " << info.nbPlayers
-                      << " players" << std::endl;
             if (_lobbyJoinedCallback) {
                 _lobbyJoinedCallback(info.id, info.name, _lobbyState.players, info.hostId);
             }
@@ -304,13 +318,15 @@ void ClientGameEngine::processLobbyEvents(
     if (pending.count(network::GameEvents::S_NEW_HOST)) {
         auto& msgs = pending.at(network::GameEvents::S_NEW_HOST);
         for (auto& msg : msgs) {
+            if (msg.body.size() < sizeof(uint32_t)) {
+                continue;
+            }
             uint32_t hostId;
             msg >> hostId;
             _lobbyState.hostId = hostId;
             for (auto& p : _lobbyState.players) {
                 p.isHost = (p.id == hostId);
             }
-            std::cout << "[CLIENT] New host: " << hostId << (hostId == _clientId ? " (that's me!)" : "") << std::endl;
             if (_newHostCallback)
                 _newHostCallback(hostId);
         }
@@ -321,7 +337,6 @@ void ClientGameEngine::processLobbyEvents(
         auto& msgs = pending.at(network::GameEvents::S_PLAYER_JOINED);
         for (auto& msg : msgs) {
             try {
-                std::cout << "[CLIENT_DEBUG] Processing S_PLAYER_JOINED. Body size: " << msg.body.size() << std::endl;
                 network::player playerData;
                 msg >> playerData;
                 engine::core::LobbyPlayerInfo newPlayer;
@@ -333,7 +348,6 @@ void ClientGameEngine::processLobbyEvents(
                 bool found = false;
                 for (auto& p : _lobbyState.players) {
                     if (p.id == newPlayer.id) {
-                        p.name = newPlayer.name;  // Update name
                         found = true;
                         break;
                     }
@@ -341,17 +355,11 @@ void ClientGameEngine::processLobbyEvents(
 
                 if (!found) {
                     _lobbyState.players.push_back(newPlayer);
-                    std::cout << "[CLIENT] Player " << playerData.username << " (" << playerData.id << ") joined lobby"
-                              << std::endl;
-                } else {
-                    std::cout << "[CLIENT] Player " << playerData.username << " (" << playerData.id
-                              << ") already in lobby (updated)" << std::endl;
+                    if (_playerJoinedCallback)
+                        _playerJoinedCallback(newPlayer);
                 }
-
-                if (_playerJoinedCallback)
-                    _playerJoinedCallback(newPlayer);
             } catch (const std::exception& e) {
-                std::cerr << "[CLIENT_ERROR] Failed to process S_PLAYER_JOINED: " << e.what() << std::endl;
+                std::cerr << "[CLIENT_ERROR] Error processing S_PLAYER_JOINED: " << e.what() << std::endl;
             }
         }
     }
@@ -360,28 +368,17 @@ void ClientGameEngine::processLobbyEvents(
     if (pending.count(network::GameEvents::S_PLAYER_LEAVE)) {
         auto& msgs = pending.at(network::GameEvents::S_PLAYER_LEAVE);
         for (auto& msg : msgs) {
+            if (msg.body.size() < sizeof(uint32_t)) {
+                continue;
+            }
             uint32_t leftPlayerId;
             msg >> leftPlayerId;
             auto it =
                 std::remove_if(_lobbyState.players.begin(), _lobbyState.players.end(),
                                [leftPlayerId](const engine::core::LobbyPlayerInfo& p) { return p.id == leftPlayerId; });
             _lobbyState.players.erase(it, _lobbyState.players.end());
-            std::cout << "[CLIENT] Player " << leftPlayerId << " left lobby" << std::endl;
             if (_playerLeftCallback)
                 _playerLeftCallback(leftPlayerId);
-        }
-    }
-
-    // Handle ready state broadcast
-    if (pending.count(network::GameEvents::S_READY_RETURN)) {
-        auto& msgs = pending.at(network::GameEvents::S_READY_RETURN);
-        for (auto& msg : msgs) {
-            uint32_t clientId;
-            msg >> clientId;
-            _lobbyState.setPlayerReady(clientId, true);
-            std::cout << "[CLIENT] Player " << clientId << " is ready" << std::endl;
-            if (_readyChangedCallback)
-                _readyChangedCallback(clientId, true);
         }
     }
 
@@ -389,10 +386,12 @@ void ClientGameEngine::processLobbyEvents(
     if (pending.count(network::GameEvents::S_CANCEL_READY_BROADCAST)) {
         auto& msgs = pending.at(network::GameEvents::S_CANCEL_READY_BROADCAST);
         for (auto& msg : msgs) {
+            if (msg.body.size() < sizeof(uint32_t)) {
+                continue;
+            }
             uint32_t clientId;
             msg >> clientId;
             _lobbyState.setPlayerReady(clientId, false);
-            std::cout << "[CLIENT] Player " << clientId << " is not ready" << std::endl;
             if (_readyChangedCallback)
                 _readyChangedCallback(clientId, false);
         }
@@ -401,15 +400,12 @@ void ClientGameEngine::processLobbyEvents(
     // Handle game start
     if (pending.count(network::GameEvents::S_GAME_START)) {
         _env->setGameState(Environment::GameState::IN_GAME);
-        std::cout << "[CLIENT] Game starting!" << std::endl;
         if (_gameStartedCallback)
             _gameStartedCallback();
     }
 
     // Handle game start failed
-    if (pending.count(network::GameEvents::S_GAME_START_KO)) {
-        std::cout << "[CLIENT] Game start failed - not all players ready or not host" << std::endl;
-    }
+    if (pending.count(network::GameEvents::S_GAME_START_KO)) {}
 
     // Handle team chat messages
     if (pending.count(network::GameEvents::S_TEAM_CHAT)) {
@@ -423,9 +419,6 @@ void ClientGameEngine::processLobbyEvents(
                                 sizeof(network::chat_message));
                     msg.body.resize(msg.body.size() - sizeof(network::chat_message));
                 }
-                std::cout << "[CLIENT] Chat from " << chatMsg.sender_name << ": " << chatMsg.message << std::endl;
-                // if (_chatMessageCallback)
-                //     _chatMessageCallback(chatMsg.sender_name, chatMsg.message);
                 if (_env->hasFunction("receiveChatMessage")) {
                     auto func = _env->getFunction<std::function<void(const std::string&, const std::string&)>>(
                         "receiveChatMessage");
@@ -459,10 +452,6 @@ void ClientGameEngine::processLobbyEvents(
                     }
 
                     voicePacketsReceived++;
-                    if (voicePacketsReceived % 50 == 1) {
-                        std::cout << "[CLIENT] Received voice packet " << voicePacketsReceived << " from player "
-                                  << packet.senderId << std::endl;
-                    }
 
                     if (_voicePacketCallback) {
                         _voicePacketCallback(packet);
@@ -484,9 +473,7 @@ void ClientGameEngine::processLobbyEvents(
         auto& msgs = pending.at(network::GameEvents::S_ROOMS_LIST);
         for (auto& msg : msgs) {
             try {
-                std::cout << "[CLIENT_DEBUG] Processing S_ROOMS_LIST. Body size: " << msg.body.size() << std::endl;
                 if (msg.body.size() < 4) {
-                    std::cerr << "[CLIENT_ERROR] S_ROOMS_LIST body too small (" << msg.body.size() << ")!" << std::endl;
                     continue;
                 }
                 uint32_t nbLobbies = 0;
@@ -503,10 +490,7 @@ void ClientGameEngine::processLobbyEvents(
                     lobby.maxPlayers = info.maxPlayers;
                     _availableLobbies.push_back(lobby);
                 }
-                std::cout << "[CLIENT] Received " << nbLobbies << " lobbies from server" << std::endl;
-            } catch (const std::exception& e) {
-                std::cerr << "[CLIENT] Error processing lobby list: " << e.what() << std::endl;
-            }
+            } catch (const std::exception& e) {}
         }
     }
 
@@ -529,9 +513,6 @@ void ClientGameEngine::processLobbyEvents(
                 _lobbyJoinedCallback(_lobbyState.lobbyId, _lobbyState.lobbyName, _lobbyState.players,
                                      _lobbyState.hostId);
             }
-
-            std::cout << "[CLIENT] Lobby '" << name << "' created successfully (hostId=" << _lobbyState.hostId
-                      << ", localId=" << _lobbyState.localClientId << ")" << std::endl;
         }
     }
 }
@@ -539,67 +520,53 @@ void ClientGameEngine::processLobbyEvents(
 // Lobby action methods
 void ClientGameEngine::sendReady() {
     if (_env->getGameState() != Environment::GameState::LOBBY) {
-        std::cout << "[CLIENT] Cannot send ready - not in lobby" << std::endl;
         return;
     }
     _network->transmitEvent<uint32_t>(network::GameEvents::C_READY, _lobbyState.lobbyId, 0, 0);
-    std::cout << "[CLIENT] Sending ready" << std::endl;
 }
 
 void ClientGameEngine::sendUnready() {
     if (_env->getGameState() != Environment::GameState::LOBBY) {
-        std::cout << "[CLIENT] Cannot send unready - not in lobby" << std::endl;
         return;
     }
     _network->transmitEvent<uint32_t>(network::GameEvents::C_CANCEL_READY, _lobbyState.lobbyId, 0, 0);
-    std::cout << "[CLIENT] Sending unready" << std::endl;
 }
 
 void ClientGameEngine::sendStartGame() {
     if (_env->getGameState() != Environment::GameState::LOBBY) {
-        std::cout << "[CLIENT] Cannot send start game - not in lobby" << std::endl;
         return;
     }
     if (!_lobbyState.isLocalPlayerHost()) {
-        std::cout << "[CLIENT] Cannot start game - not host" << std::endl;
         return;
     }
     _network->transmitEvent<uint32_t>(network::GameEvents::C_GAME_START, _lobbyState.lobbyId, 0, 0);
-    std::cout << "[CLIENT] Sending start game" << std::endl;
 }
 
 void ClientGameEngine::createLobby(const std::string& name) {
     char lobbyName[32] = {0};
     std::strncpy(lobbyName, name.c_str(), 31);
     _network->transmitEvent<char[32]>(network::GameEvents::C_NEW_LOBBY, lobbyName, 0, 0);
-    std::cout << "[CLIENT] Creating lobby: " << name << std::endl;
 }
 
 void ClientGameEngine::joinLobby(uint32_t lobbyId) {
     _network->transmitEvent<uint32_t>(network::GameEvents::C_JOIN_ROOM, lobbyId, 0, 0);
-    std::cout << "[CLIENT] Joining lobby: " << lobbyId << std::endl;
-    std::cout << "[CLIENT] Joining lobby: " << lobbyId << std::endl;
 }
 
 void ClientGameEngine::sendLeaveLobby(uint32_t lobbyId) {
     _network->transmitEvent<uint32_t>(network::GameEvents::C_ROOM_LEAVE, lobbyId, 0, 0);
-    std::cout << "[CLIENT] Leaving lobby: " << lobbyId << std::endl;
 }
 
 void ClientGameEngine::sendChatMessage(const std::string& message) {
     if (_env->getGameState() != Environment::GameState::LOBBY) {
-        std::cout << "[CLIENT] Cannot send chat message - not in lobby" << std::endl;
         return;
     }
     char msgBuffer[256] = {0};
     std::strncpy(msgBuffer, message.c_str(), 255);
     _network->transmitEvent<char[256]>(network::GameEvents::C_TEAM_CHAT, msgBuffer, 0, 0);
-    std::cout << "[CLIENT] Sending chat message: " << message << std::endl;
 }
 
 void ClientGameEngine::sendVoicePacket(const engine::voice::VoicePacket& packet) {
     if (_env->getGameState() != Environment::GameState::LOBBY) {
-        std::cout << "[CLIENT] Cannot send voice packet - not in lobby" << std::endl;
         return;
     }
     // Use fixed-size struct for network transmission
@@ -620,16 +587,14 @@ void ClientGameEngine::sendVoicePacket(const engine::voice::VoicePacket& packet)
 
 void ClientGameEngine::requestLobbyList() {
     _network->transmitEvent<uint32_t>(network::GameEvents::C_LIST_ROOMS, 0, 0, 0);
-    std::cout << "[CLIENT] Requesting lobby list from server" << std::endl;
 }
 
 void ClientGameEngine::sendLogin(const std::string& username, const std::string& password) {
     network::connection_info info;
-    std::memset(&info, 0, sizeof(info));  // Ensure clean struct
+    std::memset(&info, 0, sizeof(info));
     std::strncpy(info.username, username.c_str(), 31);
     std::strncpy(info.password, password.c_str(), 31);
     _network->transmitEvent<network::connection_info>(network::GameEvents::C_LOGIN, info, 0, 0);
-    std::cout << "[CLIENT] Sending login for " << username << std::endl;
 }
 
 void ClientGameEngine::sendRegister(const std::string& username, const std::string& password) {
@@ -638,12 +603,10 @@ void ClientGameEngine::sendRegister(const std::string& username, const std::stri
     std::strncpy(info.username, username.c_str(), 31);
     std::strncpy(info.password, password.c_str(), 31);
     _network->transmitEvent<network::connection_info>(network::GameEvents::C_REGISTER, info, 0, 0);
-    std::cout << "[CLIENT] Sending register for " << username << std::endl;
 }
 
 void ClientGameEngine::sendAnonymousLogin() {
     _network->transmitEvent<int>(network::GameEvents::C_LOGIN_ANONYMOUS, 0, 0, 0);
-    std::cout << "[CLIENT] Sending anonymous login" << std::endl;
 }
 
 int ClientGameEngine::run() {

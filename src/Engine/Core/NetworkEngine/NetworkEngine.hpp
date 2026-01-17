@@ -5,6 +5,8 @@
 #include <map>
 #include <variant>
 #include <string>
+#include <iostream>
+#include <memory>
 #include "../../../Network/Network.hpp"
 #include "../../../Network/Server/Server.hpp"
 #include "../../../Network/Client/Client.hpp"
@@ -18,7 +20,7 @@ class NetworkEngine {
 
     using EventType = network::GameEvents;
 
-    NetworkEngine(NetworkRole role, std::string host = "127.0.0.1", uint16_t port = 4040, int timeout = 15);
+    explicit NetworkEngine(NetworkRole role, std::string host = "127.0.0.1", uint16_t port = 4040, int timeout = 15);
     ~NetworkEngine() = default;
 
     template <typename Data>

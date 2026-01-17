@@ -5,6 +5,7 @@
 #include <vector>
 #include <map>
 #include <memory>
+#include <utility>
 #include <optional>
 
 namespace engine {
@@ -70,7 +71,7 @@ class LobbyManager {
     bool leaveLobby(uint32_t clientId);
     std::optional<std::reference_wrapper<Lobby>> getLobby(uint32_t lobbyId);
     std::optional<std::reference_wrapper<Lobby>> getLobbyForClient(uint32_t clientId);
-    const std::map<uint32_t, Lobby>& getAllLobbies() const { return _lobbies; };
+    const std::map<uint32_t, Lobby>& getAllLobbies() const { return _lobbies; }
 
    private:
     std::map<uint32_t, ClientInfo> _connectedClients;

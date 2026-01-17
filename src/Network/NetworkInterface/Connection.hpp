@@ -147,36 +147,36 @@ class Connection : public std::enable_shared_from_this<Connection<T>> {
     }
 
     void ReadHeader() {
-        asio::async_read(_socket, asio::buffer(&_msgTemporaryIn.header, sizeof(message_header<T>)),
-                         [this](std::error_code ec, std::size_t length) {
-                             if (!ec) {
-                                 if (_msgTemporaryIn.header.magic_value != MAGIC_VALUE) {
-                                     std::cout << "[" << id << "] Error: Invalid Magic Value " << std::hex
-                                               << _msgTemporaryIn.header.magic_value << std::dec << "\n";
-                                     _socket.close();
-                                     return;
-                                 }
+        asio::async_read(
+            _socket, asio::buffer(&_msgTemporaryIn.header, sizeof(message_header<T>)),
+            [this](std::error_code ec, std::size_t length) {
+                if (!ec) {
+                    if (_msgTemporaryIn.header.magic_value != MAGIC_VALUE) {
+                        std::cout << "[" << id << "] Error: Invalid Magic Value " << std::hex
+                                  << _msgTemporaryIn.header.magic_value << std::dec << "\n";
+                        _socket.close();
+                        return;
+                    }
 
-                                 if (_msgTemporaryIn.header.size > MAX_MESSAGE_BODY_SIZE) {
-                                     std::cout << "[" << id << "] Error: Message too large: "
-                                               << _msgTemporaryIn.header.size << " bytes\n";
-                                     _socket.close();
-                                     return;
-                                 }
+                    if (_msgTemporaryIn.header.size > MAX_MESSAGE_BODY_SIZE) {
+                        std::cout << "[" << id << "] Error: Message too large: " << _msgTemporaryIn.header.size
+                                  << " bytes\n";
+                        _socket.close();
+                        return;
+                    }
 
-                                 if (_msgTemporaryIn.header.size > 0) {
-                                     _msgTemporaryIn.body.resize(_msgTemporaryIn.header.size);
-                                     ReadBody();
-                                 } else {
-                                     _msgTemporaryIn.body.clear();
-                                     AddToIncomingMessageQueue();
-                                 }
-                             } else {
-                                 std::cout << "[" << id << "] Read Header Fail (Socket closed). E: " << ec.message()
-                                           << "\n";
-                                 _socket.close();
-                             }
-                         });
+                    if (_msgTemporaryIn.header.size > 0) {
+                        _msgTemporaryIn.body.resize(_msgTemporaryIn.header.size);
+                        ReadBody();
+                    } else {
+                        _msgTemporaryIn.body.clear();
+                        AddToIncomingMessageQueue();
+                    }
+                } else {
+                    std::cout << "[" << id << "] Read Header Fail (Socket closed). E: " << ec.message() << "\n";
+                    _socket.close();
+                }
+            });
     }
 
     void ReadBody() {

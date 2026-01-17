@@ -5,6 +5,7 @@
 #include <ostream>
 
 #include "Components/StandardComponents.hpp"
+#include "Components/NetworkComponents.hpp"
 #include "registry.hpp"
 
 void ActionScriptSystem::update(Registry& registry, system_context context) {

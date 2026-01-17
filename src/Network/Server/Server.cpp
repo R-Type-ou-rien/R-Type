@@ -10,14 +10,11 @@ using namespace network;
 void Server::OnMessage(std::shared_ptr<Connection<GameEvents>> client, message<GameEvents>& msg) {
     auto validation = _networkManager.validateClientPacket(msg.header.id, msg);
     if (!validation.isValid()) {
-        std::cerr << "[SERVER] Packet validation failed for client " << client->GetID() << ": "
-                  << validation.errorMessage << "\n";
         return;
     }
 
     switch (msg.header.id) {
         case GameEvents::C_REGISTER:
-            std::cout << "[SERVER] Register\n";
             OnClientRegister(client, msg);
             break;
         case GameEvents::C_LOGIN:
@@ -45,7 +42,6 @@ void Server::OnMessage(std::shared_ptr<Connection<GameEvents>> client, message<G
             OnClientNewLobby(client, msg);
             break;
         case GameEvents::C_CONFIRM_UDP:
-            std::cout << "[SERVER] Confirm UDP from client " << client->GetID() << "\n";
             if (_clientStates[client] == ClientState::WAITING_UDP_PING)
                 _clientStates[client] = ClientState::CONNECTED;
             // Also forward to game engine so it can send the full game state
@@ -67,18 +63,17 @@ void Server::OnMessage(std::shared_ptr<Connection<GameEvents>> client, message<G
             onClientStartGame(client, msg);
             break;
         default:
-            _toGameMessages.push({msg.header.id, msg.header.user_id, msg});
+            // Always respect the connection ID, not what the client claims in the header
+            _toGameMessages.push({msg.header.id, client->GetID(), msg});
             break;
     }
 }
 
 void Server::OnClientDisconnect(std::shared_ptr<Connection<GameEvents>> client) {
     uint32_t clientId = client->GetID();
-    std::cout << "Removing client [" << clientId << "]\n";
 
     // Check if client is in our state map (avoid double processing)
     if (_clientStates.find(client) == _clientStates.end()) {
-        std::cout << "[SERVER] Client " << clientId << " already removed, skipping\n";
         return;
     }
 
@@ -98,7 +93,6 @@ void Server::OnClientDisconnect(std::shared_ptr<Connection<GameEvents>> client) 
             if (mapPlayers.size() == 1) {
                 // Last player - mark lobby for deletion
                 lobbyToDelete = lobbyID;
-                std::cout << "[SERVER] Lobby " << lobbyID << " will be deleted (empty)" << std::endl;
             } else if (mapPlayers[clientId] == lobby.getOwner()) {
                 // Transfer ownership
                 for (auto& [id, connection] : mapPlayers) {
@@ -139,25 +133,17 @@ void Server::OnClientDisconnect(std::shared_ptr<Connection<GameEvents>> client) 
 bool Server::OnClientConnect(std::shared_ptr<Connection<GameEvents>> client) {
     if (_deqConnections.size() >= _maxConnections)
         return false;
-    std::cout << "[DEBUG] OnClientConnect: SetTimeout\n";
     client->SetTimeout(0);
 
-    // Confirmation connection (TOUJOURS PAS UN COMMENTAIRE DE GEMINI OU AUTRE)
-    std::cout << "[DEBUG] OnClientConnect: Send ID\n";
     AddMessageToPlayer(GameEvents::S_SEND_ID, client->GetID(), client->GetID());
-    // Demander un paquet UDP pour save le endpint  udp (eh vsy j'ai meme pas besoin de parler la)
     network::message<GameEvents> msg;
-    std::cout << "[DEBUG] OnClientConnect: Confirm UDP\n";
     msg << client->GetID();
     AddMessageToPlayer(GameEvents::S_CONFIRM_UDP, client->GetID(), msg);
 
-    // Envoi du message de connection au game (bON POUR CA L'AUTOCOMPLETION DE L'IDE A UN PEU AIDER)
-    std::cout << "[DEBUG] OnClientConnect: Push to game\n";
     msg.header.user_id = client->GetID();
     _toGameMessages.push({GameEvents::C_CONNECTION, client->GetID(), msg});
 
     _clientStates[client] = ClientState::WAITING_UDP_PING;
-    std::cout << "[DEBUG] OnClientConnect: Done\n";
     return true;
 }
 
@@ -190,7 +176,6 @@ void Server::OnClientRegister(std::shared_ptr<Connection<GameEvents>> client, me
 
     _clientUsernames[client] = info.username;
     _clientStates[client] = ClientState::LOGGED_IN;
-    std::cout << "[SERVER] Register OK\n";
 
     char token[32] = {0};
     std::strncpy(token, tokenStr.c_str(), 31);
@@ -250,8 +235,6 @@ void Server::OnClientLoginAnonymous(std::shared_ptr<Connection<GameEvents>> clie
     _clientUsernames[client] = guestName;
     _clientStates[client] = ClientState::LOGGED_IN;
 
-    std::cout << "[SERVER] Anonymous login for client " << client->GetID() << " as " << guestName << "\n";
-
     // Send empty token
     char token[32] = {0};
     AddMessageToPlayer(GameEvents::S_LOGIN_OK, client->GetID(), token);
@@ -259,13 +242,8 @@ void Server::OnClientLoginAnonymous(std::shared_ptr<Connection<GameEvents>> clie
 
 void Server::OnClientListLobby(std::shared_ptr<Connection<GameEvents>> client, message<GameEvents> msg) {
     if (_clientStates[client] != ClientState::LOGGED_IN) {
-        std::cout << "[SERVER] Ignored C_LIST_ROOMS from client " << client->GetID() << " (Not Logged In)" << std::endl;
         AddMessageToPlayer(GameEvents::ASK_LOG, client->GetID(), NULL);
         return;
-    }
-    std::cout << "[SERVER] Processing C_LIST_ROOMS for client " << client->GetID() << std::endl;
-    if (_lobbys.empty()) {
-        std::cout << "[SERVER] No lobbies to list." << std::endl;
     }
     try {
         network::message<GameEvents> responseMsg;
@@ -290,28 +268,19 @@ void Server::OnClientListLobby(std::shared_ptr<Connection<GameEvents>> client, m
 
         client->Send(responseMsg);
     } catch (const std::exception& e) {
-        std::cerr << "[SERVER] CRASH in OnClientListLobby: " << e.what() << std::endl;
-    } catch (...) {
-        std::cerr << "[SERVER] CRASH in OnClientListLobby: Unknown error" << std::endl;
-    }
+    } catch (...) {}
 }
 
 void Server::OnClientJoinLobby(std::shared_ptr<Connection<GameEvents>> client, message<GameEvents> msg) {
     if (_clientStates[client] != ClientState::LOGGED_IN) {
-        std::cout << "[SERVER_WARN] Client " << client->GetID() << " tried to join lobby but is not logged in."
-                  << std::endl;
         AddMessageToPlayer(GameEvents::ASK_LOG, client->GetID(), NULL);
         return;
     }
     uint32_t lobbyID;
     msg >> lobbyID;
-    std::cout << "[SERVER_DEBUG] Client " << client->GetID() << " requesting to join lobby " << lobbyID << std::endl;
     for (Lobby<GameEvents>& lobby : _lobbys) {
         if (lobby.GetID() == lobbyID) {
-            std::cout << "[SERVER_DEBUG] Found lobby " << lobbyID << ". Adding player..." << std::endl;
             if (!lobby.AddPlayer(client)) {
-                std::cout << "[SERVER_WARN] Failed to add client " << client->GetID() << " to lobby " << lobbyID
-                          << " (Full/Error)" << std::endl;
                 AddMessageToPlayer(GameEvents::S_ROOM_NOT_JOINED, client->GetID(), NULL);
                 return;
             }
@@ -425,8 +394,7 @@ void Server::OnClientLeaveLobby(std::shared_ptr<Connection<GameEvents>> client, 
                         std::remove_if(_lobbys.begin(), _lobbys.end(),
                                        [lobbyID](const Lobby<GameEvents>& lobby) { return lobby.GetID() == lobbyID; }),
                         _lobbys.end());
-                    std::cout << "[SERVER] Lobby " << lobbyID << " deleted (empty)" << std::endl;
-                    BroadcastLobbyList();  // Notify all clients of updated lobby list
+                    BroadcastLobbyList();
                     return;
                 }
             }
@@ -444,7 +412,6 @@ void Server::OnClientLeaveLobby(std::shared_ptr<Connection<GameEvents>> client, 
 
 void Server::OnClientNewLobby(std::shared_ptr<Connection<GameEvents>> client, message<GameEvents> msg) {
     if (_clientStates[client] != ClientState::LOGGED_IN) {
-        std::cout << "[SERVER] Ignored C_NEW_LOBBY from client " << client->GetID() << " (Not Logged In)" << std::endl;
         return;
     }
 
@@ -452,12 +419,10 @@ void Server::OnClientNewLobby(std::shared_ptr<Connection<GameEvents>> client, me
     try {
         msg >> name;
     } catch (const std::exception& e) {
-        std::cerr << "[SERVER] Error reading C_NEW_LOBBY name: " << e.what() << std::endl;
         return;
     }
 
     std::string lobbyName = name;
-    std::cout << "[SERVER] Processing C_NEW_LOBBY '" << lobbyName << "' from client " << client->GetID() << std::endl;
 
     // Check if player already in lobby? (Optional)
 
@@ -465,9 +430,6 @@ void Server::OnClientNewLobby(std::shared_ptr<Connection<GameEvents>> client, me
     newLobby.AddPlayer(client);
     _lobbys.push_back(newLobby);
     _clientStates[client] = ClientState::IN_LOBBY;
-    // Map client to lobby? implemented via _lobbys iteration usually
-
-    std::cout << "[SERVER] Lobby " << newLobby.GetID() << " created. Total lobbies: " << _lobbys.size() << std::endl;
 
     // Send confirmation
     char lobbyNameBuff[32] = {0};
@@ -512,8 +474,6 @@ void Server::BroadcastLobbyList() {
     }
     listMsg << nb_lobbys;
 
-    std::cout << "[SERVER] Broadcasting new lobby list (count: " << nb_lobbys << ")" << std::endl;
-    // MessageAllClients(listMsg); // Unsafe during disconnect
     for (auto& [client, state] : _clientStates) {
         if (client && client->IsConnected()) {
             MessageClient(client, listMsg);
@@ -522,18 +482,12 @@ void Server::BroadcastLobbyList() {
 }
 
 void Server::onClientStartGame(std::shared_ptr<Connection<GameEvents>> client, message<GameEvents> msg) {
-    std::cout << "[SERVER] onClientStartGame from client " << client->GetID() << std::endl;
     if (_clientStates[client] != ClientState::READY) {
-        std::cout << "[SERVER] Client " << client->GetID() << " is not in READY state, ignoring C_GAME_START"
-                  << std::endl;
         return;
     }
     for (Lobby<GameEvents>& lobby : _lobbys) {
         if (lobby.HasPlayer(client->GetID())) {
-            std::cout << "[SERVER] Found lobby for client " << client->GetID() << std::endl;
-            // Check ownership FIRST
             if (lobby.getOwner() != client) {
-                std::cout << "[SERVER] Client is not lobby owner, rejecting" << std::endl;
                 AddMessageToPlayer(GameEvents::S_GAME_START_KO, client->GetID(), NULL);
                 return;
             }
@@ -567,6 +521,8 @@ void Server::onClientReadyUp(std::shared_ptr<Connection<GameEvents>> client, mes
         if (lobby.HasPlayer(client->GetID())) {
             _clientStates[client] = ClientState::READY;
             AddMessageToLobby(GameEvents::S_READY_RETURN, lobby.GetID(), client->GetID());
+
+            _toGameMessages.push({GameEvents::C_READY, client->GetID(), msg});
             break;
         }
     }
@@ -579,6 +535,8 @@ void Server::onClientUnready(std::shared_ptr<Connection<GameEvents>> client, mes
         if (lobby.HasPlayer(client->GetID())) {
             _clientStates[client] = ClientState::IN_LOBBY;
             AddMessageToLobby(GameEvents::S_CANCEL_READY_BROADCAST, lobby.GetID(), client->GetID());
+
+            _toGameMessages.push({GameEvents::C_CANCEL_READY, client->GetID(), msg});
             break;
         }
     }
@@ -612,7 +570,6 @@ void Server::onClientSendText(std::shared_ptr<Connection<GameEvents>> client, me
             chatMsg.message[255] = '\0';
 
             AddMessageToLobby(GameEvents::S_TEAM_CHAT, lobby.GetID(), chatMsg);
-            std::cout << "[SERVER] Chat from " << chatMsg.sender_name << ": " << chatMsg.message << std::endl;
             break;
         }
     }
@@ -649,10 +606,6 @@ void Server::onClientVoicePacket(std::shared_ptr<Connection<GameEvents>> client,
             }
 
             relayCount++;
-            if (relayCount % 50 == 1) {
-                std::cout << "[SERVER] Relayed voice packet " << relayCount << " from player " << client->GetID()
-                          << " to " << relayedTo << " players" << std::endl;
-            }
             break;
         }
     }

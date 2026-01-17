@@ -10,6 +10,8 @@
 #include <variant>
 #include "NetworkEngine/NetworkEngine.hpp"
 #include "ECS/Utils/Hash/Hash.hpp"  // For Hash::fnv1a
+#include "../../Components/LobbyIdComponent.hpp"
+#include "../../Utils/LobbyUtils.hpp"
 
 void ComponentSenderSystem::update(Registry& reg, system_context ctx) {
     if (!ctx.lobby_manager) {
@@ -35,22 +37,6 @@ void ComponentSenderSystem::update(Registry& reg, system_context ctx) {
     SerializationContext s_ctx = {ctx.texture_manager};
     auto& component_pools = reg.getComponentPools();
 
-    // Debug: Print all registered networked component type hashes
-    static bool printed_hashes = false;
-    if (!printed_hashes) {
-        std::cout << "[ComponentSenderSystem] Registered networked component types: ";
-        for (auto h : *ctx.networked_component_types) {
-            std::cout << h << " ";
-        }
-        std::cout << std::endl;
-
-        // Print what hash Sprite2DComponent would be
-        std::cout << "[ComponentSenderSystem] Sprite2DComponent hash: " << Hash::fnv1a("Sprite2DComponent")
-                  << std::endl;
-
-        printed_hashes = true;
-    }
-
     // Iterate over pools to send only updated (dirty) components
     for (auto& [type, pool] : component_pools) {
         // Skip components that are not registered for network replication
@@ -71,6 +57,9 @@ void ComponentSenderSystem::update(Registry& reg, system_context ctx) {
                 continue;
             }
 
+            // Get entity's lobby ID (0 means global/all lobbies)
+            uint32_t entityLobbyId = engine::utils::getLobbyId(reg, entity);
+
             packet = pool->createPacket(entity, s_ctx);
             auto& netId = reg.getConstComponent<NetworkIdentity>(entity);
             packet.entity_guid = netId.guid;
@@ -79,6 +68,11 @@ void ComponentSenderSystem::update(Registry& reg, system_context ctx) {
             for (auto const& [lobbyId, lobby] : lobbies) {
                 if (lobby.getState() != engine::core::Lobby::State::IN_GAME) {
                     continue;
+                }
+
+                // Only send to clients in the same lobby, or if entity is global (lobbyId = 0)
+                if (entityLobbyId != 0 && entityLobbyId != lobbyId) {
+                    continue;  // Skip - entity belongs to a different lobby
                 }
 
                 for (const auto& client : lobby.getClients()) {

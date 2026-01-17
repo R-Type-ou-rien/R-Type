@@ -57,8 +57,14 @@ void RenderSystem::drawText(const TextComponent& textComp, const system_context&
 
 void RenderSystem::drawEntity(Entity entity, const transform_component_s& transform, sprite2D_component_s& spriteData,
                               Registry& registry, const system_context& context) {
-    if (!context.texture_manager.has(spriteData.handle))
+    if (!context.texture_manager.has(spriteData.handle)) {
+        static int missingTextureLogCount = 0;
+        if (missingTextureLogCount++ < 100) {
+            std::cout << "[RenderSystem] Missing texture for entity " << entity << ", handle=" << spriteData.handle.id
+                      << std::endl;
+        }
         return;
+    }
 
     sf::Texture& texture = context.texture_manager.get_resource(spriteData.handle).value().get();
     sf::Sprite sprite(texture);

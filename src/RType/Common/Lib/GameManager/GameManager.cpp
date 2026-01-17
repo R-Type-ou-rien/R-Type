@@ -29,6 +29,14 @@
 #include "../../Systems/behavior.hpp"
 #include "src/Engine/Lib/Systems/PhysicsSystem.hpp"
 #include "src/Engine/Lib/Systems/CollisionSystem.hpp"
+#include "src/Engine/Lib/Components/NetworkComponents.hpp"
+#include "src/RType/Common/Components/leaderboard_component.hpp"
+
+#include "src/RType/Common/Systems/spawn.hpp"
+#include <algorithm>
+#include <iostream>
+#include <vector>
+#include <string>
 
 GameManager::GameManager() {
     try {
@@ -36,14 +44,18 @@ GameManager::GameManager() {
         _player_config =
             ConfigLoader::loadEntityConfig(_master_config.player_config, ConfigLoader::getRequiredPlayerFields());
         _game_config = ConfigLoader::loadGameConfig(_master_config.game_config, ConfigLoader::getRequiredGameFields());
-        if (!_master_config.levels.empty()) {
-            _current_level_scene = _master_config.levels[0];
+
+        loadLevelFiles();
+
+        if (!_level_files.empty()) {
+            _current_level_scene = _level_files[0];
+            _current_level_index = 0;
         } else {
-            _current_level_scene = "src/RType/Common/content/config/level1.scene";
+            _current_level_scene = "src/RType/Common/content/config/levels/level1.scene";
         }
     } catch (const std::exception& e) {
-        std::cerr << "Error loading master config: " << e.what() << std::endl;
-        _current_level_scene = "src/RType/Common/content/config/level1.scene";
+        std::cerr << "[GameManager] Error loading master config: " << e.what() << std::endl;
+        _current_level_scene = "src/RType/Common/content/config/levels/level1.scene";
     }
 
     _gameOver = false;
@@ -140,20 +152,20 @@ void GameManager::startGame(std::shared_ptr<Environment> env, InputManager& inpu
     if (_gameInitialized)
         return;
 
-    LevelConfig level_config;
     try {
-        level_config = SceneLoader::loadFromFile(_current_level_scene);
-        if (!level_config.game_config.empty()) {
+        _current_level_config = SceneLoader::loadFromFile(_current_level_scene);
+
+        if (!_current_level_config.game_config.empty()) {
             _game_config =
-                ConfigLoader::loadGameConfig(level_config.game_config, ConfigLoader::getRequiredGameFields());
+                ConfigLoader::loadGameConfig(_current_level_config.game_config, ConfigLoader::getRequiredGameFields());
         }
     } catch (const std::exception& e) {
-        std::cerr << "Error loading master config: " << e.what() << std::endl;
+        std::cerr << "[GameManager] Error loading level config: " << e.what() << std::endl;
     }
 
     // Client-side initialization
     if (!env->isServer()) {
-        initBackground(env, level_config);
+        initBackground(env, _current_level_config);
         initBounds(env);
         initPlayer(env);  // This inits local player components/input handling
         initUI(env);
@@ -166,11 +178,12 @@ void GameManager::startGame(std::shared_ptr<Environment> env, InputManager& inpu
         auto& ecs = env->getECS();
         Entity musicEntity = ecs.registry.createEntity();
         AudioSourceComponent music;
-        music.sound_name = level_config.music_track.empty() ? "theme" : level_config.music_track;
+        music.sound_name = _current_level_config.music_track.empty() ? "theme" : _current_level_config.music_track;
         music.play_on_start = true;
         music.loop = true;
         music.destroy_entity_on_finish = false;
         ecs.registry.addComponent<AudioSourceComponent>(musicEntity, music);
+
         loadInputSetting(inputs);
     }
 
@@ -290,6 +303,43 @@ void GameManager::update(std::shared_ptr<Environment> env, InputManager& inputs)
         case Environment::GameState::IN_GAME:
             updateUI(env);
             checkGameState(env);
+
+            if (!env->isServer() && _windowHasFocus && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+                auto& ecs = env->getECS();
+                auto& entities = ecs.registry.getEntities<TagComponent>();
+                for (auto entity : entities) {
+                    if (!ecs.registry.hasComponent<TagComponent>(entity))
+                        continue;
+                    auto& tags = ecs.registry.getConstComponent<TagComponent>(entity);
+                    bool isReturnBtn = false;
+                    for (const auto& tag : tags.tags) {
+                        if (tag == "RETURN_BUTTON") {
+                            isReturnBtn = true;
+                            break;
+                        }
+                    }
+
+                    if (isReturnBtn && ecs.registry.hasComponent<TextComponent>(entity)) {
+                        auto& txt = ecs.registry.getComponent<TextComponent>(entity);
+                        sf::Vector2i mousePos = sf::Mouse::getPosition(*_window);
+
+                        // Simple hit test for [RETURN TO LOBBY]
+                        // Approx width 400, height 50
+                        if (mousePos.x >= txt.x && mousePos.x <= txt.x + 500 && mousePos.y >= txt.y &&
+                            mousePos.y <= txt.y + 60) {
+                            std::cout << "[GameManager] Return to Lobby clicked" << std::endl;
+
+                            // Reset game flags
+                            _gameOver = false;
+                            _victory = false;
+                            _leaderboardDisplayed = false;
+                            _gameInitialized = false;
+
+                            env->setGameState(Environment::GameState::LOBBY);
+                        }
+                    }
+                }
+            }
             break;
         case Environment::GameState::INCORRECT_PASSWORD:
             onAuthFailed();
@@ -316,7 +366,7 @@ void GameManager::updateServer(std::shared_ptr<Environment> env, InputManager& i
             if (state == static_cast<int>(Environment::State::IN_GAME) &&
                 _initializedLobbies.find(lobbyId) == _initializedLobbies.end()) {
                 std::cout << "GAME MANAGER: Lobby " << lobbyId << " started game. Initializing..." << std::endl;
-                onServerGameStart(env, clients);
+                onServerGameStart(env, clients, lobbyId);
                 _initializedLobbies.insert(lobbyId);
             }
         });
@@ -388,42 +438,33 @@ void GameManager::onChatMessageReceived(const std::string& senderName, const std
     _lobbyManager->onChatMessageReceived(senderName, message);
 }
 
-void GameManager::onServerGameStart(std::shared_ptr<Environment> env, const std::vector<uint32_t>& clients) {
-    std::cout << "GAMEMANAGER: onServerGameStart called" << std::endl;
+void GameManager::onServerGameStart(std::shared_ptr<Environment> env, const std::vector<uint32_t>& clients,
+                                    uint32_t lobbyId) {
+    std::cout << "GAMEMANAGER: onServerGameStart called for lobby " << lobbyId << std::endl;
 
-    static bool systemsInitialized = false;
-    if (!systemsInitialized) {
-        std::cout << "GAMEMANAGER: Initializing SERVER game systems..." << std::endl;
-        auto& ecs = env->getECS();
+    // Store the current lobby ID for entity tagging
+    _currentLobbyId = lobbyId;
 
-        ecs.systems.addSystem<BoxCollision>();
-        ecs.systems.addSystem<EnemySpawnSystem>();
-        ecs.systems.addSystem<PhysicsSystem>();
-        std::cout << "GAMEMANAGER: Server game systems initialized" << std::endl;
-
-        Entity spawnerEntity = ecs.registry.createEntity();
-        EnemySpawnComponent spawnComp;
-        spawnComp.spawn_interval = 2.0f;
-        spawnComp.is_active = true;
-        spawnComp.use_scripted_spawns = false;
-        spawnComp.enemies_config_path = "src/RType/Common/content/config/enemies.cfg";
-        spawnComp.boss_config_path = "src/RType/Common/content/config/boss.cfg";
-        spawnComp.game_config_path = "src/RType/Common/content/config/game.cfg";
-        ecs.registry.addComponent<EnemySpawnComponent>(spawnerEntity, spawnComp);
-        ecs.registry.addComponent<NetworkIdentity>(spawnerEntity, {spawnerEntity, 0});
-
-        Entity scriptedSpawnerEntity = ecs.registry.createEntity();
-        ScriptedSpawnComponent scriptedSpawnComp;
-        scriptedSpawnComp.script_path = "src/RType/Common/content/config/level1_spawns.cfg";
-        ecs.registry.addComponent<ScriptedSpawnComponent>(scriptedSpawnerEntity, scriptedSpawnComp);
-        ecs.registry.addComponent<NetworkIdentity>(scriptedSpawnerEntity, {scriptedSpawnerEntity, 0});
-
-        Entity timerEntity = ecs.registry.createEntity();
-        ecs.registry.addComponent<GameTimerComponent>(timerEntity, {0.0f});
-        ecs.registry.addComponent<NetworkIdentity>(timerEntity, {timerEntity, 0});
-
-        systemsInitialized = true;
+    // Initialize the level configuration and spawners on the server
+    LevelConfig level_config;
+    try {
+        level_config = SceneLoader::loadFromFile(_current_level_scene);
+        if (!level_config.game_config.empty()) {
+            _game_config =
+                ConfigLoader::loadGameConfig(level_config.game_config, ConfigLoader::getRequiredGameFields());
+        }
+        _current_level_config = level_config;
+    } catch (const std::exception& e) {
+        std::cerr << "GAMEMANAGER: Error loading level config: " << e.what() << std::endl;
     }
+
+    // Initialize spawner entities on the server
+    initSpawner(env, level_config);
+    std::cout << "GAMEMANAGER: Server spawner entities initialized" << std::endl;
+
+    // Initialize scene (walls, turrets, etc.) on the server
+    initScene(env, level_config);
+    std::cout << "GAMEMANAGER: Server scene entities initialized" << std::endl;
 
     if (!env->hasFunction("registerPlayer")) {
         std::cerr << "GAMEMANAGER: Error - registerPlayer hook not found!" << std::endl;
@@ -443,4 +484,213 @@ void GameManager::onServerGameStart(std::shared_ptr<Environment> env, const std:
         }
         playerIndex++;
     }
+}
+
+void GameManager::loadLevelFiles() {
+    _level_files.clear();
+
+    try {
+        if (!_master_config.levels.empty()) {
+            std::string levels_dir = _master_config.levels[0];
+            if (std::filesystem::is_directory(levels_dir)) {
+                for (const auto& entry : std::filesystem::directory_iterator(levels_dir)) {
+                    if (entry.is_regular_file() && entry.path().extension() == ".scene") {
+                        _level_files.push_back(entry.path().string());
+                    }
+                }
+
+                std::sort(_level_files.begin(), _level_files.end());
+
+                for (const auto& level : _level_files) {
+                    std::cout << "  - " << level << std::endl;
+                }
+            } else {
+                _level_files.push_back(levels_dir);
+            }
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "[GameManager] Error loading level files: " << e.what() << std::endl;
+    }
+}
+
+void GameManager::loadNextLevel(std::shared_ptr<Environment> env) {
+    auto& ecs = env->getECS();
+
+    _victory = false;
+    _leaderboardDisplayed = false;
+    _inTransition = true;
+    std::string next_level;
+
+    if (!_current_level_config.next_level.empty()) {
+        next_level = _current_level_config.next_level;
+    } else {
+        _current_level_index++;
+
+        if (_current_level_index < static_cast<int>(_level_files.size())) {
+            next_level = _level_files[_current_level_index];
+        } else {
+            _inTransition = false;
+            return;
+        }
+    }
+
+    if (next_level.empty()) {
+        _inTransition = false;
+        return;
+    }
+
+    _current_level_scene = next_level;
+
+    auto it = std::find(_level_files.begin(), _level_files.end(), next_level);
+    if (it != _level_files.end()) {
+        _current_level_index = std::distance(_level_files.begin(), it);
+    }
+
+    try {
+        _current_level_config = SceneLoader::loadFromFile(_current_level_scene);
+    } catch (const std::exception& e) {
+        std::cerr << "[GameManager] Error loading new level config: " << e.what() << std::endl;
+        return;
+    }
+
+    std::vector<Entity> leaderboard_entities;
+    auto leaderboards = ecs.registry.getEntities<LeaderboardComponent>();
+    for (auto entity : leaderboards) {
+        leaderboard_entities.push_back(entity);
+    }
+    for (auto entity : leaderboard_entities) {
+        std::cout << "[GameManager] Destroying leaderboard entity " << entity << std::endl;
+        ecs.registry.destroyEntity(entity);
+    }
+
+    std::vector<Entity> ui_entities_to_destroy;
+    auto& all_entities = ecs.registry.getEntities<TagComponent>();
+
+    for (auto entity : all_entities) {
+        if (!ecs.registry.hasComponent<TagComponent>(entity))
+            continue;
+        auto& tags = ecs.registry.getConstComponent<TagComponent>(entity);
+        for (const auto& tag : tags.tags) {
+            if (tag == "UI" || tag == "LEADERBOARD" || tag == "VICTORY_TIMER") {
+                ui_entities_to_destroy.push_back(entity);
+                break;
+            }
+        }
+    }
+
+    for (auto entity : ui_entities_to_destroy) {
+        ecs.registry.destroyEntity(entity);
+    }
+
+    auto spawners = ecs.registry.getEntities<EnemySpawnComponent>();
+    for (auto spawner : spawners) {
+        ecs.registry.destroyEntity(spawner);
+    }
+
+    auto scripted_spawners = ecs.registry.getEntities<ScriptedSpawnComponent>();
+    for (auto spawner : scripted_spawners) {
+        ecs.registry.destroyEntity(spawner);
+    }
+
+    auto pod_spawners = ecs.registry.getEntities<PodSpawnComponent>();
+    for (auto spawner : pod_spawners) {
+        ecs.registry.destroyEntity(spawner);
+    }
+    for (auto spawner : pod_spawners) {
+        ecs.registry.destroyEntity(spawner);
+    }
+
+    auto timers = ecs.registry.getEntities<GameTimerComponent>();
+    for (auto timer : timers) {
+        ecs.registry.destroyEntity(timer);
+    }
+
+    std::vector<Entity> entities_to_destroy;
+    all_entities = ecs.registry.getEntities<TagComponent>();
+
+    int player_count = 0;
+    int enemy_count = 0;
+    int projectile_count = 0;
+    int other_count = 0;
+
+    for (auto entity : all_entities) {
+        if (!ecs.registry.hasComponent<TagComponent>(entity))
+            continue;
+        auto& tags = ecs.registry.getConstComponent<TagComponent>(entity);
+        bool should_keep = false;
+        bool is_player = false;
+        bool is_enemy = false;
+        bool is_projectile = false;
+
+        for (const auto& tag : tags.tags) {
+            if (tag == "PLAYER") {
+                is_player = true;
+                should_keep = true;
+                break;
+            }
+            if (tag == "BACKGROUND" || tag == "BOUND") {
+                should_keep = true;
+                break;
+            }
+            if (tag == "ENEMY" || tag == "BOSS")
+                is_enemy = true;
+            if (tag == "PROJECTILE")
+                is_projectile = true;
+        }
+
+        if (!should_keep) {
+            entities_to_destroy.push_back(entity);
+            if (is_player)
+                player_count++;
+            else if (is_enemy)
+                enemy_count++;
+            else if (is_projectile)
+                projectile_count++;
+            else
+                other_count++;
+        }
+    }
+
+    for (auto entity : entities_to_destroy) {
+        ecs.registry.destroyEntity(entity);
+    }
+
+    std::vector<Entity> untagged_health_entities;
+    auto health_entities = ecs.registry.getEntities<HealthComponent>();
+    for (auto entity : health_entities) {
+        if (ecs.registry.hasComponent<TagComponent>(entity))
+            continue;
+
+        bool is_player = false;
+        if (ecs.registry.hasComponent<NetworkIdentity>(entity)) {
+            auto& netId = ecs.registry.getConstComponent<NetworkIdentity>(entity);
+            if (netId.ownerId >= 0) {
+                is_player = true;
+            }
+        }
+
+        if (!is_player) {
+            untagged_health_entities.push_back(entity);
+        }
+    }
+
+    std::cout << "[GameManager] Destroying " << untagged_health_entities.size()
+              << " untagged health entities (potential invisible enemies)" << std::endl;
+    for (auto entity : untagged_health_entities) {
+        ecs.registry.destroyEntity(entity);
+    }
+
+    size_t total_cleaned = entities_to_destroy.size() + timers.size() + scripted_spawners.size() + pod_spawners.size() +
+                           untagged_health_entities.size();
+    std::cout << "[GameManager] Total cleaned: " << total_cleaned << " entities" << std::endl;
+
+    std::cout << "[GameManager] All entities cleaned, loading new level scene..." << std::endl;
+    initBackground(env, _current_level_config);
+    initSpawner(env, _current_level_config);
+    initScene(env, _current_level_config);
+
+    _inTransition = false;
+
+    std::cout << "[GameManager] ===== LEVEL " << (_current_level_index + 1) << "/" << _level_files.size()
+              << " LOADED SUCCESSFULLY! =====" << std::endl;
 }

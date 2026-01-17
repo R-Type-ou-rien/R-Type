@@ -4,7 +4,6 @@
 #include <memory>
 #include <vector>
 #include <string>
-#include <functional>
 #include <SFML/System/Clock.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include "../../Entities/Player/Player.hpp"
@@ -14,7 +13,6 @@
 #include "src/RType/Common/Components/game_timer.hpp"
 #include "src/Engine/Core/Scene/SceneManager.hpp"
 #include "Voice/VoiceManager.hpp"
-#include <set>
 
 // Include new managers
 #include "auth/AuthManager.hpp"
@@ -46,6 +44,7 @@ class GameManager {
     Entity _livesEntity;
     Entity _scoreDisplayEntity;
     Entity _leaderboardEntity;
+    Entity _transitionTimerEntity;
     bool _gameOver = false;
     bool _victory = false;
     bool _leaderboardDisplayed = false;
@@ -61,12 +60,17 @@ class GameManager {
     bool _pendingGameStart = false;
     bool _windowHasFocus = true;
 
+    bool _inTransition = false;
+    bool _nextLevelLoaded = false;
     MasterConfig _master_config;
     EntityConfig _player_config;
     GameConfig _game_config;
     std::string _current_level_scene;
     sf::RenderWindow* _window = nullptr;
     std::shared_ptr<Environment> _env;
+    std::vector<std::string> _level_files;
+    int _current_level_index = 0;
+    LevelConfig _current_level_config;
 
     // Voice chat owner
 #ifdef CLIENT_BUILD
@@ -94,6 +98,8 @@ class GameManager {
     // Server-side update loop
     void updateServer(std::shared_ptr<Environment> env, InputManager& inputs);
     std::set<uint32_t> _initializedLobbies;
+    void loadLevelFiles();
+    void loadNextLevel(std::shared_ptr<Environment> env);
 
    public:
     GameManager();
@@ -133,10 +139,13 @@ class GameManager {
     void setWindowFocus(bool hasFocus) { _windowHasFocus = hasFocus; }
 
     // Called by server to initialize game logic via hook
-    void onServerGameStart(std::shared_ptr<Environment> env, const std::vector<uint32_t>& clients);
+    void onServerGameStart(std::shared_ptr<Environment> env, const std::vector<uint32_t>& clients, uint32_t lobbyId);
 
     // Called by server/client to create a player for a specific client
     std::shared_ptr<Player> createPlayerForClient(std::shared_ptr<Environment> env, uint32_t clientId, float x,
                                                   float y);
     std::shared_ptr<LobbyManager> getLobbyManager() { return _lobbyManager; }
+
+   private:
+    uint32_t _currentLobbyId = 0;  // Current lobby ID for entity tagging
 };

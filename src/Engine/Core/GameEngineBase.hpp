@@ -4,17 +4,20 @@
 #include <string>
 #include <functional>
 #include <unordered_set>
-
+#include <memory>
+#include <unordered_map>
+#include <vector>
+#include <iostream>
 #include "ECS/ECS.hpp"
-#include "InputConfig.hpp"
-#include "InputSystem.hpp"
-#include "PhysicsSystem.hpp"
-#include "BackgroundSystem.hpp"
-#include "ResourceConfig.hpp"
-#include "Context.hpp"
-#include "Components/serialize/NetworkTraits.hpp"
+#include "../Inputs/InputConfig.hpp"
+#include "../Inputs/InputSystem.hpp"
+#include "../Lib/Systems/PhysicsSystem.hpp"
+#include "../Lib/Systems/BackgroundSystem.hpp"
+#include "../Resources/ResourceConfig.hpp"
+#include "ECS/Context.hpp"
+#include "../Lib/Components/serialize/NetworkTraits.hpp"
 
-#include "Environment/Environment.hpp"
+#include "../Lib/Environment/Environment.hpp"
 #include "Scene/SceneManager.hpp"
 #include "Scene/LevelConfig.hpp"
 
@@ -79,6 +82,13 @@ class GameEngineBase {
 
         if (it != _networkToLocalEntity.end()) {
             current_entity = it->second;
+            // Update ownerId if provided and different
+            if (ownerId != 0 && _ecs.registry.hasComponent<NetworkIdentity>(current_entity)) {
+                auto& netId = _ecs.registry.getComponent<NetworkIdentity>(current_entity);
+                if (netId.ownerId != ownerId) {
+                    netId.ownerId = ownerId;
+                }
+            }
         } else {
             current_entity = _ecs.registry.createEntity();
             _networkToLocalEntity[entity_guid] = current_entity;

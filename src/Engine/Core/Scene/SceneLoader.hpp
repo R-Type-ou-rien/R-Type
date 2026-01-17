@@ -91,6 +91,8 @@ class SceneLoader {
             config.game_config = value;
         else if (key == "spawn_script")
             config.spawn_script = value;
+        else if (key == "next_level")
+            config.next_level = value;
     }
 
     static void parseWallEntry(LevelConfig& config, const std::string& value) {

@@ -169,6 +169,56 @@ inline message<GameEvents>& operator>>(message<GameEvents>& msg, lobby_info& inf
     return msg;
 }
 
+// Structure pour une entrée de score d'un joueur
+struct PlayerScore {
+    uint32_t client_id;
+    int32_t score;
+    bool is_alive;
+};
+
+// Structure pour le message S_GAME_OVER avec tous les scores
+struct GameOverPacket {
+    bool victory;  // true = victoire, false = défaite
+    uint32_t player_count;
+    PlayerScore players[8];  // Maximum 8 joueurs
+};
+
+// Serialization operators for GameOverPacket
+inline message<GameEvents>& operator<<(message<GameEvents>& msg, const GameOverPacket& packet) {
+    msg << packet.victory;
+    for (uint32_t i = 0; i < packet.player_count && i < 8; i++) {
+        msg << packet.players[i].client_id;
+        msg << packet.players[i].score;
+        msg << packet.players[i].is_alive;
+    }
+    msg << packet.player_count;
+    return msg;
+}
+
+inline message<GameEvents>& operator>>(message<GameEvents>& msg, GameOverPacket& packet) {
+    // CRITICAL: Message system is LIFO (Last In First Out)
+    // Must read in REVERSE order of serialization
+
+    // Lire d'abord player_count et victory (en ordre inverse)
+    msg >> packet.player_count;
+
+    // Sécurité: limiter player_count à 8 maximum
+    if (packet.player_count > 8) {
+        packet.player_count = 8;
+    }
+
+    // Lire UNIQUEMENT les joueurs qui ont été sérialisés (en ordre inverse)
+    for (int i = static_cast<int>(packet.player_count) - 1; i >= 0; i--) {
+        msg >> packet.players[i].is_alive;
+        msg >> packet.players[i].score;
+        msg >> packet.players[i].client_id;
+    }
+
+    msg >> packet.victory;
+
+    return msg;
+}
+
 // Serialization for lobby_in_info
 inline message<GameEvents>& operator<<(message<GameEvents>& msg, const lobby_in_info& info) {
     msg << info.id;

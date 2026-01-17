@@ -3,8 +3,12 @@
 #include <sstream>
 #include <iostream>
 #include <algorithm>
+#include <string>
+#include <vector>
+#include <set>
 
-void ConfigLoader::parseFile(const std::string& filepath, std::function<void(const std::string&, const std::string&, const std::string&)> callback) {
+void ConfigLoader::parseFile(const std::string& filepath,
+                             std::function<void(const std::string&, const std::string&, const std::string&)> callback) {
     std::ifstream file(filepath);
 
     if (!file.is_open()) {
@@ -21,7 +25,7 @@ void ConfigLoader::parseFile(const std::string& filepath, std::function<void(con
         if (comment != std::string::npos) {
             line = line.substr(0, comment);
         }
-        
+
         std::string clean = ParsingUtils::trim(line);
 
         if (clean.empty()) {
@@ -42,7 +46,8 @@ void ConfigLoader::parseFile(const std::string& filepath, std::function<void(con
     }
 }
 
-void ConfigLoader::validate(const std::string& context, const std::set<std::string>& found, const std::set<std::string>& required) {
+void ConfigLoader::validate(const std::string& context, const std::set<std::string>& found,
+                            const std::set<std::string>& required) {
     std::string missing;
 
     for (const auto& field : required) {
@@ -59,7 +64,7 @@ void ConfigLoader::validate(const std::string& context, const std::set<std::stri
 template <>
 const ConfigBinder<EntityConfig>& ConfigLoader::getBinder<EntityConfig>() {
     static ConfigBinder<EntityConfig> binder;
-    
+
     if (binder.bindings.empty()) {
         binder.bind("hp", &EntityConfig::hp);
         binder.bind("max_hp", &EntityConfig::hp);
@@ -170,7 +175,7 @@ const ConfigBinder<UIConfig::Element>& ConfigLoader::getBinder<UIConfig::Element
         binder.bind("icon_size", &UIConfig::Element::icon_size);
         binder.bind("icon_spacing", &UIConfig::Element::icon_spacing);
         binder.bind("font", &UIConfig::Element::font);
-        binder.bind("color", &UIConfig::Element::color); 
+        binder.bind("color", &UIConfig::Element::color);
     }
     return binder;
 }
@@ -185,10 +190,9 @@ const ConfigBinder<MasterConfig>& ConfigLoader::getBinder<MasterConfig>() {
         binder.bind("boss", &MasterConfig::boss_config);
         binder.bind("game", &MasterConfig::game_config);
         binder.bind("ui", &MasterConfig::ui_config);
-        binder.bind("resources", &MasterConfig::resources_config);        
-        binder.bindCustom("level", [](MasterConfig& cfg, const std::string& v) {
-            cfg.levels.push_back(ParsingUtils::trim(v));
-        });
+        binder.bind("resources", &MasterConfig::resources_config);
+        binder.bindCustom("levels",
+                          [](MasterConfig& cfg, const std::string& v) { cfg.levels.push_back(ParsingUtils::trim(v)); });
     }
     return binder;
 }

@@ -13,6 +13,7 @@
 #include "src/RType/Common/Components/charged_shot.hpp"
 #include "src/RType/Common/Components/status_display_components.hpp"
 #include "src/RType/Common/Components/terrain_component.hpp"
+#include "src/Engine/Lib/Components/LobbyIdComponent.hpp"
 #include "src/RType/Common/Systems/behavior.hpp"
 #include "src/RType/Common/Systems/score.hpp"
 #include "src/RType/Common/Systems/animation_helper.hpp"
@@ -22,8 +23,9 @@
 #include "src/RType/Common/Systems/projectile_cleanup.hpp"
 #include "src/RType/Common/Systems/pod_system.hpp"
 #include "src/RType/Common/Systems/status_display.hpp"
-#include "src/RType/Common/Systems/level_transition.hpp"
+#include "src/RType/Common/Systems/leaderboard_system.hpp"
 #include "src/RType/Common/Systems/game_state_system.hpp"
+#include "src/RType/Common/Systems/level_transition.hpp"
 #include "src/Engine/Lib/Systems/PatternSystem/PatternSystem.hpp"
 #include "src/Engine/Lib/Systems/PlayerBoundsSystem.hpp"
 #include "src/Engine/Core/Scene/SceneLoader.hpp"
@@ -39,7 +41,6 @@ void GameManager::initSystems(std::shared_ptr<Environment> env) {
 
     // Game logic systems - server only (NOT client)
     if (!env->isClient()) {
-        std::cout << "[GameManager] Initializing gameplay systems (Server mode)" << std::endl;
         ecs.systems.addSystem<BoxCollision>();
         ecs.systems.addSystem<ShooterSystem>();
         ecs.systems.addSystem<Damage>();
@@ -57,14 +58,13 @@ void GameManager::initSystems(std::shared_ptr<Environment> env) {
         ecs.systems.addSystem<GameStateSystem>();
         ecs.systems.addSystem<PhysicsSystem>();
         ecs.systems.addSystem<ActionScriptSystem>();
-    } else {
-        std::cout << "[GameManager] Skipping gameplay systems (Client mode - server handles all logic)" << std::endl;
     }
 
     ecs.systems.addSystem<DestructionSystem>();
 
     if (!env->isServer()) {
         ecs.systems.addSystem<StatusDisplaySystem>();
+        ecs.systems.addSystem<LeaderboardSystem>();
         ecs.systems.addSystem<LevelTransitionSystem>();
     }
 }
@@ -102,7 +102,6 @@ void GameManager::initBounds(std::shared_ptr<Environment> env) {
 
 void GameManager::initPlayer(std::shared_ptr<Environment> env) {
     if (env->isServer() || env->isClient()) {
-        std::cout << "[GameManager] Multiplayer mode: Player spawning handled by network replication" << std::endl;
         return;
     }
 
@@ -137,11 +136,15 @@ void GameManager::initPlayer(std::shared_ptr<Environment> env) {
         player_pod.pod_attached = false;
         player_pod.last_known_hp = _player_config.hp.value_or(5);
         ecs.registry.addComponent<PlayerPodComponent>(_player->getId(), player_pod);
+        ecs.registry.addComponent<ScoreComponent>(_player->getId(), {0, 0});
     }
 }
 
 void GameManager::initSpawner(std::shared_ptr<Environment> env, const LevelConfig& config) {
     auto& ecs = env->getECS();
+
+    // Use the current lobby ID for entity tagging
+    uint32_t lobbyId = _currentLobbyId;
 
     if (!env->isClient()) {
         Entity timer_entity = ecs.registry.createEntity();
@@ -150,6 +153,9 @@ void GameManager::initSpawner(std::shared_ptr<Environment> env, const LevelConfi
         timer_net_id.guid = timer_entity;
         timer_net_id.ownerId = 0;
         ecs.registry.addComponent<NetworkIdentity>(timer_entity, timer_net_id);
+        if (lobbyId != 0) {
+            ecs.registry.addComponent<LobbyIdComponent>(timer_entity, {lobbyId});
+        }
 
         Entity spawner = ecs.registry.createEntity();
         EnemySpawnComponent spawn_comp;
@@ -159,14 +165,23 @@ void GameManager::initSpawner(std::shared_ptr<Environment> env, const LevelConfi
         spawn_comp.boss_config_path = config.boss_config;
         spawn_comp.boss_section = config.boss_section;
         spawn_comp.game_config_path = config.game_config;
+        spawn_comp.lobby_id = lobbyId;  // Set lobby ID for spawned entities
 
         ecs.registry.addComponent<EnemySpawnComponent>(spawner, spawn_comp);
         ecs.registry.addComponent<NetworkIdentity>(spawner, {static_cast<uint32_t>(spawner), 0});
+        if (lobbyId != 0) {
+            ecs.registry.addComponent<LobbyIdComponent>(spawner, {lobbyId});
+        }
 
         Entity scripted_spawner = ecs.registry.createEntity();
         ScriptedSpawnComponent scripted_spawn_comp;
         scripted_spawn_comp.script_path = config.spawn_script;
         ecs.registry.addComponent<ScriptedSpawnComponent>(scripted_spawner, scripted_spawn_comp);
+        ecs.registry.addComponent<EnemySpawnComponent>(scripted_spawner,
+                                                       spawn_comp);  // Associate with spawn_comp for lobby_id
+        if (lobbyId != 0) {
+            ecs.registry.addComponent<LobbyIdComponent>(scripted_spawner, {lobbyId});
+        }
 
         Entity pod_spawner = ecs.registry.createEntity();
         PodSpawnComponent pod_spawn_comp;
@@ -175,6 +190,9 @@ void GameManager::initSpawner(std::shared_ptr<Environment> env, const LevelConfi
         pod_spawn_comp.max_spawn_interval = _game_config.pod_max_spawn_interval.value_or(20.0f);
         pod_spawn_comp.can_spawn = true;
         ecs.registry.addComponent<PodSpawnComponent>(pod_spawner, pod_spawn_comp);
+        if (lobbyId != 0) {
+            ecs.registry.addComponent<LobbyIdComponent>(pod_spawner, {lobbyId});
+        }
     }
 }
 
@@ -242,11 +260,16 @@ void GameManager::initScene(std::shared_ptr<Environment> env, const LevelConfig&
 
     _scene_manager = std::make_unique<SceneManager>(ecs.registry);
 
+    // Set the current lobby ID for scene entities
+    if (_currentLobbyId != 0) {
+        _scene_manager->setCurrentLobbyId(_currentLobbyId);
+    }
+
     ScenePrefabs::registerAll(*_scene_manager, env->getTextureManager());
 
     try {
         _scene_manager->loadScene(config);
-        std::cout << "GameManager: Loaded scene '" << config.name << "'" << std::endl;
+        std::cout << "GameManager: Loaded scene '" << config.name << "' for lobby " << _currentLobbyId << std::endl;
     } catch (const std::exception& e) {
         std::cerr << "GameManager: Failed to load scene: " << e.what() << std::endl;
     }
@@ -281,6 +304,11 @@ std::shared_ptr<Player> GameManager::createPlayerForClient(std::shared_ptr<Envir
     // Add NetworkIdentity for replication and input handling
     ecs.registry.addComponent<NetworkIdentity>(newPlayer->getId(), {newPlayer->getId(), clientId});
 
+    // Add LobbyIdComponent for lobby isolation
+    if (_currentLobbyId != 0) {
+        ecs.registry.addComponent<LobbyIdComponent>(newPlayer->getId(), {_currentLobbyId});
+    }
+
     // Add ChargedShotComponent
     ChargedShotComponent charged_shot;
     charged_shot.min_charge_time = _player_config.min_charge_time.value_or(0.5f);
@@ -299,7 +327,5 @@ std::shared_ptr<Player> GameManager::createPlayerForClient(std::shared_ptr<Envir
     ScoreComponent playerScore{0, 0};
     ecs.registry.addComponent<ScoreComponent>(newPlayer->getId(), playerScore);
 
-    std::cout << "[GameManager] Created player entity " << newPlayer->getId() << " for client " << clientId
-              << std::endl;
     return newPlayer;
 }

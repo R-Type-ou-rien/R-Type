@@ -1,10 +1,16 @@
 #include "DestructionSystem.hpp"
 #include <iostream>
 #include <variant>
+#include <vector>
+#include <memory>
 #include "Components/StandardComponents.hpp"
 #include "Components/NetworkComponents.hpp"
 #include "Context.hpp"
 #include "Network.hpp"
+#include "../../../RType/Common/Components/spawn.hpp"
+#include "../../../RType/Common/Components/game_timer.hpp"
+#include "../../../RType/Common/Components/scripted_spawn.hpp"
+#include "../../../RType/Common/Systems/health.hpp"
 
 #if defined(SERVER_BUILD)
 #include "NetworkEngine/NetworkEngine.hpp"
@@ -18,6 +24,13 @@ void DestructionSystem::update(Registry& registry, system_context context) {
     // Copy entities to separate vector to avoid iterator invalidation during destruction
     std::vector<Entity> to_destroy;
     for (auto entity : entities) {
+        // Protect system entities from accidental destruction
+        if (registry.hasComponent<EnemySpawnComponent>(entity) || registry.hasComponent<GameTimerComponent>(entity) ||
+            registry.hasComponent<ScriptedSpawnComponent>(entity)) {
+            // Remove PendingDestruction to keep system entities alive
+            registry.removeComponent<PendingDestruction>(entity);
+            continue;
+        }
         to_destroy.push_back(entity);
     }
 
@@ -56,8 +69,6 @@ void DestructionSystem::update(Registry& registry, system_context context) {
                         server->AddMessageToPlayer(network::GameEvents::S_ENTITY_DESTROY, client.id, netId.guid);
                     }
                 }
-                std::cout << "[DestructionSystem] Sent destroy packet for entity " << entity << " guid=" << netId.guid
-                          << std::endl;
             }
         }
     }

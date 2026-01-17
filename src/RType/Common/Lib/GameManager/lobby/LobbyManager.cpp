@@ -452,6 +452,13 @@ void LobbyManager::updateLobby(std::shared_ptr<Environment> env, sf::RenderWindo
 #endif
 
     if (mousePressed && !_mouseWasPressed) {
+        // DEBUG LOGGING
+        if (isMouseOverButton(window, startBtnX, startBtnY, startBtnW, startBtnH)) {
+            std::cout << "[LobbyManager DEBUG] Clicked Start area. Host? " << isLocalPlayerHost(localPlayerId)
+                      << " (Local: " << localPlayerId << ", Host: " << _hostId << ")"
+                      << " AllReady? " << areAllPlayersReady() << std::endl;
+        }
+
 #ifdef CLIENT_BUILD
         if (_voiceManager) {
             engine::voice::VoiceManager* vm = static_cast<engine::voice::VoiceManager*>(_voiceManager);
@@ -693,8 +700,10 @@ bool LobbyManager::areAllPlayersReady() const {
     if (_playersInLobby.empty())
         return false;
     for (const auto& p : _playersInLobby) {
-        if (!p.isReady)
+        if (!p.isReady) {
+            // std::cout << "[LobbyManager DEBUG] Player " << p.id << " (" << p.name << ") is NOT ready." << std::endl;
             return false;
+        }
     }
     return true;
 }

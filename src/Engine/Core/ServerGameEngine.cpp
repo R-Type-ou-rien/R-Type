@@ -9,7 +9,13 @@
 #include <chrono>
 #include <iostream>
 #include <ostream>
+#include <set>
+#include <memory>
+#include <utility>
 #include <thread>
+#include <vector>
+#include <tuple>
+#include <algorithm>
 #include "Components/NetworkComponents.hpp"
 #include "Context.hpp"
 #include "GameEngineBase.hpp"
@@ -29,6 +35,8 @@
 #include "../../RType/Common/Components/pod_component.hpp"
 #include "../../RType/Common/Components/charged_shot.hpp"
 #include "../../RType/Common/Components/scripted_spawn.hpp"
+#include "../Lib/Components/LobbyIdComponent.hpp"
+#include "../Lib/Utils/LobbyUtils.hpp"
 #include "../../RType/Common/Systems/behavior.hpp"
 #include "../../RType/Common/Entities/Player/Player.hpp"
 #include "../../RType/Common/Systems/spawn.hpp"
@@ -97,6 +105,47 @@ int ServerGameEngine::init() {
                                   callback(id, (int)lobby.getState(), clientIds);
                               }
                           }));
+
+    // Expose Broadcast Game Over
+    _env->addFunction(
+        "broadcastGameOver",
+        std::function<void(uint32_t, bool, const std::vector<std::tuple<uint32_t, int, bool>>&)>(
+            [this](uint32_t lobbyId, bool victory, const std::vector<std::tuple<uint32_t, int, bool>>& scores) {
+                network::GameOverPacket packet;
+                packet.victory = victory;
+                packet.player_count = std::min((size_t)8, scores.size());
+                for (size_t i = 0; i < packet.player_count; ++i) {
+                    packet.players[i].client_id = std::get<0>(scores[i]);
+                    packet.players[i].score = std::get<1>(scores[i]);
+                    packet.players[i].is_alive = std::get<2>(scores[i]);
+                }
+
+                auto network_instance = _network->getNetworkInstance();
+                if (std::holds_alternative<std::shared_ptr<network::Server>>(network_instance)) {
+                    auto server = std::get<std::shared_ptr<network::Server>>(network_instance);
+
+                    auto lobbyOpt = _lobbyManager.getLobby(lobbyId);
+                    if (lobbyOpt) {
+                        // Broadcast S_GAME_OVER
+                        for (const auto& client : lobbyOpt->get().getClients()) {
+                            network::message<network::GameEvents> msg;
+                            msg.header.id = network::GameEvents::S_GAME_OVER;
+                            msg << packet;
+                            server->AddMessageToPlayer(network::GameEvents::S_GAME_OVER, client.id, msg);
+                        }
+
+                        // Reset lobby state to WAITING so players can restart or leave
+                        lobbyOpt->get().setState(engine::core::Lobby::State::WAITING);
+
+                        // Reset all players to Unready
+                        for (const auto& client : lobbyOpt->get().getClients()) {
+                            lobbyOpt->get().setPlayerReady(client.id, false);
+                        }
+
+                        std::cout << "SERVER: Broadcasted Game Over for lobby " << lobbyId << std::endl;
+                    }
+                }
+            }));
 
     return SUCCESS;
 }
@@ -285,10 +334,17 @@ void ServerGameEngine::processNetworkEvents() {
         }
         auto server = std::get<std::shared_ptr<network::Server>>(network_instance);
 
+        // Get the lobby this client belongs to
+        uint32_t clientLobbyId = 0;
+        auto lobbyOpt = _lobbyManager.getLobbyForClient(clientId);
+        if (lobbyOpt.has_value()) {
+            clientLobbyId = lobbyOpt->get().getId();
+        }
+
         SerializationContext s_ctx = {_texture_manager};
         auto& pools = _ecs.registry.getComponentPools();
 
-        // Send full game state to this client
+        // Send full game state to this client (only entities in their lobby)
         int totalPacketsSent = 0;
         for (auto& [type, pool] : pools) {
             uint32_t typeHash = pool->getTypeHash();
@@ -302,20 +358,19 @@ void ServerGameEngine::processNetworkEvents() {
                     continue;
                 }
 
+                // Filter by lobby: only send entities from the same lobby or global entities (lobbyId=0)
+                uint32_t entityLobbyId = engine::utils::getLobbyId(_ecs.registry, entity);
+                if (entityLobbyId != 0 && entityLobbyId != clientLobbyId) {
+                    continue;  // Skip entities from other lobbies
+                }
+
                 ComponentPacket packet = pool->createPacket(entity, s_ctx);
                 packet.entity_guid = _ecs.registry.getConstComponent<NetworkIdentity>(entity).guid;
+                packet.owner_id = _ecs.registry.getConstComponent<NetworkIdentity>(entity).ownerId;
                 server->AddMessageToPlayer(network::GameEvents::S_SNAPSHOT, clientId, packet);
                 totalPacketsSent++;
-
-                // Log sprite components being sent
-                if (typeHash == 134294793) {
-                    std::cout << "SERVER: [POST-UDP] Sending SPRITE for entity guid=" << packet.entity_guid
-                              << " to client " << clientId << std::endl;
-                }
             }
         }
-        std::cout << "SERVER: [POST-UDP] Sent " << totalPacketsSent << " component packets to client " << clientId
-                  << std::endl;
 
         // Tell the client which entity is their player
         auto playerIt = _players.find(clientId);
@@ -342,7 +397,6 @@ int ServerGameEngine::run() {
     init();
 
     if (_init_function) {
-        std::cout << "SERVER: Running init function" << std::endl;
         _init_function(_env, input_manager);
     }
 

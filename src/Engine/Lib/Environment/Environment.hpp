@@ -1,6 +1,7 @@
-#include "ECS.hpp"
-#include "ResourceConfig.hpp"
-#include "slot_map/slot_map.hpp"
+#pragma once
+#include "../../Core/ECS/ECS.hpp"
+#include "../../Resources/ResourceConfig.hpp"
+#include "../../Core/ECS/Utils/slot_map/slot_map.hpp"
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -14,6 +15,12 @@
 enum class SpawnPolicy { AUTHORITATIVE, PREDICTED, LOCAL_ONLY };
 
 enum class EnvMode { SERVER, CLIENT, STANDALONE };
+
+namespace engine {
+namespace core {
+class NetworkEngine;
+}
+}  // namespace engine
 
 class Environment {
    public:
