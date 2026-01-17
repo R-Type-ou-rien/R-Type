@@ -1,6 +1,7 @@
 #include "LobbyManager.hpp"
 #include <algorithm>
 #include <utility>
+#include <string>
 
 namespace engine {
 namespace core {
@@ -10,25 +11,35 @@ bool Lobby::addClient(const ClientInfo& client) {
     if (isFull()) {
         return false;
     }
-    auto it = std::find_if(_clients.begin(), _clients.end(), [&](const ClientInfo& c) {
-        return c.id == client.id;
-    });
+    auto it = std::find_if(_clients.begin(), _clients.end(), [&](const ClientInfo& c) { return c.id == client.id; });
     if (it == _clients.end()) {
         _clients.push_back(client);
         return true;
     }
-    return false; // Client already in lobby
+    return false;  // Client already in lobby
 }
 
 bool Lobby::removeClient(uint32_t clientId) {
-    auto it = std::remove_if(_clients.begin(), _clients.end(), [&](const ClientInfo& client) {
-        return client.id == clientId;
-    });
+    auto it = std::remove_if(_clients.begin(), _clients.end(),
+                             [&](const ClientInfo& client) { return client.id == clientId; });
     if (it != _clients.end()) {
         _clients.erase(it, _clients.end());
         return true;
     }
     return false;
+}
+
+void Lobby::setPlayerReady(uint32_t clientId, bool ready) {
+    auto it = std::find_if(_clients.begin(), _clients.end(), [&](const ClientInfo& c) { return c.id == clientId; });
+    if (it != _clients.end()) {
+        it->isReady = ready;
+    }
+}
+
+bool Lobby::areAllPlayersReady() const {
+    if (_clients.empty())
+        return false;
+    return std::all_of(_clients.begin(), _clients.end(), [](const ClientInfo& c) { return c.isReady; });
 }
 
 // LobbyManager methods
@@ -58,23 +69,28 @@ Lobby& LobbyManager::createLobby(std::string name, uint32_t maxPlayers) {
 bool LobbyManager::joinLobby(uint32_t lobbyId, uint32_t clientId) {
     auto lobbyIt = _lobbies.find(lobbyId);
     if (lobbyIt == _lobbies.end()) {
-        return false; // Lobby not found
+        return false;  // Lobby not found
     }
 
     auto clientIt = _connectedClients.find(clientId);
     if (clientIt == _connectedClients.end()) {
-        return false; // Client not found
+        return false;  // Client not found
     }
-    
+
     // If client is already in another lobby, leave it first
     leaveLobby(clientId);
 
+    bool wasEmpty = lobbyIt->second.getPlayerCount() == 0;
     if (lobbyIt->second.addClient(clientIt->second)) {
         _clientToLobbyMap[clientId] = lobbyId;
+        // First player to join becomes the host
+        if (wasEmpty) {
+            lobbyIt->second.setHostId(clientId);
+        }
         return true;
     }
-    
-    return false; // Lobby is full or client already in it
+
+    return false;  // Lobby is full or client already in it
 }
 
 bool LobbyManager::leaveLobby(uint32_t clientId) {
@@ -88,7 +104,7 @@ bool LobbyManager::leaveLobby(uint32_t clientId) {
         _clientToLobbyMap.erase(mappingIt);
         return true;
     }
-    return false; // Client was not in any lobby
+    return false;  // Client was not in any lobby
 }
 
 std::optional<std::reference_wrapper<Lobby>> LobbyManager::getLobby(uint32_t lobbyId) {
@@ -107,5 +123,5 @@ std::optional<std::reference_wrapper<Lobby>> LobbyManager::getLobbyForClient(uin
     return std::nullopt;
 }
 
-} // namespace core
-} // namespace engine
+}  // namespace core
+}  // namespace engine

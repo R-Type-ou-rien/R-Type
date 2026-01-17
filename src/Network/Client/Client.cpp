@@ -64,13 +64,17 @@ network::coming_message network::Client::ReadIncomingMessage() {
             std::ofstream expiration_file(static_cast<std::string>(TOKEN_FILENAME) + ".expire");
             expiration_file << expiration_timestamp;
         } else if (msg.msg.header.id == GameEvents::S_SEND_ID) {
-            msg.msg >> _id;
+            auto temp_msg = msg.msg;
+            temp_msg >> _id;
             std::cout << "[CLIENT] ID Received: " << _id << "\n";
-            continue;
+
+            coming_message comingMsg;
+            comingMsg.id = msg.msg.header.id;
+            comingMsg.msg = msg.msg;
+            return comingMsg;
         } else if (msg.msg.header.id == GameEvents::S_CONFIRM_UDP) {
             AddMessageToServer(GameEvents::C_CONFIRM_UDP, 0, 0);
-            std::cout << "[CLIENT] Confirm UDP\n";
-            continue;
+            return ReadIncomingMessage();
         }
         coming_message comingMsg;
         comingMsg.id = msg.msg.header.id;

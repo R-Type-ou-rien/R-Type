@@ -17,8 +17,7 @@
 #include "../../../Core/ECS/Utils/slot_map/slot_map.hpp"
 #include "../../../Resources/ResourceConfig.hpp"
 
-struct Sprite2D
-{
+struct Sprite2D {
     static constexpr auto name = "StaticSprite2DComponent";
     handle_t<TextureAsset> handle;
     struct Rect2D rect;

@@ -9,7 +9,8 @@ enemies_config=src/RType/Common/content/config/enemies.cfg
 boss_config=src/RType/Common/content/config/boss.cfg
 boss_section=BOSS_LEVEL1
 game_config=src/RType/Common/content/config/game.cfg
-spawn_script=src/RType/Common/content/config/level1_spawns.cfg
+spawn_script=src/RType/Common/content/config/levels/level1_spawns.cfg
+next_level=src/RType/Common/content/config/levels/level2.scene
 
 # Walls - Format: wall=x,y,width,height,sprite_path,destructible
 # Floor walls (bottom)

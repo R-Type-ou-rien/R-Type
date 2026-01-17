@@ -10,6 +10,8 @@
 
 #include <algorithm>
 #include <iostream>
+#include <vector>
+#include <utility>
 
 static void applyFlip(sf::Sprite& spr, bool flipX, bool flipY) {
     const auto rect = spr.getTextureRect();

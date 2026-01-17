@@ -5,7 +5,8 @@
 #include "src/RType/Common/Systems/score.hpp"
 #include "CollisionSystem.hpp"
 
-Player::Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<float, float> pos, const EntityConfig& config)
+Player::Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<float, float> pos,
+               const EntityConfig& config)
     : DynamicActor(ecs, true, textures, "PLAYER") {
     int hp = config.hp.value_or(5);
     float speed = config.speed.value_or(200.0f);
@@ -18,7 +19,7 @@ Player::Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<floa
     addResourceStat("lifepoint", lifepoint);
     setPosition(pos);
     _ecs.registry.addComponent<TeamComponent>(_id, {TeamComponent::Team::ALLY});
-    
+
     ShooterComponent shooter;
     shooter.fire_rate = config.fire_rate.value_or(0.25f);
     _ecs.registry.addComponent<ShooterComponent>(_id, shooter);
@@ -27,6 +28,8 @@ Player::Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<floa
     _ecs.registry.addComponent<DamageOnCollision>(_id, {0});
 
     bindActionCallbackPressed("move_left", [this, speed](Registry&, system_context, Entity) {
+        if (this->getCurrentHealth() <= 0)
+            return;
         this->setVelocity({-speed, this->getvelocity().second});
     });
 
@@ -35,6 +38,8 @@ Player::Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<floa
     });
 
     bindActionCallbackPressed("move_right", [this, speed](Registry&, system_context, Entity) {
+        if (this->getCurrentHealth() <= 0)
+            return;
         this->setVelocity({speed, this->getvelocity().second});
     });
 
@@ -43,15 +48,17 @@ Player::Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<floa
     });
 
     bindActionCallbackPressed("move_up", [this, speed](Registry&, system_context, Entity) {
+        if (this->getCurrentHealth() <= 0)
+            return;
         this->setVelocity({this->getvelocity().first, -speed});
     });
 
     bindActionCallbackOnReleased(
-        "move_up", [this](Registry&, system_context, Entity) {
-            this->setVelocity({this->getvelocity().first, 0.0f});
-        });
+        "move_up", [this](Registry&, system_context, Entity) { this->setVelocity({this->getvelocity().first, 0.0f}); });
 
     bindActionCallbackPressed("move_down", [this, speed](Registry&, system_context, Entity) {
+        if (this->getCurrentHealth() <= 0)
+            return;
         this->setVelocity({this->getvelocity().first, speed});
     });
 
@@ -60,6 +67,8 @@ Player::Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<floa
     });
 
     bindActionCallbackPressed("shoot", [this](Registry& registry, system_context, Entity entity) {
+        if (this->getCurrentHealth() <= 0)
+            return;
         if (registry.hasComponent<ShooterComponent>(entity)) {
             auto& shoot = registry.getComponent<ShooterComponent>(entity);
             shoot.is_shooting = true;
@@ -84,6 +93,8 @@ Player::Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<floa
     });
 
     bindActionCallbackPressed("toggle_pod", [this](Registry& registry, system_context, Entity entity) {
+        if (this->getCurrentHealth() <= 0)
+            return;
         if (registry.hasComponent<PlayerPodComponent>(entity)) {
             auto& player_pod = registry.getComponent<PlayerPodComponent>(entity);
             if (player_pod.has_pod) {

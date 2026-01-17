@@ -224,7 +224,7 @@ class ServerInterface {
                 bInvalidClientExists = true;
                 continue;
             }
-            // client->ResetTimeout();
+            client->ResetTimeout();
         }
 
         if (bInvalidClientExists) {

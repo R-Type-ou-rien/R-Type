@@ -1,5 +1,8 @@
 #pragma once
 
+#include <vector>
+#include <string>
+#include <iostream>
 #include "Components/StandardComponents.hpp"
 #include "ResourceConfig.hpp"
 #include "serialize.hpp"
@@ -217,8 +220,10 @@ inline sprite2D_component_s deserialize_sprite_2d_component(const std::vector<ui
             }
 
             if (!loaded) {
-                std::cerr << "Client: CRITICAL ERROR: Failed to load texture: " << name << " from any path."
+                std::cout << "Client: CRITICAL ERROR: Failed to load texture: " << name << " from any path."
                           << std::endl;
+            } else {
+                std::cout << "[Client] Successfully loaded texture: " << name << std::endl;
             }
             component.handle = resourceManager.load(name, texture);
 #else

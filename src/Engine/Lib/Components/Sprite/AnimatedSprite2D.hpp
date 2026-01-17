@@ -19,12 +19,8 @@
 #include "../../../Core/ECS/Utils/slot_map/slot_map.hpp"
 #include "../../../Resources/ResourceConfig.hpp"
 
-enum class AnimationMode {
-    Loop,
-    Once,
-    PingPong
-};
-    
+enum class AnimationMode { Loop, Once, PingPong };
+
 struct AnimationClip {
     handle_t<TextureAsset> handle;
     std::vector<Rect2D> frames;
@@ -32,8 +28,7 @@ struct AnimationClip {
     AnimationMode mode = AnimationMode::Loop;
 };
 
-struct AnimatedSprite2D
-{
+struct AnimatedSprite2D {
     static constexpr auto name = "AnimatedSprite2DComponent";
     RenderLayer layer = RenderLayer::Midground;
 
@@ -48,8 +43,7 @@ struct AnimatedSprite2D
     bool flipX = false;
     bool flipY = false;
 
-    void play(const std::string& name, bool restart = true)
-    {
+    void play(const std::string& name, bool restart = true) {
         if (currentAnimation != name || restart) {
             currentAnimation = name;
             currentFrameIndex = 0;
@@ -59,18 +53,11 @@ struct AnimatedSprite2D
         playing = true;
     }
 
-    void stop()
-    {
-        playing = false;
-    }
+    void stop() { playing = false; }
 
-    bool isPlaying() const
-    {
-        return playing;
-    }
+    bool isPlaying() const { return playing; }
 
-    void playIfNotPlaying(const std::string& name)
-    {
+    void playIfNotPlaying(const std::string& name) {
         if (!playing || currentAnimation != name)
             play(name);
     }

@@ -11,7 +11,8 @@
 #include "../../Components/mob_component.hpp"
 #include <string>
 
-void ObstacleSpawner::spawn(Registry& registry, system_context context, float x, float y, const EntityConfig& config) {
+Entity ObstacleSpawner::spawn(Registry& registry, system_context context, float x, float y,
+                              const EntityConfig& config) {
     Entity id = registry.createEntity();
     const int hp = config.hp.value_or(MobDefaults::Obstacle::HP);
     const int damage = config.damage.value_or(MobDefaults::Obstacle::DAMAGE);
@@ -43,8 +44,7 @@ void ObstacleSpawner::spawn(Registry& registry, system_context context, float x,
         static_cast<float>(config.sprite_x.value_or(static_cast<int>(MobDefaults::Obstacle::SPRITE_X))),
         static_cast<float>(config.sprite_y.value_or(static_cast<int>(MobDefaults::Obstacle::SPRITE_Y))),
         static_cast<float>(config.sprite_w.value_or(static_cast<int>(MobDefaults::Obstacle::SPRITE_W))),
-        static_cast<float>(config.sprite_h.value_or(static_cast<int>(MobDefaults::Obstacle::SPRITE_H)))
-    );
+        static_cast<float>(config.sprite_h.value_or(static_cast<int>(MobDefaults::Obstacle::SPRITE_H))));
     animation.animations.emplace("idle", clip);
     animation.currentAnimation = "idle";
     animation.layer = static_cast<RenderLayer>(MobDefaults::Sprite::Z_INDEX);
@@ -58,4 +58,6 @@ void ObstacleSpawner::spawn(Registry& registry, system_context context, float x,
     registry.addComponent<BoxCollisionComponent>(id, MobComponentFactory::createEnemyCollision(config));
     registry.addComponent<TagComponent>(id, MobComponentFactory::createObstacleTags());
     registry.addComponent<NetworkIdentity>(id, {static_cast<uint32_t>(id), 0});
+
+    return id;
 }

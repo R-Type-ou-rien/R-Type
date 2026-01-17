@@ -65,8 +65,7 @@ void BehaviorSystem::updateFollowPlayer(Registry& registry, system_context conte
     }
 }
 
-void BehaviorSystem::updateShootAtPlayer(Registry& registry, Entity enemy, Entity player) {
-}
+void BehaviorSystem::updateShootAtPlayer(Registry& registry, Entity enemy, Entity player) {}
 
 void BoundsSystem::update(Registry& registry, system_context context) {
 #if defined(CLIENT_BUILD)

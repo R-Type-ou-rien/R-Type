@@ -9,6 +9,7 @@
 
 #include <string>
 #include <vector>
+#include <utility>
 #include "config.hpp"
 #include "team_component.hpp"
 #include "../Systems/damage.hpp"
@@ -21,66 +22,62 @@
 #include "Components/Sprite/Sprite2D.hpp"
 
 namespace MobDefaults {
-    namespace Health {
-        constexpr float INVINCIBILITY_TIME = 0.0f;
-        constexpr float DAMAGE_FLASH_DURATION = 0.5f;
-        constexpr float DAMAGE_FLASH_DURATION_TANK = 0.8f;
-        constexpr float DAMAGE_FLASH_DURATION_KAMIKAZE = 0.3f;
-    }
+namespace Health {
+constexpr float INVINCIBILITY_TIME = 0.0f;
+constexpr float DAMAGE_FLASH_DURATION = 0.5f;
+constexpr float DAMAGE_FLASH_DURATION_TANK = 0.8f;
+constexpr float DAMAGE_FLASH_DURATION_KAMIKAZE = 0.3f;
+}  // namespace Health
 
-    namespace Shooter {
-        constexpr float FIRE_RATE = 1.0f;
-        constexpr int PROJECTILE_DAMAGE = 15;
-        constexpr float PROJECTILE_SCALE = 3.0f;
-        constexpr float LAST_SHOT = 0.0f;
-    }
+namespace Shooter {
+constexpr float FIRE_RATE = 1.0f;
+constexpr int PROJECTILE_DAMAGE = 15;
+constexpr float PROJECTILE_SCALE = 3.0f;
+constexpr float LAST_SHOT = 0.0f;
+}  // namespace Shooter
 
-    namespace Behavior {
-        constexpr float FOLLOW_SPEED = 100.0f;
-        constexpr float FOLLOW_SPEED_KAMIKAZE = 150.0f;
-        constexpr float FOLLOW_SPEED_TANK = 50.0f;
-    }
+namespace Behavior {
+constexpr float FOLLOW_SPEED = 100.0f;
+constexpr float FOLLOW_SPEED_KAMIKAZE = 150.0f;
+constexpr float FOLLOW_SPEED_TANK = 50.0f;
+}  // namespace Behavior
 
-    namespace Sprite {
-        constexpr int Z_INDEX = 1;
-        constexpr float ANIMATION_SPEED = 0.1f;
-        constexpr int ANIMATION_FRAMES = 1;
-    }
+namespace Sprite {
+constexpr int Z_INDEX = 1;
+constexpr float ANIMATION_SPEED = 0.1f;
+constexpr int ANIMATION_FRAMES = 1;
+}  // namespace Sprite
 
-    namespace Obstacle {
-        constexpr float VELOCITY_X = -120.0f;
-        constexpr int HP = 150;
-        constexpr int DAMAGE = 30;
-        constexpr float SCALE = 2.0f;
-        constexpr float SPRITE_X = 261.0f;
-        constexpr float SPRITE_Y = 165.0f;
-        constexpr float SPRITE_W = 32.0f;
-        constexpr float SPRITE_H = 16.0f;
-        inline const char* SPRITE_PATH = "src/RType/Common/content/sprites/wall-level1.gif";
-    }
+namespace Obstacle {
+constexpr float VELOCITY_X = -120.0f;
+constexpr int HP = 150;
+constexpr int DAMAGE = 30;
+constexpr float SCALE = 2.0f;
+constexpr float SPRITE_X = 261.0f;
+constexpr float SPRITE_Y = 165.0f;
+constexpr float SPRITE_W = 32.0f;
+constexpr float SPRITE_H = 16.0f;
+inline const char* SPRITE_PATH = "src/RType/Common/content/sprites/wall-level1.gif";
+}  // namespace Obstacle
 
-    namespace CollisionTags {
-        inline const char* FRIENDLY_PROJECTILE = "FRIENDLY_PROJECTILE";
-        inline const char* PLAYER = "PLAYER";
-    }
+namespace CollisionTags {
+inline const char* FRIENDLY_PROJECTILE = "FRIENDLY_PROJECTILE";
+inline const char* PLAYER = "PLAYER";
+}  // namespace CollisionTags
 
-    namespace EntityTags {
-        inline const char* AI = "AI";
-        inline const char* OBSTACLE = "OBSTACLE";
-        inline const char* WALL = "WALL";
-    }
-}
+namespace EntityTags {
+inline const char* AI = "AI";
+inline const char* OBSTACLE = "OBSTACLE";
+inline const char* WALL = "WALL";
+}  // namespace EntityTags
+}  // namespace MobDefaults
 
 class MobComponentFactory {
-public:
-    static HealthComponent createHealth(const EntityConfig& config, 
-                                         float damage_flash_duration = MobDefaults::Health::DAMAGE_FLASH_DURATION) {
-        return HealthComponent{
-            config.hp.value(),
-            config.hp.value(),
-            MobDefaults::Health::INVINCIBILITY_TIME,
-            damage_flash_duration
-        };
+   public:
+    static HealthComponent createHealth(const EntityConfig& config,
+                                        float damage_flash_duration = MobDefaults::Health::DAMAGE_FLASH_DURATION) {
+        return HealthComponent{config.hp.value(), config.hp.value(), MobDefaults::Health::INVINCIBILITY_TIME,
+                               damage_flash_duration};
     }
 
     static ShooterComponent createShooter(const EntityConfig& config) {
@@ -104,53 +101,38 @@ public:
         return behavior;
     }
 
-    static Sprite2D createStaticSprite(const EntityConfig& config,
-                                                    handle_t<TextureAsset> handle,
-                                                    int z_index = MobDefaults::Sprite::Z_INDEX) {
+    static Sprite2D createStaticSprite(const EntityConfig& config, handle_t<TextureAsset> handle,
+                                       int z_index = MobDefaults::Sprite::Z_INDEX) {
         Sprite2D sprite;
 
         sprite.handle = handle;
-        sprite.rect = {
-            config.sprite_x.value(),
-            config.sprite_y.value(),
-            config.sprite_w.value(),
-            config.sprite_h.value()
-        };
+        sprite.rect = {config.sprite_x.value(), config.sprite_y.value(), config.sprite_w.value(),
+                       config.sprite_h.value()};
         sprite.layer = static_cast<RenderLayer>(z_index);
         return sprite;
     }
 
-    static AnimatedSprite2D createAnimatedSprite(const EntityConfig& config,
-                                                    handle_t<TextureAsset> handle,
-                                                    int z_index = MobDefaults::Sprite::Z_INDEX) {
+    static AnimatedSprite2D createAnimatedSprite(const EntityConfig& config, handle_t<TextureAsset> handle,
+                                                 int z_index = MobDefaults::Sprite::Z_INDEX) {
         AnimatedSprite2D animation;
 
         AnimationClip clip;
 
         clip.handle = handle;
-        clip.frames.emplace_back(
-            config.sprite_x.value(),
-            config.sprite_y.value(),
-            config.sprite_w.value(),
-            config.sprite_h.value()
-        );
+        clip.frames.emplace_back(config.sprite_x.value(), config.sprite_y.value(), config.sprite_w.value(),
+                                 config.sprite_h.value());
         animation.animations.emplace("idle", clip);
         animation.currentAnimation = "idle";
         animation.layer = static_cast<RenderLayer>(z_index);
         return animation;
     }
 
-    static sprite2D_component_s createSprite(const EntityConfig& config, 
-                                              handle_t<TextureAsset> handle,
-                                              int z_index = MobDefaults::Sprite::Z_INDEX) {
+    static sprite2D_component_s createSprite(const EntityConfig& config, handle_t<TextureAsset> handle,
+                                             int z_index = MobDefaults::Sprite::Z_INDEX) {
         sprite2D_component_s sprite;
         sprite.handle = handle;
-        sprite.dimension = {
-            static_cast<float>(config.sprite_x.value()),
-            static_cast<float>(config.sprite_y.value()),
-            static_cast<float>(config.sprite_w.value()),
-            static_cast<float>(config.sprite_h.value())
-        };
+        sprite.dimension = {static_cast<float>(config.sprite_x.value()), static_cast<float>(config.sprite_y.value()),
+                            static_cast<float>(config.sprite_w.value()), static_cast<float>(config.sprite_h.value())};
         sprite.z_index = z_index;
         return sprite;
     }
@@ -203,13 +185,11 @@ public:
     }
 
     static std::pair<int, float> getAnimationParams(const EntityConfig& config) {
-        return {
-            config.animation_frames.value_or(MobDefaults::Sprite::ANIMATION_FRAMES),
-            config.animation_speed.value_or(MobDefaults::Sprite::ANIMATION_SPEED)
-        };
+        return {config.animation_frames.value_or(MobDefaults::Sprite::ANIMATION_FRAMES),
+                config.animation_speed.value_or(MobDefaults::Sprite::ANIMATION_SPEED)};
     }
 
-private:
+   private:
     static ShooterComponent::ShootPattern parseShootPattern(const std::optional<std::string>& pattern_str) {
         if (!pattern_str.has_value()) {
             return ShooterComponent::STRAIGHT;

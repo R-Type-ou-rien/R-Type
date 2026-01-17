@@ -67,9 +67,8 @@ ShooterComponent createBossShooter(const EntityConfig& config) {
 
     static const std::unordered_map<std::string, ShooterComponent::ShootPattern> pattern_map = {
         {"AIM_PLAYER", ShooterComponent::AIM_PLAYER},
-        {"SPREAD",     ShooterComponent::SPREAD},
-        {"STRAIGHT",   ShooterComponent::STRAIGHT}
-    };
+        {"SPREAD", ShooterComponent::SPREAD},
+        {"STRAIGHT", ShooterComponent::STRAIGHT}};
 
     shooter.pattern = ShooterComponent::SPREAD;
 
@@ -120,12 +119,8 @@ AnimatedSprite2D createBossAnimatedSprite(const EntityConfig& config, handle_t<T
 sprite2D_component_s createBossSprite(const EntityConfig& config, handle_t<TextureAsset> handle) {
     sprite2D_component_s sprite;
     sprite.handle = handle;
-    sprite.dimension = {
-        static_cast<float>(config.sprite_x.value()),
-        static_cast<float>(config.sprite_y.value()),
-        static_cast<float>(config.sprite_w.value()),
-        static_cast<float>(config.sprite_h.value())
-    };
+    sprite.dimension = {static_cast<float>(config.sprite_x.value()), static_cast<float>(config.sprite_y.value()),
+                        static_cast<float>(config.sprite_w.value()), static_cast<float>(config.sprite_h.value())};
     sprite.z_index = BossDefaults::Sprite::Z_INDEX;
     return sprite;
 }
@@ -185,12 +180,8 @@ AnimatedSprite2D createTailAnimatedSprite(handle_t<TextureAsset> handle, const B
 sprite2D_component_s createTailSprite(handle_t<TextureAsset> handle, const BossTailConfig& tail_config) {
     sprite2D_component_s sprite;
     sprite.handle = handle;
-    sprite.dimension = {
-        tail_config.sprite_x,
-        tail_config.sprite_y,
-        tail_config.sprite_width,
-        tail_config.sprite_height
-    };
+    sprite.dimension = {tail_config.sprite_x, tail_config.sprite_y, tail_config.sprite_width,
+                        tail_config.sprite_height};
     sprite.z_index = BossDefaults::Tail::Z_INDEX;
     sprite.is_animated = false;
     sprite.loop_animation = false;
@@ -202,8 +193,8 @@ sprite2D_component_s createTailSprite(handle_t<TextureAsset> handle, const BossT
     return sprite;
 }
 
-BossTailSegmentComponent createTailSegment(Entity boss_id, int index, int parent_id, 
-                                            float segment_spacing, const BossTailConfig& tail_config) {
+BossTailSegmentComponent createTailSegment(Entity boss_id, int index, int parent_id, float segment_spacing,
+                                           const BossTailConfig& tail_config) {
     BossTailSegmentComponent tail_comp;
     tail_comp.boss_entity_id = boss_id;
     tail_comp.segment_index = index;
@@ -214,17 +205,15 @@ BossTailSegmentComponent createTailSegment(Entity boss_id, int index, int parent
     return tail_comp;
 }
 
-void spawnTailSegments(Registry& registry, system_context& context, Entity boss_id,
-                       const BossDimensions& dims, const EntityConfig& config, const BossTailConfig& tail_config) {
+void spawnTailSegments(Registry& registry, system_context& context, Entity boss_id, const BossDimensions& dims,
+                       const EntityConfig& config, const BossTailConfig& tail_config) {
     const float boss_scale = config.scale.value_or(1.0f);
     const float tail_scale = boss_scale * tail_config.scale_multiplier;
     const float tail_size_x = tail_config.sprite_width * tail_scale;
     const float segment_spacing = tail_size_x * tail_config.spacing_ratio;
 
-    handle_t<TextureAsset> tail_handle = context.texture_manager.load(
-        tail_config.sprite_path,
-        TextureAsset(tail_config.sprite_path)
-    );
+    handle_t<TextureAsset> tail_handle =
+        context.texture_manager.load(tail_config.sprite_path, TextureAsset(tail_config.sprite_path));
 
     int previous_segment_id = boss_id;
 
@@ -237,15 +226,13 @@ void spawnTailSegments(Registry& registry, system_context& context, Entity boss_
         registry.addComponent<transform_component_s>(segment_id, {segment_x, segment_y});
         registry.addComponent<Velocity2D>(segment_id, {-config.speed.value(), 0.0f});
 
-        registry.addComponent<BossTailSegmentComponent>(segment_id,
+        registry.addComponent<BossTailSegmentComponent>(
+            segment_id,
             createTailSegment(boss_id, i, (i == 0) ? boss_id : previous_segment_id, segment_spacing, tail_config));
 
-        registry.addComponent<HealthComponent>(segment_id, {
-            tail_config.hp,
-            tail_config.hp,
-            BossDefaults::Tail::INVINCIBILITY_TIME,
-            BossDefaults::Tail::DAMAGE_FLASH_DURATION
-        });
+        registry.addComponent<HealthComponent>(segment_id,
+                                               {tail_config.hp, tail_config.hp, BossDefaults::Tail::INVINCIBILITY_TIME,
+                                                BossDefaults::Tail::DAMAGE_FLASH_DURATION});
         registry.addComponent<TeamComponent>(segment_id, {TeamComponent::ENEMY});
         registry.addComponent<DamageOnCollision>(segment_id, {tail_config.collision_damage});
 
@@ -264,12 +251,13 @@ void spawnTailSegments(Registry& registry, system_context& context, Entity boss_
     }
 }
 
-void BossSpawner::spawn(Registry& registry, system_context context, float x, float y, const EntityConfig& config) {
+Entity BossSpawner::spawn(Registry& registry, system_context context, float x, float y, const EntityConfig& config) {
     Entity id = registry.createEntity();
 
 #if defined(CLIENT_BUILD)
     auto window_size = context.window.getSize();
-    const BossDimensions dims = BossDimensions::calculate(config, static_cast<float>(window_size.x), static_cast<float>(window_size.y));
+    const BossDimensions dims =
+        BossDimensions::calculate(config, static_cast<float>(window_size.x), static_cast<float>(window_size.y));
 #else
     // Sur le serveur, on utilise une résolution de référence fixe
     const BossDimensions dims = BossDimensions::calculate(config, 1920.0f, 1080.0f);
@@ -286,10 +274,8 @@ void BossSpawner::spawn(Registry& registry, system_context context, float x, flo
     registry.addComponent<BossComponent>(id, createBossComponent(config, dims.target_x));
     registry.addComponent<ShooterComponent>(id, createBossShooter(config));
 
-    handle_t<TextureAsset> handle = context.texture_manager.load(
-        config.sprite_path.value(),
-        TextureAsset(config.sprite_path.value())
-    );
+    handle_t<TextureAsset> handle =
+        context.texture_manager.load(config.sprite_path.value(), TextureAsset(config.sprite_path.value()));
 
     // registry.addComponent<sprite2D_component_s>(id, createBossSprite(config, handle));
     registry.addComponent<AnimatedSprite2D>(id, createBossAnimatedSprite(config, handle));
@@ -312,4 +298,6 @@ void BossSpawner::spawn(Registry& registry, system_context context, float x, flo
 
     BossTailConfig tail_config;
     spawnTailSegments(registry, context, id, dims, config, tail_config);
+
+    return id;
 }

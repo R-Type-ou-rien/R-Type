@@ -8,43 +8,43 @@
 
 class ScoutSpawner : public IMobSpawner {
    public:
-    void spawn(Registry& registry, system_context context, float x, float y, const EntityConfig& config) override;
+    Entity spawn(Registry& registry, system_context context, float x, float y, const EntityConfig& config) override;
     std::string getTypeName() const override { return "SCOUT"; }
 };
 
 class FighterSpawner : public IMobSpawner {
    public:
-    void spawn(Registry& registry, system_context context, float x, float y, const EntityConfig& config) override;
+    Entity spawn(Registry& registry, system_context context, float x, float y, const EntityConfig& config) override;
     std::string getTypeName() const override { return "FIGHTER"; }
 };
 
 class TankSpawner : public IMobSpawner {
    public:
-    void spawn(Registry& registry, system_context context, float x, float y, const EntityConfig& config) override;
+    Entity spawn(Registry& registry, system_context context, float x, float y, const EntityConfig& config) override;
     std::string getTypeName() const override { return "TANK"; }
 };
 
 class ShooterSpawner : public IMobSpawner {
    public:
-    void spawn(Registry& registry, system_context context, float x, float y, const EntityConfig& config) override;
+    Entity spawn(Registry& registry, system_context context, float x, float y, const EntityConfig& config) override;
     std::string getTypeName() const override { return "SHOOTER"; }
 };
 
 class KamikazeSpawner : public IMobSpawner {
    public:
-    void spawn(Registry& registry, system_context context, float x, float y, const EntityConfig& config) override;
+    Entity spawn(Registry& registry, system_context context, float x, float y, const EntityConfig& config) override;
     std::string getTypeName() const override { return "KAMIKAZE"; }
 };
 
 class BossSpawner : public IMobSpawner {
    public:
-    void spawn(Registry& registry, system_context context, float x, float y, const EntityConfig& config) override;
+    Entity spawn(Registry& registry, system_context context, float x, float y, const EntityConfig& config) override;
     std::string getTypeName() const override { return "BOSS"; }
 };
 
 class ObstacleSpawner : public IMobSpawner {
    public:
-    void spawn(Registry& registry, system_context context, float x, float y, const EntityConfig& config) override;
+    Entity spawn(Registry& registry, system_context context, float x, float y, const EntityConfig& config) override;
     std::string getTypeName() const override { return "OBSTACLE"; }
 };
 

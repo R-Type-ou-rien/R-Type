@@ -48,13 +48,9 @@ struct EntityConfig {
     std::optional<std::string> sprite_path;
     std::vector<std::string> collision_tags;
     std::vector<BossSubEntityConfig> boss_sub_entities;
-
-    // Boss position configuration (loaded from boss.cfg)
     std::optional<float> margin_right;
     std::optional<float> spawn_offset_x;
     std::optional<int> z_index;
-
-    // Boss tail configuration (loaded from boss.cfg)
     std::optional<int> tail_segment_count;
     std::optional<float> tail_sprite_width;
     std::optional<float> tail_sprite_height;
@@ -69,10 +65,6 @@ struct EntityConfig {
     std::optional<int> tail_z_index;
     std::optional<std::string> tail_sprite_path;
 
-    /**
-     * @brief Creates a BossPositionConfig from this EntityConfig.
-     * Uses BossDefaults as fallback for missing values.
-     */
     BossPositionConfig toBossPositionConfig() const {
         BossPositionConfig config;
         config.margin_right = margin_right.value_or(BossDefaults::Position::MARGIN_RIGHT);
@@ -81,10 +73,6 @@ struct EntityConfig {
         return config;
     }
 
-    /**
-     * @brief Creates a BossTailConfig from this EntityConfig.
-     * Uses BossDefaults as fallback for missing values.
-     */
     BossTailConfig toBossTailConfig() const {
         BossTailConfig config;
         config.segment_count = tail_segment_count.value_or(BossDefaults::Tail::SEGMENT_COUNT);
@@ -155,66 +143,67 @@ struct MasterConfig {
 
 // pase utils for clean convert text to usefull data
 namespace ParsingUtils {
-    // skip tab in start and end of text
-    static std::string trim(const std::string& str) {
-        auto first = str.find_first_not_of(" \t");
+// skip tab in start and end of text
+static std::string trim(const std::string& str) {
+    auto first = str.find_first_not_of(" \t");
 
-        if (std::string::npos == first) {
-            return str;
-        }
-        auto last = str.find_last_not_of(" \t");
-        return str.substr(first, (last - first + 1));
+    if (std::string::npos == first) {
+        return str;
     }
-
-    template <typename T> T parse(const std::string& value);
-    template <> inline int parse<int>(const std::string& value) {
-        return std::stoi(trim(value));
-    }
-
-    template <> inline float parse<float>(const std::string& value) {
-        return std::stof(trim(value));
-    }
-
-    template <> inline std::string parse<std::string>(const std::string& value) {
-        return trim(value);
-    }
-
-    template <> inline bool parse<bool>(const std::string& value) {
-        std::string str = trim(value);
-        return (str == "true" || str == "1");
-    }
-
-    template <> inline std::vector<std::string> parse<std::vector<std::string>>(const std::string& value) {
-        std::vector<std::string> res;
-        std::stringstream ss(trim(value));
-        std::string item;
-
-        while (std::getline(ss, item, ',')) {
-            res.push_back(trim(item));
-        }
-        return res;
-    }
-
-    template <> inline sf::Color parse<sf::Color>(const std::string& value) {
-        static const std::unordered_map<std::string, sf::Color> colors = {
-            {"Red", sf::Color::Red},
-            {"Green", sf::Color::Green},
-            {"Blue", sf::Color::Blue},
-            {"Yellow", sf::Color::Yellow},
-            {"Magenta", sf::Color::Magenta},
-            {"Cyan", sf::Color::Cyan},
-            {"White", sf::Color::White},
-            {"Black", sf::Color::Black}
-        };
-        auto it = colors.find(trim(value));
-        return (it != colors.end()) ? it->second : sf::Color::White;
-    }
+    auto last = str.find_last_not_of(" \t");
+    return str.substr(first, (last - first + 1));
 }
+
+template <typename T>
+T parse(const std::string& value);
+template <>
+inline int parse<int>(const std::string& value) {
+    return std::stoi(trim(value));
+}
+
+template <>
+inline float parse<float>(const std::string& value) {
+    return std::stof(trim(value));
+}
+
+template <>
+inline std::string parse<std::string>(const std::string& value) {
+    return trim(value);
+}
+
+template <>
+inline bool parse<bool>(const std::string& value) {
+    std::string str = trim(value);
+    return (str == "true" || str == "1");
+}
+
+template <>
+inline std::vector<std::string> parse<std::vector<std::string>>(const std::string& value) {
+    std::vector<std::string> res;
+    std::stringstream ss(trim(value));
+    std::string item;
+
+    while (std::getline(ss, item, ',')) {
+        res.push_back(trim(item));
+    }
+    return res;
+}
+
+template <>
+inline sf::Color parse<sf::Color>(const std::string& value) {
+    static const std::unordered_map<std::string, sf::Color> colors = {
+        {"Red", sf::Color::Red},       {"Green", sf::Color::Green},     {"Blue", sf::Color::Blue},
+        {"Yellow", sf::Color::Yellow}, {"Magenta", sf::Color::Magenta}, {"Cyan", sf::Color::Cyan},
+        {"White", sf::Color::White},   {"Black", sf::Color::Black}};
+    auto it = colors.find(trim(value));
+    return (it != colors.end()) ? it->second : sf::Color::White;
+}
+}  // namespace ParsingUtils
 
 // link word in the config file to the variable in the structure
 template <typename T>
 class ConfigBinder {
-public:
+   public:
     // Setter is for assign value to member of structure
     using Setter = std::function<void(T&, const std::string&)>;
     std::unordered_map<std::string, Setter> bindings;
@@ -239,21 +228,22 @@ public:
     }
 
     // Cette fonction permet d'ajouter une regle de remplissage personnalisee pour des cas plus complexes.
-    void bindCustom(const std::string& key, Setter setter) {
-        bindings[key] = setter;
-    }
+    void bindCustom(const std::string& key, Setter setter) { bindings[key] = setter; }
 };
 
 class ConfigLoader {
-private:
+   private:
     // read the file and execute a function for each line found
-    static void parseFile(const std::string& filepath, std::function<void(const std::string& section, const std::string& key, const std::string& value)> callback);
-    static void validate(const std::string& context, const std::set<std::string>& found, const std::set<std::string>& required);
+    static void parseFile(
+        const std::string& filepath,
+        std::function<void(const std::string& section, const std::string& key, const std::string& value)> callback);
+    static void validate(const std::string& context, const std::set<std::string>& found,
+                         const std::set<std::string>& required);
 
     template <typename T>
     static const ConfigBinder<T>& getBinder();
 
-public:
+   public:
     // load every type of structure from a file
     template <typename T>
     static T load(const std::string& filepath, const std::set<std::string>& required = {}) {
@@ -306,7 +296,8 @@ public:
         return load<EntityConfig>(filepath, required);
     }
 
-    static std::map<std::string, EntityConfig> loadEnemiesConfig(const std::string& filepath, const std::set<std::string>& required = {}) {
+    static std::map<std::string, EntityConfig> loadEnemiesConfig(const std::string& filepath,
+                                                                 const std::set<std::string>& required = {}) {
         return loadMap<EntityConfig>(filepath, required);
     }
 
@@ -314,19 +305,11 @@ public:
         return load<GameConfig>(filepath, required);
     }
 
-    static std::set<std::string> getRequiredPlayerFields() {
-        return {"hp", "speed", "sprite"};
-    }
+    static std::set<std::string> getRequiredPlayerFields() { return {"hp", "speed", "sprite"}; }
 
-    static std::set<std::string> getRequiredEnemyFields() {
-        return {"hp", "speed", "sprite"};
-    }
+    static std::set<std::string> getRequiredEnemyFields() { return {"hp", "speed", "sprite"}; }
 
-    static std::set<std::string> getRequiredBossFields() {
-        return {"hp", "speed", "sprite"};
-    }
+    static std::set<std::string> getRequiredBossFields() { return {"hp", "speed", "sprite"}; }
 
-    static std::set<std::string> getRequiredGameFields() {
-        return {"scroll_speed"};
-    }
+    static std::set<std::string> getRequiredGameFields() { return {"scroll_speed"}; }
 };

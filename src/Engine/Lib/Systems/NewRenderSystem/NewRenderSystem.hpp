@@ -18,12 +18,12 @@
 #include "ISystem.hpp"
 
 class NewRenderSystem : public ISystem {
-public:
+   public:
     NewRenderSystem() = default;
 
     void update(Registry& registry, system_context context) override;
 
-private:
+   private:
     struct DrawCmd {
         int layer;
         std::uint64_t order;
@@ -38,7 +38,7 @@ private:
 
     void drawText(const TextComponent& textComp, const system_context& context);
 
-private:
+   private:
     sf::Font _font;
     bool _fontLoaded = false;
 };
