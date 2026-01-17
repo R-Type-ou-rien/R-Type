@@ -46,7 +46,7 @@ bool PodSystem::allPlayersHavePods(Registry& registry) {
 }
 
 void PodSystem::spawnPod(Registry& registry, system_context context) {
-    constexpr float POD_FRAME_WIDTH = 34.0f;
+    constexpr float POD_FRAME_WIDTH = 17.0f;
     constexpr float POD_FRAME_HEIGHT = 18.0f;
     constexpr int POD_NUM_FRAMES = 6;
     constexpr float POD_SCALE = 3.0f;

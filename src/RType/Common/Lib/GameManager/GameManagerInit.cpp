@@ -190,6 +190,8 @@ void GameManager::initUI(Environment& env) {
         std::cerr << "[GameManager] Failed to load UI config: " << e.what() << ", using default values" << std::endl;
     }
 
+    UIStatus layout(1920.0f, 1080.0f);
+
     auto& t = ui.elements["Timer"];
     _timerEntity = ecs.registry.createEntity();
     TextComponent timerText;
@@ -219,13 +221,13 @@ void GameManager::initUI(Environment& env) {
     ecs.registry.addComponent<StatusDisplayComponent>(_statusDisplayEntity, StatusDisplayFactory::createStatusDisplay());
 
     _chargeBarEntity = ecs.registry.createEntity();
-    ecs.registry.addComponent<ChargeBarComponent>(_chargeBarEntity, StatusDisplayFactory::createChargeBar(ui));
+    ecs.registry.addComponent<ChargeBarComponent>(_chargeBarEntity, StatusDisplayFactory::createChargeBar(layout, ui));
 
     _livesEntity = ecs.registry.createEntity();
-    ecs.registry.addComponent<LivesDisplayComponent>(_livesEntity, StatusDisplayFactory::createLivesDisplay(ui));
+    ecs.registry.addComponent<LivesDisplayComponent>(_livesEntity, StatusDisplayFactory::createLivesDisplay(layout, ui));
 
     _scoreDisplayEntity = ecs.registry.createEntity();
-    ecs.registry.addComponent<ScoreDisplayComponent>(_scoreDisplayEntity, StatusDisplayFactory::createScoreDisplay(ui));
+    ecs.registry.addComponent<ScoreDisplayComponent>(_scoreDisplayEntity, StatusDisplayFactory::createScoreDisplay(layout, ui));
 }
 
 void GameManager::initScene(Environment& env, const LevelConfig& config) {
