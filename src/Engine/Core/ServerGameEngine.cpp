@@ -114,13 +114,12 @@ void ServerGameEngine::processNetworkEvents() {
 
                     auto newPlayer = std::make_shared<Player>(_ecs, _texture_manager, std::make_pair(startX, startY));
                     // Set player texture so it's visible
-                    std::cout << "laaaa" << std::endl;
+
                     newPlayer->setTexture("src/RType/Common/content/sprites/r-typesheet42.gif");
-                    std::cout << "caca" << std::endl;
+
                     newPlayer->setTextureDimension({0, 0, 33, 17});  // Frame dimensions for player sprite
-                    std::cout << "pipi" << std::endl;
+
                     newPlayer->setScale({2.5f, 2.5f});
-                    std::cout << "fiiii" << std::endl;
 
                     // Setup basic player stats
                     newPlayer->setLifePoint(5);
@@ -130,7 +129,7 @@ void ServerGameEngine::processNetworkEvents() {
                     newPlayer->addCollisionTag("OBSTACLE");
                     newPlayer->addCollisionTag("ITEM");
                     newPlayer->addCollisionTag("WALL");
-                    
+
                     // Add NetworkIdentity so it gets replicated and accepts inputs
                     _ecs.registry.addComponent<NetworkIdentity>(newPlayer->getId(), {newPlayer->getId(), newClientId});
                     // Add ChargedShotComponent for charged shooting
@@ -187,9 +186,10 @@ void ServerGameEngine::processNetworkEvents() {
                         std::cout << "SERVER: Player entity " << playerId;
                         for (const auto& [name, clip] : playerSprite.animations) {
                             auto textureName = _texture_manager.get_name(clip.handle);
-                            std::cout << "for clip name [" << name << "] has sprite with texture: " << (textureName ? textureName.value() : "NONE")
-                            << " dim: " << clip.frames.at(0).width << "x" << clip.frames.at(0).height
-                            << std::endl;
+                            std::cout << "for clip name [" << name
+                                      << "] has sprite with texture: " << (textureName ? textureName.value() : "NONE")
+                                      << " dim: " << clip.frames.at(0).width << "x" << clip.frames.at(0).height
+                                      << std::endl;
                         }
                     }
 

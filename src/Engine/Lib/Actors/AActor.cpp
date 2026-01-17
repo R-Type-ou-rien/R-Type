@@ -106,7 +106,7 @@ void AActor::setTextureEnemy(const std::string pathname) {
     AnimationClip clip;
     clip.frameDuration = 0.6f;
     clip.mode = AnimationMode::Loop;
-    
+
     for (float i = 0; i < 8; i++)
         clip.frames.emplace_back(i * 32, 0, 34, 34);
     for (float i = 0; i < 8; i++)
@@ -239,16 +239,15 @@ void AActor::setTextureDimension(rect dimension) {
     if (_ecs.registry.hasComponent<AnimatedSprite2D>(_id)) {
         AnimatedSprite2D& comp = _ecs.registry.getComponent<AnimatedSprite2D>(_id);
         if (comp.animations.at(comp.currentAnimation).frames.empty()) {
-            comp.animations.at(comp.currentAnimation).frames.emplace_back(
-                static_cast<int>(dimension.width),
-                static_cast<int>(dimension.height),
-                static_cast<int>(dimension.x),
-                static_cast<int>(dimension.y)
-            );
+            comp.animations.at(comp.currentAnimation)
+                .frames.emplace_back(static_cast<int>(dimension.x), static_cast<int>(dimension.y),
+                                     static_cast<int>(dimension.width), static_cast<int>(dimension.height));
             return;
         }
-        comp.animations.at(comp.currentAnimation).frames.at(comp.currentFrameIndex).width = static_cast<int>(dimension.width);
-        comp.animations.at(comp.currentAnimation).frames.at(comp.currentFrameIndex).height = static_cast<int>(dimension.height);
+        comp.animations.at(comp.currentAnimation).frames.at(comp.currentFrameIndex).width =
+            static_cast<int>(dimension.width);
+        comp.animations.at(comp.currentAnimation).frames.at(comp.currentFrameIndex).height =
+            static_cast<int>(dimension.height);
         comp.animations.at(comp.currentAnimation).frames.at(comp.currentFrameIndex).x = static_cast<int>(dimension.x);
         comp.animations.at(comp.currentAnimation).frames.at(comp.currentFrameIndex).y = static_cast<int>(dimension.y);
         return;
@@ -268,8 +267,10 @@ rect AActor::getDimension() {
     rect dimension;
     if (_ecs.registry.hasComponent<AnimatedSprite2D>(_id)) {
         AnimatedSprite2D& comp = _ecs.registry.getComponent<AnimatedSprite2D>(_id);
-        dimension.width = static_cast<float>(comp.animations.at(comp.currentAnimation).frames.at(comp.currentFrameIndex).width);
-        dimension.height = static_cast<float>(comp.animations.at(comp.currentAnimation).frames.at(comp.currentFrameIndex).height);
+        dimension.width =
+            static_cast<float>(comp.animations.at(comp.currentAnimation).frames.at(comp.currentFrameIndex).width);
+        dimension.height =
+            static_cast<float>(comp.animations.at(comp.currentAnimation).frames.at(comp.currentFrameIndex).height);
         dimension.x = static_cast<float>(comp.animations.at(comp.currentAnimation).frames.at(comp.currentFrameIndex).x);
         dimension.y = static_cast<float>(comp.animations.at(comp.currentAnimation).frames.at(comp.currentFrameIndex).y);
         return dimension;

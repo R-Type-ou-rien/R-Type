@@ -15,7 +15,7 @@ class AnimationHelper {
             return;
         }
 
-        auto& animation = registry.getComponent<AnimatedSprite2D>(entity); 
+        auto& animation = registry.getComponent<AnimatedSprite2D>(entity);
 
         float sprite_w = static_cast<float>(config.sprite_w.value());
         float sprite_h = static_cast<float>(config.sprite_h.value());
@@ -26,7 +26,7 @@ class AnimationHelper {
         for (int i = 0; i < num_frames; i++) {
             animation.animations.at("idle").frames.emplace_back(start_x + i * sprite_w, start_y, sprite_w, sprite_h);
         }
-        
+
         // 7
     }
 
@@ -52,12 +52,13 @@ class AnimationHelper {
         }
 
         auto& animation = registry.getComponent<AnimatedSprite2D>(entity);
-        
+
         animation.animations.at("idle").frameDuration = animation_speed;
         animation.animations.at("idle").frames.clear();
 
         for (int i = 0; i < num_frames; i++) {
-            animation.animations.at("idle").frames.emplace_back(start_x + i * (width + padding_x), start_y, width, height);
+            animation.animations.at("idle").frames.emplace_back(start_x + i * (width + padding_x), start_y, width,
+                                                                height);
         }
     }
 
@@ -69,14 +70,15 @@ class AnimationHelper {
         // auto& sprite = registry.getComponent<sprite2D_component_s>(entity);
         // sprite.is_animated = false;
         // sprite.dimension = {static_cast<float>(config.sprite_x.value()), static_cast<float>(config.sprite_y.value()),
-        //                     static_cast<float>(config.sprite_w.value()), static_cast<float>(config.sprite_h.value())};
-        
+        //                     static_cast<float>(config.sprite_w.value()),
+        //                     static_cast<float>(config.sprite_h.value())};
+
         if (!registry.hasComponent<Sprite2D>(entity)) {
             return;
         }
 
         auto& sprite = registry.getComponent<Sprite2D>(entity);
-        sprite.rect = static_cast<Rect2D>(static_cast<float>(config.sprite_x.value()), static_cast<float>(config.sprite_y.value()),
-                            static_cast<float>(config.sprite_w.value()), static_cast<float>(config.sprite_h.value()));
+        sprite.rect = {static_cast<int>(config.sprite_x.value()), static_cast<int>(config.sprite_y.value()),
+                       static_cast<int>(config.sprite_w.value()), static_cast<int>(config.sprite_h.value())};
     }
 };

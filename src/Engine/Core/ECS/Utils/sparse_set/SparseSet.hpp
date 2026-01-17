@@ -55,8 +55,8 @@ void SparseSet<data_type>::addID(std::size_t id, const data_type& data) {
     // Safety: avoid gigantic resizes if an invalid entity id is used.
     // The engine defines MAX_ENTITIES; ids beyond that indicate a logic/network bug.
     if (id >= MAX_ENTITIES) {
-        std::cerr << "[SparseSet] Refusing to add component to entity id=" << id
-                  << " (MAX_ENTITIES=" << MAX_ENTITIES << ")" << std::endl;
+        std::cerr << "[SparseSet] Refusing to add component to entity id=" << id << " (MAX_ENTITIES=" << MAX_ENTITIES
+                  << ")" << std::endl;
         return;
     }
     if (id >= _sparse.size()) {
@@ -187,9 +187,8 @@ ComponentPacket SparseSet<data_type>::createPacket(uint32_t entity, Serializatio
     //     std::is_same_v<data_type, BackgroundComponent> ||
     //     std::is_same_v<data_type, Sprite2D> ||
     //     std::is_same_v<data_type, AnimatedSprite2D>
-    if constexpr (std::is_same_v<data_type, sprite2D_component_s> ||
-        std::is_same_v<data_type, BackgroundComponent>
-    ) {
+    if constexpr (std::is_same_v<data_type, sprite2D_component_s> || std::is_same_v<data_type, BackgroundComponent> ||
+                  std::is_same_v<data_type, AnimatedSprite2D>) {
         serialize::serialize(packet.data, comp, context.textureManager);
     } else {
         serialize::serialize(packet.data, comp);
