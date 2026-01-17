@@ -40,10 +40,14 @@
 #include "../Lib/Utils/LobbyUtils.hpp"
 #include "../../RType/Common/Systems/behavior.hpp"
 #include "../../RType/Common/Entities/Player/Player.hpp"
+#include "Components/Sprite/Sprite2D.hpp"
+#include "Components/Sprite/AnimatedSprite2D.hpp"
+
 #include "../../RType/Common/Systems/spawn.hpp"
 #include "CollisionSystem.hpp"
 #include "../Lib/Systems/PhysicsSystem.hpp"
-ServerGameEngine::ServerGameEngine()
+
+ServerGameEngine::ServerGameEngine(std::string ip)
     : _env(std::make_shared<Environment>(_ecs, _texture_manager, _sound_manager, _music_manager, EnvMode::SERVER)) {
     _network = std::make_shared<engine::core::NetworkEngine>(engine::core::NetworkEngine::NetworkRole::SERVER);
     // No default lobby - wait for client requests (CREATE_LOBBY / JOIN_LOBBY)
@@ -54,6 +58,8 @@ int ServerGameEngine::init() {
     // Only add server-specific systems here
     _ecs.systems.addSystem<ComponentSenderSystem>();
 
+    registerNetworkComponent<Sprite2D>();
+    registerNetworkComponent<AnimatedSprite2D>();
     registerNetworkComponent<sprite2D_component_s>();
     registerNetworkComponent<transform_component_s>();
     registerNetworkComponent<Velocity2D>();

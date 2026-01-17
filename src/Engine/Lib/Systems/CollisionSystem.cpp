@@ -42,13 +42,40 @@ void BoxCollision::update(Registry& registry, system_context context) {
                 continue;
             if (!registry.hasComponent<transform_component_s>(entity_b))
                 continue;
-            if (!registry.hasComponent<sprite2D_component_s>(entity_a))
+            // if (!registry.hasComponent<sprite2D_component_s>(entity_a))
+            //     continue;
+            // if (!registry.hasComponent<sprite2D_component_s>(entity_b))
+            //     continue;
+            float sprite_a_width;
+            float sprite_a_height;
+            float sprite_b_width;
+            float sprite_b_height;
+            if (registry.hasComponent<AnimatedSprite2D>(entity_a)) {
+                auto& sprite_a = registry.getConstComponent<AnimatedSprite2D>(entity_a);
+                sprite_a_width =
+                    sprite_a.animations.at(sprite_a.currentAnimation).frames.at(sprite_a.currentFrameIndex).width;
+                sprite_a_height =
+                    sprite_a.animations.at(sprite_a.currentAnimation).frames.at(sprite_a.currentFrameIndex).height;
+            } else if (registry.hasComponent<Sprite2D>(entity_a)) {
+                auto& sprite_a = registry.getConstComponent<Sprite2D>(entity_a);
+                sprite_a_width = sprite_a.rect.width;
+                sprite_a_height = sprite_a.rect.height;
+            } else
                 continue;
-            if (!registry.hasComponent<sprite2D_component_s>(entity_b))
+
+            if (registry.hasComponent<AnimatedSprite2D>(entity_b)) {
+                auto& sprite_b = registry.getConstComponent<AnimatedSprite2D>(entity_b);
+                sprite_b_width =
+                    sprite_b.animations.at(sprite_b.currentAnimation).frames.at(sprite_b.currentFrameIndex).width;
+                sprite_b_height =
+                    sprite_b.animations.at(sprite_b.currentAnimation).frames.at(sprite_b.currentFrameIndex).height;
+            } else if (registry.hasComponent<Sprite2D>(entity_b)) {
+                auto& sprite_b = registry.getConstComponent<Sprite2D>(entity_b);
+                sprite_b_width = sprite_b.rect.width;
+                sprite_b_height = sprite_b.rect.height;
+            } else
                 continue;
             auto& transform_b = registry.getConstComponent<transform_component_s>(entity_b);
-            auto& sprite_a = registry.getConstComponent<sprite2D_component_s>(entity_a);
-            auto& sprite_b = registry.getConstComponent<sprite2D_component_s>(entity_b);
 
             Velocity2D vel_a = {0, 0};
             if (registry.hasComponent<Velocity2D>(entity_a))
@@ -58,8 +85,13 @@ void BoxCollision::update(Registry& registry, system_context context) {
             if (registry.hasComponent<Velocity2D>(entity_b))
                 vel_b = registry.getConstComponent<Velocity2D>(entity_b);
 
-            if (checkSize(transform_a, transform_b, {sprite_a.dimension.width, sprite_a.dimension.height},
-                          {sprite_b.dimension.width, sprite_b.dimension.height}, vel_a, vel_b, context.dt)) {
+            // if (checkSize(transform_a, transform_b, {sprite_a.dimension.width, sprite_a.dimension.height},
+            //               {sprite_b.dimension.width, sprite_b.dimension.height}, vel_a, vel_b, context.dt)) {
+            //     collision_comp.collision.tags.push_back(entity_b);
+            // }
+
+            if (checkSize(transform_a, transform_b, {sprite_a_width, sprite_a_height},
+                          {sprite_b_width, sprite_b_height}, vel_a, vel_b, context.dt)) {
                 collision_comp.collision.tags.push_back(entity_b);
             }
         }

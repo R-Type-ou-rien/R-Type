@@ -4,7 +4,7 @@
 #include "GameManager.hpp"
 #include "ECS.hpp"
 #include "src/RType/Common/Systems/score.hpp"
-#include "src/RType/Common/Systems/spawn.hpp"
+
 #include "src/RType/Common/Systems/health.hpp"
 #include "src/RType/Common/Components/status_display_components.hpp"
 #include "src/RType/Common/Components/leaderboard_component.hpp"

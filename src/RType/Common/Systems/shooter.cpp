@@ -101,32 +101,62 @@ void ShooterSystem::create_projectile_with_pattern(Registry& registry, Entity ow
 
     registry.addComponent<DamageOnCollision>(id, {projectile_damage});
 
-    sprite2D_component_s sprite_info;
-    sprite_info.animation_speed = 0;
-    sprite_info.current_animation_frame = 0;
-    sprite_info.z_index = 5;  // Au-dessus des autres sprites
+    // sprite2D_component_s sprite_info;
+    // sprite_info.animation_speed = 0;
+    // sprite_info.current_animation_frame = 0;
+    // sprite_info.z_index = 5;  // Au-dessus des autres sprites
+
+    // if (team == TeamComponent::ENEMY) {
+    //     handle_t<TextureAsset> handle =
+    //         context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet30.gif",
+    //                                      TextureAsset("src/RType/Common/content/sprites/r-typesheet30.gif"));
+    //     sprite_info.handle = handle;
+    //     sprite_info.dimension = {200, 230, 12, 12};
+    // } else {
+    //     handle_t<TextureAsset> handle =
+    //         context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet1.gif",
+    //                                      TextureAsset("src/RType/Common/content/sprites/r-typesheet1.gif"));
+    //     sprite_info.handle = handle;
+
+    //     switch (type) {
+    //         case ShooterComponent::NORMAL:
+    //         default:
+    //             sprite_info.dimension = {232, 103, 32, 14};
+    //             break;
+    //     }
+    // }
+
+    // registry.addComponent<sprite2D_component_s>(id, sprite_info);
+
+    AnimatedSprite2D animation;
+    AnimationClip clip;
+
+    clip.frameDuration = 0;
+    animation.layer = RenderLayer::Foreground;  // Au-dessus des autres sprites
 
     if (team == TeamComponent::ENEMY) {
         handle_t<TextureAsset> handle =
             context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet30.gif",
                                          TextureAsset("src/RType/Common/content/sprites/r-typesheet30.gif"));
-        sprite_info.handle = handle;
-        sprite_info.dimension = {200, 230, 12, 12};
+        clip.handle = handle;
+        clip.frames.emplace_back(200, 230, 12, 12);
     } else {
         handle_t<TextureAsset> handle =
             context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet1.gif",
                                          TextureAsset("src/RType/Common/content/sprites/r-typesheet1.gif"));
-        sprite_info.handle = handle;
+        clip.handle = handle;
 
         switch (type) {
             case ShooterComponent::NORMAL:
             default:
-                sprite_info.dimension = {232, 103, 32, 14};
+                clip.frames.emplace_back(232, 103, 32, 14);
                 break;
         }
     }
+    animation.animations.emplace("idle", clip);
+    animation.currentAnimation = "idle";
 
-    registry.addComponent<sprite2D_component_s>(id, sprite_info);
+    registry.addComponent<AnimatedSprite2D>(id, animation);
 
     auto& projectile_transform = registry.getComponent<transform_component_s>(id);
     if (team == TeamComponent::ENEMY) {
@@ -211,20 +241,37 @@ void ShooterSystem::create_charged_projectile(Registry& registry, Entity owner_e
         context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet1.gif",
                                      TextureAsset("src/RType/Common/content/sprites/r-typesheet1.gif"));
 
-    sprite2D_component_s sprite_info;
-    sprite_info.handle = handle;
-    sprite_info.animation_speed = 0;
-    sprite_info.current_animation_frame = 0;
-    if (charge_ratio >= 0.8f) {
-        sprite_info.dimension = {263, 120, 64, 56};
-    } else if (charge_ratio >= 0.5f) {
-        sprite_info.dimension = {263, 120, 48, 42};
-    } else {
-        sprite_info.dimension = {263, 120, 32, 28};
-    }
-    sprite_info.z_index = 2;
+    // sprite2D_component_s sprite_info;
+    // sprite_info.handle = handle;
+    // sprite_info.animation_speed = 0;
+    // sprite_info.current_animation_frame = 0;
+    // if (charge_ratio >= 0.8f) {
+    //     sprite_info.dimension = {263, 120, 64, 56};
+    // } else if (charge_ratio >= 0.5f) {
+    //     sprite_info.dimension = {263, 120, 48, 42};
+    // } else {
+    //     sprite_info.dimension = {263, 120, 32, 28};
+    // }
+    // sprite_info.z_index = 2;
 
-    registry.addComponent<sprite2D_component_s>(id, sprite_info);
+    // registry.addComponent<sprite2D_component_s>(id, sprite_info);
+
+    AnimatedSprite2D animation;
+    AnimationClip clip;
+
+    clip.handle = handle;
+    clip.frameDuration = 0;
+    if (charge_ratio >= 0.8f) {
+        clip.frames.emplace_back(263, 120, 64, 56);
+    } else if (charge_ratio >= 0.5f) {
+        clip.frames.emplace_back(263, 120, 48, 42);
+    } else {
+        clip.frames.emplace_back(263, 120, 32, 28);
+    }
+    animation.animations.emplace("idle", clip);
+    animation.currentAnimation = "idle";
+
+    registry.addComponent<AnimatedSprite2D>(id, animation);
 
     registry.addComponent<BoxCollisionComponent>(id, {});
     BoxCollisionComponent& collision = registry.getComponent<BoxCollisionComponent>(id);
@@ -436,14 +483,25 @@ void ShooterSystem::create_pod_circular_laser(Registry& registry, Entity owner_e
         context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet1.gif",
                                      TextureAsset("src/RType/Common/content/sprites/r-typesheet1.gif"));
 
-    sprite2D_component_s sprite_info;
-    sprite_info.handle = handle;
-    sprite_info.animation_speed = 0;
-    sprite_info.current_animation_frame = 0;
-    sprite_info.dimension = {263, 120, 80, 48};
-    sprite_info.z_index = 3;
+    // sprite2D_component_s sprite_info;
+    // sprite_info.handle = handle;
+    // sprite_info.animation_speed = 0;
+    // sprite_info.current_animation_frame = 0;
+    // sprite_info.dimension = {263, 120, 80, 48};
+    // sprite_info.z_index = 3;
 
-    registry.addComponent<sprite2D_component_s>(laser_id, sprite_info);
+    // registry.addComponent<sprite2D_component_s>(laser_id, sprite_info);
+
+    AnimatedSprite2D animation;
+    AnimationClip clip;
+
+    clip.handle = handle;
+    clip.frameDuration = 0;
+    clip.frames.emplace_back(263, 120, 80, 48);
+    animation.animations.emplace("idle", clip);
+    animation.currentAnimation = "idle";
+
+    registry.addComponent<AnimatedSprite2D>(laser_id, animation);
 
     BoxCollisionComponent collision;
     collision.tagCollision.push_back("AI");

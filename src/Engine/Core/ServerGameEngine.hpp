@@ -40,7 +40,7 @@ class ServerGameEngine : public GameEngineBase<ServerGameEngine> {
    public:
     int init();
     int run();
-    explicit ServerGameEngine();
+    explicit ServerGameEngine(std::string ip = "");
     ~ServerGameEngine() = default;
 
     std::optional<Entity> getLocalPlayerEntity() const { return std::nullopt; }

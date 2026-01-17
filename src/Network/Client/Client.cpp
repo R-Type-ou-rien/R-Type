@@ -45,7 +45,7 @@ void network::Client::RegisterServer(std::string username, std::string password)
 }
 
 network::coming_message network::Client::ReadIncomingMessage() {
-    if (!Incoming().empty()) {
+    while (!Incoming().empty()) {
         auto msg = Incoming().pop_front();
 
         if (msg.msg.header.id == GameEvents::S_REGISTER_OK || msg.msg.header.id == GameEvents::S_LOGIN_OK) {

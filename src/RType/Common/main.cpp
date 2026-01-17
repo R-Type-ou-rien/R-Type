@@ -1,8 +1,12 @@
 #include "GameEngineConfig.hpp"
 #include "Lib/GameManager/GameManager.hpp"
 
-int main() {
-    GameEngine engine;
+int main(int argc, char* argv[]) {
+    std::string ip = "127.0.0.1";
+    if (argc > 1) {
+        ip = argv[1];
+    }
+    GameEngine engine(ip);
     GameManager gm;
 
 #if defined(CLIENT_BUILD)

@@ -300,6 +300,10 @@ std::shared_ptr<Player> GameManager::createPlayerForClient(std::shared_ptr<Envir
         newPlayer->addCollisionTag(tag);
     }
 
+    // Setup animation
+    AnimationHelper::setupAnimation(ecs.registry, newPlayer->getId(), 0, 0, 33, 17, 5, 0.2f, 0.0f,
+                                    AnimationMode::PingPong);
+
     // Add NetworkIdentity for replication and input handling
     ecs.registry.addComponent<NetworkIdentity>(newPlayer->getId(), {newPlayer->getId(), clientId});
 

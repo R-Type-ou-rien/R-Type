@@ -368,15 +368,26 @@ void BossSystem::createBossProjectile(Registry& registry, system_context context
     handle_t<TextureAsset> handle = context.texture_manager.load(BossDefaults::Projectile::SPRITE_PATH,
                                                                  TextureAsset(BossDefaults::Projectile::SPRITE_PATH));
 
-    sprite2D_component_s sprite_info;
-    sprite_info.handle = handle;
-    sprite_info.animation_speed = 0.0f;
-    sprite_info.current_animation_frame = 0;
+    // sprite2D_component_s sprite_info;
+    // sprite_info.handle = handle;
+    // sprite_info.animation_speed = 0.0f;
+    // sprite_info.current_animation_frame = 0;
+    // // Projectile ennemi (boule d'énergie rouge)
+    // sprite_info.dimension = {BossDefaults::Projectile::SPRITE_X, BossDefaults::Projectile::SPRITE_Y,
+    // BossDefaults::Projectile::SPRITE_W, BossDefaults::Projectile::SPRITE_H}; sprite_info.z_index =
+    // BossDefaults::Projectile::Z_INDEX; registry.addComponent<sprite2D_component_s>(projectile, sprite_info);
+
+    AnimatedSprite2D animation;
+    AnimationClip clip;
+
+    clip.handle = handle;
+    clip.frameDuration = 0.0f;
     // Projectile ennemi (boule d'énergie rouge)
-    sprite_info.dimension = {BossDefaults::Projectile::SPRITE_X, BossDefaults::Projectile::SPRITE_Y,
-                             BossDefaults::Projectile::SPRITE_W, BossDefaults::Projectile::SPRITE_H};
-    sprite_info.z_index = BossDefaults::Projectile::Z_INDEX;
-    registry.addComponent<sprite2D_component_s>(projectile, sprite_info);
+    clip.frames.emplace_back(BossDefaults::Projectile::SPRITE_X, BossDefaults::Projectile::SPRITE_Y,
+                             BossDefaults::Projectile::SPRITE_W, BossDefaults::Projectile::SPRITE_H);
+    animation.animations.emplace("idle", clip);
+    animation.currentAnimation = "idle";
+    registry.addComponent<AnimatedSprite2D>(projectile, animation);
 
     // Échelle pour rendre visible
     auto& proj_transform = registry.getComponent<transform_component_s>(projectile);
