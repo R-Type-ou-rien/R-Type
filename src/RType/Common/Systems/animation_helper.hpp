@@ -31,7 +31,8 @@ class AnimationHelper {
     }
 
     static void setupAnimation(Registry& registry, Entity entity, float start_x, float start_y, float width,
-                               float height, int num_frames, float animation_speed = 0.1f, float padding_x = 0.0f) {
+                               float height, int num_frames, float animation_speed = 0.1f, float padding_x = 0.0f,
+                               AnimationMode mode = AnimationMode::Loop) {
         // if (!registry.hasComponent<sprite2D_component_s>(entity)) {
         //     return;
         // }
@@ -60,6 +61,7 @@ class AnimationHelper {
             animation.animations.at("idle").frames.emplace_back(start_x + i * (width + padding_x), start_y, width,
                                                                 height);
         }
+        animation.animations.at("idle").mode = mode;
     }
 
     static void setupStaticSprite(Registry& registry, Entity entity, const EntityConfig& config) {

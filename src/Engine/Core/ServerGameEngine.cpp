@@ -25,6 +25,7 @@
 #include "../../RType/Common/Entities/Player/Player.hpp"
 #include "Components/Sprite/Sprite2D.hpp"
 #include "Components/Sprite/AnimatedSprite2D.hpp"
+#include "../../RType/Common/Systems/animation_helper.hpp"
 
 ServerGameEngine::ServerGameEngine() {
     _network = std::make_unique<engine::core::NetworkEngine>(engine::core::NetworkEngine::NetworkRole::SERVER);
@@ -117,7 +118,9 @@ void ServerGameEngine::processNetworkEvents() {
 
                     newPlayer->setTexture("src/RType/Common/content/sprites/r-typesheet42.gif");
 
-                    newPlayer->setTextureDimension({0, 0, 33, 17});  // Frame dimensions for player sprite
+                    // Setup 5 frames of animation (0 to 4) for testing
+                    AnimationHelper::setupAnimation(_ecs.registry, newPlayer->getId(), 0, 0, 33, 17, 5, 0.2f, 0.0f,
+                                                    AnimationMode::PingPong);
 
                     newPlayer->setScale({2.5f, 2.5f});
 
