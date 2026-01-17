@@ -16,6 +16,7 @@
 #include "health.hpp"
 #include "../Components/charged_shot.hpp"
 #include "./animation_helper.hpp"
+#include "../../../../Engine/Lib/Components/LobbyIdComponent.hpp"
 
 bool PodSystem::allPlayersHavePods(Registry& registry) {
     auto& players = registry.getEntities<TagComponent>();
@@ -45,7 +46,7 @@ bool PodSystem::allPlayersHavePods(Registry& registry) {
     return (player_count > 0 && player_count == players_with_pods);
 }
 
-void PodSystem::spawnPod(Registry& registry, system_context context) {
+void PodSystem::spawnPod(Registry& registry, system_context context, uint32_t lobbyId) {
     constexpr float POD_FRAME_WIDTH = 34.0f;
     constexpr float POD_FRAME_HEIGHT = 18.0f;
     constexpr int POD_NUM_FRAMES = 6;
@@ -108,7 +109,10 @@ void PodSystem::spawnPod(Registry& registry, system_context context) {
     // Add NetworkIdentity for network replication
     registry.addComponent<NetworkIdentity>(pod_id, {static_cast<uint32_t>(pod_id), 0});
 
-    std::cout << "[PodSystem] Pod spawned at (" << spawn_x << ", " << spawn_y << ")" << std::endl;
+    // Add Lobby Id
+    if (lobbyId != 0) {
+        registry.addComponent<LobbyIdComponent>(pod_id, {lobbyId});
+    }
 }
 
 void PodSystem::updateFloatingPodMovement(Registry& registry, const system_context& context) {
@@ -225,7 +229,6 @@ void PodSystem::handlePodCollection(Registry& registry) {
                 vel.vy = 0;
             }
 
-            std::cout << "[PodSystem] Player " << player_entity << " collected pod " << pod_entity << std::endl;
             break;
         }
     }
@@ -342,8 +345,6 @@ void PodSystem::handlePlayerDamage(Registry& registry) {
                     pod_col.tagCollision.clear();
                 }
                 registry.addComponent<PendingDestruction>(pod_entity, {});
-                std::cout << "[PodSystem] Pod " << pod_entity << " destroyed! Player " << player_entity
-                          << " was hit with pod attached." << std::endl;
             }
 
             player_pod.last_known_hp = health.current_hp;
@@ -402,8 +403,6 @@ void PodSystem::handlePodToggle(Registry& registry) {
                 auto& collision = registry.getComponent<BoxCollisionComponent>(pod_entity);
                 collision.tagCollision.clear();
             }
-
-            std::cout << "[PodSystem] Pod " << pod_entity << " detached from player " << player_entity << std::endl;
         } else {
             pod.state = PodState::ATTACHED;
             player_pod.pod_attached = true;
@@ -426,8 +425,6 @@ void PodSystem::handlePodToggle(Registry& registry) {
                 collision.tagCollision.clear();
                 collision.tagCollision.emplace_back("AI");
             }
-
-            std::cout << "[PodSystem] Pod " << pod_entity << " attached to player " << player_entity << std::endl;
         }
     }
 }
@@ -545,7 +542,12 @@ void PodSystem::update(Registry& registry, system_context context) {
             spawn_comp.spawn_timer = 0.0f;
             spawn_comp.spawn_interval = spawn_comp.min_spawn_interval +
                                         dis(gen) * (spawn_comp.max_spawn_interval - spawn_comp.min_spawn_interval);
-            spawnPod(registry, context);
+
+            uint32_t lobbyId = 0;
+            if (registry.hasComponent<LobbyIdComponent>(spawner)) {
+                lobbyId = registry.getComponent<LobbyIdComponent>(spawner).lobby_id;
+            }
+            spawnPod(registry, context, lobbyId);
         }
     }
 

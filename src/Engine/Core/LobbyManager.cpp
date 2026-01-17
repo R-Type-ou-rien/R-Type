@@ -29,6 +29,19 @@ bool Lobby::removeClient(uint32_t clientId) {
     return false;
 }
 
+void Lobby::setPlayerReady(uint32_t clientId, bool ready) {
+    auto it = std::find_if(_clients.begin(), _clients.end(), [&](const ClientInfo& c) { return c.id == clientId; });
+    if (it != _clients.end()) {
+        it->isReady = ready;
+    }
+}
+
+bool Lobby::areAllPlayersReady() const {
+    if (_clients.empty())
+        return false;
+    return std::all_of(_clients.begin(), _clients.end(), [](const ClientInfo& c) { return c.isReady; });
+}
+
 // LobbyManager methods
 void LobbyManager::onClientConnected(uint32_t clientId, const std::string& name) {
     _connectedClients[clientId] = {clientId, name};
@@ -67,8 +80,13 @@ bool LobbyManager::joinLobby(uint32_t lobbyId, uint32_t clientId) {
     // If client is already in another lobby, leave it first
     leaveLobby(clientId);
 
+    bool wasEmpty = lobbyIt->second.getPlayerCount() == 0;
     if (lobbyIt->second.addClient(clientIt->second)) {
         _clientToLobbyMap[clientId] = lobbyId;
+        // First player to join becomes the host
+        if (wasEmpty) {
+            lobbyIt->second.setHostId(clientId);
+        }
         return true;
     }
 

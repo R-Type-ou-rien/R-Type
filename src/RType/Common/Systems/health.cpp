@@ -24,6 +24,18 @@ void HealthSystem::update(Registry& registry, system_context context) {
             if (registry.hasComponent<BossComponent>(entity)) {
                 continue;
             }
+            // Fix: Do not destroy players immediately, let GameManagerState handle Game Over
+            if (registry.hasComponent<TagComponent>(entity)) {
+                 auto& tags = registry.getComponent<TagComponent>(entity);
+                 bool isPlayer = false;
+                 for (const auto& tag : tags.tags) {
+                     if (tag == "PLAYER") {
+                         isPlayer = true;
+                         break;
+                     }
+                 }
+                 if (isPlayer) continue;
+            }
             dead_entities.push_back(entity);
         }
     }
@@ -40,19 +52,12 @@ void HealthSystem::update(Registry& registry, system_context context) {
                         auto& dealer_score = registry.getComponent<ScoreComponent>(dealer);
                         dealer_score.current_score += score_value.value;
                         awarded_to_player = true;
-                        std::cout << "[HealthSystem] Entity " << dead_entity << " died, awarding score "
-                                  << score_value.value << " to dealer " << dealer << std::endl;
                     }
                 }
 
                 if (!awarded_to_player) {
                     ScoreSystem::addScore(registry, score_value.value);
-                    std::cout << "[HealthSystem] Entity " << dead_entity << " died, adding score: " << score_value.value
-                              << std::endl;
                 }
-            } else {
-                std::cout << "[HealthSystem] Entity " << dead_entity << " died but has no ScoreValueComponent"
-                          << std::endl;
             }
             registry.addComponent<PendingDestruction>(dead_entity, {});
         }

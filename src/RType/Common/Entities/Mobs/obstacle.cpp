@@ -11,7 +11,8 @@
 #include "../../Components/mob_component.hpp"
 #include <string>
 
-void ObstacleSpawner::spawn(Registry& registry, system_context context, float x, float y, const EntityConfig& config) {
+Entity ObstacleSpawner::spawn(Registry& registry, system_context context, float x, float y,
+                              const EntityConfig& config) {
     Entity id = registry.createEntity();
     const int hp = config.hp.value_or(MobDefaults::Obstacle::HP);
     const int damage = config.damage.value_or(MobDefaults::Obstacle::DAMAGE);
@@ -42,4 +43,6 @@ void ObstacleSpawner::spawn(Registry& registry, system_context context, float x,
     registry.addComponent<BoxCollisionComponent>(id, MobComponentFactory::createEnemyCollision(config));
     registry.addComponent<TagComponent>(id, MobComponentFactory::createObstacleTags());
     registry.addComponent<NetworkIdentity>(id, {static_cast<uint32_t>(id), 0});
+
+    return id;
 }

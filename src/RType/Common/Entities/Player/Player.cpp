@@ -28,6 +28,8 @@ Player::Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<floa
     _ecs.registry.addComponent<DamageOnCollision>(_id, {0});
 
     bindActionCallbackPressed("move_left", [this, speed](Registry&, system_context, Entity) {
+        if (this->getCurrentHealth() <= 0)
+            return;
         this->setVelocity({-speed, this->getvelocity().second});
     });
 
@@ -36,6 +38,8 @@ Player::Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<floa
     });
 
     bindActionCallbackPressed("move_right", [this, speed](Registry&, system_context, Entity) {
+        if (this->getCurrentHealth() <= 0)
+            return;
         this->setVelocity({speed, this->getvelocity().second});
     });
 
@@ -44,6 +48,8 @@ Player::Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<floa
     });
 
     bindActionCallbackPressed("move_up", [this, speed](Registry&, system_context, Entity) {
+        if (this->getCurrentHealth() <= 0)
+            return;
         this->setVelocity({this->getvelocity().first, -speed});
     });
 
@@ -51,6 +57,8 @@ Player::Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<floa
         "move_up", [this](Registry&, system_context, Entity) { this->setVelocity({this->getvelocity().first, 0.0f}); });
 
     bindActionCallbackPressed("move_down", [this, speed](Registry&, system_context, Entity) {
+        if (this->getCurrentHealth() <= 0)
+            return;
         this->setVelocity({this->getvelocity().first, speed});
     });
 
@@ -59,6 +67,8 @@ Player::Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<floa
     });
 
     bindActionCallbackPressed("shoot", [this](Registry& registry, system_context, Entity entity) {
+        if (this->getCurrentHealth() <= 0)
+            return;
         if (registry.hasComponent<ShooterComponent>(entity)) {
             auto& shoot = registry.getComponent<ShooterComponent>(entity);
             shoot.is_shooting = true;
@@ -83,6 +93,8 @@ Player::Player(ECS& ecs, ResourceManager<TextureAsset>& textures, std::pair<floa
     });
 
     bindActionCallbackPressed("toggle_pod", [this](Registry& registry, system_context, Entity entity) {
+        if (this->getCurrentHealth() <= 0)
+            return;
         if (registry.hasComponent<PlayerPodComponent>(entity)) {
             auto& player_pod = registry.getComponent<PlayerPodComponent>(entity);
             if (player_pod.has_pod) {

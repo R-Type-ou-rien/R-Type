@@ -9,6 +9,7 @@
 #include <vector>
 #include <algorithm>
 #include <iostream>
+#include "../../../../Engine/Lib/Components/LobbyIdComponent.hpp"
 
 BossSystem::BossSystem() {
     initializeHandlers();
@@ -231,11 +232,15 @@ void BossSystem::patternLinearAlternate(Registry& registry, system_context conte
             continue;
 
         auto& boss = registry.getConstComponent<BossComponent>(boss_entity);
+        uint32_t lobbyId = 0;
+        if (registry.hasComponent<LobbyIdComponent>(boss_entity)) {
+            lobbyId = registry.getComponent<LobbyIdComponent>(boss_entity).lobby_id;
+        }
         // Tir linéaire droit vers la gauche
         if (registry.hasComponent<transform_component_s>(sub_entity)) {
             auto& sub_transform = registry.getConstComponent<transform_component_s>(sub_entity);
             createBossProjectile(registry, context, sub_transform, boss.patterns.linear_speed, 0.0f,
-                                 boss.patterns.linear_damage);
+                                 boss.patterns.linear_damage, lobbyId);
         }
     }
 }
@@ -248,10 +253,14 @@ void BossSystem::patternSlowMissiles(Registry& registry, system_context context,
     auto& boss = registry.getConstComponent<BossComponent>(boss_entity);
 
     // 2 missiles lents
+    uint32_t lobbyId = 0;
+    if (registry.hasComponent<LobbyIdComponent>(boss_entity)) {
+        lobbyId = registry.getComponent<LobbyIdComponent>(boss_entity).lobby_id;
+    }
     createBossProjectile(registry, context, boss_transform, boss.patterns.missile_speed,
-                         -boss.patterns.missile_offset_y, boss.patterns.missile_damage);
+                         -boss.patterns.missile_offset_y, boss.patterns.missile_damage, lobbyId);
     createBossProjectile(registry, context, boss_transform, boss.patterns.missile_speed, boss.patterns.missile_offset_y,
-                         boss.patterns.missile_damage);
+                         boss.patterns.missile_damage, lobbyId);
 }
 
 void BossSystem::patternWallOfProjectiles(Registry& registry, system_context context, Entity boss_entity) {
@@ -262,11 +271,15 @@ void BossSystem::patternWallOfProjectiles(Registry& registry, system_context con
     auto& boss = registry.getConstComponent<BossComponent>(boss_entity);
 
     // Éventail de 5 projectiles
+    uint32_t lobbyId = 0;
+    if (registry.hasComponent<LobbyIdComponent>(boss_entity)) {
+        lobbyId = registry.getComponent<LobbyIdComponent>(boss_entity).lobby_id;
+    }
     for (int i = -boss.patterns.wall_count_side; i <= boss.patterns.wall_count_side; i++) {
         float angle = i * boss.patterns.wall_angle_step;
         float vx = boss.patterns.wall_speed * std::cos(angle * 3.14159f / 180.0f);
         float vy = boss.patterns.wall_speed * std::sin(angle * 3.14159f / 180.0f);
-        createBossProjectile(registry, context, boss_transform, vx, vy, boss.patterns.wall_damage);
+        createBossProjectile(registry, context, boss_transform, vx, vy, boss.patterns.wall_damage, lobbyId);
     }
 }
 
@@ -277,10 +290,14 @@ void BossSystem::patternBouncingShots(Registry& registry, system_context context
     auto& boss_transform = registry.getConstComponent<transform_component_s>(boss_entity);
     auto& boss = registry.getConstComponent<BossComponent>(boss_entity);
 
+    uint32_t lobbyId = 0;
+    if (registry.hasComponent<LobbyIdComponent>(boss_entity)) {
+        lobbyId = registry.getComponent<LobbyIdComponent>(boss_entity).lobby_id;
+    }
     createBossProjectile(registry, context, boss_transform, boss.patterns.bounce_speed_x,
-                         -boss.patterns.bounce_offset_y, boss.patterns.bounce_damage);
+                         -boss.patterns.bounce_offset_y, boss.patterns.bounce_damage, lobbyId);
     createBossProjectile(registry, context, boss_transform, boss.patterns.bounce_speed_x, boss.patterns.bounce_offset_y,
-                         boss.patterns.bounce_damage);
+                         boss.patterns.bounce_damage, lobbyId);
 }
 
 void BossSystem::patternSpiral(Registry& registry, system_context context, Entity boss_entity) {
@@ -296,11 +313,16 @@ void BossSystem::patternSpiral(Registry& registry, system_context context, Entit
     float angle = boss.state_timer * boss.patterns.spiral_rotation_speed;
     int projectile_count = boss.patterns.spiral_count;
 
+    uint32_t lobbyId = 0;
+    if (registry.hasComponent<LobbyIdComponent>(boss_entity)) {
+        lobbyId = registry.getComponent<LobbyIdComponent>(boss_entity).lobby_id;
+    }
+
     for (int i = 0; i < projectile_count; i++) {
         float current_angle = (angle + (i * 360.0f / projectile_count)) * 3.14159f / 180.0f;
         float vx = boss.patterns.spiral_speed * std::cos(current_angle);
         float vy = boss.patterns.spiral_speed * std::sin(current_angle);
-        createBossProjectile(registry, context, boss_transform, vx, vy, boss.patterns.spiral_damage);
+        createBossProjectile(registry, context, boss_transform, vx, vy, boss.patterns.spiral_damage, lobbyId);
     }
 }
 
@@ -310,13 +332,18 @@ void BossSystem::patternDelayedShots(Registry& registry, system_context context,
 
     auto& boss_transform = registry.getConstComponent<transform_component_s>(boss_entity);
     auto& boss = registry.getConstComponent<BossComponent>(boss_entity);
+    uint32_t lobbyId = 0;
+    if (registry.hasComponent<LobbyIdComponent>(boss_entity)) {
+        lobbyId = registry.getComponent<LobbyIdComponent>(boss_entity).lobby_id;
+    }
     createBossProjectile(registry, context, boss_transform, boss.patterns.delayed_speed, 0.0f,
-                         boss.patterns.delayed_damage);
+                         boss.patterns.delayed_damage, lobbyId);
 }
 
 // Création de projectiles du boss
+// Création de projectiles du boss
 void BossSystem::createBossProjectile(Registry& registry, system_context context, const transform_component_s& pos,
-                                      float vx, float vy, int damage) {
+                                      float vx, float vy, int damage, uint32_t lobbyId) {
     Entity projectile = registry.createEntity();
 
     // Team ennemi
@@ -360,6 +387,12 @@ void BossSystem::createBossProjectile(Registry& registry, system_context context
     BoxCollisionComponent collision;
     collision.tagCollision.push_back("PLAYER");
     registry.addComponent<BoxCollisionComponent>(projectile, collision);
+    registry.addComponent<NetworkIdentity>(projectile, {static_cast<uint32_t>(projectile), 0});
+
+    // Add Lobby Id
+    if (lobbyId != 0) {
+        registry.addComponent<LobbyIdComponent>(projectile, {lobbyId});
+    }
 }
 
 // Sous-entités
@@ -389,10 +422,16 @@ void BossSystem::updateSubEntities(Registry& registry, system_context context) {
             if (sub.fire_timer >= sub.fire_rate) {
                 sub.fire_timer = 0.0f;
                 // Déclencher un tir (à implémenter avec ShooterSystem ou directement ici)
+
+                uint32_t lobbyId = 0;
+                if (registry.hasComponent<LobbyIdComponent>(sub.boss_entity_id)) {
+                    lobbyId = registry.getComponent<LobbyIdComponent>(sub.boss_entity_id).lobby_id;
+                }
+
                 if (registry.hasComponent<transform_component_s>(sub_entity)) {
                     auto& sub_transform = registry.getConstComponent<transform_component_s>(sub_entity);
                     createBossProjectile(registry, context, sub_transform, BossDefaults::SubEntities::PROJECTILE_SPEED,
-                                         0.0f, BossDefaults::SubEntities::PROJECTILE_DAMAGE);
+                                         0.0f, BossDefaults::SubEntities::PROJECTILE_DAMAGE, lobbyId);
                 }
             }
         }
@@ -428,6 +467,12 @@ void BossSystem::spawnTentacle(Registry& registry, Entity boss_entity, int index
     tags.tags.push_back("BOSS_PART");
     registry.addComponent<TagComponent>(tentacle, tags);
     registry.addComponent<NetworkIdentity>(tentacle, {static_cast<uint32_t>(tentacle), 0});
+
+    // Add Lobby Id
+    if (registry.hasComponent<LobbyIdComponent>(boss_entity)) {
+        auto& lobby = registry.getComponent<LobbyIdComponent>(boss_entity);
+        registry.addComponent<LobbyIdComponent>(tentacle, {lobby.lobby_id});
+    }
 }
 
 void BossSystem::spawnCannon(Registry& registry, Entity boss_entity, int index, float offset_x, float offset_y,
@@ -459,4 +504,10 @@ void BossSystem::spawnCannon(Registry& registry, Entity boss_entity, int index, 
     tags.tags.push_back("BOSS_PART");
     registry.addComponent<TagComponent>(cannon, tags);
     registry.addComponent<NetworkIdentity>(cannon, {static_cast<uint32_t>(cannon), 0});
+
+    // Add Lobby Id
+    if (registry.hasComponent<LobbyIdComponent>(boss_entity)) {
+        auto& lobby = registry.getComponent<LobbyIdComponent>(boss_entity);
+        registry.addComponent<LobbyIdComponent>(cannon, {lobby.lobby_id});
+    }
 }

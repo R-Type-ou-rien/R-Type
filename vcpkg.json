@@ -5,6 +5,8 @@
     "sfml",
     "asio",
     "opengl",
-    "nlohmann-json"
+    "nlohmann-json",
+    "portaudio",
+    "opus"
   ]
 }

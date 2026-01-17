@@ -127,9 +127,6 @@ void LeaderboardSystem::update(Registry& registry, system_context context) {
         leaderboard.elapsed_time += deltaTime;
 
         if (leaderboard.victory && leaderboard.elapsed_time >= leaderboard.auto_hide_duration) {
-            std::cout << "[LeaderboardSystem] Auto-hiding leaderboard after " << leaderboard.auto_hide_duration
-                      << " seconds" << std::endl;
-
             destroy_leaderboard_ui();
 
             leaderboard.is_displayed = false;
@@ -176,6 +173,9 @@ void LeaderboardSystem::update(Registry& registry, system_context context) {
                 registry.addComponent<TextComponent>(
                     timerEntity, {timerText, "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 48,
                                   sf::Color::Yellow, 1400.0f, 900.0f});
+            } else {
+                // Return to Lobby Button - REMOVED per user request
+                // Entity returnButton = registry.createEntity(); ...
             }
 
             float y_offset = layout.start_y;

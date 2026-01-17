@@ -1,18 +1,18 @@
-#include <iostream>
-#include <ostream>
-
 #include "GameEngineConfig.hpp"
-#include "NetworkEngine/NetworkEngine.hpp"
-#include "Components/StandardComponents.hpp"
 #include "Lib/GameManager/GameManager.hpp"
 
 int main() {
     GameEngine engine;
     GameManager gm;
 
-    engine.setInitFunction([&gm](Environment& env, InputManager& inputs) { gm.init(env, inputs); });
+#if defined(CLIENT_BUILD)
+    gm.setWindow(&engine.getWindow());
+    gm.setLocalPlayerId(engine.getClientId());
+#endif
 
-    engine.setLoopFunction([&gm](Environment& env, InputManager& inputs) { gm.update(env, inputs); });
+    engine.setInitFunction([&gm](std::shared_ptr<Environment> env, InputManager& inputs) { gm.init(env, inputs); });
+
+    engine.setLoopFunction([&gm](std::shared_ptr<Environment> env, InputManager& inputs) { gm.update(env, inputs); });
     engine.run();
     return 0;
 }

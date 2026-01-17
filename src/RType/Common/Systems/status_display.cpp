@@ -33,8 +33,14 @@ void StatusDisplaySystem::update(Registry& registry, system_context context) {
                         auto& tags = registry.getConstComponent<TagComponent>(entity);
                         for (const auto& tag : tags.tags) {
                             if (tag == "PLAYER") {
-                                status.player_entity = entity;
-                                break;
+                                // Validate ownership
+                                if (registry.hasComponent<NetworkIdentity>(entity)) {
+                                    auto& netId = registry.getConstComponent<NetworkIdentity>(entity);
+                                    if (netId.ownerId == context.player_id) {
+                                        status.player_entity = entity;
+                                        break;
+                                    }
+                                }
                             }
                         }
                     }

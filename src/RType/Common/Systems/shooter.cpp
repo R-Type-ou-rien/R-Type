@@ -15,6 +15,8 @@
 #include "../Components/team_component.hpp"
 #include "../Components/charged_shot.hpp"
 #include "../Components/pod_component.hpp"
+#include "../../../../Engine/Lib/Components/LobbyIdComponent.hpp"
+#include "../../../../Engine/Lib/Utils/LobbyUtils.hpp"
 
 Velocity2D ShooterSystem::get_projectile_speed(ShooterComponent::ProjectileType type, TeamComponent::Team team) {
     Velocity2D vel = {0, 0};
@@ -154,6 +156,12 @@ void ShooterSystem::create_projectile_with_pattern(Registry& registry, Entity ow
 
     registry.addComponent<NetworkIdentity>(id, {static_cast<uint32_t>(id), 0});
 
+    // Inherit LobbyIdComponent from owner
+    uint32_t owner_lobby_id = engine::utils::getLobbyId(registry, owner_entity);
+    if (owner_lobby_id != 0) {
+        registry.addComponent<LobbyIdComponent>(id, {owner_lobby_id});
+    }
+
     return;
 }
 
@@ -237,6 +245,12 @@ void ShooterSystem::create_charged_projectile(Registry& registry, Entity owner_e
 
     // Add NetworkIdentity for network replication
     registry.addComponent<NetworkIdentity>(id, {static_cast<uint32_t>(id), 0});
+
+    // Inherit LobbyIdComponent from owner
+    uint32_t owner_lobby_id = engine::utils::getLobbyId(registry, owner_entity);
+    if (owner_lobby_id != 0) {
+        registry.addComponent<LobbyIdComponent>(id, {owner_lobby_id});
+    }
 }
 
 void ShooterSystem::update(Registry& registry, system_context context) {
@@ -444,4 +458,10 @@ void ShooterSystem::create_pod_circular_laser(Registry& registry, Entity owner_e
 
     // Add NetworkIdentity for network replication
     registry.addComponent<NetworkIdentity>(laser_id, {static_cast<uint32_t>(laser_id), 0});
+
+    // Inherit LobbyIdComponent from owner
+    uint32_t owner_lobby_id = engine::utils::getLobbyId(registry, owner_entity);
+    if (owner_lobby_id != 0) {
+        registry.addComponent<LobbyIdComponent>(laser_id, {owner_lobby_id});
+    }
 }

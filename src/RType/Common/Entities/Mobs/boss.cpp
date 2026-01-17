@@ -185,7 +185,7 @@ void spawnTailSegments(Registry& registry, system_context& context, Entity boss_
     }
 }
 
-void BossSpawner::spawn(Registry& registry, system_context context, float x, float y, const EntityConfig& config) {
+Entity BossSpawner::spawn(Registry& registry, system_context context, float x, float y, const EntityConfig& config) {
     Entity id = registry.createEntity();
 
 #if defined(CLIENT_BUILD)
@@ -231,4 +231,6 @@ void BossSpawner::spawn(Registry& registry, system_context context, float x, flo
 
     BossTailConfig tail_config;
     spawnTailSegments(registry, context, id, dims, config, tail_config);
+
+    return id;
 }

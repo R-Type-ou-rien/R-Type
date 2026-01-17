@@ -55,8 +55,17 @@ target_link_libraries(NetworkLib
 )
 
 # Server Executable
-add_executable(r-type_server Server/main.cpp)
-target_link_libraries(r-type_server PRIVATE NetworkLib)
+if (BUILD_SERVER)
+    file(GLOB_RECURSE RTYPE_COMMON_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/../RType/Common/*.cpp")
+    list(FILTER RTYPE_COMMON_SOURCES EXCLUDE REGEX "main.cpp$")
+    
+    add_executable(r-type_server Server/main.cpp ${RTYPE_COMMON_SOURCES})
+    target_link_libraries(r-type_server PRIVATE NetworkLib Engine)
+    target_include_directories(r-type_server PRIVATE 
+        "${CMAKE_CURRENT_SOURCE_DIR}/../RType/Common"
+        "${CMAKE_SOURCE_DIR}"
+    )
+endif()
 
 # Client Test Executable
 add_executable(r-type_client_test Client/main.cpp)

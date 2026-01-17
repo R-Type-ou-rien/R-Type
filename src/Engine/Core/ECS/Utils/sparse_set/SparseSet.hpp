@@ -5,7 +5,7 @@
 #include <vector>
 #include "ECS/EcsType.hpp"
 #include "Components/NetworkComponents.hpp"
-#include "Hash/Hash.hpp"
+#include "../Hash/Hash.hpp"
 #include "ResourceConfig.hpp"
 #include "Context.hpp"
 

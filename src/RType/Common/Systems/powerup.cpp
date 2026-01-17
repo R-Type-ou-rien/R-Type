@@ -4,6 +4,7 @@
 #include "../Components/team_component.hpp"
 #include "damage.hpp"
 #include "ResourceConfig.hpp"
+#include "../../../../Engine/Lib/Components/LobbyIdComponent.hpp"
 
 PowerUpSystem::PowerUpSystem() {
     initialize_power_up_maps();
@@ -104,7 +105,7 @@ void PowerUpSystem::applyPowerUp(Registry& registry, Entity player, PowerUpCompo
     }
 }
 
-void PowerUpSystem::spawnSpeedUp(Registry& registry, system_context context, float x, float y) {
+void PowerUpSystem::spawnSpeedUp(Registry& registry, system_context context, float x, float y, uint32_t lobbyId) {
     Entity id = registry.createEntity();
 
     registry.addComponent<transform_component_s>(id, {x, y});
@@ -138,4 +139,12 @@ void PowerUpSystem::spawnSpeedUp(Registry& registry, system_context context, flo
     TagComponent tags;
     tags.tags.push_back("POWERUP");
     registry.addComponent<TagComponent>(id, tags);
+
+    // Add NetworkIdentity
+    registry.addComponent<NetworkIdentity>(id, {static_cast<uint32_t>(id), 0});
+
+    // Add Lobby Id
+    if (lobbyId != 0) {
+        registry.addComponent<LobbyIdComponent>(id, {lobbyId});
+    }
 }
