@@ -46,7 +46,7 @@ bool PodSystem::allPlayersHavePods(Registry& registry) {
     return (player_count > 0 && player_count == players_with_pods);
 }
 
-void PodSystem::spawnPod(Registry& registry, system_context context) {
+void PodSystem::spawnPod(Registry& registry, system_context context, uint32_t lobbyId) {
     constexpr float POD_FRAME_WIDTH = 17.0f;
     constexpr float POD_FRAME_HEIGHT = 18.0f;
     constexpr int POD_NUM_FRAMES = 6;
