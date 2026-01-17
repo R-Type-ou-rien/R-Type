@@ -193,94 +193,49 @@ void GameManager::checkGameState(std::shared_ptr<Environment> env) {
         }
     }
 
-    if (total_players == 1) {
-        if (alive_players == 0) {
-            if (!env->isClient()) {
-                _gameOver = true;
-            }
-
-            if (env->isStandalone() && !_leaderboardDisplayed) {
-                displayLeaderboard(env, false);
-                _leaderboardDisplayed = true;
-            }
-            return;
-        }
-    } else if (total_players >= 2) {
-        for (auto entity : player_entities) {
-            if (!ecs.registry.hasComponent<HealthComponent>(entity))
-                continue;
-
-            auto& health = ecs.registry.getComponent<HealthComponent>(entity);
-            bool is_dead = health.current_hp <= 0;
-            bool is_spectator = ecs.registry.hasComponent<SpectatorComponent>(entity);
-
-            if (is_dead && !is_spectator && alive_players > 0) {
-                SpectatorComponent spectator;
-
-                for (auto other_entity : player_entities) {
-                    if (other_entity != entity && ecs.registry.hasComponent<HealthComponent>(other_entity)) {
-                        auto& other_health = ecs.registry.getConstComponent<HealthComponent>(other_entity);
-                        if (other_health.current_hp > 0) {
-                            spectator.watching_player = other_entity;
-                            break;
-                        }
-                    }
-                }
-
-                ecs.registry.addComponent<SpectatorComponent>(entity, spectator);
-
-                if (!env->isServer() && _player && _player->getId() == entity) {
-                    Entity spectatorMsg = ecs.registry.createEntity();
-                    ecs.registry.addComponent<TextComponent>(
-                        spectatorMsg, {"SPECTATOR MODE - Watching other players...",
-                                       "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 32,
-                                       sf::Color::Yellow, 600, 50});
-                }
-            }
+    if (total_players > 0 && alive_players == 0) {
+        if (!env->isClient()) {
+            _gameOver = true;
         }
 
-        if (alive_players == 0 && dead_players > 0) {
-            if (!env->isClient()) {
-                _gameOver = true;
-            }
-
-            if (env->isStandalone() && !_leaderboardDisplayed) {
-                displayLeaderboard(env, false);
-                _leaderboardDisplayed = true;
-            }
+        if (env->isStandalone() && !_leaderboardDisplayed) {
+            displayLeaderboard(env, false);
+            _leaderboardDisplayed = true;
+        }
 
 #if defined(SERVER_BUILD)
-            if (env->isServer() && !_leaderboardDisplayed) {
-                if (env->hasFunction("broadcastGameOver")) {
-                    std::vector<std::tuple<uint32_t, int, bool>> scores;
-                    for (auto pEntity : player_entities) {
-                        uint32_t client_id = 0;
-                        int score_val = 0;
-                        bool is_alive = false;
+        if (env->isServer() && !_leaderboardDisplayed) {
+            if (env->hasFunction("broadcastGameOver")) {
+                std::vector<std::tuple<uint32_t, int, bool>> scores;
+                for (auto pEntity : player_entities) {
+                    uint32_t client_id = 0;
+                    int score_val = 0;
+                    bool is_alive = false;
 
-                        if (ecs.registry.hasComponent<NetworkIdentity>(pEntity)) {
-                            client_id = ecs.registry.getConstComponent<NetworkIdentity>(pEntity).ownerId;
-                        }
-                        if (ecs.registry.hasComponent<ScoreComponent>(pEntity)) {
-                            score_val = ecs.registry.getConstComponent<ScoreComponent>(pEntity).current_score;
-                        }
-                        if (ecs.registry.hasComponent<HealthComponent>(pEntity)) {
-                            is_alive = ecs.registry.getConstComponent<HealthComponent>(pEntity).current_hp > 0;
-                        }
-                        scores.emplace_back(client_id, score_val, is_alive);
+                    if (ecs.registry.hasComponent<NetworkIdentity>(pEntity)) {
+                        client_id = ecs.registry.getConstComponent<NetworkIdentity>(pEntity).ownerId;
                     }
-
-                    auto func = env->getFunction<
-                        std::function<void(uint32_t, bool, const std::vector<std::tuple<uint32_t, int, bool>>&)>>(
-                        "broadcastGameOver");
-                    // Assuming _currentLobbyId is valid (set in onServerGameStart)
-                    func(_currentLobbyId, false, scores);
-                    _leaderboardDisplayed = true;
+                    if (ecs.registry.hasComponent<ScoreComponent>(pEntity)) {
+                        score_val = ecs.registry.getConstComponent<ScoreComponent>(pEntity).current_score;
+                    }
+                    if (ecs.registry.hasComponent<HealthComponent>(pEntity)) {
+                        is_alive = ecs.registry.getConstComponent<HealthComponent>(pEntity).current_hp > 0;
+                    }
+                    scores.emplace_back(client_id, score_val, is_alive);
                 }
+
+                auto func = env->getFunction<
+                    std::function<void(uint32_t, bool, const std::vector<std::tuple<uint32_t, int, bool>>&)>>(
+                    "broadcastGameOver");
+                // Assuming _currentLobbyId is valid
+                func(_currentLobbyId, false, scores);
+                _leaderboardDisplayed = true;
+                std::cout << "[GameManagerState] Game Over broadcasted (All " << total_players << " players dead)"
+                          << std::endl;
             }
-#endif
-            return;
         }
+#endif
+        return;
     }
 
     bool boss_exists = false;
@@ -289,15 +244,13 @@ void GameManager::checkGameState(std::shared_ptr<Environment> env) {
     auto& spawners = ecs.registry.getEntities<EnemySpawnComponent>();
     for (auto spawner : spawners) {
         if (ecs.registry.hasComponent<EnemySpawnComponent>(spawner)) {
-            auto& spawn_comp = ecs.registry.getConstComponent<EnemySpawnComponent>(spawner);
-            if (spawn_comp.boss_arrived) {
+            if (ecs.registry.getConstComponent<EnemySpawnComponent>(spawner).boss_arrived) {
                 boss_spawned = true;
                 break;
             }
         }
     }
 
-    // IMPORTANT: Vérifier si le boss existe seulement s'il a été spawné
     if (boss_spawned && !_inTransition) {
         for (auto entity : entities) {
             auto& tags = ecs.registry.getConstComponent<TagComponent>(entity);
@@ -311,32 +264,18 @@ void GameManager::checkGameState(std::shared_ptr<Environment> env) {
                 break;
         }
 
-        // VICTOIRE seulement si : boss a été spawné ET boss n'existe plus ET au moins 1 joueur vivant
         if (!boss_exists && alive_players > 0 && !_victory) {
             _victory = true;
-
-            // Afficher WIN à tous les joueurs
             if (!_leaderboardDisplayed) {
                 displayLeaderboard(env, true);
-
-#if defined(SERVER_BUILD)
-/*
-                if (env->isServer()) {
-                    // ... removed broadcast logic ...
-                }
-*/
-#endif
                 _leaderboardDisplayed = true;
             }
-
-            // Préparer la transition vers le niveau suivant
-            if (!env->isServer()) {
-                Entity transitionEntity = ecs.registry.createEntity();
-                LevelTransitionComponent transition;
-                transition.state = LevelTransitionComponent::TransitionState::IDLE;
-                transition.next_level_name = "src/RType/Common/content/config/level2_spawns.cfg";
-                ecs.registry.addComponent<LevelTransitionComponent>(transitionEntity, transition);
-            }
+            // Transition logic for standalone...
+            Entity transitionEntity = ecs.registry.createEntity();
+            LevelTransitionComponent transition;
+            transition.state = LevelTransitionComponent::TransitionState::IDLE;
+            transition.next_level_name = "src/RType/Common/content/config/level2_spawns.cfg";
+            ecs.registry.addComponent<LevelTransitionComponent>(transitionEntity, transition);
         }
     }
 }

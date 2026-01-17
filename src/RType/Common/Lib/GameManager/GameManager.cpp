@@ -255,6 +255,43 @@ void GameManager::update(std::shared_ptr<Environment> env, InputManager& inputs)
             case Environment::GameState::LOBBY:
                 _lobbyManager->cleanupLobby(env);
                 break;
+            case Environment::GameState::IN_GAME: {
+                // Cleanup all in-game entities
+                auto& ecs = env->getECS();
+                std::vector<Entity> toDestroy;
+                // We want to destroy everything that is not the WindowManager or global systems.
+                // A safe bet is destroying everything with a TagComponent that is NOT "PERSISTENT" (if we had that).
+                // Or destroying everything with Sprite2DComponent, TextComponent, etc.
+
+                // Let's wipe entities with Sprite2DComponent
+                auto& sprites = ecs.registry.getEntities<sprite2D_component_s>();
+                for (auto e : sprites)
+                    toDestroy.push_back(e);
+
+                // Wipe entities with TextComponent (Leaderboard, UI)
+                auto& texts = ecs.registry.getEntities<TextComponent>();
+                for (auto e : texts)
+                    toDestroy.push_back(e);
+
+                // Wipe entities with AudioSourceComponent (Music)
+                auto& audios = ecs.registry.getEntities<AudioSourceComponent>();
+                for (auto e : audios)
+                    toDestroy.push_back(e);
+
+                // Wipe entities with HealthComponent (Players, Enemies that might imply logic)
+                auto& healths = ecs.registry.getEntities<HealthComponent>();
+                for (auto e : healths)
+                    toDestroy.push_back(e);
+
+                // Remove duplicates
+                std::sort(toDestroy.begin(), toDestroy.end());
+                toDestroy.erase(std::unique(toDestroy.begin(), toDestroy.end()), toDestroy.end());
+
+                for (auto e : toDestroy) {
+                    ecs.registry.destroyEntity(e);
+                }
+                std::cout << "[GameManager] Cleaned up " << toDestroy.size() << " in-game entities" << std::endl;
+            } break;
             default:
                 break;
         }
@@ -304,41 +341,9 @@ void GameManager::update(std::shared_ptr<Environment> env, InputManager& inputs)
             updateUI(env);
             checkGameState(env);
 
+            // Return to Lobby logic removed
             if (!env->isServer() && _windowHasFocus && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
-                auto& ecs = env->getECS();
-                auto& entities = ecs.registry.getEntities<TagComponent>();
-                for (auto entity : entities) {
-                    if (!ecs.registry.hasComponent<TagComponent>(entity))
-                        continue;
-                    auto& tags = ecs.registry.getConstComponent<TagComponent>(entity);
-                    bool isReturnBtn = false;
-                    for (const auto& tag : tags.tags) {
-                        if (tag == "RETURN_BUTTON") {
-                            isReturnBtn = true;
-                            break;
-                        }
-                    }
-
-                    if (isReturnBtn && ecs.registry.hasComponent<TextComponent>(entity)) {
-                        auto& txt = ecs.registry.getComponent<TextComponent>(entity);
-                        sf::Vector2i mousePos = sf::Mouse::getPosition(*_window);
-
-                        // Simple hit test for [RETURN TO LOBBY]
-                        // Approx width 400, height 50
-                        if (mousePos.x >= txt.x && mousePos.x <= txt.x + 500 && mousePos.y >= txt.y &&
-                            mousePos.y <= txt.y + 60) {
-                            std::cout << "[GameManager] Return to Lobby clicked" << std::endl;
-
-                            // Reset game flags
-                            _gameOver = false;
-                            _victory = false;
-                            _leaderboardDisplayed = false;
-                            _gameInitialized = false;
-
-                            env->setGameState(Environment::GameState::LOBBY);
-                        }
-                    }
-                }
+                // Logic cleared
             }
             break;
         case Environment::GameState::INCORRECT_PASSWORD:

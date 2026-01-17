@@ -16,6 +16,7 @@
 #include "health.hpp"
 #include "../Components/charged_shot.hpp"
 #include "./animation_helper.hpp"
+#include "../../../../Engine/Lib/Components/LobbyIdComponent.hpp"
 
 bool PodSystem::allPlayersHavePods(Registry& registry) {
     auto& players = registry.getEntities<TagComponent>();
@@ -45,7 +46,7 @@ bool PodSystem::allPlayersHavePods(Registry& registry) {
     return (player_count > 0 && player_count == players_with_pods);
 }
 
-void PodSystem::spawnPod(Registry& registry, system_context context) {
+void PodSystem::spawnPod(Registry& registry, system_context context, uint32_t lobbyId) {
     constexpr float POD_FRAME_WIDTH = 34.0f;
     constexpr float POD_FRAME_HEIGHT = 18.0f;
     constexpr int POD_NUM_FRAMES = 6;
@@ -107,6 +108,11 @@ void PodSystem::spawnPod(Registry& registry, system_context context) {
 
     // Add NetworkIdentity for network replication
     registry.addComponent<NetworkIdentity>(pod_id, {static_cast<uint32_t>(pod_id), 0});
+
+    // Add Lobby Id
+    if (lobbyId != 0) {
+        registry.addComponent<LobbyIdComponent>(pod_id, {lobbyId});
+    }
 }
 
 void PodSystem::updateFloatingPodMovement(Registry& registry, const system_context& context) {
@@ -536,7 +542,12 @@ void PodSystem::update(Registry& registry, system_context context) {
             spawn_comp.spawn_timer = 0.0f;
             spawn_comp.spawn_interval = spawn_comp.min_spawn_interval +
                                         dis(gen) * (spawn_comp.max_spawn_interval - spawn_comp.min_spawn_interval);
-            spawnPod(registry, context);
+
+            uint32_t lobbyId = 0;
+            if (registry.hasComponent<LobbyIdComponent>(spawner)) {
+                lobbyId = registry.getComponent<LobbyIdComponent>(spawner).lobby_id;
+            }
+            spawnPod(registry, context, lobbyId);
         }
     }
 

@@ -458,4 +458,10 @@ void ShooterSystem::create_pod_circular_laser(Registry& registry, Entity owner_e
 
     // Add NetworkIdentity for network replication
     registry.addComponent<NetworkIdentity>(laser_id, {static_cast<uint32_t>(laser_id), 0});
+
+    // Inherit LobbyIdComponent from owner
+    uint32_t owner_lobby_id = engine::utils::getLobbyId(registry, owner_entity);
+    if (owner_lobby_id != 0) {
+        registry.addComponent<LobbyIdComponent>(laser_id, {owner_lobby_id});
+    }
 }

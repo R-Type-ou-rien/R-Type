@@ -174,17 +174,8 @@ void LeaderboardSystem::update(Registry& registry, system_context context) {
                     timerEntity, {timerText, "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 48,
                                   sf::Color::Yellow, 1400.0f, 900.0f});
             } else {
-                // Return to Lobby Button
-                Entity returnButton = registry.createEntity();
-                TagComponent btnTag;
-                btnTag.tags.push_back("LEADERBOARD");
-                btnTag.tags.push_back("RETURN_BUTTON");
-                registry.addComponent<TagComponent>(returnButton, btnTag);
-
-                registry.addComponent<TextComponent>(
-                    returnButton,
-                    {"[ RETURN TO LOBBY ]", "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 48,
-                     sf::Color::White, layout.game_over_x + 50, layout.game_over_y + 600});
+                // Return to Lobby Button - REMOVED per user request
+                // Entity returnButton = registry.createEntity(); ...
             }
 
             float y_offset = layout.start_y;

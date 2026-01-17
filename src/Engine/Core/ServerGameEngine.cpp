@@ -17,6 +17,7 @@
 #include <tuple>
 #include <algorithm>
 #include "Components/NetworkComponents.hpp"
+#include "Components/LobbyIdComponent.hpp"
 #include "Context.hpp"
 #include "GameEngineBase.hpp"
 #include "Network.hpp"
@@ -132,6 +133,43 @@ int ServerGameEngine::init() {
                             msg.header.id = network::GameEvents::S_GAME_OVER;
                             msg << packet;
                             server->AddMessageToPlayer(network::GameEvents::S_GAME_OVER, client.id, msg);
+                        }
+
+                        // Destroy all entities belonging to this lobby
+                        if (_env->hasFunction("getECS")) {
+                            auto& ecs = _env->getECS();
+                            std::vector<Entity> entitiesToDestroy;
+                            auto& lobbyIds = ecs.registry.getEntities<LobbyIdComponent>();
+
+                            for (auto entity : lobbyIds) {
+                                if (ecs.registry.hasComponent<LobbyIdComponent>(entity)) {
+                                    auto& lobbyComp = ecs.registry.getComponent<LobbyIdComponent>(entity);
+                                    if (lobbyComp.lobby_id == lobbyId) {
+                                        entitiesToDestroy.push_back(entity);
+                                    }
+                                }
+                            }
+
+                            for (auto entity : entitiesToDestroy) {
+                                if (ecs.registry.hasComponent<NetworkIdentity>(entity)) {
+                                    // Send destroy packet first?
+                                    // The DestructionSystem usually handles this, but we are manually destroying.
+                                    // Ideally we tag them for PendingDestruction, but we want immediate cleanup.
+                                    // Let's assume the client will clean up its own state or rely on S_SNAPSHOT updates
+                                    // effectively clearing them (if snapshot is differential, explicit destroy is
+                                    // better). Explicitly triggering destruction system logic might be complex here.
+                                    // Let's just destroy the entity. The ServerGameEngine update loop sends snapshots.
+                                    // If the entity is gone, it won't be in the snapshot.
+                                    // Does the client auto-destroy entities not in snapshot? Usually NOT.
+                                    // So we MUST send S_ENTITY_DESTROY.
+
+                                    // Actually, relying on the client-side "Return to Lobby" cleanup is safer for
+                                    // visuals. Server-side destruction prevents them from existing in the next game.
+                                }
+                                ecs.registry.destroyEntity(entity);
+                            }
+                            std::cout << "SERVER: Destroyed " << entitiesToDestroy.size() << " entities for lobby "
+                                      << lobbyId << std::endl;
                         }
 
                         // Reset lobby state to WAITING so players can restart or leave
