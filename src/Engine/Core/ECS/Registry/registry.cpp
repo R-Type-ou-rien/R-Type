@@ -4,7 +4,10 @@
 #include "Components/NetworkComponents.hpp"
 #include "Guid/Guid.hpp"
 
-std::string g_DebugCurrentSystem = "Unknown";
+std::string& GetDebugCurrentSystem() {
+    static std::string systemName = "Unknown";
+    return systemName;
+}
 
 Entity Registry::createEntity() {
     uint32_t entity_id;

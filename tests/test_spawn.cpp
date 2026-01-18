@@ -9,7 +9,7 @@
 class SpawnTest : public ::testing::Test {
    protected:
     Registry registry;
-    SpawnSystem spawnSys;  // Le constructeur va initialiser la Map de factories
+    SpawnSystem spawnSys;
 
     ResourceManager<sf::Texture> texture_manager;
     sf::RenderWindow window;
@@ -60,13 +60,13 @@ TEST_F(SpawnTest, TimerZero_SpawnsEntityAndDestroysSpawner) {
     }
     EXPECT_FALSE(spawnerExists) << "L'entité Spawner doit être détruite après usage";
 
-    auto& enemies = registry.getEntities<TeamComponent>();  // Les ennemis ont une Team
+    auto& enemies = registry.getEntities<TeamComponent>();
     ASSERT_EQ(enemies.size(), 1);
 
     Entity newEnemy = enemies[0];
 
     EXPECT_EQ(registry.getComponent<TeamComponent>(newEnemy).team, TeamComponent::ENEMY);
-    EXPECT_EQ(registry.getComponent<HealthComponent>(newEnemy).max_hp, 20);  // Basic = 20HP
+    EXPECT_EQ(registry.getComponent<HealthComponent>(newEnemy).max_hp, 20);
 
     auto& pos = registry.getComponent<transform_component_s>(newEnemy);
     EXPECT_FLOAT_EQ(pos.x, 500);

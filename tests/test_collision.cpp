@@ -67,7 +67,7 @@ TEST_F(CollisionTest, DetectsSimpleOverlap) {
 TEST_F(CollisionTest, ScaleIncreaseHitbox) {
     system_context context = {0, texture_manager, window};
 
-    registry.addComponent(entityA, transform_component_s{0.0f, 0.0f});  // Scale défaut 1.0
+    registry.addComponent(entityA, transform_component_s{0.0f, 0.0f});
     registry.addComponent(entityB, transform_component_s{60.0f, 0.0f});
     boxSystem.update(registry, context);
     EXPECT_TRUE(registry.getComponent<BoxCollisionComponent>(entityA).collision.tags.empty());

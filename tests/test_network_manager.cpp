@@ -19,14 +19,14 @@ class NetworkManagerTest : public ::testing::Test {
     template <typename T>
     network::message<network::GameEvents> createInvalidMagicMessage(network::GameEvents event, const T& data) {
         auto msg = createValidMessage(event, data);
-        msg.header.magic_value = 0xDEADC0DE;  // Wrong magic
+        msg.header.magic_value = 0xDEADC0DE;
         return msg;
     }
 
     template <typename T>
     network::message<network::GameEvents> createSizeMismatchMessage(network::GameEvents event, const T& data) {
         auto msg = createValidMessage(event, data);
-        msg.header.size = msg.body.size() + 100;  // Wrong size
+        msg.header.size = msg.body.size() + 100;
         return msg;
     }
 };
@@ -180,7 +180,6 @@ TEST_F(NetworkManagerTest, PayloadTooLarge_FailsValidation) {
 }
 
 TEST_F(NetworkManagerTest, EmptyPayload_ValidForDisconnect) {
-    // C_DISCONNECT allows empty payload
     network::message<network::GameEvents> msg;
     msg.header.id = network::GameEvents::C_DISCONNECT;
     msg.header.magic_value = MAGIC_VALUE;
@@ -204,7 +203,6 @@ TEST_F(NetworkManagerTest, EmptyPayload_InvalidForLogin) {
 }
 
 TEST_F(NetworkManagerTest, ValidInput_PassesValidation) {
-    // Simulate input packet: action string + bool
     network::message<network::GameEvents> msg;
     std::string action = "move_left";
     bool pressed = true;

@@ -43,8 +43,7 @@ ClientGameEngine::ClientGameEngine(std::string ip, std::string window_name)
 
 ClientGameEngine::ClientGameEngine(int width, int height, std::string window_name)
     : _window_manager(width, height, window_name),
-      _env(std::make_shared<Environment>(_ecs, _texture_manager, _sound_manager, _music_manager, EnvMode::CLIENT)) {
-}
+      _env(std::make_shared<Environment>(_ecs, _texture_manager, _sound_manager, _music_manager, EnvMode::CLIENT)) {}
 
 int ClientGameEngine::init() {
     if (_network) {
@@ -431,7 +430,9 @@ void ClientGameEngine::processLobbyEvents(
     }
 
     // Handle game start failed
-    if (pending.count(network::GameEvents::S_GAME_START_KO)) {}
+    if (pending.count(network::GameEvents::S_GAME_START_KO)) {
+        // TODO(user): Handle game start failed
+    }
 
     // Handle team chat messages
     if (pending.count(network::GameEvents::S_TEAM_CHAT)) {
@@ -546,7 +547,8 @@ void ClientGameEngine::processLobbyEvents(
 // Lobby action methods
 void ClientGameEngine::sendReady() {
     if (_env->getGameState() != Environment::GameState::LOBBY) {
-        std::cout << "[ClientGameEngine] sendReady ignored - wrong state: " << (int)_env->getGameState() << std::endl;
+        std::cout << "[ClientGameEngine] sendReady ignored - wrong state: " << static_cast<int>(_env->getGameState())
+                  << std::endl;
         return;
     }
     std::cout << "[ClientGameEngine] Sending C_READY" << std::endl;
@@ -562,8 +564,8 @@ void ClientGameEngine::sendUnready() {
 
 void ClientGameEngine::sendStartGame() {
     if (_env->getGameState() != Environment::GameState::LOBBY) {
-        std::cout << "[ClientGameEngine] sendStartGame ignored - wrong state: " << (int)_env->getGameState()
-                  << std::endl;
+        std::cout << "[ClientGameEngine] sendStartGame ignored - wrong state: "
+                  << static_cast<int>(_env->getGameState()) << std::endl;
         return;
     }
     if (!_lobbyState.isLocalPlayerHost()) {
@@ -590,8 +592,8 @@ void ClientGameEngine::sendLeaveLobby(uint32_t lobbyId) {
 
 void ClientGameEngine::sendChatMessage(const std::string& message) {
     if (_env->getGameState() != Environment::GameState::LOBBY) {
-        std::cout << "[ClientGameEngine] sendChatMessage ignored - wrong state: " << (int)_env->getGameState()
-                  << std::endl;
+        std::cout << "[ClientGameEngine] sendChatMessage ignored - wrong state: "
+                  << static_cast<int>(_env->getGameState()) << std::endl;
         return;
     }
     std::cout << "[ClientGameEngine] Sending C_TEAM_CHAT: " << message << std::endl;
@@ -705,7 +707,8 @@ int ClientGameEngine::run() {
 
         handleEvent();
         processNetworkEvents();
-        static std::shared_ptr<engine::core::NetworkEngine> dummyNetwork = std::make_shared<engine::core::NetworkEngine>(engine::core::NetworkEngine::NetworkRole::CLIENT);
+        static std::shared_ptr<engine::core::NetworkEngine> dummyNetwork =
+            std::make_shared<engine::core::NetworkEngine>(engine::core::NetworkEngine::NetworkRole::CLIENT);
 
         if (_network) {
             _predictionSystem->updatePrediction(_ecs.registry, input_manager, _currentTick, context.dt);

@@ -14,7 +14,7 @@
 #include "../Utils/sparse_set/SparseSet.hpp"
 #include "../EcsType.hpp"
 
-extern std::string g_DebugCurrentSystem;
+std::string& GetDebugCurrentSystem();
 
 using Pool_storage = std::unordered_map<std::type_index, std::unique_ptr<ISparseSet>>;
 
