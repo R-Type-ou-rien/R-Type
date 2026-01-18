@@ -64,7 +64,10 @@ void GameManager::initSystems(std::shared_ptr<Environment> env) {
 
     ecs.systems.addSystem<DestructionSystem>();
 
+    ecs.systems.addSystem<DestructionSystem>();
+
     if (!env->isServer()) {
+        std::cout << "[GameManager] Registering Client Systems (Leaderboard, Status, Transition)" << std::endl;
         ecs.systems.addSystem<StatusDisplaySystem>();
         ecs.systems.addSystem<LeaderboardSystem>();
         ecs.systems.addSystem<LevelTransitionSystem>();
@@ -88,6 +91,10 @@ void GameManager::initBackground(std::shared_ptr<Environment> env, const LevelCo
         bg.texture_handle = env->loadTexture(bgPath);
 
         ecs.registry.addComponent<BackgroundComponent>(bgEntity, bg);
+
+        TagComponent tag;
+        tag.tags.push_back("BACKGROUND");
+        ecs.registry.addComponent<TagComponent>(bgEntity, tag);
     }
 }
 
@@ -250,10 +257,12 @@ void GameManager::initUI(std::shared_ptr<Environment> env) {
     ecs.registry.addComponent<ChargeBarComponent>(_chargeBarEntity, StatusDisplayFactory::createChargeBar(layout, ui));
 
     _livesEntity = ecs.registry.createEntity();
-    ecs.registry.addComponent<LivesDisplayComponent>(_livesEntity, StatusDisplayFactory::createLivesDisplay(layout, ui));
+    ecs.registry.addComponent<LivesDisplayComponent>(_livesEntity,
+                                                     StatusDisplayFactory::createLivesDisplay(layout, ui));
 
     _scoreDisplayEntity = ecs.registry.createEntity();
-    ecs.registry.addComponent<ScoreDisplayComponent>(_scoreDisplayEntity, StatusDisplayFactory::createScoreDisplay(layout, ui));
+    ecs.registry.addComponent<ScoreDisplayComponent>(_scoreDisplayEntity,
+                                                     StatusDisplayFactory::createScoreDisplay(layout, ui));
 }
 
 void GameManager::initScene(std::shared_ptr<Environment> env, const LevelConfig& config) {
@@ -275,7 +284,6 @@ void GameManager::initScene(std::shared_ptr<Environment> env, const LevelConfig&
 
     try {
         _scene_manager->loadScene(config);
-
     } catch (const std::exception& e) {
         std::cerr << "GameManager: Failed to load scene: " << e.what() << std::endl;
     }

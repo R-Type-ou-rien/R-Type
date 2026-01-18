@@ -4,6 +4,11 @@
 #include <map>
 #include <chrono>
 #include <cstring>  // Keep cstring as memset is used
+#include <vector>
+#include <utility>
+#include <queue>
+#include <unordered_map>
+#include <memory>
 
 #ifdef RTYPE_USE_REAL_AUDIO
 #include <portaudio.h>

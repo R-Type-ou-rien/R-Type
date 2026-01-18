@@ -60,8 +60,9 @@ void BoxCollision::update(Registry& registry, system_context context) {
                 auto& sprite_a = registry.getConstComponent<Sprite2D>(entity_a);
                 sprite_a_width = sprite_a.rect.width;
                 sprite_a_height = sprite_a.rect.height;
-            } else
+            } else {
                 continue;
+            }
 
             if (registry.hasComponent<AnimatedSprite2D>(entity_b)) {
                 auto& sprite_b = registry.getConstComponent<AnimatedSprite2D>(entity_b);
@@ -73,8 +74,9 @@ void BoxCollision::update(Registry& registry, system_context context) {
                 auto& sprite_b = registry.getConstComponent<Sprite2D>(entity_b);
                 sprite_b_width = sprite_b.rect.width;
                 sprite_b_height = sprite_b.rect.height;
-            } else
+            } else {
                 continue;
+            }
             auto& transform_b = registry.getConstComponent<transform_component_s>(entity_b);
 
             Velocity2D vel_a = {0, 0};
@@ -107,13 +109,13 @@ bool BoxCollision::checkSize(const transform_component_s a, const transform_comp
     double height_a = size_a.second * a.scale_y;
     double width_b = size_b.first * b.scale_x;
     double height_b = size_b.second * b.scale_y;
-    
+
     // Offset pour centrer la hitbox (le rendu utilise origin au centre)
     double offset_a_x = width_a * 0.5;
     double offset_a_y = height_a * 0.5;
     double offset_b_x = width_b * 0.5;
     double offset_b_y = height_b * 0.5;
-    
+
     double a_min_x = std::min(a.x - offset_a_x, a.x - offset_a_x + vel_a.vx * dt);
     double a_max_x = std::max(a.x - offset_a_x + width_a, a.x - offset_a_x + width_a + vel_a.vx * dt);
     double a_min_y = std::min(a.y - offset_a_y, a.y - offset_a_y + vel_a.vy * dt);

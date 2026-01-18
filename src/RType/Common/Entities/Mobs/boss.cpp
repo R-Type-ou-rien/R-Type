@@ -93,12 +93,7 @@ Sprite2D createBossStaticSprite(const EntityConfig& config, handle_t<TextureAsse
     Sprite2D sprite;
 
     sprite.handle = handle;
-    sprite.rect = {
-        config.sprite_x.value(),
-        config.sprite_y.value(),
-        config.sprite_w.value(),
-        config.sprite_h.value()
-    };
+    sprite.rect = {config.sprite_x.value(), config.sprite_y.value(), config.sprite_w.value(), config.sprite_h.value()};
     sprite.layer = static_cast<RenderLayer>(BossDefaults::Sprite::Z_INDEX);
     return sprite;
 }
@@ -109,12 +104,8 @@ AnimatedSprite2D createBossAnimatedSprite(const EntityConfig& config, handle_t<T
     AnimationClip clip;
 
     clip.handle = handle;
-    clip.frames.emplace_back(
-        config.sprite_x.value(),
-        config.sprite_y.value(),
-        config.sprite_w.value(),
-        config.sprite_h.value()
-    );
+    clip.frames.emplace_back(config.sprite_x.value(), config.sprite_y.value(), config.sprite_w.value(),
+                             config.sprite_h.value());
     animation.animations.emplace("idle", clip);
     animation.currentAnimation = "idle";
     animation.layer = static_cast<RenderLayer>(BossDefaults::Sprite::Z_INDEX);
@@ -155,12 +146,8 @@ Sprite2D createTailStaticSprite(handle_t<TextureAsset> handle, const BossTailCon
     Sprite2D sprite;
 
     sprite.handle = handle;
-    sprite.rect = {
-        static_cast<int>(tail_config.sprite_x),
-        static_cast<int>(tail_config.sprite_y),
-        static_cast<int>(tail_config.sprite_width),
-        static_cast<int>(tail_config.sprite_height)
-    };
+    sprite.rect = {static_cast<int>(tail_config.sprite_x), static_cast<int>(tail_config.sprite_y),
+                   static_cast<int>(tail_config.sprite_width), static_cast<int>(tail_config.sprite_height)};
     sprite.layer = static_cast<RenderLayer>(BossDefaults::Tail::Z_INDEX);
     return sprite;
 }
@@ -170,12 +157,8 @@ AnimatedSprite2D createTailAnimatedSprite(handle_t<TextureAsset> handle, const B
 
     AnimationClip clip;
     clip.handle = handle;
-    clip.frames.emplace_back(
-       static_cast<int>(tail_config.sprite_x),
-        static_cast<int>(tail_config.sprite_y),
-        static_cast<int>(tail_config.sprite_width),
-        static_cast<int>(tail_config.sprite_height) 
-    );
+    clip.frames.emplace_back(static_cast<int>(tail_config.sprite_x), static_cast<int>(tail_config.sprite_y),
+                             static_cast<int>(tail_config.sprite_width), static_cast<int>(tail_config.sprite_height));
     animation.layer = static_cast<RenderLayer>(BossDefaults::Tail::Z_INDEX);
     animation.animations.emplace("idle", clip);
     animation.currentAnimation = "idle";
@@ -282,7 +265,8 @@ Entity BossSpawner::spawn(Registry& registry, system_context context, float x, f
     handle_t<TextureAsset> handle =
         context.texture_manager.load(config.sprite_path.value(), TextureAsset(config.sprite_path.value()));
 
-    // registry.addComponent<sprite2D_component_s>(id, createBossSprite(config, handle));
+    // Uncommenting to ensure collision system has dimensions using sprite2D_component_s
+    registry.addComponent<sprite2D_component_s>(id, createBossSprite(config, handle));
     registry.addComponent<AnimatedSprite2D>(id, createBossAnimatedSprite(config, handle));
 
     const int num_frames = config.animation_frames.value_or(1);
