@@ -54,8 +54,6 @@ ServerGameEngine::ServerGameEngine(std::string ip)
 }
 
 int ServerGameEngine::init() {
-    // Systems are added in GameManager::initSystems()
-    // Only add server-specific systems here
     _ecs.systems.addSystem<ComponentSenderSystem>();
 
     registerNetworkComponent<Sprite2D>();
@@ -65,28 +63,12 @@ int ServerGameEngine::init() {
     registerNetworkComponent<Velocity2D>();
     registerNetworkComponent<BoxCollisionComponent>();
     registerNetworkComponent<TagComponent>();
-    registerNetworkComponent<HealthComponent>();
-    registerNetworkComponent<EnemySpawnComponent>();
-    registerNetworkComponent<ShooterComponent>();
-    registerNetworkComponent<ChargedShotComponent>();
     registerNetworkComponent<TextComponent>();
     registerNetworkComponent<ResourceComponent>();
     registerNetworkComponent<BackgroundComponent>();
     registerNetworkComponent<PatternComponent>();
-    registerNetworkComponent<ProjectileComponent>();
-    registerNetworkComponent<TeamComponent>();
-    registerNetworkComponent<DamageOnCollision>();
     registerNetworkComponent<NetworkIdentity>();
-    registerNetworkComponent<::GameTimerComponent>();
-    // AudioSourceComponent removed - audio is client-local and has std::string fields
-
-    // R-Type specific components
-    registerNetworkComponent<PodComponent>();
-    registerNetworkComponent<PlayerPodComponent>();
-    registerNetworkComponent<BehaviorComponent>();
-    registerNetworkComponent<BossComponent>();
-    registerNetworkComponent<BossSubEntityComponent>();
-    registerNetworkComponent<ScoreComponent>();
+    registerNetworkComponent<AudioSourceComponent>();
 
     // Expose Server Engine services to Game Logic
     _env->addFunction("registerPlayer", std::function<void(uint32_t, std::shared_ptr<Player>)>(
