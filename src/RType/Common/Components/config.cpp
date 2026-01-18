@@ -103,6 +103,7 @@ const ConfigBinder<EntityConfig>& ConfigLoader::getBinder<EntityConfig>() {
 
         binder.bind("margin_right", &EntityConfig::margin_right);
         binder.bind("spawn_offset_x", &EntityConfig::spawn_offset_x);
+        binder.bind("spawn_offset_y", &EntityConfig::spawn_offset_y);
         binder.bind("z_index", &EntityConfig::z_index);
 
         binder.bind("tail_segment_count", &EntityConfig::tail_segment_count);

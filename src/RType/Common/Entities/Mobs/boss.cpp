@@ -36,7 +36,7 @@ struct BossDimensions {
         dimensions.height = config.sprite_h.value() * scale;
         dimensions.target_x = world_width - dimensions.width - BossDefaults::Position::MARGIN_RIGHT;
         dimensions.start_x = world_width + BossDefaults::Position::SPAWN_OFFSET_X;
-        dimensions.start_y = (world_height / 2.0f) - (dimensions.height / 2.0f);
+        dimensions.start_y = (world_height / 2.0f) - (dimensions.height / 2.0f) + config.spawn_offset_y.value_or(0.0f);
 
         return dimensions;
     }
@@ -296,7 +296,7 @@ Entity BossSpawner::spawn(Registry& registry, system_context context, float x, f
     registry.addComponent<TagComponent>(id, createBossTags());
     registry.addComponent<NetworkIdentity>(id, {static_cast<uint32_t>(id), 0});
 
-    BossTailConfig tail_config;
+    BossTailConfig tail_config = config.toBossTailConfig();
     spawnTailSegments(registry, context, id, dims, config, tail_config);
 
     return id;
