@@ -5,6 +5,7 @@
 #include <ostream>
 #include <cmath>
 #include <algorithm>
+#include <string>
 
 #include "Components/StandardComponents.hpp"
 #include "Components/NetworkComponents.hpp"
@@ -154,7 +155,6 @@ void ShooterSystem::create_projectile_with_pattern(Registry& registry, Entity ow
     } else {
         collision.tagCollision.push_back("PLAYER");
     }
-
 
     registry.addComponent<NetworkIdentity>(id, {static_cast<uint32_t>(id), 0});
 
@@ -429,9 +429,8 @@ void ShooterSystem::create_pod_circular_laser(Registry& registry, Entity owner_e
     registry.addComponent<DamageOnCollision>(laser_id, {projectile_damage});
     registry.addComponent<PenetratingProjectile>(laser_id, {999, 0});
 
-    handle_t<TextureAsset> handle =
-        context.texture_manager.load("src/RType/Common/content/sprites/bolt.png",
-                                     TextureAsset("src/RType/Common/content/sprites/bolt.png"));
+    handle_t<TextureAsset> handle = context.texture_manager.load(
+        "src/RType/Common/content/sprites/bolt.png", TextureAsset("src/RType/Common/content/sprites/bolt.png"));
 
     AnimatedSprite2D animation;
     AnimationClip clip;

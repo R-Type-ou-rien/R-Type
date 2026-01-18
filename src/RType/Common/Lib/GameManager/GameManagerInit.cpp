@@ -281,7 +281,6 @@ void GameManager::initScene(std::shared_ptr<Environment> env, const LevelConfig&
 
     try {
         _scene_manager->loadScene(config);
-
     } catch (const std::exception& e) {
         std::cerr << "GameManager: Failed to load scene: " << e.what() << std::endl;
     }

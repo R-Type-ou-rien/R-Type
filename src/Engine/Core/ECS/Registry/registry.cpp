@@ -1,5 +1,6 @@
 #include "registry.hpp"
 #include <cstdint>
+#include <string>
 #include "Components/NetworkComponents.hpp"
 #include "Guid/Guid.hpp"
 

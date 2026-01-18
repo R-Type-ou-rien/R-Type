@@ -250,7 +250,7 @@ class ScenePrefabs {
                     // registry.addComponent<sprite2D_component_s>(entity, sprite);
                     AnimatedSprite2D animation;
                     AnimationClip clip;
-                    
+
                     clip.handle = handle;
                     animation.layer = RenderLayer::Midground;
                     clip.frames.emplace_back(0, 0, 0, 0);

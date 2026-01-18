@@ -8,7 +8,9 @@
 #include <iostream>
 #include <memory>
 #include <vector>
+#include <unordered_map>
 #include <string>
+#include <unordered_set>
 #include <SFML/Window/Mouse.hpp>
 #include <SFML/Window/Keyboard.hpp>
 
@@ -20,9 +22,6 @@
 
 #include "src/Engine/Lib/Components/NetworkComponents.hpp"
 #include "src/RType/Common/Components/leaderboard_component.hpp"
-#include <iostream>
-#include <vector>
-#include <string>
 
 GameManager::GameManager() {
     try {

@@ -1,6 +1,9 @@
 #include "LobbyManager.hpp"
 #include <SFML/Window/Mouse.hpp>
 #include <SFML/Window/Keyboard.hpp>
+#include <string>
+#include <iostream>
+#include <vector>
 
 #include "../../../../../Engine/Lib/Components/StandardComponents.hpp"
 #include "Voice/VoiceManager.hpp"

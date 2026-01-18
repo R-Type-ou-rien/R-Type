@@ -1,5 +1,7 @@
 #include "AuthManager.hpp"
 #include <iostream>
+#include <string>
+#include <vector>
 
 void AuthManager::init(std::shared_ptr<Environment> env) {
     auto& ecs = env->getECS();

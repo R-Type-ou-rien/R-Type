@@ -26,15 +26,16 @@ void HealthSystem::update(Registry& registry, system_context context) {
             }
             // Fix: Do not destroy players immediately, let GameManagerState handle Game Over
             if (registry.hasComponent<TagComponent>(entity)) {
-                 auto& tags = registry.getComponent<TagComponent>(entity);
-                 bool isPlayer = false;
-                 for (const auto& tag : tags.tags) {
-                     if (tag == "PLAYER") {
-                         isPlayer = true;
-                         break;
-                     }
-                 }
-                 if (isPlayer) continue;
+                auto& tags = registry.getComponent<TagComponent>(entity);
+                bool isPlayer = false;
+                for (const auto& tag : tags.tags) {
+                    if (tag == "PLAYER") {
+                        isPlayer = true;
+                        break;
+                    }
+                }
+                if (isPlayer)
+                    continue;
             }
             dead_entities.push_back(entity);
         }

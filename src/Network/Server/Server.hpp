@@ -32,7 +32,7 @@ class Server : public network::ServerInterface<GameEvents> {
 
    public:
     Server(uint16_t nPort = 4040, int timeout_seconds = 5)
-        : network::ServerInterface<GameEvents>(nPort), _timeout_seconds(timeout_seconds){};
+        : network::ServerInterface<GameEvents>(nPort), _timeout_seconds(timeout_seconds) {};
 
    protected:
     virtual void OnMessage(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents>& msg);

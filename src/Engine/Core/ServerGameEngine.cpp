@@ -15,6 +15,8 @@
 #include <thread>
 #include <vector>
 #include <tuple>
+#include <unordered_set>
+#include <string>
 #include <algorithm>
 #include "Components/NetworkComponents.hpp"
 #include "Components/LobbyIdComponent.hpp"
@@ -34,7 +36,6 @@
 #include "../../RType/Common/Components/damage_component.hpp"
 #include "../../RType/Common/Components/game_timer.hpp"
 #include "../../RType/Common/Components/pod_component.hpp"
-#include "../../RType/Common/Components/charged_shot.hpp"
 #include "../../RType/Common/Components/scripted_spawn.hpp"
 #include "../Lib/Components/LobbyIdComponent.hpp"
 #include "../Lib/Utils/LobbyUtils.hpp"

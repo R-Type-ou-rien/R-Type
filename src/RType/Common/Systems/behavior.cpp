@@ -131,12 +131,16 @@ void BoundsSystem::update(Registry& registry, system_context context) {
                 auto& animation = registry.getConstComponent<AnimatedSprite2D>(entity);
                 if (!animation.animations.at(animation.currentAnimation).frames.empty()) {
                     const auto& frame = animation.animations.at(animation.currentAnimation).frames;
-                    sprite_w = animation.animations.at(animation.currentAnimation).frames.at(animation.currentFrameIndex).width;
-                    sprite_h = animation.animations.at(animation.currentAnimation).frames.at(animation.currentFrameIndex).height;
+                    sprite_w = animation.animations.at(animation.currentAnimation)
+                                   .frames.at(animation.currentFrameIndex)
+                                   .width;
+                    sprite_h = animation.animations.at(animation.currentAnimation)
+                                   .frames.at(animation.currentFrameIndex)
+                                   .height;
                 }
             } else if (registry.hasComponent<Sprite2D>(entity)) {
                 auto& sprite = registry.getConstComponent<Sprite2D>(entity);
-                
+
                 sprite_w = sprite.rect.width;
                 sprite_h = sprite.rect.height;
             }

@@ -4,6 +4,8 @@
 #include <functional>
 #include <string>
 #include <vector>
+#include <map>
+#include <memory>
 
 #include <optional>
 #include "ECS/EcsType.hpp"
@@ -39,7 +41,6 @@ struct AvailableLobby {
 }  // namespace engine::core
 
 class ClientGameEngine : public GameEngineBase<ClientGameEngine> {
-   public:
    private:
     WindowManager _window_manager;
     uint32_t _serverId = 0;

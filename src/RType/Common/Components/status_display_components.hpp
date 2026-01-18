@@ -26,25 +26,15 @@ class UIStatus {
    public:
     UIStatus(float width, float height) : _windowWidth(width), _windowHeight(height) {}
 
-    float getWindowWidth() const {
-        return _windowWidth;
-    }
-    
-    float getWindowHeight() const {
-        return _windowHeight;
-    }
+    float getWindowWidth() const { return _windowWidth; }
 
-    float getStatusBarY() const {
-        return _windowHeight * 4.0f / StatusPlayerUI::VERTICAL_DIVISIONS;
-    }
+    float getWindowHeight() const { return _windowHeight; }
 
-    float getStatusBarHeight() const {
-        return _windowHeight / StatusPlayerUI::VERTICAL_DIVISIONS;
-    }
+    float getStatusBarY() const { return _windowHeight * 4.0f / StatusPlayerUI::VERTICAL_DIVISIONS; }
 
-    float getMargin() const {
-        return _windowWidth * StatusPlayerUI::MARGIN_RATIO;
-    }
+    float getStatusBarHeight() const { return _windowHeight / StatusPlayerUI::VERTICAL_DIVISIONS; }
+
+    float getMargin() const { return _windowWidth * StatusPlayerUI::MARGIN_RATIO; }
 
     float getColumnWidth() const {
         float totalMargins = getMargin() * 4.0f;
@@ -57,31 +47,17 @@ class UIStatus {
         return margin + column * (colWidth + margin);
     }
 
-    float getLivesX() const {
-        return getColumnX(0);
-    }
-    float getLivesY() const {
-        return getStatusBarY() + getStatusBarHeight() / 2.0f;
-    }
+    float getLivesX() const { return getColumnX(0); }
+    float getLivesY() const { return getStatusBarY() + getStatusBarHeight() / 2.0f; }
 
-    float getChargeBarX() const {
-        return getColumnX(1);
-    }
-    
-    float getChargeBarY() const {
-        return getStatusBarY() + getStatusBarHeight() / 2.0f;
-    }
-    
-    float getChargeBarWidth() const {
-        return getColumnWidth();
-    }
+    float getChargeBarX() const { return getColumnX(1); }
 
-    float getScoreX() const {
-        return getColumnX(2);
-    }
-    float getScoreY() const {
-        return getStatusBarY() + getStatusBarHeight() / 2.0f;
-    }
+    float getChargeBarY() const { return getStatusBarY() + getStatusBarHeight() / 2.0f; }
+
+    float getChargeBarWidth() const { return getColumnWidth(); }
+
+    float getScoreX() const { return getColumnX(2); }
+    float getScoreY() const { return getStatusBarY() + getStatusBarHeight() / 2.0f; }
 
    private:
     float _windowWidth;
@@ -94,21 +70,13 @@ class UIComponent {
     UIComponent(float x, float y) : _x(x), _y(y) {}
     virtual ~UIComponent() = default;
 
-    float getX() const {
-        return _x;
-    }
+    float getX() const { return _x; }
 
-    float getY() const {
-        return _y;
-    }
+    float getY() const { return _y; }
 
-    void setX(float x) {
-        _x = x;
-    }
+    void setX(float x) { _x = x; }
 
-    void setY(float y) {
-        _y = y;
-    }
+    void setY(float y) { _y = y; }
     void setPosition(float x, float y) {
         _x = x;
         _y = y;
@@ -125,21 +93,13 @@ class StatusDisplayComponent {
 
     StatusDisplayComponent() = default;
 
-    Entity getPlayerEntity() const {
-        return _playerEntity;
-    }
+    Entity getPlayerEntity() const { return _playerEntity; }
 
-    void setPlayerEntity(Entity entity) {
-        _playerEntity = entity;
-    }
+    void setPlayerEntity(Entity entity) { _playerEntity = entity; }
 
-    bool isInitialized() const {
-        return _isInitialized;
-    }
+    bool isInitialized() const { return _isInitialized; }
 
-    void setInitialized(bool initialized) {
-        _isInitialized = initialized;
-    }
+    void setInitialized(bool initialized) { _isInitialized = initialized; }
 
    private:
     Entity _playerEntity = -1;
@@ -152,37 +112,21 @@ class LivesDisplayComponent : public UIComponent {
 
     LivesDisplayComponent() = default;
 
-    int getCurrentLives() const {
-        return _currentLives;
-    }
+    int getCurrentLives() const { return _currentLives; }
 
-    void setCurrentLives(int lives) {
-        _currentLives = lives; 
-    }       
+    void setCurrentLives(int lives) { _currentLives = lives; }
 
-    int getMaxLives() const {
-        return _maxLives;
-    }
+    int getMaxLives() const { return _maxLives; }
 
-    void setMaxLives(int maxLives) {
-        _maxLives = maxLives;
-    }
+    void setMaxLives(int maxLives) { _maxLives = maxLives; }
 
-    float getIconSize() const {
-        return _iconSize;
-    }
+    float getIconSize() const { return _iconSize; }
 
-    void setIconSize(float size) {
-        _iconSize = size;
-    }
+    void setIconSize(float size) { _iconSize = size; }
 
-    float getIconSpacing() const {
-        return _iconSpacing;
-    }
+    float getIconSpacing() const { return _iconSpacing; }
 
-    void setIconSpacing(float spacing) {
-        _iconSpacing = spacing;
-    }
+    void setIconSpacing(float spacing) { _iconSpacing = spacing; }
 
     static LivesDisplayComponent fromLayout(const UIStatus& layout) {
         LivesDisplayComponent component;
@@ -212,37 +156,21 @@ class ChargeBarComponent : public UIComponent {
 
     ChargeBarComponent() = default;
 
-    float getCurrentCharge() const {
-        return _currentCharge;
-    }
+    float getCurrentCharge() const { return _currentCharge; }
 
-    void setCurrentCharge(float charge) {
-        _currentCharge = charge;
-    }
+    void setCurrentCharge(float charge) { _currentCharge = charge; }
 
-    float getMaxCharge() const {
-        return _maxCharge;
-    }
+    float getMaxCharge() const { return _maxCharge; }
 
-    void setMaxCharge(float maxCharge) {
-        _maxCharge = maxCharge;
-    }
+    void setMaxCharge(float maxCharge) { _maxCharge = maxCharge; }
 
-    float getBarWidth() const {
-        return _barWidth;
-    }
+    float getBarWidth() const { return _barWidth; }
 
-    void setBarWidth(float width) {
-        _barWidth = width;
-    }
+    void setBarWidth(float width) { _barWidth = width; }
 
-    float getBarHeight() const {
-        return _barHeight;
-    }
+    float getBarHeight() const { return _barHeight; }
 
-    void setBarHeight(float height) {
-        _barHeight = height;
-    }
+    void setBarHeight(float height) { _barHeight = height; }
 
     static ChargeBarComponent fromLayout(const UIStatus& layout) {
         ChargeBarComponent component;
@@ -277,21 +205,13 @@ class ScoreDisplayComponent : public UIComponent {
 
     ScoreDisplayComponent() = default;
 
-    int getCurrentScore() const {
-        return _currentScore;
-    }
+    int getCurrentScore() const { return _currentScore; }
 
-    void setCurrentScore(int score) {
-        _currentScore = score;
-    }
+    void setCurrentScore(int score) { _currentScore = score; }
 
-    int getDigitCount() const {
-        return _digitCount;
-    }
+    int getDigitCount() const { return _digitCount; }
 
-    void setDigitCount(int count) {
-        _digitCount = count;
-    }
+    void setDigitCount(int count) { _digitCount = count; }
 
     static ScoreDisplayComponent fromLayout(const UIStatus& layout) {
         ScoreDisplayComponent component;
@@ -323,9 +243,7 @@ class StatusDisplayFactory {
         return ChargeBarComponent::fromLayout(layout);
     }
 
-    static ChargeBarComponent createChargeBar(const UIStatus& layout) {
-        return ChargeBarComponent::fromLayout(layout);
-    }
+    static ChargeBarComponent createChargeBar(const UIStatus& layout) { return ChargeBarComponent::fromLayout(layout); }
 
     static LivesDisplayComponent createLivesDisplay(const UIStatus& layout, const UIConfig& config,
                                                     const std::string& elementName = "LivesDisplay") {
