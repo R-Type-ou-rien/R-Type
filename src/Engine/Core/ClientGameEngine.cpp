@@ -43,8 +43,7 @@ ClientGameEngine::ClientGameEngine(std::string ip, std::string window_name)
 
 ClientGameEngine::ClientGameEngine(int width, int height, std::string window_name)
     : _window_manager(width, height, window_name),
-      _env(std::make_shared<Environment>(_ecs, _texture_manager, _sound_manager, _music_manager, EnvMode::CLIENT)) {
-}
+      _env(std::make_shared<Environment>(_ecs, _texture_manager, _sound_manager, _music_manager, EnvMode::CLIENT)) {}
 
 int ClientGameEngine::init() {
     if (_network) {
@@ -705,7 +704,8 @@ int ClientGameEngine::run() {
 
         handleEvent();
         processNetworkEvents();
-        static std::shared_ptr<engine::core::NetworkEngine> dummyNetwork = std::make_shared<engine::core::NetworkEngine>(engine::core::NetworkEngine::NetworkRole::CLIENT);
+        static std::shared_ptr<engine::core::NetworkEngine> dummyNetwork =
+            std::make_shared<engine::core::NetworkEngine>(engine::core::NetworkEngine::NetworkRole::CLIENT);
 
         if (_network) {
             _predictionSystem->updatePrediction(_ecs.registry, input_manager, _currentTick, context.dt);

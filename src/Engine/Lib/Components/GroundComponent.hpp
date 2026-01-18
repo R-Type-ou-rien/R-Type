@@ -9,8 +9,7 @@
 
 #include "StructDatas/Rect2D.hpp"
 
-struct GroundComponent
-{
+struct GroundComponent {
     static constexpr auto name = "GroundComponent";
     Rect2D rect;
     bool isSolid;

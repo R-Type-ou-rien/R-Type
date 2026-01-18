@@ -11,8 +11,7 @@
 #include "Components/StandardComponents.hpp"
 #include "Components/StructDatas/Vector2D.hpp"
 
-struct EjectionComponent
-{
+struct EjectionComponent {
     static constexpr auto name = "EjectionComponent";
     Vector2D ejectionForce;
     float duration;
@@ -20,7 +19,6 @@ struct EjectionComponent
 };
 
 class EjectionSystem : public ISystem {
-public:
+   public:
     void update(Registry& registry, system_context context) override;
-
 };

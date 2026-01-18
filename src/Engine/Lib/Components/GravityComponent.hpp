@@ -9,8 +9,7 @@
 
 #include "StructDatas/Vector2D.hpp"
 
-struct GravityComponent
-{
+struct GravityComponent {
     static constexpr auto name = "GravityComponent";
     float force = 10.0f;
     float vectorY = 0.0f;

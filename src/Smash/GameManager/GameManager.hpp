@@ -15,21 +15,23 @@
 #include "../../../Engine/Core/ECS/ECS.hpp"
 
 class GameManager {
-public:
+   public:
     GameManager();
     void init(ECS& ecs);
     void update(ECS& ecs);
     void loadInputSetting(ECS& ecs);
 
-private:
+   private:
     void setPlatform(ECS& ecs);
     void setBackground(ECS& ecs);
     void updateUIHealthPercentage(ECS& ecs);
-    void handleCombat(ECS& ecs, Player& attacker, Player& victim, const std::string& input, const std::string& animationName, int damage, float forceBase, float forceScaling);
+    void handleCombat(ECS& ecs, Player& attacker, Player& victim, const std::string& input,
+                      const std::string& animationName, int damage, float forceBase, float forceScaling);
     void handleSpecialAttack(ECS& ecs, Player& attacker, const std::string& input);
     void updateProjectiles(ECS& ecs, float dt);
     bool checkEnd(ECS& ecs);
-private:
+
+   private:
     sf::Clock _deltaClock;
     std::unique_ptr<Player> _player1;
     std::unique_ptr<Player> _player2;

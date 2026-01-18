@@ -44,7 +44,8 @@ class GameEngineBase {
     uint32_t _currentTick = 0;
 
    public:
-    explicit GameEngineBase() : _ecs(_texture_manager, input_manager), _scene_manager(_ecs.registry), _network(nullptr) {}
+    explicit GameEngineBase()
+        : _ecs(_texture_manager, input_manager), _scene_manager(_ecs.registry), _network(nullptr) {}
     ~GameEngineBase() = default;
 
     SceneManager& getSceneManager() { return _scene_manager; }
