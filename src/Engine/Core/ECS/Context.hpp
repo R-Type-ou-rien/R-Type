@@ -38,6 +38,7 @@ struct system_context {
     sf::RenderWindow& window;
     InputManager& input;
     uint32_t player_id;
+    std::function<void(const std::string&)> sendSignal;
 };
 #else
 #error "You must compile with -DSERVER_BUILD or -DCLIENT_BUILD"

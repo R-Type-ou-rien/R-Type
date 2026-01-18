@@ -39,9 +39,10 @@ class Environment {
         LOBBY_LIST,
         LOBBY,
         IN_GAME,
+        IN_GAME_DEAD,
         INCORRECT_PASSWORD,
         CORRECT_PASSWORD,
-        END_GAME
+        END_GAME,
     };
 
     enum class State : uint32_t {

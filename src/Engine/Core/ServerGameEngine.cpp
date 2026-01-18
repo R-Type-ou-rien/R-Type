@@ -144,14 +144,43 @@ int ServerGameEngine::init() {
                         // Destroy all entities belonging to this lobby
                         if (_env->hasFunction("getECS")) {
                             auto& ecs = _env->getECS();
-                            std::vector<Entity> entitiesToDestroy;
-                            auto& lobbyIds = ecs.registry.getEntities<LobbyIdComponent>();
+                            std::unordered_set<Entity> entitiesToDestroy;
 
+                            // 1. Standard cleanup via LobbyIdComponent
+                            auto& lobbyIds = ecs.registry.getEntities<LobbyIdComponent>();
                             for (auto entity : lobbyIds) {
                                 if (ecs.registry.hasComponent<LobbyIdComponent>(entity)) {
                                     auto& lobbyComp = ecs.registry.getComponent<LobbyIdComponent>(entity);
                                     if (lobbyComp.lobby_id == lobbyId) {
-                                        entitiesToDestroy.push_back(entity);
+                                        entitiesToDestroy.insert(entity);
+                                    }
+                                }
+                            }
+
+                            // 2. Aggressive cleanup via Tags (Clean up leaks/ghosts)
+                            auto& taggedEntities = ecs.registry.getEntities<TagComponent>();
+                            for (auto entity : taggedEntities) {
+                                if (!ecs.registry.hasComponent<TagComponent>(entity))
+                                    continue;
+                                auto& tags = ecs.registry.getConstComponent<TagComponent>(entity);
+
+                                bool isDynamicInfo = false;
+                                for (const auto& tag : tags.tags) {
+                                    if (tag == "PROJECTILE" || tag == "ENEMY_PROJECTILE" ||
+                                        tag == "FRIENDLY_PROJECTILE" || tag == "ENEMY" || tag == "BOSS" ||
+                                        tag == "OBSTACLE" || tag == "POD" || tag == "POWERUP" ||
+                                        tag == "LEADERBOARD_DATA" || tag == "PLAYER") {
+                                        isDynamicInfo = true;
+                                        break;
+                                    }
+                                }
+
+                                if (isDynamicInfo) {
+                                    uint32_t entLobby = engine::utils::getLobbyId(ecs.registry, entity);
+                                    // Destroy if it belongs to this lobby OR if it's orphaned (Lobby 0)
+                                    // We assume Lobby 0 shouldn't contain active gameplay projectiles/enemies
+                                    if (entLobby == lobbyId || entLobby == 0) {
+                                        entitiesToDestroy.insert(entity);
                                     }
                                 }
                             }
@@ -185,6 +214,22 @@ int ServerGameEngine::init() {
                         for (const auto& client : lobbyOpt->get().getClients()) {
                             lobbyOpt->get().setPlayerReady(client.id, false);
                         }
+
+                        // Broadcast the unready state to everyone so clients update their UI
+                        for (const auto& client : lobbyOpt->get().getClients()) {
+                            for (const auto& receiver : lobbyOpt->get().getClients()) {
+                                network::message<network::GameEvents> reply;
+                                reply.header.id = network::GameEvents::S_CANCEL_READY_BROADCAST;
+                                reply << client.id;
+                                server->AddMessageToPlayer(network::GameEvents::S_CANCEL_READY_BROADCAST, receiver.id,
+                                                           reply);
+                            }
+                        }
+
+                        // CRITICAL: Reset the Network Server's internal state for this lobby to IN_LOBBY
+                        // by sending S_RETURN_TO_LOBBY (which is trapped by Server.hpp to reset state)
+                        // This allows C_READY and C_TEAM_CHAT to pass validation again.
+                        server->AddMessageToLobby(network::GameEvents::S_RETURN_TO_LOBBY, lobbyId, 0);
 
                         std::cout << "SERVER: Broadcasted Game Over for lobby " << lobbyId << std::endl;
                     }
@@ -265,6 +310,8 @@ void ServerGameEngine::processNetworkEvents() {
                         server->AddMessageToPlayer(network::GameEvents::S_READY_RETURN, client.id, reply);
                     }
                 }
+            } else {
+                std::cout << "SERVER: Client " << clientId << " sent C_READY but is not in any lobby!" << std::endl;
             }
         }
     }
@@ -275,12 +322,104 @@ void ServerGameEngine::processNetworkEvents() {
             uint32_t clientId = msg.header.user_id;
             auto lobbyOpt = _lobbyManager.getLobbyForClient(clientId);
             if (lobbyOpt) {
-                lobbyOpt->get().setPlayerReady(clientId, false);
+                auto& lobby = lobbyOpt->get();
+                lobby.setPlayerReady(clientId, false);
                 std::cout << "SERVER: Client " << clientId << " cancelled ready" << std::endl;
 
                 auto network_instance = _network->getNetworkInstance();
                 if (std::holds_alternative<std::shared_ptr<network::Server>>(network_instance)) {
                     auto server = std::get<std::shared_ptr<network::Server>>(network_instance);
+
+                    // IF GAME IS RUNNING -> Full Reset
+                    if (lobby.getState() == engine::core::Lobby::State::IN_GAME) {
+                        uint32_t lobbyId = lobby.getId();
+                        std::cout << "SERVER: Client " << clientId << " Aborted Game (C_CANCEL_READY). Resetting Lobby "
+                                  << lobbyId << std::endl;
+
+                        // 1. Reset Lobby State
+                        lobby.setState(engine::core::Lobby::State::WAITING);
+
+                        // 2. Cleanup Entities (Aggressive)
+                        auto& ecs = _env->getECS();
+                        std::unordered_set<Entity> entitiesToDestroy;
+
+                        // Cleanup via LobbyId
+                        auto& lobbyIds = ecs.registry.getEntities<LobbyIdComponent>();
+                        for (auto entity : lobbyIds) {
+                            if (ecs.registry.hasComponent<LobbyIdComponent>(entity)) {
+                                if (ecs.registry.getComponent<LobbyIdComponent>(entity).lobby_id == lobbyId) {
+                                    entitiesToDestroy.insert(entity);
+                                }
+                            }
+                        }
+
+                        // Cleanup via Tags (Ghosts, Including AI)
+                        auto& taggedEntities = ecs.registry.getEntities<TagComponent>();
+                        for (auto entity : taggedEntities) {
+                            if (!ecs.registry.hasComponent<TagComponent>(entity))
+                                continue;
+                            auto& tags = ecs.registry.getConstComponent<TagComponent>(entity);
+                            bool isDynamic = false;
+                            for (const auto& tag : tags.tags) {
+                                if (tag == "PROJECTILE" || tag == "ENEMY_PROJECTILE" || tag == "FRIENDLY_PROJECTILE" ||
+                                    tag == "ENEMY" || tag == "BOSS" || tag == "OBSTACLE" || tag == "POD" ||
+                                    tag == "POWERUP" || tag == "LEADERBOARD_DATA" || tag == "PLAYER" || tag == "AI") {
+                                    isDynamic = true;
+                                    break;
+                                }
+                            }
+                            if (isDynamic) {
+                                uint32_t entLobby = engine::utils::getLobbyId(ecs.registry, entity);
+                                if (entLobby == lobbyId || entLobby == 0) {
+                                    entitiesToDestroy.insert(entity);
+                                }
+                            }
+                        }
+
+                        // Cleanup Spawners (EnemySpawnComponent)
+                        auto& spawners = ecs.registry.getEntities<EnemySpawnComponent>();
+                        for (auto entity : spawners) {
+                            if (ecs.registry.hasComponent<EnemySpawnComponent>(entity)) {
+                                const auto& spawnComp = ecs.registry.getConstComponent<EnemySpawnComponent>(entity);
+                                if (spawnComp.lobby_id == lobbyId) {
+                                    entitiesToDestroy.insert(entity);
+                                }
+                            }
+                        }
+
+                        // Cleanup Game Timers (GameTimerComponent)
+                        auto& timers = ecs.registry.getEntities<GameTimerComponent>();
+                        for (auto entity : timers) {
+                            uint32_t entLobby = engine::utils::getLobbyId(ecs.registry, entity);
+                            if (entLobby == lobbyId) {
+                                entitiesToDestroy.insert(entity);
+                            }
+                        }
+
+                        // Cleanup Scores
+                        auto& scores = ecs.registry.getEntities<ScoreComponent>();
+                        for (auto entity : scores) {
+                            uint32_t entLobby = engine::utils::getLobbyId(ecs.registry, entity);
+                            if (entLobby == lobbyId) {
+                                entitiesToDestroy.insert(entity);
+                            }
+                        }
+
+                        for (auto entity : entitiesToDestroy) {
+                            ecs.registry.destroyEntity(entity);
+                        }
+                        std::cout << "SERVER: Destroyed " << entitiesToDestroy.size() << " entities for lobby "
+                                  << lobbyId << " (Abort Reset)" << std::endl;
+
+                        // Reset all players ready
+                        for (const auto& client : lobby.getClients()) {
+                            lobby.setPlayerReady(client.id, false);
+                        }
+
+                        // Broadcast S_RETURN_TO_LOBBY to force clients back
+                        server->AddMessageToLobby(network::GameEvents::S_RETURN_TO_LOBBY, lobbyId, 0);
+                    }
+
                     for (const auto& client : lobbyOpt->get().getClients()) {
                         network::message<network::GameEvents> reply;
                         reply.header.id = network::GameEvents::S_CANCEL_READY_BROADCAST;
@@ -357,6 +496,170 @@ void ServerGameEngine::processNetworkEvents() {
             ActionPacket packet;
             msg >> packet;
             updateActions(packet, msg.header.user_id);
+        }
+    }
+
+    // Handle C_TEAM_CHAT
+    if (pending.count(network::GameEvents::C_TEAM_CHAT)) {
+        auto& msgs = pending.at(network::GameEvents::C_TEAM_CHAT);
+        for (auto& msg : msgs) {
+            uint32_t clientId = msg.header.user_id;
+            auto lobbyOpt = _lobbyManager.getLobbyForClient(clientId);
+            if (lobbyOpt) {
+                network::chat_message chatMsg;
+                // Basic validation and extraction
+                if (msg.body.size() >= 256) {  // Expecting char[256]
+                    char rawMsg[256];
+                    std::memcpy(rawMsg, msg.body.data(), 256);
+                    // Create full chat message structured packet to broadcast
+                    network::chat_message broadcastMsg;
+                    broadcastMsg.sender_id = clientId;
+                    std::string senderName = "Player " + std::to_string(clientId);
+                    // Try to get real name
+                    for (const auto& client : lobbyOpt->get().getClients()) {
+                        if (client.id == clientId) {
+                            senderName = client.name;
+                            break;
+                        }
+                    }
+                    std::strncpy(broadcastMsg.sender_name, senderName.c_str(), 31);
+                    std::strncpy(broadcastMsg.message, rawMsg, 255);
+
+                    std::cout << "SERVER: Chat from " << senderName << ": " << broadcastMsg.message << std::endl;
+
+                    // Broadcast to lobby
+                    auto network_instance = _network->getNetworkInstance();
+                    if (std::holds_alternative<std::shared_ptr<network::Server>>(network_instance)) {
+                        auto server = std::get<std::shared_ptr<network::Server>>(network_instance);
+                        for (const auto& client : lobbyOpt->get().getClients()) {
+                            network::message<network::GameEvents> reply;
+                            reply.header.id = network::GameEvents::S_TEAM_CHAT;
+                            reply << broadcastMsg;  // Serializes struct
+                            server->AddMessageToPlayer(network::GameEvents::S_TEAM_CHAT, client.id, reply);
+                        }
+                    }
+                }
+            } else {
+                std::cout << "SERVER: Client " << clientId << " sent C_TEAM_CHAT but is not in any lobby!" << std::endl;
+            }
+        }
+    }
+
+    // Handle Return to Lobby (Manual Reset)
+    if (pending.count(network::GameEvents::S_RETURN_TO_LOBBY)) {
+        for (const auto& msg : pending.at(network::GameEvents::S_RETURN_TO_LOBBY)) {
+            uint32_t clientId = msg.header.user_id;
+            auto lobbyOpt = _lobbyManager.getLobbyForClient(clientId);
+            if (lobbyOpt) {
+                auto& lobby = lobbyOpt->get();
+                uint32_t lobbyId = lobby.getId();
+                std::cout << "SERVER: Client " << clientId << " requested Return to Lobby. Resetting Lobby " << lobbyId
+                          << std::endl;
+
+                // 1. Reset Lobby State
+                lobby.setState(engine::core::Lobby::State::WAITING);
+
+                // 2. Cleanup Entities (Aggressive)
+                auto& ecs = _env->getECS();
+                std::unordered_set<Entity> entitiesToDestroy;
+
+                // Cleanup via LobbyId
+                auto& lobbyIds = ecs.registry.getEntities<LobbyIdComponent>();
+                for (auto entity : lobbyIds) {
+                    if (ecs.registry.hasComponent<LobbyIdComponent>(entity)) {
+                        if (ecs.registry.getComponent<LobbyIdComponent>(entity).lobby_id == lobbyId) {
+                            entitiesToDestroy.insert(entity);
+                        }
+                    }
+                }
+                // Cleanup via Tags (Ghosts)
+                auto& taggedEntities = ecs.registry.getEntities<TagComponent>();
+                for (auto entity : taggedEntities) {
+                    if (!ecs.registry.hasComponent<TagComponent>(entity))
+                        continue;
+                    auto& tags = ecs.registry.getConstComponent<TagComponent>(entity);
+                    bool isDynamic = false;
+                    for (const auto& tag : tags.tags) {
+                        if (tag == "PROJECTILE" || tag == "ENEMY_PROJECTILE" || tag == "FRIENDLY_PROJECTILE" ||
+                            tag == "ENEMY" || tag == "BOSS" || tag == "OBSTACLE" || tag == "POD" || tag == "POWERUP" ||
+                            tag == "LEADERBOARD_DATA" || tag == "PLAYER" || tag == "AI") {
+                            isDynamic = true;
+                            break;
+                        }
+                    }
+                    if (isDynamic) {
+                        uint32_t entLobby = engine::utils::getLobbyId(ecs.registry, entity);
+                        if (entLobby == lobbyId || entLobby == 0) {
+                            entitiesToDestroy.insert(entity);
+                        }
+                    }
+                }
+
+                // Cleanup Spawners (EnemySpawnComponent)
+                auto& spawners = ecs.registry.getEntities<EnemySpawnComponent>();
+                for (auto entity : spawners) {
+                    if (ecs.registry.hasComponent<EnemySpawnComponent>(entity)) {
+                        const auto& spawnComp = ecs.registry.getConstComponent<EnemySpawnComponent>(entity);
+                        if (spawnComp.lobby_id == lobbyId) {
+                            entitiesToDestroy.insert(entity);
+                        }
+                    }
+                }
+
+                // Cleanup Game Timers (GameTimerComponent) - Check for LobbyIdComponent
+                auto& timers = ecs.registry.getEntities<GameTimerComponent>();
+                for (auto entity : timers) {
+                    uint32_t entLobby = engine::utils::getLobbyId(ecs.registry, entity);
+                    if (entLobby == lobbyId) {  // Timers must strictly belong to the lobby
+                        entitiesToDestroy.insert(entity);
+                    }
+                }
+
+                // Cleanup Scores (ScoreComponent) - Check for LobbyIdComponent
+                // Note: Player entities have ScoreComponent, but are handled by "PLAYER" tag.
+                // This catches detached score entities if any.
+                auto& scores = ecs.registry.getEntities<ScoreComponent>();
+                for (auto entity : scores) {
+                    // Check if it's NOT a player (Players already handled)
+                    // If it has "PLAYER" tag, it's already in the set via Tag loop.
+                    // But set::insert handles duplicates anyway.
+                    uint32_t entLobby = engine::utils::getLobbyId(ecs.registry, entity);
+                    if (entLobby == lobbyId) {
+                        entitiesToDestroy.insert(entity);
+                    }
+                }
+
+                for (auto entity : entitiesToDestroy) {
+                    ecs.registry.destroyEntity(entity);
+                }
+                std::cout << "SERVER: Destroyed " << entitiesToDestroy.size() << " entities for lobby " << lobbyId
+                          << " (Manual Reset)" << std::endl;
+
+                // 3. Reset Players Ready
+                for (const auto& client : lobby.getClients()) {
+                    lobby.setPlayerReady(client.id, false);
+                }
+
+                // 4. Broadcast S_RETURN_TO_LOBBY and Ready State Cancel
+                auto network_instance = _network->getNetworkInstance();
+                if (std::holds_alternative<std::shared_ptr<network::Server>>(network_instance)) {
+                    auto server = std::get<std::shared_ptr<network::Server>>(network_instance);
+
+                    // Validate logic: Send to everyone so they all return
+                    server->AddMessageToLobby(network::GameEvents::S_RETURN_TO_LOBBY, lobbyId, 0);
+
+                    // Also broadcast cancel ready
+                    for (const auto& client : lobby.getClients()) {
+                        for (const auto& receiver : lobby.getClients()) {
+                            network::message<network::GameEvents> reply;
+                            reply.header.id = network::GameEvents::S_CANCEL_READY_BROADCAST;
+                            reply << client.id;
+                            server->AddMessageToPlayer(network::GameEvents::S_CANCEL_READY_BROADCAST, receiver.id,
+                                                       reply);
+                        }
+                    }
+                }
+            }
         }
     }
 

@@ -1,39 +1,23 @@
 #include "GameManager.hpp"
 #include "ECS.hpp"
-#include "GameEngineBase.hpp"
-#include "Lobby.hpp"
-#include "Network.hpp"
-#include "src/Engine/Core/ClientGameEngine.hpp"
 #include "src/Engine/Core/LobbyState.hpp"
 #include "src/Engine/Core/Scene/SceneLoader.hpp"
-#include <cmath>
-#include <cstdint>
-#include <ctime>
 #include <algorithm>
 #include <iostream>
 #include <memory>
-#include <thread>
-#include <chrono>
+#include <vector>
+#include <string>
 #include <SFML/Window/Mouse.hpp>
 #include <SFML/Window/Keyboard.hpp>
-#include "../../Systems/score.hpp"
+
+#include "src/Engine/Lib/Components/LobbyIdComponent.hpp"
 #include "../../Components/spawn.hpp"
-#include "../../Systems/spawn.hpp"
-#include "../../Components/shooter_component.hpp"
-#include "../../Components/charged_shot.hpp"
-#include "../../Components/team_component.hpp"
-#include "../../Components/damage_component.hpp"
 #include "../../Components/game_timer.hpp"
-#include "../../Components/pod_component.hpp"
 #include "../../Components/scripted_spawn.hpp"
-#include "../../Systems/behavior.hpp"
-#include "src/Engine/Lib/Systems/PhysicsSystem.hpp"
-#include "src/Engine/Lib/Systems/CollisionSystem.hpp"
+#include "../../Components/pod_component.hpp"
+
 #include "src/Engine/Lib/Components/NetworkComponents.hpp"
 #include "src/RType/Common/Components/leaderboard_component.hpp"
-
-#include "src/RType/Common/Systems/spawn.hpp"
-#include <algorithm>
 #include <iostream>
 #include <vector>
 #include <string>
@@ -353,7 +337,7 @@ void GameManager::update(std::shared_ptr<Environment> env, InputManager& inputs)
             onAuthSuccess();
             break;
         case Environment::GameState::END_GAME:
-            onGameEnd();
+            // onGameEnd(); // Removed to prevent log spam loop
             break;
         case Environment::GameState::SERVER:
             updateServer(env, inputs);
@@ -373,6 +357,13 @@ void GameManager::updateServer(std::shared_ptr<Environment> env, InputManager& i
                 std::cout << "GAME MANAGER: Lobby " << lobbyId << " started game. Initializing..." << std::endl;
                 onServerGameStart(env, clients, lobbyId);
                 _initializedLobbies.insert(lobbyId);
+            } else if (state != static_cast<int>(Environment::State::IN_GAME)) {
+                // If the game ended (state became WAITING), remove it from initialized set
+                // so we can re-initialize it when the next game starts.
+                if (_initializedLobbies.find(lobbyId) != _initializedLobbies.end()) {
+                    _initializedLobbies.erase(lobbyId);
+                    std::cout << "GAME MANAGER: Lobby " << lobbyId << " reset. Ready for next game." << std::endl;
+                }
             }
         });
     }
@@ -424,6 +415,9 @@ void GameManager::onNewHost(uint32_t hostId) {
 void GameManager::onGameStarted() {
     std::cout << "[GameManager] onGameStarted called, setting pending game start flag" << std::endl;
     _pendingGameStart = true;
+    _gameOver = false;
+    _victory = false;
+    _leaderboardDisplayed = false;
 }
 
 void GameManager::onGameEnd() {
@@ -449,6 +443,40 @@ void GameManager::onServerGameStart(std::shared_ptr<Environment> env, const std:
 
     // Store the current lobby ID for entity tagging
     _currentLobbyId = lobbyId;
+
+    // Reset game state for the new game
+    // Reset game state for the new game
+    _gameOver = false;
+    _victory = false;
+    _leaderboardDisplayed = false;
+
+    // PRE-GAME CLEANUP: Destroy ALL entities belonging to this lobby to prevent ghost entities
+    auto& ecs = env->getECS();
+    std::unordered_set<Entity> entitiesToDestroy;
+
+    auto& lobbyIds = ecs.registry.getEntities<LobbyIdComponent>();
+    for (auto entity : lobbyIds) {
+        if (ecs.registry.hasComponent<LobbyIdComponent>(entity)) {
+            if (ecs.registry.getComponent<LobbyIdComponent>(entity).lobby_id == lobbyId) {
+                entitiesToDestroy.insert(entity);
+            }
+        }
+    }
+
+    auto& spawners = ecs.registry.getEntities<EnemySpawnComponent>();
+    for (auto entity : spawners) {
+        if (ecs.registry.hasComponent<EnemySpawnComponent>(entity)) {
+            if (ecs.registry.getComponent<EnemySpawnComponent>(entity).lobby_id == lobbyId) {
+                entitiesToDestroy.insert(entity);
+            }
+        }
+    }
+
+    std::cout << "GAMEMANAGER: Pre-game cleanup destroying " << entitiesToDestroy.size() << " entities for lobby "
+              << lobbyId << std::endl;
+    for (auto entity : entitiesToDestroy) {
+        ecs.registry.destroyEntity(entity);
+    }
 
     // Initialize the level configuration and spawners on the server
     LevelConfig level_config;

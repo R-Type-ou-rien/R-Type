@@ -23,6 +23,7 @@
 #include "../../../RType/Common/Components/charged_shot.hpp"
 #include "../../../RType/Common/Components/team_component.hpp"
 #include "../../../RType/Common/Components/damage_component.hpp"
+#include "../../../RType/Common/Components/status_display_components.hpp"
 #include "../../../RType/Common/Components/game_timer.hpp"
 #include "../../../RType/Common/Components/pod_component.hpp"
 #include "../../../RType/Common/Components/game_over_notification.hpp"
@@ -244,6 +245,8 @@ void ClientGameEngine::processNetworkEvents() {
 
     // Nouveau: Gérer le message S_GAME_OVER
     if (pending.count(network::GameEvents::S_GAME_OVER)) {
+        // Do NOT set END_GAME here. Let GameManager detect GameOverNotification and handle UI.
+        // _env->setGameState(Environment::GameState::END_GAME);
         auto& msgs = pending.at(network::GameEvents::S_GAME_OVER);
         for (auto& msg : msgs) {
             network::GameOverPacket packet;
@@ -301,6 +304,7 @@ void ClientGameEngine::processLobbyEvents(
     if (pending.count(network::GameEvents::S_READY_RETURN)) {
         auto& msgs = pending.at(network::GameEvents::S_READY_RETURN);
         for (auto& msg : msgs) {
+            std::cout << "[ClientGameEngine] Received S_READY_RETURN" << std::endl;
             try {
                 if (msg.body.size() < sizeof(uint32_t)) {
                     continue;
@@ -415,6 +419,7 @@ void ClientGameEngine::processLobbyEvents(
             }
             uint32_t clientId;
             msg >> clientId;
+            std::cout << "[ClientGameEngine] Received S_CANCEL_READY_BROADCAST for client " << clientId << std::endl;
             _lobbyState.setPlayerReady(clientId, false);
             if (_readyChangedCallback)
                 _readyChangedCallback(clientId, false);
@@ -544,8 +549,10 @@ void ClientGameEngine::processLobbyEvents(
 // Lobby action methods
 void ClientGameEngine::sendReady() {
     if (_env->getGameState() != Environment::GameState::LOBBY) {
+        std::cout << "[ClientGameEngine] sendReady ignored - wrong state: " << (int)_env->getGameState() << std::endl;
         return;
     }
+    std::cout << "[ClientGameEngine] Sending C_READY" << std::endl;
     _network->transmitEvent<uint32_t>(network::GameEvents::C_READY, _lobbyState.lobbyId, 0, 0);
 }
 
@@ -558,11 +565,15 @@ void ClientGameEngine::sendUnready() {
 
 void ClientGameEngine::sendStartGame() {
     if (_env->getGameState() != Environment::GameState::LOBBY) {
+        std::cout << "[ClientGameEngine] sendStartGame ignored - wrong state: " << (int)_env->getGameState()
+                  << std::endl;
         return;
     }
     if (!_lobbyState.isLocalPlayerHost()) {
+        std::cout << "[ClientGameEngine] sendStartGame ignored - not host" << std::endl;
         return;
     }
+    std::cout << "[ClientGameEngine] Sending C_GAME_START" << std::endl;
     _network->transmitEvent<uint32_t>(network::GameEvents::C_GAME_START, _lobbyState.lobbyId, 0, 0);
 }
 
@@ -582,8 +593,11 @@ void ClientGameEngine::sendLeaveLobby(uint32_t lobbyId) {
 
 void ClientGameEngine::sendChatMessage(const std::string& message) {
     if (_env->getGameState() != Environment::GameState::LOBBY) {
+        std::cout << "[ClientGameEngine] sendChatMessage ignored - wrong state: " << (int)_env->getGameState()
+                  << std::endl;
         return;
     }
+    std::cout << "[ClientGameEngine] Sending C_TEAM_CHAT: " << message << std::endl;
     char msgBuffer[256] = {0};
     std::strncpy(msgBuffer, message.c_str(), 255);
     _network->transmitEvent<char[256]>(network::GameEvents::C_TEAM_CHAT, msgBuffer, 0, 0);
@@ -641,7 +655,39 @@ int ClientGameEngine::run() {
                               _music_manager,
                               _window_manager.getWindow(),
                               input_manager,
-                              _clientId};
+                              _clientId,
+                              [this](const std::string& signal) {
+                                  if (signal == "RETURN_TO_LOBBY") {
+                                      std::cout << "[ClientGameEngine] Signal RETURN_TO_LOBBY received" << std::endl;
+                                      // Notify Server using C_CANCEL_READY (which implies abort if in game)
+                                      _network->transmitEvent<int>(network::GameEvents::C_CANCEL_READY, 0, 0, 0);
+
+                                      // Clean up all entities before returning to lobby
+                                      auto& registry = _ecs.registry;
+
+                                      // Destroy all tagged entities (roughly resets the scene)
+                                      auto all_tags = registry.getEntities<TagComponent>();
+                                      auto to_kill = std::vector<Entity>();
+                                      for (auto eid : all_tags)
+                                          to_kill.push_back(static_cast<Entity>(eid));
+                                      for (auto e : to_kill) {
+                                          registry.destroyEntity(e);
+                                      }
+
+                                      // Reset StatusDisplaySystem player entity tracking
+                                      auto statusEntities = registry.getEntities<StatusDisplayComponent>();
+                                      for (auto e : statusEntities) {
+                                          if (registry.hasComponent<StatusDisplayComponent>(e)) {
+                                              registry.getComponent<StatusDisplayComponent>(e).setPlayerEntity(-1);
+                                          }
+                                      }
+
+                                      // Also clear NetworkToLocal map if it exists
+                                      _networkToLocalEntity.clear();
+
+                                      _env->setGameState(Environment::GameState::LOBBY);
+                                  }
+                              }};
     auto last_time = std::chrono::high_resolution_clock::now();
 
     this->init();
@@ -650,6 +696,9 @@ int ClientGameEngine::run() {
         _init_function(_env, input_manager);
 
     while (_window_manager.isOpen()) {
+        if (_currentTick % 120 == 0) {
+            std::cout << "CLIENT HEARTBEAT: Tick " << _currentTick << std::endl;
+        }
         auto now = std::chrono::high_resolution_clock::now();
         context.dt = std::chrono::duration_cast<std::chrono::milliseconds>(now - last_time).count() / 1000.0f;
         last_time = now;
