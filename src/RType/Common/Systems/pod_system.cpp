@@ -16,6 +16,7 @@
 #include "health.hpp"
 #include "../Components/charged_shot.hpp"
 #include "./animation_helper.hpp"
+#include "../../../../Engine/Lib/Components/LobbyIdComponent.hpp"
 
 bool PodSystem::allPlayersHavePods(Registry& registry) {
     auto& players = registry.getEntities<TagComponent>();
@@ -45,9 +46,8 @@ bool PodSystem::allPlayersHavePods(Registry& registry) {
     return (player_count > 0 && player_count == players_with_pods);
 }
 
-void PodSystem::spawnPod(Registry& registry, system_context context) {
-    // Pod sprite constants - defined first for use in transform
-    constexpr float POD_FRAME_WIDTH = 34.0f;
+void PodSystem::spawnPod(Registry& registry, system_context context, uint32_t lobbyId) {
+    constexpr float POD_FRAME_WIDTH = 17.0f;
     constexpr float POD_FRAME_HEIGHT = 18.0f;
     constexpr int POD_NUM_FRAMES = 6;
     constexpr float POD_SCALE = 3.0f;
@@ -94,22 +94,34 @@ void PodSystem::spawnPod(Registry& registry, system_context context) {
         context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet3.gif",
                                      TextureAsset("src/RType/Common/content/sprites/r-typesheet3.gif"));
 
-    sprite2D_component_s sprite_info;
-    sprite_info.handle = handle;
-    sprite_info.z_index = 1;
+    // sprite2D_component_s sprite_info;
+    // sprite_info.handle = handle;
+    // sprite_info.z_index = 1;
 
-    sprite_info.dimension = {1, 0, POD_FRAME_WIDTH, POD_FRAME_HEIGHT};
+    // sprite_info.dimension = {1, 0, POD_FRAME_WIDTH, POD_FRAME_HEIGHT};
 
-    registry.addComponent<sprite2D_component_s>(pod_id, sprite_info);
+    // registry.addComponent<sprite2D_component_s>(pod_id, sprite_info);
+
+    AnimatedSprite2D animation;
+    AnimationClip clip;
+
+    clip.handle = handle;
+    clip.frames.emplace_back(1, 0, POD_FRAME_WIDTH, POD_FRAME_HEIGHT);
+    animation.animations.emplace("idle", clip);
+    animation.currentAnimation = "idle";
+    registry.addComponent<AnimatedSprite2D>(pod_id, animation);
 
     // Animation: 6 frames horizontales, start à (1,0) avec padding de 0
     AnimationHelper::setupAnimation(registry, pod_id, 1.0f, 0.0f, POD_FRAME_WIDTH, POD_FRAME_HEIGHT, POD_NUM_FRAMES,
-                                    0.12f, 0.0f);
+                                    0.12f, 0.0f, AnimationMode::Loop);
 
     // Add NetworkIdentity for network replication
     registry.addComponent<NetworkIdentity>(pod_id, {static_cast<uint32_t>(pod_id), 0});
 
-    std::cout << "[PodSystem] Pod spawned at (" << spawn_x << ", " << spawn_y << ")" << std::endl;
+    // Add Lobby Id
+    if (lobbyId != 0) {
+        registry.addComponent<LobbyIdComponent>(pod_id, {lobbyId});
+    }
 }
 
 void PodSystem::updateFloatingPodMovement(Registry& registry, const system_context& context) {
@@ -202,9 +214,12 @@ void PodSystem::handlePodCollection(Registry& registry) {
                 player_pod.pod_attached = true;
             }
 
-            auto& pod_col = registry.getComponent<BoxCollisionComponent>(pod_entity);
-            pod_col.tagCollision.clear();
-            pod_col.tagCollision.emplace_back("AI");
+            // Vérifier que le composant existe avant de modifier
+            if (registry.hasComponent<BoxCollisionComponent>(pod_entity)) {
+                auto& pod_col = registry.getComponent<BoxCollisionComponent>(pod_entity);
+                pod_col.tagCollision.clear();
+                pod_col.tagCollision.emplace_back("AI");
+            }
 
             registry.addComponent<DamageOnCollision>(pod_entity, {50});
 
@@ -223,7 +238,6 @@ void PodSystem::handlePodCollection(Registry& registry) {
                 vel.vy = 0;
             }
 
-            std::cout << "[PodSystem] Player " << player_entity << " collected pod " << pod_entity << std::endl;
             break;
         }
     }
@@ -309,6 +323,11 @@ void PodSystem::handlePlayerDamage(Registry& registry) {
         if (health.current_hp < player_pod.last_known_hp) {
             Entity pod_entity = player_pod.pod_entity;
 
+            // IMPORTANT: Réinitialiser d'abord les références du joueur pour éviter les crashs
+            player_pod.has_pod = false;
+            player_pod.pod_entity = -1;
+            player_pod.pod_attached = false;
+
             if (registry.hasComponent<HealthComponent>(player_entity)) {
                 auto& player_health = registry.getComponent<HealthComponent>(player_entity);
                 player_health.current_hp = player_pod.last_known_hp;  // Restaurer les HP
@@ -326,19 +345,20 @@ void PodSystem::handlePlayerDamage(Registry& registry) {
                 registry.addComponent<ChargedShotComponent>(player_entity, charged_shot);
             }
 
-            if (registry.hasComponent<PodComponent>(pod_entity)) {
-                if (!registry.hasComponent<PendingDestruction>(pod_entity)) {
-                    registry.addComponent<PendingDestruction>(pod_entity, {});
+            // Vérifier que le pod existe toujours ET qu'il n'est pas déjà marqué pour destruction
+            if (pod_entity != -1 && registry.hasComponent<PodComponent>(pod_entity) &&
+                !registry.hasComponent<PendingDestruction>(pod_entity)) {
+                // Nettoyer les références du pod avant destruction
+                if (registry.hasComponent<BoxCollisionComponent>(pod_entity)) {
+                    auto& pod_col = registry.getComponent<BoxCollisionComponent>(pod_entity);
+                    pod_col.tagCollision.clear();
                 }
+                registry.addComponent<PendingDestruction>(pod_entity, {});
+                std::cout << "[PodSystem] Pod " << pod_entity << " destroyed! Player " << player_entity
+                          << " was hit with pod attached." << std::endl;
             }
 
-            player_pod.has_pod = false;
-            player_pod.pod_entity = -1;
-            player_pod.pod_attached = false;
             player_pod.last_known_hp = health.current_hp;
-
-            std::cout << "[PodSystem] Pod destroyed! Player " << player_entity << " was hit with pod attached."
-                      << std::endl;
         } else {
             player_pod.last_known_hp = health.current_hp;
         }
@@ -356,8 +376,17 @@ void PodSystem::handlePodToggle(Registry& registry) {
         player_pod.detach_requested = false;
 
         Entity pod_entity = player_pod.pod_entity;
-        if (!registry.hasComponent<PodComponent>(pod_entity))
+        if (pod_entity == -1) {
+            player_pod.has_pod = false;
+            player_pod.pod_attached = false;
             continue;
+        }
+        if (!registry.hasComponent<PodComponent>(pod_entity)) {
+            player_pod.has_pod = false;
+            player_pod.pod_entity = -1;
+            player_pod.pod_attached = false;
+            continue;
+        }
 
         auto& pod = registry.getComponent<PodComponent>(pod_entity);
 
@@ -385,8 +414,6 @@ void PodSystem::handlePodToggle(Registry& registry) {
                 auto& collision = registry.getComponent<BoxCollisionComponent>(pod_entity);
                 collision.tagCollision.clear();
             }
-
-            std::cout << "[PodSystem] Pod " << pod_entity << " detached from player " << player_entity << std::endl;
         } else {
             pod.state = PodState::ATTACHED;
             player_pod.pod_attached = true;
@@ -409,14 +436,12 @@ void PodSystem::handlePodToggle(Registry& registry) {
                 collision.tagCollision.clear();
                 collision.tagCollision.emplace_back("AI");
             }
-
-            std::cout << "[PodSystem] Pod " << pod_entity << " attached to player " << player_entity << std::endl;
         }
     }
 }
 
-void PodSystem::createPodLaserProjectile(Registry& registry, system_context context, transform_component_s pos,
-                                         float angle, int damage) {
+void PodSystem::createPodLaserProjectile(Registry& registry, system_context context, Entity owner_entity,
+                                         transform_component_s pos, float angle, int damage) {
     Entity projectile_id = registry.createEntity();
 
     float speed = 600.0f;
@@ -432,7 +457,7 @@ void PodSystem::createPodLaserProjectile(Registry& registry, system_context cont
     registry.addComponent<TagComponent>(projectile_id, tags);
 
     registry.addComponent<TeamComponent>(projectile_id, {TeamComponent::ALLY});
-    registry.addComponent<ProjectileComponent>(projectile_id, {static_cast<int>(projectile_id)});
+    registry.addComponent<ProjectileComponent>(projectile_id, {static_cast<int>(owner_entity)});
     registry.addComponent<DamageOnCollision>(projectile_id, {damage});
 
     // Tir laser circulaire du pod
@@ -440,15 +465,27 @@ void PodSystem::createPodLaserProjectile(Registry& registry, system_context cont
         context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet1.gif",
                                      TextureAsset("src/RType/Common/content/sprites/r-typesheet1.gif"));
 
-    sprite2D_component_s sprite_info;
-    sprite_info.handle = handle;
-    sprite_info.animation_speed = 0;
-    sprite_info.current_animation_frame = 0;
-    // Coordonnées du petit projectile bleu circulaire
-    sprite_info.dimension = {263, 120, 32, 28};
-    sprite_info.z_index = 3;
+    // sprite2D_component_s sprite_info;
+    // sprite_info.handle = handle;
+    // sprite_info.animation_speed = 0;
+    // sprite_info.current_animation_frame = 0;
+    // // Coordonnées du petit projectile bleu circulaire
+    // sprite_info.dimension = {263, 120, 32, 28};
+    // sprite_info.z_index = 3;
 
-    registry.addComponent<sprite2D_component_s>(projectile_id, sprite_info);
+    // registry.addComponent<sprite2D_component_s>(projectile_id, sprite_info);
+
+    AnimatedSprite2D animation;
+    AnimationClip clip;
+
+    clip.handle = handle;
+    clip.frameDuration = 0;
+    // Coordonnées du petit projectile bleu circulaire
+    clip.frames.emplace_back(263, 120, 32, 28);
+    animation.animations.emplace("idle", clip);
+    animation.currentAnimation = "idle";
+
+    registry.addComponent<AnimatedSprite2D>(projectile_id, animation);
 
     BoxCollisionComponent collision;
     collision.tagCollision.emplace_back("AI");
@@ -486,7 +523,9 @@ void PodSystem::handleDetachedPodShooting(Registry& registry, system_context con
             // Circular pattern: 8 projectiles in all directions
             for (int i = 0; i < 8; ++i) {
                 float angle = static_cast<float>(i) * (std::numbers::pi_v<float> / 4.0f);  // 45 degrees in radians
-                createPodLaserProjectile(registry, context, pod_pos, angle, pod.projectile_damage);
+                if (pod.owner_id != -1) {
+                    createPodLaserProjectile(registry, context, pod.owner_id, pod_pos, angle, pod.projectile_damage);
+                }
             }
         }
     }
@@ -526,7 +565,12 @@ void PodSystem::update(Registry& registry, system_context context) {
             spawn_comp.spawn_timer = 0.0f;
             spawn_comp.spawn_interval = spawn_comp.min_spawn_interval +
                                         dis(gen) * (spawn_comp.max_spawn_interval - spawn_comp.min_spawn_interval);
-            spawnPod(registry, context);
+
+            uint32_t lobbyId = 0;
+            if (registry.hasComponent<LobbyIdComponent>(spawner)) {
+                lobbyId = registry.getComponent<LobbyIdComponent>(spawner).lobby_id;
+            }
+            spawnPod(registry, context, lobbyId);
         }
     }
 

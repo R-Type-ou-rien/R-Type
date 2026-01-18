@@ -23,6 +23,7 @@ using MusicAsset = TextureData;
 
 template <typename ResourceType>
 class ClientResourceManager;
+#include "ClientResourceManager.hpp"
 #include <SFML/Graphics/Texture.hpp>
 #include <SFML/Audio.hpp>
 

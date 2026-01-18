@@ -1,0 +1,89 @@
+# Level 2 - Deep Space Station
+# Industrial complex with energy barriers
+
+[LEVEL]
+name=Level 2 - Energy Station
+background=src/RType/Common/content/sprites/test.png
+music=theme
+enemies_config=src/RType/Common/content/config/enemies.cfg
+boss_config=src/RType/Common/content/config/boss.cfg
+boss_section=BOSS_LEVEL2
+game_config=src/RType/Common/content/config/game.cfg
+spawn_script=src/RType/Common/content/config/levels/level2_spawns.cfg
+next_level=src/RType/Common/content/config/levels/level3.scene
+
+# Walls - Industrial complex theme with narrow corridors
+# Floor walls (bottom) - More complex pattern
+[WALL]
+wall=1500,880,600,200,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=2800,900,900,180,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=4200,860,700,220,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=5500,920,800,160,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=7000,890,1000,190,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=8800,900,600,180,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=10200,870,900,210,src/RType/Common/content/sprites/r-typesheet14.gif,true
+
+# Ceiling walls (top) - Complex industrial ceiling
+wall=1800,0,700,170,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=3200,0,600,200,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=4800,0,800,160,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=6200,0,900,190,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=8000,0,700,180,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=9500,0,800,210,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=11000,0,1000,170,src/RType/Common/content/sprites/r-typesheet14.gif,true
+
+# Narrow energy corridors - Two sections
+wall=13000,750,1800,330,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=13000,0,1800,350,src/RType/Common/content/sprites/r-typesheet14.gif,true
+
+wall=16000,800,1200,280,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=16000,0,1200,300,src/RType/Common/content/sprites/r-typesheet14.gif,true
+
+# Turrets - Industrial defense grid (higher density)
+# Fire rate kept between 2.0-3.0 seconds for balance
+[TURRET]
+# First section - floor turrets
+turret=1700,830,2.3,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=2100,830,2.6,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=3000,850,2.0,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=3400,850,2.8,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=4400,810,2.2,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=5700,870,2.5,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=6100,870,2.3,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=7200,840,2.0,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=7600,840,2.7,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=9000,850,2.4,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=10400,820,2.2,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=10800,820,2.9,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+
+# Ceiling turrets - defense grid
+turret=2000,170,2.5,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=2400,170,2.1,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=3400,200,2.7,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=3800,200,2.3,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=5000,160,2.0,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=6400,190,2.6,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=6800,190,2.2,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=8200,180,2.8,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=9700,210,2.4,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=10100,210,2.1,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=11200,170,2.5,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+
+# Energy corridor turrets - heavy defense
+turret=13200,700,2.0,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=13600,700,2.3,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=14000,700,2.0,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=14400,700,2.5,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=14800,700,2.2,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+
+turret=13400,350,2.4,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=13800,350,2.1,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=14200,350,2.7,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=14600,350,2.3,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+
+# Second narrow passage
+turret=16200,750,2.2,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=16600,750,2.0,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=17000,750,2.6,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=16400,300,2.3,AIM_PLAYER,src/RType/Common/content/sprites/r-typesheet13.gif
+turret=16800,300,2.5,STRAIGHT,src/RType/Common/content/sprites/r-typesheet13.gif

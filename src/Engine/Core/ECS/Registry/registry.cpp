@@ -3,8 +3,16 @@
 #include "Components/NetworkComponents.hpp"
 #include "Guid/Guid.hpp"
 
+std::string g_DebugCurrentSystem = "Unknown";
+
 Entity Registry::createEntity() {
-    uint32_t entity_id = _nextId++;
+    uint32_t entity_id;
+    if (!_deadEntities.empty()) {
+        entity_id = _deadEntities.back();
+        _deadEntities.pop_back();
+    } else {
+        entity_id = _nextId++;
+    }
 
     addComponent<NetworkIdentity>(entity_id, {generateRandomGuid(), 0});
     return entity_id;

@@ -3,12 +3,12 @@
 #include "ISystem.hpp"
 #include "registry.hpp"
 #include "PlayerBoundsSystem.hpp"
-#include "../Components/ai_behavior_component.hpp"
+#include "../Components/behavior_component.hpp"
 
-class AIBehaviorSystem : public ISystem {
+class BehaviorSystem : public ISystem {
    public:
-    AIBehaviorSystem() = default;
-    ~AIBehaviorSystem() = default;
+    BehaviorSystem() = default;
+    ~BehaviorSystem() = default;
     void update(Registry& registry, system_context context) override;
 
    private:

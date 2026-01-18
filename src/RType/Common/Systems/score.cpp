@@ -1,5 +1,6 @@
 #include "score.hpp"
 #include "Components/StandardComponents.hpp"
+#include <iostream>
 
 void ScoreSystem::update(Registry& registry, system_context context) {
     // Le score est mis à jour ailleurs (quand un ennemi meurt)
@@ -7,6 +8,10 @@ void ScoreSystem::update(Registry& registry, system_context context) {
 
 void ScoreSystem::addScore(Registry& registry, int points) {
     auto& scoreEntities = registry.getEntities<ScoreComponent>();
+    if (scoreEntities.empty()) {
+        return;
+    }
+
     for (auto entity : scoreEntities) {
         auto& score = registry.getComponent<ScoreComponent>(entity);
         score.current_score += points;

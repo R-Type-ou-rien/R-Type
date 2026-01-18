@@ -9,20 +9,38 @@
 #include "../Entities/Mobs/all_mobs.hpp"
 #include "../Components/game_timer.hpp"
 #include "../Components/scripted_spawn.hpp"
+#include "../../../../Engine/Lib/Components/LobbyIdComponent.hpp"
 
 const float WORLD_WIDTH = 1920.0f;
 const float WORLD_HEIGHT = 1080.0f;
 
-void EnemySpawnSystem::loadConfigs(const std::string& enemies, const std::string& boss, const std::string& game) {
+void EnemySpawnSystem::loadConfigs(const std::string& enemies, const std::string& boss, const std::string& boss_section,
+                                   const std::string& game) {
     if (_configs_loaded)
         return;
 
     std::string enemies_path = enemies.empty() ? "src/RType/Common/content/config/enemies.cfg" : enemies;
     std::string boss_path = boss.empty() ? "src/RType/Common/content/config/boss.cfg" : boss;
     std::string game_path = game.empty() ? "src/RType/Common/content/config/game.cfg" : game;
+    std::string section = boss_section.empty() ? "DEFAULT" : boss_section;
 
     _enemy_configs = ConfigLoader::loadEnemiesConfig(enemies_path, ConfigLoader::getRequiredEnemyFields());
-    _boss_config = ConfigLoader::loadEntityConfig(boss_path, ConfigLoader::getRequiredBossFields());
+
+    // Load boss config from the specified section
+    auto boss_configs = ConfigLoader::loadMap<EntityConfig>(boss_path, ConfigLoader::getRequiredBossFields());
+    if (boss_configs.find(section) != boss_configs.end()) {
+        _boss_config = boss_configs[section];
+
+    } else if (boss_configs.find("DEFAULT") != boss_configs.end()) {
+        _boss_config = boss_configs["DEFAULT"];
+
+    } else if (!boss_configs.empty()) {
+        _boss_config = boss_configs.begin()->second;
+
+    } else {
+        std::cerr << "No boss configurations found in " << boss_path << std::endl;
+    }
+
     _game_config = ConfigLoader::loadGameConfig(game_path, ConfigLoader::getRequiredGameFields());
 
     for (const auto& pair : _enemy_configs) {
@@ -83,7 +101,6 @@ void EnemySpawnSystem::loadScriptedSpawns(ScriptedSpawnComponent& scripted_spawn
             }
         }
     }
-    std::cout << "Loaded " << scripted_spawn.spawn_events.size() << " scripted spawn events." << std::endl;
 }
 
 void EnemySpawnSystem::handleScriptedSpawns(Registry& registry, system_context context,
@@ -187,6 +204,15 @@ void EnemySpawnSystem::update(Registry& registry, system_context context) {
     for (auto spawner : scripted_spawners) {
         auto& scripted_spawn = registry.getComponent<ScriptedSpawnComponent>(spawner);
 
+        // Retrieve lobby ID if available
+        if (registry.hasComponent<EnemySpawnComponent>(spawner)) {
+            _current_lobby_id = registry.getComponent<EnemySpawnComponent>(spawner).lobby_id;
+        } else if (registry.hasComponent<LobbyIdComponent>(spawner)) {
+            _current_lobby_id = registry.getComponent<LobbyIdComponent>(spawner).lobby_id;
+        } else {
+            _current_lobby_id = 0;
+        }
+
         // Load script if empty (first run)
         if (scripted_spawn.spawn_events.empty() && !scripted_spawn.all_events_completed) {
             std::string path = scripted_spawn.script_path.empty() ? "src/RType/Common/content/config/level1_spawns.cfg"
@@ -200,8 +226,12 @@ void EnemySpawnSystem::update(Registry& registry, system_context context) {
     for (auto spawner : spawners) {
         auto& spawn_comp = registry.getComponent<EnemySpawnComponent>(spawner);
 
+        // Set the lobby ID from the spawn component for this update cycle
+        _current_lobby_id = spawn_comp.lobby_id;
+
         // Load configurations if not yet loaded
-        loadConfigs(spawn_comp.enemies_config_path, spawn_comp.boss_config_path, spawn_comp.game_config_path);
+        loadConfigs(spawn_comp.enemies_config_path, spawn_comp.boss_config_path, spawn_comp.boss_section,
+                    spawn_comp.game_config_path);
 
         if (spawn_comp.random_seed == 0) {
             spawn_comp.random_seed = static_cast<unsigned int>(std::time(nullptr));
@@ -256,32 +286,15 @@ bool EnemySpawnSystem::handleBossSpawn(Registry& registry, system_context contex
         // Arrêter immédiatement le spawn de nouvelles vagues
         spawn_comp.is_active = false;
 
-        auto& enemies = registry.getEntities<TagComponent>();
-        int enemy_count = 0;
-        for (auto entity : enemies) {
-            auto& tags = registry.getConstComponent<TagComponent>(entity);
-            bool is_ai = false, is_boss = false;
-            for (const auto& tag : tags.tags) {
-                if (tag == "AI")
-                    is_ai = true;
-                if (tag == "BOSS")
-                    is_boss = true;
-            }
-            if (is_ai && !is_boss)
-                enemy_count++;
-        }
+        // Spawn immédiat du boss sans attendre la fin des ennemis
+        spawn_comp.boss_spawned = true;
+        spawn_comp.boss_intro_timer = 0.0f;
 
-        // Attendre que tous les ennemis soient éliminés
-        if (enemy_count == 0) {
-            spawn_comp.boss_spawned = true;
-            spawn_comp.boss_intro_timer = 0.0f;
-
-            // Stop background
-            auto& backgrounds = registry.getEntities<BackgroundComponent>();
-            for (auto bg_entity : backgrounds) {
-                auto& bg = registry.getComponent<BackgroundComponent>(bg_entity);
-                bg.scroll_speed = 0.0f;
-            }
+        // Stop background
+        auto& backgrounds = registry.getEntities<BackgroundComponent>();
+        for (auto bg_entity : backgrounds) {
+            auto& bg = registry.getComponent<BackgroundComponent>(bg_entity);
+            bg.scroll_speed = 0.0f;
         }
     }
 
@@ -331,21 +344,34 @@ void EnemySpawnSystem::spawnEnemy(Registry& registry, system_context context, fl
 
     auto spawner_it = _spawners.find(enemy_type);
     if (spawner_it != _spawners.end()) {
-        spawner_it->second->spawn(registry, context, x, y, it->second);
+        Entity id = spawner_it->second->spawn(registry, context, x, y, it->second);
+        // Add LobbyIdComponent if current lobby is set
+        if (_current_lobby_id != 0) {
+            registry.addComponent<LobbyIdComponent>(id, {_current_lobby_id});
+        }
     }
 }
 
 void EnemySpawnSystem::spawnBoss(Registry& registry, system_context context) {
     auto spawner_it = _spawners.find("BOSS");
     if (spawner_it != _spawners.end()) {
-        spawner_it->second->spawn(registry, context, 0, 0, _boss_config);
+        Entity id = spawner_it->second->spawn(registry, context, 0, 0, _boss_config);
+        // Add LobbyIdComponent if current lobby is set
+        if (_current_lobby_id != 0) {
+            registry.addComponent<LobbyIdComponent>(id, {_current_lobby_id});
+        }
     }
 }
 
 void EnemySpawnSystem::spawnObstacle(Registry& registry, system_context context, float x, float y) {
     auto spawner_it = _spawners.find("OBSTACLE");
     if (spawner_it != _spawners.end()) {
-        EntityConfig dummy;
-        spawner_it->second->spawn(registry, context, x, y, dummy);
+        auto config_it = _enemy_configs.find("OBSTACLE");
+        const EntityConfig& config = (config_it != _enemy_configs.end()) ? config_it->second : EntityConfig{};
+        Entity id = spawner_it->second->spawn(registry, context, x, y, config);
+        // Add LobbyIdComponent if current lobby is set
+        if (_current_lobby_id != 0) {
+            registry.addComponent<LobbyIdComponent>(id, {_current_lobby_id});
+        }
     }
 }

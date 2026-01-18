@@ -3,21 +3,22 @@
 #include "InputConfig.hpp"
 #include "src/RType/Common/Components/charged_shot.hpp"
 #include "src/RType/Common/Components/pod_component.hpp"
+#include "Components/StandardComponents.hpp"
 
 void GameManager::setupMovementControls(InputManager& inputs) {
-    // Key bindings are needed on client to detect input and send packets to server
-    // The actual action callbacks are set in Player constructor (server-side)
     inputs.bindAction("move_left", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Left});
     inputs.bindAction("move_right", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Right});
     inputs.bindAction("move_up", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Up});
     inputs.bindAction("move_down", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Down});
 
-    // In standalone mode, also set up player callbacks directly
     if (_player) {
         float player_speed = _player_config.speed.value();
 
         _player->bindActionCallbackPressed("move_left",
                                            [player_speed](Registry& registry, system_context context, Entity entity) {
+                                               if (registry.hasComponent<HealthComponent>(entity) &&
+                                                   registry.getComponent<HealthComponent>(entity).current_hp <= 0)
+                                                   return;
                                                if (registry.hasComponent<Velocity2D>(entity)) {
                                                    registry.getComponent<Velocity2D>(entity).vx = -player_speed;
                                                }
@@ -31,6 +32,9 @@ void GameManager::setupMovementControls(InputManager& inputs) {
 
         _player->bindActionCallbackPressed("move_right",
                                            [player_speed](Registry& registry, system_context context, Entity entity) {
+                                               if (registry.hasComponent<HealthComponent>(entity) &&
+                                                   registry.getComponent<HealthComponent>(entity).current_hp <= 0)
+                                                   return;
                                                if (registry.hasComponent<Velocity2D>(entity)) {
                                                    registry.getComponent<Velocity2D>(entity).vx = player_speed;
                                                }
@@ -44,6 +48,9 @@ void GameManager::setupMovementControls(InputManager& inputs) {
 
         _player->bindActionCallbackPressed("move_up",
                                            [player_speed](Registry& registry, system_context context, Entity entity) {
+                                               if (registry.hasComponent<HealthComponent>(entity) &&
+                                                   registry.getComponent<HealthComponent>(entity).current_hp <= 0)
+                                                   return;
                                                if (registry.hasComponent<Velocity2D>(entity)) {
                                                    registry.getComponent<Velocity2D>(entity).vy = -player_speed;
                                                }
@@ -56,6 +63,9 @@ void GameManager::setupMovementControls(InputManager& inputs) {
 
         _player->bindActionCallbackPressed("move_down",
                                            [player_speed](Registry& registry, system_context context, Entity entity) {
+                                               if (registry.hasComponent<HealthComponent>(entity) &&
+                                                   registry.getComponent<HealthComponent>(entity).current_hp <= 0)
+                                                   return;
                                                if (registry.hasComponent<Velocity2D>(entity)) {
                                                    registry.getComponent<Velocity2D>(entity).vy = player_speed;
                                                }
@@ -70,12 +80,13 @@ void GameManager::setupMovementControls(InputManager& inputs) {
 }
 
 void GameManager::setupShootingControls(InputManager& inputs) {
-    // Key binding needed on client to send input packets
     inputs.bindAction("shoot", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::Space});
 
-    // In standalone mode, also set up player callbacks directly
     if (_player) {
         _player->bindActionCallbackPressed("shoot", [](Registry& registry, system_context context, Entity entity) {
+            if (registry.hasComponent<HealthComponent>(entity) &&
+                registry.getComponent<HealthComponent>(entity).current_hp <= 0)
+                return;
             if (registry.hasComponent<ShooterComponent>(entity)) {
                 ShooterComponent& shoot = registry.getComponent<ShooterComponent>(entity);
                 shoot.is_shooting = true;
@@ -101,12 +112,13 @@ void GameManager::setupShootingControls(InputManager& inputs) {
 }
 
 void GameManager::setupPodControls(InputManager& inputs) {
-    // Key binding needed on client to send input packets
     inputs.bindAction("toggle_pod", InputBinding{InputDeviceType::Keyboard, sf::Keyboard::Key::E});
 
-    // In standalone mode, also set up player callbacks directly
     if (_player) {
         _player->bindActionCallbackPressed("toggle_pod", [](Registry& registry, system_context context, Entity entity) {
+            if (registry.hasComponent<HealthComponent>(entity) &&
+                registry.getComponent<HealthComponent>(entity).current_hp <= 0)
+                return;
             if (registry.hasComponent<PlayerPodComponent>(entity)) {
                 auto& player_pod = registry.getComponent<PlayerPodComponent>(entity);
                 if (player_pod.has_pod) {

@@ -8,9 +8,12 @@
 #include "wall_collision.hpp"
 #include "Components/StandardComponents.hpp"
 #include "../Components/terrain_component.hpp"
+#include "../../../../Engine/Lib/Components/LobbyIdComponent.hpp"
+#include "../../../../Engine/Lib/Utils/LobbyUtils.hpp"
 #include "health.hpp"
 #include <algorithm>
 #include <cmath>
+#include <iostream>
 
 void WallCollisionSystem::update(Registry& registry, system_context context) {
     auto& walls = registry.getEntities<WallComponent>();
@@ -19,22 +22,31 @@ void WallCollisionSystem::update(Registry& registry, system_context context) {
     for (auto wall_entity : walls) {
         if (!registry.hasComponent<transform_component_s>(wall_entity))
             continue;
-        if (!registry.hasComponent<sprite2D_component_s>(wall_entity))
+        if (!registry.hasComponent<AnimatedSprite2D>(wall_entity))
             continue;
+
+        uint32_t wall_lobby_id = engine::utils::getLobbyId(registry, wall_entity);
 
         const auto& wall = registry.getConstComponent<WallComponent>(wall_entity);
         const auto& wall_transform = registry.getConstComponent<transform_component_s>(wall_entity);
-        const auto& wall_sprite = registry.getConstComponent<sprite2D_component_s>(wall_entity);
+        const auto& wall_sprite = registry.getConstComponent<AnimatedSprite2D>(wall_entity);
 
-        float wall_width = wall.width > 0 ? wall.width : wall_sprite.dimension.width * wall_transform.scale_x;
-        float wall_height = wall.height > 0 ? wall.height : wall_sprite.dimension.height * wall_transform.scale_y;
+        float wall_width = wall.width > 0 ? wall.width : wall_sprite.animations.at(wall_sprite.currentAnimation).frames.at(wall_sprite.currentFrameIndex).width * wall_transform.scale_x;
+        float wall_height = wall.height > 0 ? wall.height : wall_sprite.animations.at(wall_sprite.currentAnimation).frames.at(wall_sprite.currentFrameIndex).height * wall_transform.scale_y;
 
         for (auto entity : players) {
+            uint32_t entity_lobby_id = engine::utils::getLobbyId(registry, entity);
+
+            // Skip if different lobbies (and both are not 0)
+            if (wall_lobby_id != entity_lobby_id && wall_lobby_id != 0 && entity_lobby_id != 0) {
+                continue;
+            }
+
             if (entity == wall_entity)
                 continue;
             if (!registry.hasComponent<transform_component_s>(entity))
                 continue;
-            if (!registry.hasComponent<sprite2D_component_s>(entity))
+            if (!registry.hasComponent<AnimatedSprite2D>(entity))
                 continue;
 
             const auto& tags = registry.getConstComponent<TagComponent>(entity);
@@ -56,10 +68,10 @@ void WallCollisionSystem::update(Registry& registry, system_context context) {
                 continue;
 
             auto& entity_transform = registry.getComponent<transform_component_s>(entity);
-            const auto& entity_sprite = registry.getConstComponent<sprite2D_component_s>(entity);
+            const auto& entity_sprite = registry.getConstComponent<AnimatedSprite2D>(entity);
 
-            float entity_width = entity_sprite.dimension.width * entity_transform.scale_x;
-            float entity_height = entity_sprite.dimension.height * entity_transform.scale_y;
+            float entity_width = entity_sprite.animations.at(entity_sprite.currentAnimation).frames.at(entity_sprite.currentFrameIndex).width * entity_transform.scale_x;
+            float entity_height = entity_sprite.animations.at(entity_sprite.currentAnimation).frames.at(entity_sprite.currentFrameIndex).height * entity_transform.scale_y;
 
             float entity_left = entity_transform.x;
             float entity_right = entity_transform.x + entity_width;
@@ -86,8 +98,9 @@ void WallCollisionSystem::update(Registry& registry, system_context context) {
 }
 
 void WallCollisionSystem::handlePlayerWallCollision(Registry& registry, Entity player, Entity wall) {
-    if (!registry.hasComponent<HealthComponent>(player))
+    if (!registry.hasComponent<HealthComponent>(player)) {
         return;
+    }
 
     auto& health = registry.getComponent<HealthComponent>(player);
     health.current_hp = 0;  // Instant kill

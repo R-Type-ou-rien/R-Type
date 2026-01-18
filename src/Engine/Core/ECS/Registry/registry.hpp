@@ -7,9 +7,14 @@
 #include <unordered_map>
 #include <vector>
 #include <typeinfo>
+#include <stdexcept>
+#include <iostream>
+#include <string>
 
-#include "sparse_set/SparseSet.hpp"
-#include "EcsType.hpp"
+#include "../Utils/sparse_set/SparseSet.hpp"
+#include "../EcsType.hpp"
+
+extern std::string g_DebugCurrentSystem;
 
 using Pool_storage = std::unordered_map<std::type_index, std::unique_ptr<ISparseSet>>;
 
@@ -56,6 +61,9 @@ class Registry {
     */
     template <typename Component>
     void addComponent(Entity id, Component component) {
+        if (id == static_cast<Entity>(-1)) {
+            return;
+        }
         getPool<Component>().addID(id, component);
         return;
     }
@@ -66,6 +74,9 @@ class Registry {
     */
     template <typename Component>
     void removeComponent(Entity entity) {
+        if (entity == static_cast<Entity>(-1)) {
+            return;
+        }
         getPool<Component>().removeId(entity);
     }
 
@@ -77,6 +88,9 @@ class Registry {
     */
     template <typename Component>
     Component& getComponent(Entity entity) {
+        if (entity == static_cast<Entity>(-1)) {
+            throw std::out_of_range("Registry::getComponent called with INVALID_ENTITY");
+        }
         getPool<Component>().markAsDirty(entity);
         return getPool<Component>().getDataFromId(entity);
     }
@@ -88,6 +102,9 @@ class Registry {
     */
     template <typename Component>
     const Component& getConstComponent(Entity entity) {
+        if (entity == static_cast<Entity>(-1)) {
+            throw std::out_of_range("Registry::getConstComponent called with INVALID_ENTITY");
+        }
         return getPool<Component>().getConstDataFromId(entity);
     }
 
@@ -98,6 +115,9 @@ class Registry {
     */
     template <typename Component>
     bool hasComponent(Entity entity) {
+        if (entity == static_cast<Entity>(-1)) {
+            return false;
+        }
         return getPool<Component>().has(entity);
     }
 

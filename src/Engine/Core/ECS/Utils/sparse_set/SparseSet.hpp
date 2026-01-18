@@ -3,8 +3,9 @@
 #include <iterator>
 #include <ostream>
 #include <vector>
+#include "ECS/EcsType.hpp"
 #include "Components/NetworkComponents.hpp"
-#include "Hash/Hash.hpp"
+#include "../Hash/Hash.hpp"
 #include "ResourceConfig.hpp"
 #include "Context.hpp"
 
@@ -51,6 +52,13 @@ class SparseSet : public ISparseSet {
 
 template <typename data_type>
 void SparseSet<data_type>::addID(std::size_t id, const data_type& data) {
+    // Safety: avoid gigantic resizes if an invalid entity id is used.
+    // The engine defines MAX_ENTITIES; ids beyond that indicate a logic/network bug.
+    if (id >= MAX_ENTITIES) {
+        std::cerr << "[SparseSet] Refusing to add component to entity id=" << id << " (MAX_ENTITIES=" << MAX_ENTITIES
+                  << ")" << std::endl;
+        return;
+    }
     if (id >= _sparse.size()) {
         _sparse.resize(id + 1, -1);
     }
@@ -163,6 +171,8 @@ void SparseSet<data_type>::clearUpdatedEntities() {
 #include "Components/serialize/StandardComponents_serialize.hpp"
 #include "Components/serialize/tag_component_serialize.hpp"
 #include "Components/StandardComponents.hpp"
+#include "Components/Sprite/Sprite2D.hpp"
+#include "Components/Sprite/AnimatedSprite2D.hpp"
 
 template <typename data_type>
 ComponentPacket SparseSet<data_type>::createPacket(uint32_t entity, SerializationContext& context) {
@@ -173,7 +183,12 @@ ComponentPacket SparseSet<data_type>::createPacket(uint32_t entity, Serializatio
     packet.component_type = Hash::fnv1a(data_type::name);
 
     // trouver un autre moyen de check (exemple: verifier s'il y a un handle)
-    if constexpr (std::is_same_v<data_type, sprite2D_component_s> || std::is_same_v<data_type, BackgroundComponent>) {
+    // if constexpr (std::is_same_v<data_type, sprite2D_component_s> ||
+    //     std::is_same_v<data_type, BackgroundComponent> ||
+    //     std::is_same_v<data_type, Sprite2D> ||
+    //     std::is_same_v<data_type, AnimatedSprite2D>
+    if constexpr (std::is_same_v<data_type, sprite2D_component_s> || std::is_same_v<data_type, BackgroundComponent> ||
+                  std::is_same_v<data_type, AnimatedSprite2D>) {
         serialize::serialize(packet.data, comp, context.textureManager);
     } else {
         serialize::serialize(packet.data, comp);

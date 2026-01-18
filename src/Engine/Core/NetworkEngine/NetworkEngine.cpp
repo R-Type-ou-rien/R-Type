@@ -4,6 +4,7 @@
 #include <vector>
 #include <iostream>
 #include <map>
+#include <string>
 #include "../../Lib/Components/NetworkComponents.hpp"
 
 namespace engine {

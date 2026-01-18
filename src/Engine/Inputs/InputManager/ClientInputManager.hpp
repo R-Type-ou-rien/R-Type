@@ -13,8 +13,9 @@ struct system_context;
 class ClientInputManager : public InputManagerBase<ClientInputManager> {
    public:
     void update(engine::core::NetworkEngine& network, uint32_t tick,
-                system_context& ctx);  // client only -> returns the packet ?
-    void setWindowHasFocus(bool focus) { _hasFocus = focus; }
+                system_context& ctx);                          // client only -> returns the packet ?
+    void setWindowHasFocus(bool focus) { _hasFocus = focus; }  // client only
+
     InputSnapshot getCurrentInputSnapshot() const;
 
    private:

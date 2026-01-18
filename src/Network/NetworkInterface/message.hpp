@@ -10,6 +10,10 @@
 
 namespace network {
 
+// Hard upper bound for inbound message bodies.
+// Prevents crashes when a corrupted header advertises an absurd size.
+inline constexpr uint32_t MAX_MESSAGE_BODY_SIZE = 1024u * 1024u;  // 1 MiB
+
 #pragma pack(push, 1)
 
 template <typename T>
@@ -61,6 +65,11 @@ struct message {
     template <typename DataType>
     friend message<T>& operator>>(message<T>& msg, DataType& data) {
         static_assert(std::is_standard_layout<DataType>::value, "Data is too complex to be pulled from vector");
+
+        if (msg.body.size() < sizeof(DataType)) {
+            throw std::runtime_error("Message body too small for pop: " + std::to_string(msg.body.size()) + " < " +
+                                     std::to_string(sizeof(DataType)));
+        }
 
         size_t i = msg.body.size() - sizeof(DataType);
 

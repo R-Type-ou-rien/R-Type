@@ -6,6 +6,7 @@
 #include <map>
 #include <tuple>
 #include <algorithm>
+#include <iostream>
 
 namespace serialize {
 
@@ -79,6 +80,13 @@ inline std::string deserialize<std::string>(const std::vector<uint8_t>& buffer, 
 template <typename T>
 std::vector<T> deserialize_vector(const std::vector<uint8_t>& buffer, size_t& offset) {
     uint32_t size = deserialize<uint32_t>(buffer, offset);
+
+    // CRITICAL FIX: Prevent vector allocation crash with corrupted/invalid size
+    const uint32_t MAX_VECTOR_SIZE = 1000;
+    if (size > MAX_VECTOR_SIZE) {
+        size = 0;
+    }
+
     std::vector<T> vec;
     vec.reserve(size);
     for (uint32_t i = 0; i < size; ++i) {

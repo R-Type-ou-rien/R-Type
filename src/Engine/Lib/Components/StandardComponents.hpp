@@ -32,7 +32,7 @@ struct system_context;
 /**  Comment: Split les components par 'context' d'utilisation ?? ex: visuel, sonore, physic etc...*/
 struct PatternComponent {
     static constexpr auto name = "PatternComponent";
-    enum PatternType { WAYPOINT, STRAIGHT, SINUSOIDAL };
+    enum PatternType { WAYPOINT, STRAIGHT, SINUSOIDAL, LINEAR, ZIGZAG, CIRCULAR };
     PatternType type = WAYPOINT;
     std::vector<std::pair<float, float>> waypoints;
     int current_index = 0;
@@ -113,6 +113,26 @@ struct TextComponent {
     sf::Color color = sf::Color::White;
     float x;
     float y;
+};
+
+struct InputTextComponent {
+    static constexpr auto name = "InputTextComponent";
+    std::string value;
+    std::string placeholder;
+    size_t maxLength = 20;
+    bool isFocused = false;
+    bool isHidden = false;
+    std::string updateText(std::string text_input) {
+        if (isFocused) {
+            if (text_input.length() > maxLength)
+                text_input = text_input.substr(0, maxLength);
+            value = text_input;
+            return value;
+        }
+        if (value.length() == 0)
+            value = placeholder;
+        return value;
+    }
 };
 
 using ActionCallback = std::function<void(Registry& registry, system_context context, Entity current_entity)>;
