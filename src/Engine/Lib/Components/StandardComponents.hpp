@@ -22,12 +22,13 @@
 
 #include "Components/tag_component.hpp"
 #include "ECS/Utils/slot_map/slot_map.hpp"
-#include "Context.hpp"
 #include "InputAction.hpp"
 #include "ResourceConfig.hpp"
 #include "Components/AudioComponent.hpp"
 
 class Registry;
+struct system_context;
+
 /**  Comment: Split les components par 'context' d'utilisation ?? ex: visuel, sonore, physic etc...*/
 struct PatternComponent {
     static constexpr auto name = "PatternComponent";

@@ -1,10 +1,12 @@
 #include "GameManager.hpp"
+#include "ClientGameEngine.hpp"
 #include "ECS.hpp"
 #include "GameEngineBase.hpp"
 #include "Lobby.hpp"
 #include "Network.hpp"
 #include "src/Engine/Core/ClientGameEngine.hpp"
 #include "src/Engine/Core/LobbyState.hpp"
+#include "InputState.hpp"
 #include "src/Engine/Core/Scene/SceneLoader.hpp"
 #include <cmath>
 #include <cstdint>
@@ -698,4 +700,29 @@ void GameManager::loadNextLevel(std::shared_ptr<Environment> env) {
 
     std::cout << "[GameManager] ===== LEVEL " << (_current_level_index + 1) << "/" << _level_files.size()
               << " LOADED SUCCESSFULLY! =====" << std::endl;
+}
+
+void GameManager::predictionLogic(Entity e, Registry& r, const InputSnapshot& inputs, float dt) {
+    if (!r.hasComponent<Velocity2D>(e) || !r.hasComponent<transform_component_s>(e))
+        return;
+
+    auto& vel = r.getComponent<Velocity2D>(e);
+    auto& pos = r.getComponent<transform_component_s>(e);
+
+    float speed = _player_config.speed.value();
+
+    vel.vx = 0;
+    vel.vy = 0;
+
+    if (inputs.isPressed("move_up"))
+        vel.vy = -speed;
+    if (inputs.isPressed("move_down"))
+        vel.vy = speed;
+    if (inputs.isPressed("move_left"))
+        vel.vx = -speed;
+    if (inputs.isPressed("move_right"))
+        vel.vx = speed;
+
+    pos.x += vel.vx * dt;
+    pos.y += vel.vy * dt;
 }

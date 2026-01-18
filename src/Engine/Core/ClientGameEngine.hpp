@@ -19,6 +19,7 @@
 #include "BackgroundSystem.hpp"
 #include "ResourceConfig.hpp"
 #include "WindowManager.hpp"
+#include "PredictionSystem.hpp"
 #include "LobbyState.hpp"
 #include "Voice/VoiceManager.hpp"
 #include "NetworkEngine/NetworkEngine.hpp"
@@ -46,6 +47,8 @@ class ClientGameEngine : public GameEngineBase<ClientGameEngine> {
     std::optional<Entity> _localPlayerEntity;
     engine::core::LobbyState _lobbyState;
     std::vector<engine::core::AvailableLobby> _availableLobbies;
+    std::unique_ptr<PredictionSystem> _predictionSystem;
+    PhysicsSimulationCallback _physicsLogic;
 
    public:
     static constexpr bool IsServer = false;
@@ -55,12 +58,12 @@ class ClientGameEngine : public GameEngineBase<ClientGameEngine> {
     int run();
     explicit ClientGameEngine(std::string ip = "127.0.0.1", std::string window_name = "R-Type Client");
     ~ClientGameEngine() {}
+    void setPredictionLogic(PhysicsSimulationCallback logic) { _physicsLogic = logic; }
 
     std::optional<Entity> getLocalPlayerEntity() const {
         if (!_localPlayerEntity.has_value())
             return std::nullopt;
 
-        // Convert network GUID to local entity ID
         auto it = _networkToLocalEntity.find(_localPlayerEntity.value());
         if (it != _networkToLocalEntity.end()) {
             return it->second;
@@ -105,6 +108,8 @@ class ClientGameEngine : public GameEngineBase<ClientGameEngine> {
    private:
     void handleEvent();
     void processNetworkEvents();
+    void applyLocalInputs(Entity playerEntity);
+    void reconcile(Entity playerEntity, const transform_component_s& serverState, uint32_t serverTick);
     void processLobbyEvents(std::map<engine::core::NetworkEngine::EventType,
                                      std::vector<network::message<engine::core::NetworkEngine::EventType>>>& pending);
 

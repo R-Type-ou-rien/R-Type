@@ -35,6 +35,7 @@
 #include "src/Engine/Lib/Systems/PhysicsSystem.hpp"
 #include "src/Engine/Lib/Systems/ActionScriptSystem.hpp"
 #include "src/Engine/Lib/Systems/DestructionSystem.hpp"
+#include "src/Engine/Lib/Components/PredictionComponent.hpp"
 
 void GameManager::initSystems(std::shared_ptr<Environment> env) {
     auto& ecs = env->getECS();
