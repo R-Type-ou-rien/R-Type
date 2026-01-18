@@ -3,20 +3,17 @@
 #include <vector>
 #include "GameManager.hpp"
 #include "ECS.hpp"
-#include "src/RType/Common/Systems/score.hpp"
 
+#include "src/RType/Common/Systems/score.hpp"
 #include "src/RType/Common/Systems/health.hpp"
 #include "src/RType/Common/Components/status_display_components.hpp"
 #include "src/RType/Common/Components/leaderboard_component.hpp"
-#include "src/RType/Common/Components/spectator_component.hpp"
 #include "src/RType/Common/Components/game_over_notification.hpp"
 #include "Components/StandardComponents.hpp"
 #include "src/RType/Common/Components/LevelTransitionComponent.hpp"
 #include "src/RType/Common/Systems/leaderboard_system.hpp"
 
-#include <tuple>
 #if defined(SERVER_BUILD)
-// #include "NetworkEngine/NetworkEngine.hpp"
 #include "src/Engine/Lib/Components/NetworkComponents.hpp"
 #endif
 

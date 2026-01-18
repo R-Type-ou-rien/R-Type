@@ -203,9 +203,9 @@ void ShooterSystem::create_charged_projectile(Registry& registry, Entity owner_e
     registry.addComponent<DamageOnCollision>(id, {damage});
 
     if (charge_ratio >= 1.0f) {
-        registry.addComponent<PenetratingProjectile>(id, {999, 0});
+        registry.addComponent<PenetratingProjectile>(id, {5, 0});  // Penetrate 5 enemies max
     } else if (charge_ratio >= 0.5f) {
-        registry.addComponent<PenetratingProjectile>(id, {3, 0});
+        registry.addComponent<PenetratingProjectile>(id, {2, 0});  // Penetrate 2 enemies max
     }
 
     std::string sprite_path = "src/RType/Common/content/sprites/r-typesheet1.gif";
