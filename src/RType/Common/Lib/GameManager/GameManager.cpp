@@ -51,7 +51,7 @@ GameManager::GameManager() {
 
         if (!_level_files.empty()) {
             _current_level_scene = _level_files[0];
-            _current_level_index = 0;
+            _current_level_index = 1;
         } else {
             _current_level_scene = "src/RType/Common/content/config/levels/level1.scene";
         }

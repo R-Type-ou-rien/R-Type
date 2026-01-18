@@ -1,6 +1,7 @@
 {
   "textures": [
     { "path": "src/RType/Common/content/sprites/background-R-Type.png" },
+    { "path": "src/RType/Common/content/sprites/background-R-Type-2.png" },
     { "path": "src/RType/Common/content/sprites/r-typesheet42.gif" },
     { "path": "src/RType/Common/content/sprites/r-typesheet8.gif" }
   ],
