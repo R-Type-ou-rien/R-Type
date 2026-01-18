@@ -45,8 +45,13 @@ struct EntityConfig {
     std::optional<bool> follow_player;
     std::optional<std::string> shoot_pattern;
     std::optional<std::string> pattern;
+    std::optional<std::string> boss_type;
     std::optional<std::string> sprite_path;
     std::vector<std::string> collision_tags;
+    std::vector<std::string> phase1_patterns;
+    std::vector<std::string> phase2_patterns;
+    std::vector<std::string> phase3_patterns;
+    std::vector<std::string> enraged_patterns;
     std::vector<BossSubEntityConfig> boss_sub_entities;
     std::optional<float> margin_right;
     std::optional<float> spawn_offset_x;

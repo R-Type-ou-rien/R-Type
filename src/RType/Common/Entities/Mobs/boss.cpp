@@ -46,6 +46,11 @@ BossComponent createBossComponent(const EntityConfig& config, float target_x) {
     BossComponent boss_comp;
     boss_comp.has_arrived = false;
     boss_comp.target_x = target_x;
+    boss_comp.boss_type = config.boss_type.value_or("CLASSIC");
+    boss_comp.phase1_patterns = config.phase1_patterns;
+    boss_comp.phase2_patterns = config.phase2_patterns;
+    boss_comp.phase3_patterns = config.phase3_patterns;
+    boss_comp.enraged_patterns = config.enraged_patterns;
     boss_comp.max_phases = config.max_phases.value_or(3);
     boss_comp.attack_pattern_interval = config.attack_pattern_interval.value_or(3.0f);
     boss_comp.oscillation_amplitude = config.oscillation_amplitude.value_or(100.0f);
