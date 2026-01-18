@@ -1,29 +1,52 @@
 #include <iostream>
 #include <ostream>
-#include <string>
-
+#include <type_traits>
+#include "ClientGameEngine.hpp"
 #include "GameEngineConfig.hpp"
-#include "NetworkEngine/NetworkEngine.hpp"
-#include "Components/StandardComponents.hpp"
 #include "Lib/GameManager/GameManager.hpp"
+#include "../../RType/Common/Systems/score.hpp"
 
-int main(int ac, char**av) {
+template <typename T>
+void setupPrediction(T& engine, GameManager& gm) {
+    if constexpr (std::is_same_v<T, ClientGameEngine>) {
+        engine.setPredictionLogic([&gm](Entity e, Registry& r, const InputSnapshot& inputs, float dt) {
+            gm.predictionLogic(e, r, inputs, dt);
+        });
+    }
+}
 
+int main(int argc, char* argv[]) {
     std::string ip = "127.0.0.1";
-
-    if (ac == 2 && av[1])
-        ip = std::string(av[1]);
-
-#if defined(SERVER_BUILD)
-    GameEngine engine;
-#elif defined(CLIENT_BUILD)
+    if (argc > 1) {
+        ip = argv[1];
+    }
     GameEngine engine(ip);
-#endif
     GameManager gm;
 
-    engine.setInitFunction([&gm](Environment& env, InputManager& inputs) { gm.init(env, inputs); });
+#if defined(CLIENT_BUILD)
+    gm.setWindow(&engine.getWindow());
+    gm.setLocalPlayerId(engine.getClientId());
+#endif
+    
+    setupPrediction(engine, gm);
+    engine.registerNetworkComponent<DamageOnCollision>();
+    engine.registerNetworkComponent<TeamComponent>();
+    engine.registerNetworkComponent<ProjectileComponent>();
+    engine.registerNetworkComponent<HealthComponent>();
+    engine.registerNetworkComponent<EnemySpawnComponent>();
+    engine.registerNetworkComponent<ShooterComponent>();
+    engine.registerNetworkComponent<ChargedShotComponent>();
+    engine.registerNetworkComponent<PodComponent>();
+    engine.registerNetworkComponent<::GameTimerComponent>();
+    engine.registerNetworkComponent<PlayerPodComponent>();
+    engine.registerNetworkComponent<BehaviorComponent>();
+    engine.registerNetworkComponent<BossComponent>();
+    engine.registerNetworkComponent<BossSubEntityComponent>();
+    engine.registerNetworkComponent<ScoreComponent>();
 
-    engine.setLoopFunction([&gm](Environment& env, InputManager& inputs) { gm.update(env, inputs); });
+    engine.setInitFunction([&gm](std::shared_ptr<Environment> env, InputManager& inputs) { gm.init(env, inputs); });
+
+    engine.setLoopFunction([&gm](std::shared_ptr<Environment> env, InputManager& inputs) { gm.update(env, inputs); });
     engine.run();
     return 0;
 }

@@ -26,6 +26,7 @@ struct ComponentPacket {
     static constexpr auto name = "ComponentPacket";
     uint32_t entity_guid;
     uint32_t component_type;
+    uint32_t owner_id;  // Added owner_id
     std::vector<uint8_t> data;
 };
 
@@ -53,6 +54,7 @@ inline message<GameEvents>& operator<<(message<GameEvents>& msg, const Component
     }
     uint32_t size = static_cast<uint32_t>(packet.data.size());
     msg << size;
+    msg << packet.owner_id;  // Serialize owner_id
     msg << packet.component_type;
     msg << packet.entity_guid;
     return msg;
@@ -61,6 +63,7 @@ inline message<GameEvents>& operator<<(message<GameEvents>& msg, const Component
 inline message<GameEvents>& operator>>(message<GameEvents>& msg, ComponentPacket& packet) {
     msg >> packet.entity_guid;
     msg >> packet.component_type;
+    msg >> packet.owner_id;  // Deserialize owner_id
     uint32_t size = 0;
     msg >> size;
 
@@ -117,4 +120,4 @@ inline message<GameEvents>& operator>>(message<GameEvents>& msg, ActionPacket& p
     return msg;
 }
 
-}  // namespace network
+}   // namespace network

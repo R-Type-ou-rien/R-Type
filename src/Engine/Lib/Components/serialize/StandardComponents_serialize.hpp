@@ -7,6 +7,8 @@
 #include "ResourceConfig.hpp"
 #include "serialize.hpp"
 #include "../../../../RType/Common/Components/damage_component.hpp"
+#include "../StructDatas/Rect2D.hpp"
+#include "../Components/Sprite/AnimatedSprite2D.hpp"
 #include "../../../../RType/Common/Components/shooter_component.hpp"
 #include "../../../../RType/Common/Components/team_component.hpp"
 #include "../../../../RType/Common/Components/game_timer.hpp"
@@ -218,8 +220,10 @@ inline sprite2D_component_s deserialize_sprite_2d_component(const std::vector<ui
             }
 
             if (!loaded) {
-                std::cerr << "Client: CRITICAL ERROR: Failed to load texture: " << name << " from any path."
+                std::cout << "Client: CRITICAL ERROR: Failed to load texture: " << name << " from any path."
                           << std::endl;
+            } else {
+                std::cout << "[Client] Successfully loaded texture: " << name << std::endl;
             }
             component.handle = resourceManager.load(name, texture);
 #else
@@ -594,6 +598,127 @@ inline BossSubEntityComponent deserialize_boss_sub_entity(const std::vector<uint
     component.offset_y = deserialize<float>(buffer, offset);
     component.fire_timer = deserialize<float>(buffer, offset);
     component.fire_rate = deserialize<float>(buffer, offset);
+    return component;
+}
+
+/** Rect2D */
+inline void serialize(std::vector<uint8_t>& buffer, const Rect2D& r) {
+    serialize(buffer, r.x);
+    serialize(buffer, r.y);
+    serialize(buffer, r.width);
+    serialize(buffer, r.height);
+}
+
+inline Rect2D deserialize_rect2d(const std::vector<uint8_t>& buffer, size_t& offset) {
+    Rect2D r;
+    r.x = deserialize<int>(buffer, offset);
+    r.y = deserialize<int>(buffer, offset);
+    r.width = deserialize<int>(buffer, offset);
+    r.height = deserialize<int>(buffer, offset);
+    return r;
+}
+
+/** AnimationClip */
+inline void serialize(std::vector<uint8_t>& buffer, const AnimationClip& clip,
+                      ResourceManager<TextureAsset>& resourceManager) {
+    auto name = resourceManager.get_name(clip.handle);
+    if (name) {
+        serialize(buffer, name.value());
+    } else {
+        serialize(buffer, std::string(""));
+    }
+    serialize(buffer, clip.frames);
+    serialize(buffer, clip.frameDuration);
+    serialize(buffer, static_cast<int>(clip.mode));
+}
+
+inline AnimationClip deserialize_animation_clip(const std::vector<uint8_t>& buffer, size_t& offset,
+                                                ResourceManager<TextureAsset>& resourceManager) {
+    AnimationClip clip;
+    std::string name = deserialize<std::string>(buffer, offset);
+    if (!name.empty()) {
+        if (resourceManager.is_loaded(name)) {
+            clip.handle = resourceManager.get_handle(name).value();
+        } else {
+#if defined(CLIENT_BUILD)
+            TextureAsset texture;
+            std::string path = name;
+            bool loaded = texture.loadFromFile(path);
+            if (!loaded) {
+                path = "../" + name;
+                loaded = texture.loadFromFile(path);
+            }
+            if (!loaded) {
+                std::cerr << "Client: CRITICAL ERROR: Failed to load texture for animation: " << name << std::endl;
+            }
+            clip.handle = resourceManager.load(name, texture);
+#else
+            clip.handle = resourceManager.load(name, TextureAsset(name));
+#endif
+        }
+    }
+
+    // Manual vector deserialization for Rect2D to use our deserialize_rect2d
+    uint32_t size = deserialize<uint32_t>(buffer, offset);
+    if (size > 1024)
+        size = 0;  // Safety cap
+    clip.frames.resize(size);
+    for (uint32_t i = 0; i < size; ++i) {
+        clip.frames[i] = deserialize_rect2d(buffer, offset);
+    }
+
+    clip.frameDuration = deserialize<float>(buffer, offset);
+    clip.mode = static_cast<AnimationMode>(deserialize<int>(buffer, offset));
+    return clip;
+}
+
+/** AnimatedSprite2D */
+inline void serialize(std::vector<uint8_t>& buffer, const AnimatedSprite2D& component,
+                      ResourceManager<TextureAsset>& resourceManager) {
+    serialize(buffer, static_cast<int>(component.layer));
+
+    // Serialize animations map manually to handle the resource manager
+    serialize(buffer, static_cast<uint32_t>(component.animations.size()));
+    for (const auto& [name, clip] : component.animations) {
+        serialize(buffer, name);
+        serialize(buffer, clip, resourceManager);
+    }
+
+    serialize(buffer, component.currentAnimation);
+    serialize(buffer, component.previousAnimation);
+    serialize(buffer, static_cast<uint32_t>(component.currentFrameIndex));
+    serialize(buffer, component.loopDirection);
+    serialize(buffer, component.timer);
+    serialize(buffer, component.playing);
+    serialize(buffer, component.flipX);
+    serialize(buffer, component.flipY);
+}
+
+inline AnimatedSprite2D deserialize_animated_sprite_2d(const std::vector<uint8_t>& buffer, size_t& offset,
+                                                       ResourceManager<TextureAsset>& resourceManager) {
+    AnimatedSprite2D component;
+    component.layer = static_cast<RenderLayer>(deserialize<int>(buffer, offset));
+
+    // Deserialize animations map
+    uint32_t anims_size = deserialize<uint32_t>(buffer, offset);
+    if (anims_size > 128)
+        anims_size = 0;  // Safety
+
+    for (uint32_t i = 0; i < anims_size; ++i) {
+        std::string name = deserialize<std::string>(buffer, offset);
+        AnimationClip clip = deserialize_animation_clip(buffer, offset, resourceManager);
+        component.animations[name] = clip;
+    }
+
+    component.currentAnimation = deserialize<std::string>(buffer, offset);
+    component.previousAnimation = deserialize<std::string>(buffer, offset);
+    component.currentFrameIndex = deserialize<uint32_t>(buffer, offset);
+    component.loopDirection = deserialize<int>(buffer, offset);
+    component.timer = deserialize<float>(buffer, offset);
+    component.playing = deserialize<bool>(buffer, offset);
+    component.flipX = deserialize<bool>(buffer, offset);
+    component.flipY = deserialize<bool>(buffer, offset);
+
     return component;
 }
 

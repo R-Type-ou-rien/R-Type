@@ -1,4 +1,3 @@
-#include "Server.hpp"
 #include <iostream>
 #ifdef _WIN32
     #define WIN32_LEAN_AND_MEAN
@@ -9,27 +8,33 @@
     #pragma comment(lib, "Iphlpapi.lib")
 
 #else
-    #include <ifaddrs.h>
-    #include <netinet/in.h>
-    #include <arpa/inet.h>
-    #include <sys/types.h>
-    #include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 #endif
 
+#include "ServerGameEngine.hpp"
+#include "NetworkEngine/NetworkEngine.hpp"
+#include "../../RType/Common/Lib/GameManager/GameManager.hpp"
+
 int main() {
-    std::cout << std::unitbuf;
-    network::Server server(4040, 30);
+    std::cout << "[SERVER] Starting R-Type Game Server..." << std::endl;
 
-    if (server.Start()) {
-        std::cout << "[SERVER] Server running. Press Ctrl+C to stop.\n";
+    try {
+        ServerGameEngine gameEngine;
+        GameManager gm;
 
-        while (1) {
-            server.Update(-1, true);
-        }
-    } else {
-        std::cerr << "[SERVER] Failed to start server.\n";
-        return 1;
+        gameEngine.setInitFunction(
+            [&gm](std::shared_ptr<Environment> env, InputManager& inputs) { gm.init(env, inputs); });
+
+        gameEngine.setLoopFunction(
+            [&gm](std::shared_ptr<Environment> env, InputManager& inputs) { gm.update(env, inputs); });
+
+        return gameEngine.run();
+    } catch (const std::exception& e) {
+        std::cerr << "[SERVER] Fatal error: " << e.what() << std::endl;
+        return 84;
+    } catch (...) {
+        std::cerr << "[SERVER] Unknown fatal error" << std::endl;
+        return 84;
     }
-
-    return 0;
 }

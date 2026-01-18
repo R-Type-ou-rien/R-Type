@@ -24,7 +24,7 @@ class NetworkEngine {
     ~NetworkEngine() = default;
 
     template <typename Data>
-    bool transmitEvent(EventType type, Data data, uint32_t tick, uint32_t targetId = 0) {
+    bool transmitEvent(EventType type, const Data& data, uint32_t tick, uint32_t targetId = 0) {
         try {
             network::message<network::GameEvents> msg;
             msg.header.id = type;

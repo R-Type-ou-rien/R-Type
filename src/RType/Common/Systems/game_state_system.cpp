@@ -93,31 +93,31 @@ void GameStateSystem::update(Registry& registry, system_context context) {
             if (std::holds_alternative<std::shared_ptr<network::Server>>(network_instance)) {
                 auto server = std::get<std::shared_ptr<network::Server>>(network_instance);
 
-                network::GameOverPacket gameOverPacket;
-                gameOverPacket.victory = false;
-                gameOverPacket.player_count = 0;
+                // network::GameOverPacket gameOverPacket;
+                // gameOverPacket.victory = false;
+                // gameOverPacket.player_count = 0;
 
-                for (const auto& player : all_players) {
-                    if (gameOverPacket.player_count >= 8)
-                        break;
+                // for (const auto& player : all_players) {
+                //     if (gameOverPacket.player_count >= 8)
+                //         break;
 
-                    network::PlayerScore playerScore;
-                    playerScore.client_id = player.client_id;
-                    playerScore.score = player.score;
-                    playerScore.is_alive = (player.hp > 0);
+                //     network::PlayerScore playerScore;
+                //     playerScore.client_id = player.client_id;
+                //     playerScore.score = player.score;
+                //     playerScore.is_alive = (player.hp > 0);
 
-                    gameOverPacket.players[gameOverPacket.player_count] = playerScore;
-                    gameOverPacket.player_count++;
-                }
+                //     gameOverPacket.players[gameOverPacket.player_count] = playerScore;
+                //     gameOverPacket.player_count++;
+                // }
 
                 for (auto const& [lobbyId, lobby] : lobbies) {
                     if (lobby.getState() != engine::core::Lobby::State::IN_GAME) {
                         continue;
                     }
 
-                    for (const auto& client : lobby.getClients()) {
-                        server->AddMessageToPlayer(network::GameEvents::S_GAME_OVER, client.id, gameOverPacket);
-                    }
+                    // for (const auto& client : lobby.getClients()) {
+                    //     server->AddMessageToPlayer(network::GameEvents::S_GAME_OVER, client.id, gameOverPacket);
+                    // }
                 }
 
                 _gameOverSent = true;
@@ -164,30 +164,30 @@ void GameStateSystem::update(Registry& registry, system_context context) {
         if (std::holds_alternative<std::shared_ptr<network::Server>>(network_instance)) {
             auto server = std::get<std::shared_ptr<network::Server>>(network_instance);
 
-            network::GameOverPacket gameOverPacket;
-            gameOverPacket.victory = true;
-            gameOverPacket.player_count = 0;
+            // network::GameOverPacket gameOverPacket;
+            // gameOverPacket.victory = true;
+            // gameOverPacket.player_count = 0;
 
-            for (const auto& player : all_players) {
-                if (gameOverPacket.player_count >= 8)
-                    break;
+            // for (const auto& player : all_players) {
+            //     if (gameOverPacket.player_count >= 8)
+            //         break;
 
-                network::PlayerScore playerScore;
-                playerScore.client_id = player.client_id;
-                playerScore.score = player.score;
-                playerScore.is_alive = (player.hp > 0);
-                gameOverPacket.players[gameOverPacket.player_count] = playerScore;
-                gameOverPacket.player_count++;
-            }
+            //     network::PlayerScore playerScore;
+            //     playerScore.client_id = player.client_id;
+            //     playerScore.score = player.score;
+            //     playerScore.is_alive = (player.hp > 0);
+            //     gameOverPacket.players[gameOverPacket.player_count] = playerScore;
+            //     gameOverPacket.player_count++;
+            // }
 
             for (auto const& [lobbyId, lobby] : lobbies) {
                 if (lobby.getState() != engine::core::Lobby::State::IN_GAME) {
                     continue;
                 }
 
-                for (const auto& client : lobby.getClients()) {
-                    server->AddMessageToPlayer(network::GameEvents::S_GAME_OVER, client.id, gameOverPacket);
-                }
+                // for (const auto& client : lobby.getClients()) {
+                //     server->AddMessageToPlayer(network::GameEvents::S_GAME_OVER, client.id, gameOverPacket);
+                // }
             }
 
             _victorySent = true;

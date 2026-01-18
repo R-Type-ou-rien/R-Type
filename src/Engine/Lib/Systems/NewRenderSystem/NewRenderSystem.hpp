@@ -17,9 +17,10 @@
 #include "Components/StandardComponents.hpp"
 #include "ISystem.hpp"
 
-class RenderSystem : public ISystem {
+class NewRenderSystem : public ISystem {
    public:
-    RenderSystem() = default;
+    NewRenderSystem() = default;
+
     void update(Registry& registry, system_context context) override;
 
    private:

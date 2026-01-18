@@ -2,10 +2,11 @@
 ** EPITECH PROJECT, 2025
 ** Smash
 ** File description:
-** RenderSystem.cpp
+** NewRenderSystem.cpp
 */
 
 #include "NewRenderSystem.hpp"
+#include "Context.hpp"
 
 #include <algorithm>
 #include <iostream>
@@ -20,7 +21,7 @@ static void applyFlip(sf::Sprite& spr, bool flipX, bool flipY) {
     spr.setScale({(flipX ? -1.f : 1.f), (flipY ? -1.f : 1.f)});
 }
 
-void RenderSystem::update(Registry& registry, system_context context) {
+void NewRenderSystem::update(Registry& registry, system_context context) {
     std::vector<DrawCmd> cmds;
     const auto& spriteEntities = registry.getEntities<Sprite2D>();
     const auto& animEntities = registry.getEntities<AnimatedSprite2D>();
@@ -61,9 +62,9 @@ void RenderSystem::update(Registry& registry, system_context context) {
     }
 }
 
-void RenderSystem::drawSpriteEntity(const transform_component_s& transform, const Sprite2D& spriteData,
-                                    const system_context& context, std::vector<DrawCmd>& out, std::uint64_t& order) {
-    if (!context.texture_manager.has_resource(spriteData.handle))
+void NewRenderSystem::drawSpriteEntity(const transform_component_s& transform, const Sprite2D& spriteData,
+                                       const system_context& context, std::vector<DrawCmd>& out, std::uint64_t& order) {
+    if (!context.texture_manager.has(spriteData.handle))
         return;
 
     sf::Texture& texture = context.texture_manager.get_resource(spriteData.handle).value().get();
@@ -80,23 +81,27 @@ void RenderSystem::drawSpriteEntity(const transform_component_s& transform, cons
     out.push_back(DrawCmd{static_cast<int>(spriteData.layer), order++, std::move(spr)});
 }
 
-void RenderSystem::drawAnimatedSpriteEntity(const transform_component_s& transform, const AnimatedSprite2D& spriteData,
-                                            const system_context& context, std::vector<DrawCmd>& out,
-                                            std::uint64_t& order) {
-    if (!context.texture_manager.has_resource(spriteData.animations.at(spriteData.currentAnimation).handle))
+void NewRenderSystem::drawAnimatedSpriteEntity(const transform_component_s& transform,
+                                               const AnimatedSprite2D& spriteData, const system_context& context,
+                                               std::vector<DrawCmd>& out, std::uint64_t& order) {
+    if (spriteData.currentAnimation.empty() ||
+        spriteData.animations.find(spriteData.currentAnimation) == spriteData.animations.end())
         return;
 
-    sf::Texture& texture =
-        context.texture_manager.get_resource(spriteData.animations.at(spriteData.currentAnimation).handle)
-            .value()
-            .get();
+    const auto& clip = spriteData.animations.at(spriteData.currentAnimation);
+
+    if (!context.texture_manager.has(clip.handle))
+        return;
+
+    if (spriteData.currentFrameIndex >= clip.frames.size())
+        return;
+
+    sf::Texture& texture = context.texture_manager.get_resource(clip.handle).value().get();
     sf::Sprite spr(texture);
 
     spr.setTextureRect(sf::IntRect(
-        {spriteData.animations.at(spriteData.currentAnimation).frames[spriteData.currentFrameIndex].x,
-         spriteData.animations.at(spriteData.currentAnimation).frames[spriteData.currentFrameIndex].y},
-        {spriteData.animations.at(spriteData.currentAnimation).frames[spriteData.currentFrameIndex].width,
-         spriteData.animations.at(spriteData.currentAnimation).frames[spriteData.currentFrameIndex].height}));
+        {clip.frames[spriteData.currentFrameIndex].x, clip.frames[spriteData.currentFrameIndex].y},
+        {clip.frames[spriteData.currentFrameIndex].width, clip.frames[spriteData.currentFrameIndex].height}));
 
     applyFlip(spr, spriteData.flipX, spriteData.flipY);
 
@@ -106,7 +111,7 @@ void RenderSystem::drawAnimatedSpriteEntity(const transform_component_s& transfo
     out.push_back(DrawCmd{static_cast<int>(spriteData.layer), order++, std::move(spr)});
 }
 
-void RenderSystem::drawText(const TextComponent& textComp, const system_context& context) {
+void NewRenderSystem::drawText(const TextComponent& textComp, const system_context& context) {
     if (!_fontLoaded) {
         if (!_font.openFromFile(textComp.fontPath)) {
             std::cerr << "Failed to load font: " << textComp.fontPath << std::endl;

@@ -15,29 +15,29 @@ next_level=src/RType/Common/content/config/levels/level3.scene
 # Walls - Industrial complex theme with narrow corridors
 # Floor walls (bottom) - More complex pattern
 [WALL]
-wall=1500,880,600,200,src/RType/Common/content/sprites/r-typesheet14.gif,false
-wall=2800,900,900,180,src/RType/Common/content/sprites/r-typesheet14.gif,false
-wall=4200,860,700,220,src/RType/Common/content/sprites/r-typesheet14.gif,false
-wall=5500,920,800,160,src/RType/Common/content/sprites/r-typesheet14.gif,false
-wall=7000,890,1000,190,src/RType/Common/content/sprites/r-typesheet14.gif,false
-wall=8800,900,600,180,src/RType/Common/content/sprites/r-typesheet14.gif,false
-wall=10200,870,900,210,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=1500,880,600,200,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=2800,900,900,180,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=4200,860,700,220,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=5500,920,800,160,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=7000,890,1000,190,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=8800,900,600,180,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=10200,870,900,210,src/RType/Common/content/sprites/r-typesheet14.gif,true
 
 # Ceiling walls (top) - Complex industrial ceiling
-wall=1800,0,700,170,src/RType/Common/content/sprites/r-typesheet14.gif,false
-wall=3200,0,600,200,src/RType/Common/content/sprites/r-typesheet14.gif,false
-wall=4800,0,800,160,src/RType/Common/content/sprites/r-typesheet14.gif,false
-wall=6200,0,900,190,src/RType/Common/content/sprites/r-typesheet14.gif,false
-wall=8000,0,700,180,src/RType/Common/content/sprites/r-typesheet14.gif,false
-wall=9500,0,800,210,src/RType/Common/content/sprites/r-typesheet14.gif,false
-wall=11000,0,1000,170,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=1800,0,700,170,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=3200,0,600,200,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=4800,0,800,160,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=6200,0,900,190,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=8000,0,700,180,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=9500,0,800,210,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=11000,0,1000,170,src/RType/Common/content/sprites/r-typesheet14.gif,true
 
 # Narrow energy corridors - Two sections
-wall=13000,750,1800,330,src/RType/Common/content/sprites/r-typesheet14.gif,false
-wall=13000,0,1800,350,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=13000,750,1800,330,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=13000,0,1800,350,src/RType/Common/content/sprites/r-typesheet14.gif,true
 
-wall=16000,800,1200,280,src/RType/Common/content/sprites/r-typesheet14.gif,false
-wall=16000,0,1200,300,src/RType/Common/content/sprites/r-typesheet14.gif,false
+wall=16000,800,1200,280,src/RType/Common/content/sprites/r-typesheet14.gif,true
+wall=16000,0,1200,300,src/RType/Common/content/sprites/r-typesheet14.gif,true
 
 # Turrets - Industrial defense grid (higher density)
 # Fire rate kept between 2.0-3.0 seconds for balance

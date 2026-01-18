@@ -12,7 +12,7 @@ class PodSystem : public ISystem {
     void update(Registry& registry, system_context context) override;
 
    private:
-    void spawnPod(Registry& registry, system_context context);
+    void spawnPod(Registry& registry, system_context context, uint32_t lobbyId = 0);
     void handlePodCollection(Registry& registry);
     void updateAttachedPodPosition(Registry& registry);
     void updateFloatingPodMovement(Registry& registry, const system_context& context);

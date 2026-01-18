@@ -14,11 +14,12 @@ namespace core {
 struct ClientInfo {
     uint32_t id;
     std::string name;
+    bool isReady = false;
     // We can add more client-specific data here later, like authentication status
 };
 
 class Lobby {
-   public:
+      public:
     enum class State {
         WAITING,
         IN_GAME,
@@ -29,6 +30,8 @@ class Lobby {
 
     bool addClient(const ClientInfo& client);
     bool removeClient(uint32_t clientId);
+    void setPlayerReady(uint32_t clientId, bool ready);
+    bool areAllPlayersReady() const;
 
     uint32_t getId() const { return _id; }
     const std::string& getName() const { return _name; }
@@ -39,12 +42,18 @@ class Lobby {
     const std::vector<ClientInfo>& getClients() const { return _clients; }
     bool isFull() const { return _clients.size() >= _maxPlayers; }
 
+    // Host tracking
+    uint32_t getHostId() const { return _hostId; }
+    void setHostId(uint32_t hostId) { _hostId = hostId; }
+    bool isHost(uint32_t clientId) const { return _hostId == clientId; }
+
    private:
     uint32_t _id;
     std::string _name;
     uint32_t _maxPlayers;
     State _state;
     std::vector<ClientInfo> _clients;
+    uint32_t _hostId = 0;
 };
 
 class LobbyManager {

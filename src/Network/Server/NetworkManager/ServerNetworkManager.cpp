@@ -47,7 +47,7 @@ void ServerNetworkManager::initializePayloadConstraints() {
     _payloadConstraints[C_CONFIRM_UDP] = {sizeof(uint32_t), sizeof(uint32_t)};  // Usually just sends ID or 0
     _payloadConstraints[C_PING_SERVER] = {0, 64};
     _payloadConstraints[C_DISCONNECT] = {0, 0};
-    _payloadConstraints[C_LIST_ROOMS] = {0, 0};
+    _payloadConstraints[C_LIST_ROOMS] = {0, 4};
     _payloadConstraints[C_GAME_START] = {0, sizeof(uint32_t)};
     _payloadConstraints[C_TEAM_CHAT] = {sizeof(uint32_t) + 1, 1024};
     _payloadConstraints[C_VOICE_PACKET] = {1, 8192};
