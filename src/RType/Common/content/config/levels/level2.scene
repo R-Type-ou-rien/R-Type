@@ -3,7 +3,7 @@
 
 [LEVEL]
 name=Level 2 - Energy Station
-background=src/RType/Common/content/sprites/test.png
+background=src/RType/Common/content/sprites/background-R-Type.png
 music=theme
 enemies_config=src/RType/Common/content/config/enemies.cfg
 boss_config=src/RType/Common/content/config/boss.cfg
