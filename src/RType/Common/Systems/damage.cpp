@@ -102,7 +102,8 @@ void Damage::update(Registry& registry, system_context context) {
                 auto& teamA = registry.getConstComponent<TeamComponent>(attacker);
                 auto& teamB = registry.getConstComponent<TeamComponent>(hit_id);
                 if (teamA.team == TeamComponent::ENEMY && teamB.team == TeamComponent::ALLY) {
-                    if (!registry.hasComponent<ProjectileComponent>(attacker)) {
+                    if (!registry.hasComponent<ProjectileComponent>(attacker) &&
+                        !registry.hasComponent<BossComponent>(attacker)) {
                         attackers_to_destroy.push_back(attacker);
                         break;
                     }

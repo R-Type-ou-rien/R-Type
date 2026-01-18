@@ -98,9 +98,22 @@ void BossSystem::registerPatternHandler(const std::string& name, PatternHandler 
 
 void BossSystem::executePatterns(Registry& registry, system_context context, Entity boss_entity, BossComponent& boss,
                                  const std::vector<std::string>& pattern_names) {
+    bool attack_triggered = false;
+    
+    boss.attack_pattern_timer += context.dt;
+    if (boss.attack_pattern_timer >= boss.attack_pattern_interval) {
+        boss.attack_pattern_timer = 0.0f;
+        attack_triggered = true;
+    }
+
     for (const auto& name : pattern_names) {
         if (_available_patterns.count(name)) {
-            _available_patterns[name](registry, context, boss_entity);
+            if (name == "ORBITAL_AIM") {
+                _available_patterns[name](registry, context, boss_entity);
+            } 
+            else if (attack_triggered) {
+                _available_patterns[name](registry, context, boss_entity);
+            }
         }
     }
 }

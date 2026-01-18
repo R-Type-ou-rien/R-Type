@@ -254,7 +254,7 @@ Entity BossSpawner::spawn(Registry& registry, system_context context, float x, f
     registry.addComponent<transform_component_s>(id, {dims.start_x, dims.start_y});
     registry.addComponent<Velocity2D>(id, {-config.speed.value(), 0.0f});
 
-    registry.addComponent<HealthComponent>(id, {config.hp.value(), config.hp.value(), 0.0f, 2.0f});
+    registry.addComponent<HealthComponent>(id, {config.hp.value(), config.hp.value(), 0.0f, 0.0f});
     registry.addComponent<TeamComponent>(id, {TeamComponent::ENEMY});
     registry.addComponent<DamageOnCollision>(id, {config.damage.value()});
     registry.addComponent<ScoreValueComponent>(id, {config.score_value.value()});
@@ -265,8 +265,6 @@ Entity BossSpawner::spawn(Registry& registry, system_context context, float x, f
     handle_t<TextureAsset> handle =
         context.texture_manager.load(config.sprite_path.value(), TextureAsset(config.sprite_path.value()));
 
-    // Uncommenting to ensure collision system has dimensions using sprite2D_component_s
-    registry.addComponent<sprite2D_component_s>(id, createBossSprite(config, handle));
     registry.addComponent<AnimatedSprite2D>(id, createBossAnimatedSprite(config, handle));
 
     const int num_frames = config.animation_frames.value_or(1);
