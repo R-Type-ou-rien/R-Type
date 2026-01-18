@@ -22,6 +22,8 @@ This project is a complete game development platform built from scratch, consist
 
 > [!NOTE]
 > The custom ECS engine uses **Data-Oriented Design** for cache-efficient performance.
+<br>
+The engine provides a complete solution for both client and server. On top of its ECS architecture, it directly manages core functionalities such as **input processing**, **audio playback**, and **resource management** to create a fully integrated experience.
 
 ## ECS Architecture
 
