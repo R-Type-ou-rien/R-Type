@@ -201,6 +201,7 @@ class Connection : public std::enable_shared_from_this<Connection<T>> {
         ReadHeader();
     }
 
+   public:
     void ResetTimeout() {
         m_timerTimeout.cancel();
 
@@ -220,7 +221,6 @@ class Connection : public std::enable_shared_from_this<Connection<T>> {
         });
     }
 
-   public:
     void SetUDPEndpoint(asio::ip::udp::endpoint endpoint) { _udpRemoteEndpoint = endpoint; }
     asio::ip::udp::endpoint GetUDPEndpoint() const { return _udpRemoteEndpoint; }
     void SetTimeout(int seconds) {

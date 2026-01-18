@@ -1,5 +1,6 @@
 #include "leaderboard_system.hpp"
 #include "../Components/leaderboard_component.hpp"
+#include <SFML/Window/Mouse.hpp>
 #include "Components/StandardComponents.hpp"
 #include "Components/NetworkComponents.hpp"
 #include "../Systems/score.hpp"
@@ -127,9 +128,6 @@ void LeaderboardSystem::update(Registry& registry, system_context context) {
         leaderboard.elapsed_time += deltaTime;
 
         if (leaderboard.victory && leaderboard.elapsed_time >= leaderboard.auto_hide_duration) {
-            std::cout << "[LeaderboardSystem] Auto-hiding leaderboard after " << leaderboard.auto_hide_duration
-                      << " seconds" << std::endl;
-
             destroy_leaderboard_ui();
 
             leaderboard.is_displayed = false;
@@ -176,6 +174,17 @@ void LeaderboardSystem::update(Registry& registry, system_context context) {
                 registry.addComponent<TextComponent>(
                     timerEntity, {timerText, "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 48,
                                   sf::Color::Yellow, 1400.0f, 900.0f});
+            } else {
+                Entity returnButton = registry.createEntity();
+                TagComponent btnTag;
+                btnTag.tags.push_back("LEADERBOARD");
+                btnTag.tags.push_back("RETURN_BTN");
+                registry.addComponent<TagComponent>(returnButton, btnTag);
+
+                registry.addComponent<TextComponent>(
+                    returnButton,
+                    {"[ RETURN TO LOBBY ]", "src/RType/Common/content/open_dyslexic/OpenDyslexic-Regular.otf", 40,
+                     sf::Color::White, layout.title_x - 50, layout.game_over_y + 600});
             }
 
             float y_offset = layout.start_y;
@@ -221,6 +230,51 @@ void LeaderboardSystem::update(Registry& registry, system_context context) {
                         last_log_time = leaderboard.elapsed_time;
                     }
                 }
+            }
+        } else if (!leaderboard.victory && leaderboard.ui_created) {
+            // Handle Return Button Interaction
+            auto& entries = registry.getEntities<TagComponent>();
+            for (auto e : entries) {
+                if (!registry.hasComponent<TagComponent>(e))
+                    continue;
+                const auto& tags = registry.getConstComponent<TagComponent>(e);
+
+                bool is_btn = false;
+                for (const auto& t : tags.tags) {
+                    if (t == "RETURN_BTN") {
+                        is_btn = true;
+                        break;
+                    }
+                }
+
+#if defined(CLIENT_BUILD)
+                if (is_btn && registry.hasComponent<TextComponent>(e)) {
+                    auto& txt = registry.getComponent<TextComponent>(e);
+                    // Simple AABB check
+                    sf::Vector2i mousePos = sf::Mouse::getPosition(context.window);
+
+                    // Approximate bounds since we don't have text bounds easily without SFML Text object
+                    // Assuming centered around position
+                    float btnX = txt.x;
+                    float btnY = txt.y;
+                    float btnW = 400;  // Approx
+                    float btnH = 50;   // Approx
+
+                    bool hovered = (mousePos.x >= btnX && mousePos.x <= btnX + btnW && mousePos.y >= btnY &&
+                                    mousePos.y <= btnY + btnH);
+
+                    if (hovered) {
+                        txt.color = sf::Color::Yellow;
+                        if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+                            if (context.sendSignal) {
+                                context.sendSignal("RETURN_TO_LOBBY");
+                            }
+                        }
+                    } else {
+                        txt.color = sf::Color::White;
+                    }
+                }
+#endif
             }
         }
     }

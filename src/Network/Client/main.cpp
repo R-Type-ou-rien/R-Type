@@ -46,8 +46,7 @@ void receive_loop(network::Client& client) {
                             std::string stateStr =
                                 (info.state == 0) ? "WAITING" : ((info.state == 1) ? "IN_GAME" : "FINISHED");
                             std::cout << "  [" << info.id << "] " << info.name << " (" << info.nbConnectedPlayers << "/"
-                                      << info.maxPlayers << ") "
-                                      << "- " << stateStr << "\n";
+                                      << info.maxPlayers << ") " << "- " << stateStr << "\n";
                         }
                     }
                     break;

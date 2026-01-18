@@ -6,6 +6,8 @@
 #include <utility>
 #include <algorithm>
 #include "Components/StandardComponents.hpp"
+#include "../Components/LobbyIdComponent.hpp"
+#include "../Utils/LobbyUtils.hpp"
 
 void BoxCollision::update(Registry& registry, system_context context) {
     auto& entities = registry.getEntities<BoxCollisionComponent>();
@@ -20,24 +22,62 @@ void BoxCollision::update(Registry& registry, system_context context) {
             continue;
         if (!registry.hasComponent<TagComponent>(entity_a))
             continue;
+
+        uint32_t lobby_a = engine::utils::getLobbyId(registry, entity_a);
+
         auto& transform_a = registry.getConstComponent<transform_component_s>(entity_a);
         auto& collision_comp = registry.getComponent<BoxCollisionComponent>(entity_a);
         for (auto entity_b : entities) {
             if (entity_a == entity_b)
                 continue;
+
+            // Skip collision if entities are from different lobbies
+            uint32_t lobby_b = engine::utils::getLobbyId(registry, entity_b);
+            if (lobby_a != lobby_b && lobby_a != 0 && lobby_b != 0)
+                continue;
+
             if (!registry.hasComponent<TagComponent>(entity_b))
                 continue;
             if (!hasTagToCollide(collision_comp, registry.getConstComponent<TagComponent>(entity_b)))
                 continue;
             if (!registry.hasComponent<transform_component_s>(entity_b))
                 continue;
-            if (!registry.hasComponent<sprite2D_component_s>(entity_a))
+            // if (!registry.hasComponent<sprite2D_component_s>(entity_a))
+            //     continue;
+            // if (!registry.hasComponent<sprite2D_component_s>(entity_b))
+            //     continue;
+            float sprite_a_width;
+            float sprite_a_height;
+            float sprite_b_width;
+            float sprite_b_height;
+            if (registry.hasComponent<AnimatedSprite2D>(entity_a)) {
+                auto& sprite_a = registry.getConstComponent<AnimatedSprite2D>(entity_a);
+                sprite_a_width =
+                    sprite_a.animations.at(sprite_a.currentAnimation).frames.at(sprite_a.currentFrameIndex).width;
+                sprite_a_height =
+                    sprite_a.animations.at(sprite_a.currentAnimation).frames.at(sprite_a.currentFrameIndex).height;
+            } else if (registry.hasComponent<Sprite2D>(entity_a)) {
+                auto& sprite_a = registry.getConstComponent<Sprite2D>(entity_a);
+                sprite_a_width = sprite_a.rect.width;
+                sprite_a_height = sprite_a.rect.height;
+            } else {
                 continue;
-            if (!registry.hasComponent<sprite2D_component_s>(entity_b))
+            }
+
+            if (registry.hasComponent<AnimatedSprite2D>(entity_b)) {
+                auto& sprite_b = registry.getConstComponent<AnimatedSprite2D>(entity_b);
+                sprite_b_width =
+                    sprite_b.animations.at(sprite_b.currentAnimation).frames.at(sprite_b.currentFrameIndex).width;
+                sprite_b_height =
+                    sprite_b.animations.at(sprite_b.currentAnimation).frames.at(sprite_b.currentFrameIndex).height;
+            } else if (registry.hasComponent<Sprite2D>(entity_b)) {
+                auto& sprite_b = registry.getConstComponent<Sprite2D>(entity_b);
+                sprite_b_width = sprite_b.rect.width;
+                sprite_b_height = sprite_b.rect.height;
+            } else {
                 continue;
+            }
             auto& transform_b = registry.getConstComponent<transform_component_s>(entity_b);
-            auto& sprite_a = registry.getConstComponent<sprite2D_component_s>(entity_a);
-            auto& sprite_b = registry.getConstComponent<sprite2D_component_s>(entity_b);
 
             Velocity2D vel_a = {0, 0};
             if (registry.hasComponent<Velocity2D>(entity_a))
@@ -47,8 +87,13 @@ void BoxCollision::update(Registry& registry, system_context context) {
             if (registry.hasComponent<Velocity2D>(entity_b))
                 vel_b = registry.getConstComponent<Velocity2D>(entity_b);
 
-            if (checkSize(transform_a, transform_b, {sprite_a.dimension.width, sprite_a.dimension.height},
-                          {sprite_b.dimension.width, sprite_b.dimension.height}, vel_a, vel_b, context.dt)) {
+            // if (checkSize(transform_a, transform_b, {sprite_a.dimension.width, sprite_a.dimension.height},
+            //               {sprite_b.dimension.width, sprite_b.dimension.height}, vel_a, vel_b, context.dt)) {
+            //     collision_comp.collision.tags.push_back(entity_b);
+            // }
+
+            if (checkSize(transform_a, transform_b, {sprite_a_width, sprite_a_height},
+                          {sprite_b_width, sprite_b_height}, vel_a, vel_b, context.dt)) {
                 collision_comp.collision.tags.push_back(entity_b);
             }
         }
@@ -64,14 +109,21 @@ bool BoxCollision::checkSize(const transform_component_s a, const transform_comp
     double height_a = size_a.second * a.scale_y;
     double width_b = size_b.first * b.scale_x;
     double height_b = size_b.second * b.scale_y;
-    double a_min_x = std::min(a.x, a.x + vel_a.vx * dt);
-    double a_max_x = std::max(a.x + width_a, a.x + width_a + vel_a.vx * dt);
-    double a_min_y = std::min(a.y, a.y + vel_a.vy * dt);
-    double a_max_y = std::max(a.y + height_a, a.y + height_a + vel_a.vy * dt);
-    double b_min_x = std::min(b.x, b.x + vel_b.vx * dt);
-    double b_max_x = std::max(b.x + width_b, b.x + width_b + vel_b.vx * dt);
-    double b_min_y = std::min(b.y, b.y + vel_b.vy * dt);
-    double b_max_y = std::max(b.y + height_b, b.y + height_b + vel_b.vy * dt);
+
+    // Offset pour centrer la hitbox (le rendu utilise origin au centre)
+    double offset_a_x = width_a * 0.5;
+    double offset_a_y = height_a * 0.5;
+    double offset_b_x = width_b * 0.5;
+    double offset_b_y = height_b * 0.5;
+
+    double a_min_x = std::min(a.x - offset_a_x, a.x - offset_a_x + vel_a.vx * dt);
+    double a_max_x = std::max(a.x - offset_a_x + width_a, a.x - offset_a_x + width_a + vel_a.vx * dt);
+    double a_min_y = std::min(a.y - offset_a_y, a.y - offset_a_y + vel_a.vy * dt);
+    double a_max_y = std::max(a.y - offset_a_y + height_a, a.y - offset_a_y + height_a + vel_a.vy * dt);
+    double b_min_x = std::min(b.x - offset_b_x, b.x - offset_b_x + vel_b.vx * dt);
+    double b_max_x = std::max(b.x - offset_b_x + width_b, b.x - offset_b_x + width_b + vel_b.vx * dt);
+    double b_min_y = std::min(b.y - offset_b_y, b.y - offset_b_y + vel_b.vy * dt);
+    double b_max_y = std::max(b.y - offset_b_y + height_b, b.y - offset_b_y + height_b + vel_b.vy * dt);
     bool collision_x = a_min_x < b_max_x && a_max_x > b_min_x;
     bool collision_y = a_min_y < b_max_y && a_max_y > b_min_y;
 

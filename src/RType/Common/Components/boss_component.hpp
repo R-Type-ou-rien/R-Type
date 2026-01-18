@@ -175,6 +175,11 @@ struct BossComponent {
     static constexpr auto name = "BossComponent";
 
     enum BossState { SPAWN, PHASE_1, PHASE_2, PHASE_3, ENRAGED, DYING, DEAD };
+    std::string boss_type = "CLASSIC";
+    std::vector<std::string> phase1_patterns;
+    std::vector<std::string> phase2_patterns;
+    std::vector<std::string> phase3_patterns;
+    std::vector<std::string> enraged_patterns;
 
     int max_phases = 3;
     float attack_pattern_interval = 3.0f;
@@ -182,6 +187,8 @@ struct BossComponent {
     float oscillation_frequency = 1.0f;
     int total_weak_points = 2;
     float death_duration = 3.0f;
+
+    float time_since_last_attack = 0.0f;
     float damage_flash_duration = 0.1f;
     std::vector<BossSubEntityConfig> sub_entities_config;
 

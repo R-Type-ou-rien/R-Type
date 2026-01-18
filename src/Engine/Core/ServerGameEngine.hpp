@@ -27,27 +27,24 @@
 class Player;
 
 class ServerGameEngine : public GameEngineBase<ServerGameEngine> {
-   public:
-    static constexpr bool IsServer = true;
-
    private:
+    std::shared_ptr<Environment> _env;
+
     engine::core::LobbyManager _lobbyManager;
     std::map<uint32_t, Entity> _clientToEntityMap;
     std::map<uint32_t, std::shared_ptr<Player>> _players;
     std::set<uint32_t> _pendingFullState;  // Clients waiting for UDP confirmation to receive full state
+    void processNetworkEvents();
+    void updateActions(ActionPacket& packet, uint32_t clientId);
 
    public:
     int init();
     int run();
-    explicit ServerGameEngine();
+    explicit ServerGameEngine(std::string ip = "");
     ~ServerGameEngine() = default;
 
+    static constexpr bool IsServer = true;
     std::optional<Entity> getLocalPlayerEntity() const { return std::nullopt; }
     engine::core::LobbyManager& getLobbyManager() { return _lobbyManager; }
     std::map<uint32_t, Entity>& getClientToEntityMap() { return _clientToEntityMap; }
-
-   private:
-    void processNetworkEvents();
-    void updateActions(ActionPacket& packet, uint32_t clientId);
-    // The isClientIdsUpdated function is no longer needed with LobbyManager
 };

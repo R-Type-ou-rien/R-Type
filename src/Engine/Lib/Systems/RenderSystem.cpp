@@ -9,7 +9,7 @@
 
 #include <SFML/Graphics/Texture.hpp>
 #include <iostream>
-#include <iterator>
+
 #include "../../../RType/Common/Systems/health.hpp"
 
 void RenderSystem::update(Registry& registry, system_context context) {
@@ -57,8 +57,9 @@ void RenderSystem::drawText(const TextComponent& textComp, const system_context&
 
 void RenderSystem::drawEntity(Entity entity, const transform_component_s& transform, sprite2D_component_s& spriteData,
                               Registry& registry, const system_context& context) {
-    if (!context.texture_manager.has(spriteData.handle))
+    if (!context.texture_manager.has(spriteData.handle)) {
         return;
+    }
 
     sf::Texture& texture = context.texture_manager.get_resource(spriteData.handle).value().get();
     sf::Sprite sprite(texture);

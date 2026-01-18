@@ -113,6 +113,14 @@ struct ComponentTraits<sprite2D_component_s> {
 };
 
 template <>
+struct ComponentTraits<AnimatedSprite2D> {
+    static AnimatedSprite2D deserialize(const std::vector<uint8_t>& buffer, size_t& offset,
+                                        ResourceManager<TextureAsset>& resourceManager) {
+        return deserialize_animated_sprite_2d(buffer, offset, resourceManager);
+    }
+};
+
+template <>
 struct ComponentTraits<BackgroundComponent> {
     static BackgroundComponent deserialize(const std::vector<uint8_t>& buffer, size_t& offset,
                                            ResourceManager<TextureAsset>& resourceManager) {

@@ -10,6 +10,7 @@ set(VCPKG_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg")
 if(WIN32)
     set(VCPKG_EXEC "${VCPKG_ROOT}/vcpkg.exe")
     set(VCPKG_BOOTSTRAP "${VCPKG_ROOT}/bootstrap-vcpkg.bat")
+    add_compile_definitions(NOMINMAX)
 else()
     set(VCPKG_EXEC "${VCPKG_ROOT}/vcpkg")
     set(VCPKG_BOOTSTRAP "${VCPKG_ROOT}/bootstrap-vcpkg.sh")
@@ -28,6 +29,17 @@ if(NOT EXISTS "${VCPKG_EXEC}")
     endif()
 endif()
 
+# Installation automatique des dépendances vcpkg
+message(STATUS "Installation des dépendances vcpkg...")
+execute_process(
+    COMMAND "${VCPKG_EXEC}" install --triplet=${VCPKG_TARGET_TRIPLET}
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+    RESULT_VARIABLE VCPKG_INSTALL_RES
+)
+if(NOT VCPKG_INSTALL_RES EQUAL 0)
+    message(WARNING "Attention: vcpkg install a retourné une erreur, les dépendances pourraient ne pas être installées correctement.")
+endif()
+
 set(CMAKE_TOOLCHAIN_FILE "${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain" FORCE)
 
 
@@ -38,6 +50,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(BUILD_SERVER "Build for server instead of client" OFF)
+option(BUILD_SMASH "Build Smash game" OFF)
 
 add_subdirectory(src)
 

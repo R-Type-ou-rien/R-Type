@@ -4,6 +4,7 @@
 #include "../Components/team_component.hpp"
 #include "damage.hpp"
 #include "ResourceConfig.hpp"
+#include "../../../../Engine/Lib/Components/LobbyIdComponent.hpp"
 
 PowerUpSystem::PowerUpSystem() {
     initialize_power_up_maps();
@@ -37,7 +38,7 @@ void PowerUpSystem::updateActivePowerUps(Registry& registry, system_context cont
             powerup.remaining_time -= context.dt;
 
             if (powerup.remaining_time <= 0) {
-                expired_powerups.push_back({entity, powerup.type});
+                expired_powerups.push_back({static_cast<Entity>(entity), powerup.type});
             }
         }
     }
@@ -104,7 +105,7 @@ void PowerUpSystem::applyPowerUp(Registry& registry, Entity player, PowerUpCompo
     }
 }
 
-void PowerUpSystem::spawnSpeedUp(Registry& registry, system_context context, float x, float y) {
+void PowerUpSystem::spawnSpeedUp(Registry& registry, system_context context, float x, float y, uint32_t lobbyId) {
     Entity id = registry.createEntity();
 
     registry.addComponent<transform_component_s>(id, {x, y});
@@ -120,12 +121,21 @@ void PowerUpSystem::spawnSpeedUp(Registry& registry, system_context context, flo
         context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet3.gif",
                                      TextureAsset("src/RType/Common/content/sprites/r-typesheet3.gif"));
 
-    sprite2D_component_s sprite_info;
-    sprite_info.handle = handle;
-    sprite_info.dimension = {1, 99, 16, 16};  // Power-up sprite
-    sprite_info.z_index = 1;
-    sprite_info.is_animated = false;
-    registry.addComponent<sprite2D_component_s>(id, sprite_info);
+    // sprite2D_component_s sprite_info;
+    // sprite_info.handle = handle;
+    // sprite_info.dimension = {1, 99, 16, 16};  // Power-up sprite
+    // sprite_info.z_index = 1;
+    // sprite_info.is_animated = false;
+    // registry.addComponent<sprite2D_component_s>(id, sprite_info);
+
+    AnimatedSprite2D animation;
+    AnimationClip clip;
+
+    clip.handle = handle;
+    clip.frames.emplace_back(1, 99, 16, 16);  // Power-up sprite
+    animation.animations.emplace("idle", clip);
+    animation.currentAnimation = "idle";
+    registry.addComponent<AnimatedSprite2D>(id, animation);
 
     auto& transform = registry.getComponent<transform_component_s>(id);
     transform.scale_x = 2.5f;
@@ -138,4 +148,12 @@ void PowerUpSystem::spawnSpeedUp(Registry& registry, system_context context, flo
     TagComponent tags;
     tags.tags.push_back("POWERUP");
     registry.addComponent<TagComponent>(id, tags);
+
+    // Add NetworkIdentity
+    registry.addComponent<NetworkIdentity>(id, {static_cast<uint32_t>(id), 0});
+
+    // Add Lobby Id
+    if (lobbyId != 0) {
+        registry.addComponent<LobbyIdComponent>(id, {lobbyId});
+    }
 }

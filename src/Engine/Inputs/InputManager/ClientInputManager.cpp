@@ -86,3 +86,13 @@ void ClientInputManager::createActionPacket(Action name, ActionState state, engi
     network.transmitEvent(network::GameEvents::C_INPUT, packet, ctx.tick);
     return;
 }
+
+InputSnapshot ClientInputManager::getCurrentInputSnapshot() const {
+    InputSnapshot snapshot;
+    for (const auto& [action, state] : _states) {
+        if (state.pressed) {
+            snapshot.actions[action] = true;
+        }
+    }
+    return snapshot;
+}

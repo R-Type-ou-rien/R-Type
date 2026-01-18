@@ -1,7 +1,13 @@
 #include "registry.hpp"
 #include <cstdint>
+#include <string>
 #include "Components/NetworkComponents.hpp"
 #include "Guid/Guid.hpp"
+
+std::string& GetDebugCurrentSystem() {
+    static std::string systemName = "Unknown";
+    return systemName;
+}
 
 Entity Registry::createEntity() {
     uint32_t entity_id;

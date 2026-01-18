@@ -13,7 +13,7 @@ class PowerUpSystem : public ISystem {
     ~PowerUpSystem() = default;
     void update(Registry& registry, system_context context) override;
 
-    static void spawnSpeedUp(Registry& registry, system_context context, float x, float y);
+    static void spawnSpeedUp(Registry& registry, system_context context, float x, float y, uint32_t lobbyId = 0);
 
    private:
     using PowerUpApplicator = std::function<void(Registry&, Entity, float, float)>;

@@ -8,9 +8,13 @@
 #include <vector>
 #include <typeinfo>
 #include <stdexcept>
+#include <iostream>
+#include <string>
 
-#include "sparse_set/SparseSet.hpp"
-#include "EcsType.hpp"
+#include "../Utils/sparse_set/SparseSet.hpp"
+#include "../EcsType.hpp"
+
+std::string& GetDebugCurrentSystem();
 
 using Pool_storage = std::unordered_map<std::type_index, std::unique_ptr<ISparseSet>>;
 

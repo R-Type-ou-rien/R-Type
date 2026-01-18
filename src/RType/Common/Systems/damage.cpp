@@ -9,6 +9,8 @@
 #include "../Components/charged_shot.hpp"
 #include "../Components/behavior_component.hpp"
 #include "../Components/last_damage_dealer.hpp"
+#include "../../../../Engine/Lib/Components/LobbyIdComponent.hpp"
+#include "../../../../Engine/Lib/Utils/LobbyUtils.hpp"
 
 void Damage::update(Registry& registry, system_context context) {
     auto& attackers = registry.getEntities<DamageOnCollision>();
@@ -24,6 +26,8 @@ void Damage::update(Registry& registry, system_context context) {
             continue;
         }
 
+        uint32_t attacker_lobby = engine::utils::getLobbyId(registry, attacker);
+
         for (auto& hit : collider.collision.tags) {
             Entity hit_id = hit;
             auto& dmg = registry.getConstComponent<DamageOnCollision>(attacker);
@@ -31,7 +35,16 @@ void Damage::update(Registry& registry, system_context context) {
             if (!registry.hasComponent<HealthComponent>(hit_id))
                 continue;
 
+            // Skip damage if attacker and target are in different lobbies
+            uint32_t target_lobby = engine::utils::getLobbyId(registry, hit_id);
+            if (attacker_lobby != target_lobby && attacker_lobby != 0 && target_lobby != 0)
+                continue;
+
             auto& health = registry.getComponent<HealthComponent>(hit_id);
+
+            if (health.last_damage_time > 0) {
+                continue;
+            }
 
             if (registry.hasComponent<TeamComponent>(attacker) && registry.hasComponent<TeamComponent>(hit_id)) {
                 auto& teamA = registry.getConstComponent<TeamComponent>(attacker);
@@ -69,7 +82,7 @@ void Damage::update(Registry& registry, system_context context) {
                 const auto& tags = registry.getConstComponent<TagComponent>(attacker);
                 for (const auto& tag : tags.tags) {
                     if (tag == "OBSTACLE") {
-                        damage_value = 10;
+                        damage_value = 1;
                         break;
                     }
                 }
@@ -79,21 +92,18 @@ void Damage::update(Registry& registry, system_context context) {
 
             if (health.current_hp - damage_value <= 0) {
                 health.current_hp = 0;
-                std::cout << "[Damage] Entity " << hit_id << " killed by entity " << attacker
-                          << " (damage: " << damage_value << ")" << std::endl;
             } else {
                 health.current_hp -= damage_value;
-                std::cout << "[Damage] Entity " << hit_id << " took " << damage_value
-                          << " damage, HP remaining: " << health.current_hp << std::endl;
             }
 
-            // health.last_damage_time = health.invincibility_duration;
+            health.last_damage_time = health.invincibility_duration;
 
             if (registry.hasComponent<TeamComponent>(attacker) && registry.hasComponent<TeamComponent>(hit_id)) {
                 auto& teamA = registry.getConstComponent<TeamComponent>(attacker);
                 auto& teamB = registry.getConstComponent<TeamComponent>(hit_id);
                 if (teamA.team == TeamComponent::ENEMY && teamB.team == TeamComponent::ALLY) {
-                    if (!registry.hasComponent<ProjectileComponent>(attacker)) {
+                    if (!registry.hasComponent<ProjectileComponent>(attacker) &&
+                        !registry.hasComponent<BossComponent>(attacker)) {
                         attackers_to_destroy.push_back(attacker);
                         break;
                     }

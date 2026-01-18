@@ -18,6 +18,8 @@
 #include "../Systems/behavior.hpp"
 #include "../Systems/score.hpp"
 #include "Components/StandardComponents.hpp"
+#include "Components/Sprite/AnimatedSprite2D.hpp"
+#include "Components/Sprite/Sprite2D.hpp"
 
 namespace MobDefaults {
 namespace Health {
@@ -48,8 +50,8 @@ constexpr int ANIMATION_FRAMES = 1;
 
 namespace Obstacle {
 constexpr float VELOCITY_X = -120.0f;
-constexpr int HP = 150;
-constexpr int DAMAGE = 30;
+constexpr int HP = 1000;
+constexpr int DAMAGE = 1;
 constexpr float SCALE = 2.0f;
 constexpr float SPRITE_X = 261.0f;
 constexpr float SPRITE_Y = 165.0f;
@@ -60,6 +62,7 @@ inline const char* SPRITE_PATH = "src/RType/Common/content/sprites/wall-level1.g
 
 namespace CollisionTags {
 inline const char* FRIENDLY_PROJECTILE = "FRIENDLY_PROJECTILE";
+inline const char* ENEMY_PROJECTILE = "ENEMY_PROJECTILE";
 inline const char* PLAYER = "PLAYER";
 }  // namespace CollisionTags
 
@@ -99,6 +102,32 @@ class MobComponentFactory {
         return behavior;
     }
 
+    static Sprite2D createStaticSprite(const EntityConfig& config, handle_t<TextureAsset> handle,
+                                       int z_index = MobDefaults::Sprite::Z_INDEX) {
+        Sprite2D sprite;
+
+        sprite.handle = handle;
+        sprite.rect = {config.sprite_x.value(), config.sprite_y.value(), config.sprite_w.value(),
+                       config.sprite_h.value()};
+        sprite.layer = static_cast<RenderLayer>(z_index);
+        return sprite;
+    }
+
+    static AnimatedSprite2D createAnimatedSprite(const EntityConfig& config, handle_t<TextureAsset> handle,
+                                                 int z_index = MobDefaults::Sprite::Z_INDEX) {
+        AnimatedSprite2D animation;
+
+        AnimationClip clip;
+
+        clip.handle = handle;
+        clip.frames.emplace_back(config.sprite_x.value(), config.sprite_y.value(), config.sprite_w.value(),
+                                 config.sprite_h.value());
+        animation.animations.emplace("idle", clip);
+        animation.currentAnimation = "idle";
+        animation.layer = static_cast<RenderLayer>(z_index);
+        return animation;
+    }
+
     static sprite2D_component_s createSprite(const EntityConfig& config, handle_t<TextureAsset> handle,
                                              int z_index = MobDefaults::Sprite::Z_INDEX) {
         sprite2D_component_s sprite;
@@ -117,6 +146,7 @@ class MobComponentFactory {
             }
         } else {
             collision.tagCollision.push_back(MobDefaults::CollisionTags::FRIENDLY_PROJECTILE);
+            collision.tagCollision.push_back(MobDefaults::CollisionTags::ENEMY_PROJECTILE);
             collision.tagCollision.push_back(MobDefaults::CollisionTags::PLAYER);
         }
         return collision;

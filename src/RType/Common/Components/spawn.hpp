@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <cstdint>
 
 struct EnemySpawnComponent {
     static constexpr auto name = "EnemySpawnComponent";
@@ -13,6 +14,7 @@ struct EnemySpawnComponent {
     int wave_count = 0;
     bool is_active = true;
     bool use_scripted_spawns = true;
+    bool spawn_boss_via_timer = true;
 
     std::string enemies_config_path;
     std::string boss_config_path;
@@ -21,4 +23,7 @@ struct EnemySpawnComponent {
 
     unsigned int random_seed = 0;
     int random_state = 0;
+
+    // Lobby ID for spawned entities
+    uint32_t lobby_id = 0;
 };

@@ -45,6 +45,19 @@ void PlayerBoundsSystem::update(Registry& registry, system_context context) {
         float scale_x = transform.scale_x;
         float scale_y = transform.scale_y;
 
+        if (registry.hasComponent<AnimatedSprite2D>(entity)) {
+            auto& sprite = registry.getConstComponent<AnimatedSprite2D>(entity);
+            const auto& frame = sprite.animations.at(sprite.currentAnimation).frames.at(sprite.currentFrameIndex);
+            sprite_w = frame.width;
+            sprite_w = frame.height;
+        }
+
+        if (registry.hasComponent<Sprite2D>(entity)) {
+            auto& sprite = registry.getConstComponent<Sprite2D>(entity);
+            sprite_h = sprite.rect.width;
+            sprite_w = sprite.rect.height;
+        }
+
         if (registry.hasComponent<sprite2D_component_s>(entity)) {
             auto& sprite = registry.getConstComponent<sprite2D_component_s>(entity);
             if (sprite.is_animated && !sprite.frames.empty()) {

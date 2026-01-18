@@ -115,16 +115,34 @@ void BoundsSystem::update(Registry& registry, system_context context) {
             float scale_x = transform.scale_x;
             float scale_y = transform.scale_y;
 
-            if (registry.hasComponent<sprite2D_component_s>(entity)) {
-                auto& sprite = registry.getConstComponent<sprite2D_component_s>(entity);
-                if (sprite.is_animated && !sprite.frames.empty()) {
-                    const auto& frame = sprite.frames[sprite.current_animation_frame];
-                    sprite_w = frame.width;
-                    sprite_h = frame.height;
-                } else if (sprite.dimension.width > 0 && sprite.dimension.height > 0) {
-                    sprite_w = sprite.dimension.width;
-                    sprite_h = sprite.dimension.height;
+            // if (registry.hasComponent<sprite2D_component_s>(entity)) {
+            //     auto& sprite = registry.getConstComponent<sprite2D_component_s>(entity);
+            //     if (sprite.is_animated && !sprite.frames.empty()) {
+            //         const auto& frame = sprite.frames[sprite.current_animation_frame];
+            //         sprite_w = frame.width;
+            //         sprite_h = frame.height;
+            //     } else if (sprite.dimension.width > 0 && sprite.dimension.height > 0) {
+            //         sprite_w = sprite.dimension.width;
+            //         sprite_h = sprite.dimension.height;
+            //     }
+            // }
+
+            if (registry.hasComponent<AnimatedSprite2D>(entity)) {
+                auto& animation = registry.getConstComponent<AnimatedSprite2D>(entity);
+                if (!animation.animations.at(animation.currentAnimation).frames.empty()) {
+                    const auto& frame = animation.animations.at(animation.currentAnimation).frames;
+                    sprite_w = animation.animations.at(animation.currentAnimation)
+                                   .frames.at(animation.currentFrameIndex)
+                                   .width;
+                    sprite_h = animation.animations.at(animation.currentAnimation)
+                                   .frames.at(animation.currentFrameIndex)
+                                   .height;
                 }
+            } else if (registry.hasComponent<Sprite2D>(entity)) {
+                auto& sprite = registry.getConstComponent<Sprite2D>(entity);
+
+                sprite_w = sprite.rect.width;
+                sprite_h = sprite.rect.height;
             }
 
             float actual_width = sprite_w * std::abs(scale_x);
