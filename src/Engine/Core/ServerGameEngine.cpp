@@ -62,17 +62,10 @@ int ServerGameEngine::init() {
     registerNetworkComponent<Velocity2D>();
     registerNetworkComponent<BoxCollisionComponent>();
     registerNetworkComponent<TagComponent>();
-    registerNetworkComponent<HealthComponent>();
-    registerNetworkComponent<EnemySpawnComponent>();
-    registerNetworkComponent<ShooterComponent>();
-    registerNetworkComponent<ChargedShotComponent>();
     registerNetworkComponent<TextComponent>();
     registerNetworkComponent<ResourceComponent>();
     registerNetworkComponent<BackgroundComponent>();
     registerNetworkComponent<PatternComponent>();
-    registerNetworkComponent<ProjectileComponent>();
-    registerNetworkComponent<TeamComponent>();
-    registerNetworkComponent<DamageOnCollision>();
     registerNetworkComponent<NetworkIdentity>();
     registerNetworkComponent<::GameTimerComponent>();
 
@@ -82,6 +75,7 @@ int ServerGameEngine::init() {
     registerNetworkComponent<BossComponent>();
     registerNetworkComponent<BossSubEntityComponent>();
     registerNetworkComponent<ScoreComponent>();
+    registerNetworkComponent<AudioSourceComponent>();
 
     _env->addFunction("registerPlayer", std::function<void(uint32_t, std::shared_ptr<Player>)>(
                                             [this](uint32_t clientId, std::shared_ptr<Player> player) {

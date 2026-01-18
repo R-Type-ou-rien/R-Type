@@ -47,10 +47,10 @@
 // InputManager input;
 
 // // Déplacements clavier
-// input.bindAction(Action::MoveUp,    { InputDeviceType::Keyboard, sf::Keyboard::Key::Z });
-// input.bindAction(Action::MoveDown,  { InputDeviceType::Keyboard, sf::Keyboard::Key::S });
-// input.bindAction(Action::MoveLeft,  { InputDeviceType::Keyboard, sf::Keyboard::Key::Q });
-// input.bindAction(Action::MoveRight, { InputDeviceType::Keyboard, sf::Keyboard::Key::D });
+// input.bindAction("move_up",    { InputDeviceType::Keyboard, sf::Keyboard::Key::Z });
+// input.bindAction("move_down",  { InputDeviceType::Keyboard, sf::Keyboard::Key::S });
+// input.bindAction("move_left",  { InputDeviceType::Keyboard, sf::Keyboard::Key::Q });
+// input.bindAction("move_right", { InputDeviceType::Keyboard, sf::Keyboard::Key::D });
 
 // // Tir clavier
 // input.bindAction(Action::Shoot, { InputDeviceType::Keyboard, sf::Keyboard::Key::J });
@@ -91,10 +91,10 @@
 //     input.update(dt);
 
 //     // Exemple d’utilisation :
-//     if (input.isPressed(Action::MoveUp)) {
+//     if (input.isPressed("move_up")) {
 //         // velocity.y -= speed;
 //     }
-//     if (input.isPressed(Action::MoveLeft)) {
+//     if (input.isPressed("move_left")) {
 //         // velocity.x -= speed;
 //     }
 

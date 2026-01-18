@@ -9,6 +9,8 @@
 #include "../../Entities/Player/Player.hpp"
 #include "ECS.hpp"
 #include "GameEngineBase.hpp"
+#include "InputConfig.hpp"
+#include "InputState.hpp"
 #include "src/RType/Common/Components/config.hpp"
 #include "src/RType/Common/Components/game_timer.hpp"
 #include "src/Engine/Core/Scene/SceneManager.hpp"
@@ -18,6 +20,10 @@
 #include "auth/AuthManager.hpp"
 #include "menu/MenuManager.hpp"
 #include "lobby/LobbyManager.hpp"
+
+#define SPRITE_SIZE 64
+
+struct InputSnapshot;
 
 class GameManager {
    public:
@@ -108,6 +114,7 @@ class GameManager {
     void init(std::shared_ptr<Environment> env, InputManager& inputs);
     void update(std::shared_ptr<Environment> env, InputManager& inputs);
     void loadInputSetting(InputManager& inputs);
+    void predictionLogic(Entity e, Registry& r, const InputSnapshot& inputs, float dt);
     Environment::GameState getCurrentState() const { return _env->getGameState(); }
     void setWindow(sf::RenderWindow* window) { _window = window; }
 

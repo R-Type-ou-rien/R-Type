@@ -35,6 +35,7 @@
 #include "src/Engine/Lib/Systems/PhysicsSystem.hpp"
 #include "src/Engine/Lib/Systems/ActionScriptSystem.hpp"
 #include "src/Engine/Lib/Systems/DestructionSystem.hpp"
+#include "src/Engine/Lib/Components/PredictionComponent.hpp"
 
 void GameManager::initSystems(std::shared_ptr<Environment> env) {
     auto& ecs = env->getECS();
@@ -77,7 +78,7 @@ void GameManager::initBackground(std::shared_ptr<Environment> env, const LevelCo
     if (!env->isServer()) {
         std::string bgPath = config.background_texture;
         if (bgPath.empty()) {
-            bgPath = "src/RType/Common/content/sprites/test.png";
+            bgPath = "src/RType/Common/content/sprites/background-R-Type.png";
         }
 
         auto& ecs = env->getECS();

@@ -50,6 +50,7 @@ struct EntityConfig {
     std::vector<BossSubEntityConfig> boss_sub_entities;
     std::optional<float> margin_right;
     std::optional<float> spawn_offset_x;
+    std::optional<float> spawn_offset_y;
     std::optional<int> z_index;
     std::optional<int> tail_segment_count;
     std::optional<float> tail_sprite_width;

@@ -240,9 +240,9 @@ void ShooterSystem::create_charged_projectile(Registry& registry, Entity owner_e
     registry.addComponent<DamageOnCollision>(id, {damage});
 
     if (charge_ratio >= 1.0f) {
-        registry.addComponent<PenetratingProjectile>(id, {999, 0});
+        registry.addComponent<PenetratingProjectile>(id, {5, 0});  // Penetrate 5 enemies max
     } else if (charge_ratio >= 0.5f) {
-        registry.addComponent<PenetratingProjectile>(id, {3, 0});
+        registry.addComponent<PenetratingProjectile>(id, {2, 0});  // Penetrate 2 enemies max
     }
 
     // Get charged projectile sprite from config or use defaults
@@ -265,13 +265,29 @@ void ShooterSystem::create_charged_projectile(Registry& registry, Entity owner_e
     AnimationClip clip;
 
     clip.handle = handle;
-    clip.frameDuration = 0;
+    clip.frameDuration = 0.1f;
+    clip.mode = AnimationMode::Loop;
+
+    // 4 animation frames for charged projectile
     if (charge_ratio >= 0.8f) {
         clip.frames.emplace_back(sprite_x, sprite_y, base_w, base_h);
+        clip.frames.emplace_back(sprite_x + base_w, sprite_y, base_w, base_h);
+        clip.frames.emplace_back(sprite_x + base_w * 2, sprite_y, base_w, base_h);
+        clip.frames.emplace_back(sprite_x + base_w * 3, sprite_y, base_w, base_h);
     } else if (charge_ratio >= 0.5f) {
-        clip.frames.emplace_back(sprite_x, sprite_y, base_w * 0.75f, base_h * 0.75f);
+        float w = base_w * 0.75f;
+        float h = base_h * 0.75f;
+        clip.frames.emplace_back(sprite_x, sprite_y, w, h);
+        clip.frames.emplace_back(sprite_x + base_w, sprite_y, w, h);
+        clip.frames.emplace_back(sprite_x + base_w * 2, sprite_y, w, h);
+        clip.frames.emplace_back(sprite_x + base_w * 3, sprite_y, w, h);
     } else {
-        clip.frames.emplace_back(sprite_x, sprite_y, base_w * 0.5f, base_h * 0.5f);
+        float w = base_w * 0.5f;
+        float h = base_h * 0.5f;
+        clip.frames.emplace_back(sprite_x, sprite_y, w, h);
+        clip.frames.emplace_back(sprite_x + base_w, sprite_y, w, h);
+        clip.frames.emplace_back(sprite_x + base_w * 2, sprite_y, w, h);
+        clip.frames.emplace_back(sprite_x + base_w * 3, sprite_y, w, h);
     }
     animation.animations.emplace("idle", clip);
     animation.currentAnimation = "idle";
@@ -349,18 +365,6 @@ void ShooterSystem::update(Registry& registry, system_context context) {
             if (shooter.trigger_pressed && shooter.is_shooting) {
                 charged.is_charging = true;
                 charged.charge_time += context.dt;
-
-                // Play charging sound when reaching medium threshold (50%)
-                if (charged.charge_time >= charged.medium_charge && !registry.hasComponent<AudioSourceComponent>(id)) {
-                    AudioSourceComponent audio;
-                    audio.sound_name = "charg_start";
-                    audio.play_on_start = true;
-                    audio.loop = false;
-                    audio.next_sound_name = "charg_loop";
-                    audio.next_sound_loop = true;
-                    audio.destroy_entity_on_finish = false;
-                    registry.addComponent<AudioSourceComponent>(id, audio);
-                }
 
                 if (charged.charge_time > charged.max_charge_time) {
                     charged.charge_time = charged.max_charge_time;
@@ -472,7 +476,7 @@ void ShooterSystem::create_pod_circular_laser(Registry& registry, Entity owner_e
 
     Velocity2D speed = {800.0f, 0.0f};
 
-    registry.addComponent<transform_component_s>(laser_id, {pos.x + 30.0f, pos.y, 3.0f, 2.0f});
+    registry.addComponent<transform_component_s>(laser_id, {pos.x + 30.0f, pos.y - 10.0f, 4.0f, 4.0f});
     registry.addComponent<Velocity2D>(laser_id, speed);
 
     TagComponent tags;
@@ -485,24 +489,21 @@ void ShooterSystem::create_pod_circular_laser(Registry& registry, Entity owner_e
     registry.addComponent<PenetratingProjectile>(laser_id, {999, 0});
 
     handle_t<TextureAsset> handle =
-        context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet1.gif",
-                                     TextureAsset("src/RType/Common/content/sprites/r-typesheet1.gif"));
-
-    // sprite2D_component_s sprite_info;
-    // sprite_info.handle = handle;
-    // sprite_info.animation_speed = 0;
-    // sprite_info.current_animation_frame = 0;
-    // sprite_info.dimension = {263, 120, 80, 48};
-    // sprite_info.z_index = 3;
-
-    // registry.addComponent<sprite2D_component_s>(laser_id, sprite_info);
+        context.texture_manager.load("src/RType/Common/content/sprites/bolt.png",
+                                     TextureAsset("src/RType/Common/content/sprites/bolt.png"));
 
     AnimatedSprite2D animation;
     AnimationClip clip;
 
     clip.handle = handle;
-    clip.frameDuration = 0;
-    clip.frames.emplace_back(263, 120, 80, 48);
+    clip.frameDuration = 0.1f;
+    clip.mode = AnimationMode::Loop;
+
+    clip.frames.emplace_back(0, 0, 48, 32);
+    clip.frames.emplace_back(48, 0, 48, 32);
+    clip.frames.emplace_back(96, 0, 48, 32);
+    clip.frames.emplace_back(144, 0, 48, 32);
+
     animation.animations.emplace("idle", clip);
     animation.currentAnimation = "idle";
 
@@ -512,14 +513,6 @@ void ShooterSystem::create_pod_circular_laser(Registry& registry, Entity owner_e
     collision.tagCollision.push_back("AI");
     registry.addComponent<BoxCollisionComponent>(laser_id, collision);
 
-    AudioSourceComponent audio;
-    audio.sound_name = "shoot";
-    audio.play_on_start = true;
-    audio.loop = false;
-    audio.destroy_entity_on_finish = false;
-    registry.addComponent<AudioSourceComponent>(laser_id, audio);
-
-    // Add NetworkIdentity for network replication
     registry.addComponent<NetworkIdentity>(laser_id, {static_cast<uint32_t>(laser_id), 0});
 
     // Inherit LobbyIdComponent from owner

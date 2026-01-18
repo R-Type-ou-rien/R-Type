@@ -12,6 +12,7 @@
 #include "Components/serialize/StandardComponents_serialize.hpp"
 #include "Components/serialize/score_component_serialize.hpp"
 #include "GameEngineBase.hpp"
+#include "Context.hpp"
 #include "Network.hpp"
 #include "NetworkEngine/NetworkEngine.hpp"
 #include "AudioSystem.hpp"
@@ -64,10 +65,6 @@ int ClientGameEngine::init() {
     registerNetworkComponent<Velocity2D>();
     registerNetworkComponent<BoxCollisionComponent>();
     registerNetworkComponent<TagComponent>();
-    registerNetworkComponent<HealthComponent>();
-    registerNetworkComponent<EnemySpawnComponent>();
-    registerNetworkComponent<ShooterComponent>();
-    registerNetworkComponent<ChargedShotComponent>();
     registerNetworkComponent<TextComponent>();
     registerNetworkComponent<ResourceComponent>();
     registerNetworkComponent<BackgroundComponent>();
@@ -76,16 +73,8 @@ int ClientGameEngine::init() {
     registerNetworkComponent<TeamComponent>();
     registerNetworkComponent<DamageOnCollision>();
     registerNetworkComponent<NetworkIdentity>();
-    registerNetworkComponent<::GameTimerComponent>();
-    // AudioSourceComponent removed - audio is client-local and has std::string fields
-
-    // R-Type specific components
-    registerNetworkComponent<PodComponent>();
-    registerNetworkComponent<PlayerPodComponent>();
-    registerNetworkComponent<BehaviorComponent>();
-    registerNetworkComponent<BossComponent>();
-    registerNetworkComponent<BossSubEntityComponent>();
-    registerNetworkComponent<ScoreComponent>();
+    registerNetworkComponent<AudioSourceComponent>();
+    registerNetworkComponent<PredictionComponent>();
 
     _ecs.systems.addSystem<BackgroundSystem>();
     _ecs.systems.addSystem<BehaviorSystem>();
@@ -93,10 +82,7 @@ int ClientGameEngine::init() {
     _ecs.systems.addSystem<AnimationSystem>();
     _ecs.systems.addSystem<RenderSystem>();
     _ecs.systems.addSystem<AudioSystem>();
-
-    // _ecs.systems.addSystem<InputSystem>(input_manager);
-
-    // Physics and game logic handled by server - client only renders
+    //_ecs.systems.addSystem<InputSystem>(input_manager);
 
     _ecs.systems.addSystem<PhysicsSystem>();
     // _ecs.systems.addSystem<BoxCollision>();
@@ -156,6 +142,11 @@ int ClientGameEngine::init() {
                       std::function<void(std::function<void()>)>(
                           [this](std::function<void()> cb) { this->setGameStartedCallback(cb); }));
 
+
+    if (!_physicsLogic) {
+        _physicsLogic = [](Entity, Registry&, const InputSnapshot&, float) {};
+    }
+    _predictionSystem = std::make_unique<PredictionSystem>(_physicsLogic);
     return 0;
 }
 
@@ -215,6 +206,14 @@ void ClientGameEngine::processNetworkEvents() {
             ComponentPacket packet;
             mutable_msg >> packet;
             processComponentPacket(packet.entity_guid, packet.component_type, packet.data, packet.owner_id);
+            if (_localPlayerEntity.has_value() && packet.entity_guid == _localPlayerEntity.value()) {
+                Entity localId = getLocalPlayerEntity().value();
+                if (_ecs.registry.hasComponent<PredictionComponent>(localId) &&
+                    _ecs.registry.hasComponent<transform_component_s>(localId)) {
+                    auto serverPos = _ecs.registry.getComponent<transform_component_s>(localId);
+                    _predictionSystem->onServerUpdate(_ecs.registry, localId, serverPos, msg.header.tick);
+                }
+            }
         }
     }
 
@@ -698,6 +697,7 @@ int ClientGameEngine::run() {
 
         handleEvent();
         processNetworkEvents();
+        _predictionSystem->updatePrediction(_ecs.registry, input_manager, _currentTick, context.dt);
         input_manager.update(*_network, _currentTick, context);
         _window_manager.clear();
 

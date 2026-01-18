@@ -51,7 +51,7 @@ constexpr int ANIMATION_FRAMES = 1;
 namespace Obstacle {
 constexpr float VELOCITY_X = -120.0f;
 constexpr int HP = 1000;
-constexpr int DAMAGE = 100;
+constexpr int DAMAGE = 1;
 constexpr float SCALE = 2.0f;
 constexpr float SPRITE_X = 261.0f;
 constexpr float SPRITE_Y = 165.0f;

@@ -73,8 +73,8 @@ void BossTailSystem::update(Registry& registry, system_context context) {
                     const float boss_h = boss_sprite.animations.at(boss_sprite.currentAnimation).frames.at(boss_sprite.currentFrameIndex).height * parent_transform.scale_y;
 
                     // User tuning: move attachment more to the right and lower
-                    float anchor_x = parent_transform.x + (boss_w * 0.40f);
-                    float anchor_y = parent_transform.y + (boss_h * 0.85f);
+                    float anchor_x = parent_transform.x + (boss_w * -0.05f);
+                    float anchor_y = parent_transform.y + (boss_h * 0.40f);
 
                     // Center the segment sprite on the anchor point (if available)
                     if (registry.hasComponent<AnimatedSprite2D>(segment_entity)) {
