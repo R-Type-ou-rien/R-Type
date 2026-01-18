@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <vector>
+#include <string>
 #include <unordered_set>
 #include "ResourceConfig.hpp"
 #include "InputConfig.hpp"

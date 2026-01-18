@@ -6,6 +6,9 @@
 #include <ostream>
 #include <string>
 #include <memory>
+#include <map>
+#include <algorithm>
+#include <vector>
 
 #include "Components/NetworkComponents.hpp"
 #include "Components/StandardComponents.hpp"
@@ -29,8 +32,6 @@
 #include "../../../RType/Common/Components/pod_component.hpp"
 #include "../../../RType/Common/Components/game_over_notification.hpp"
 #include "../../../RType/Common/Systems/behavior.hpp"
-#include "Components/StandardComponents.hpp"
-#include "Components/NetworkComponents.hpp"
 #include "Components/Sprite/Sprite2D.hpp"
 #include "Components/Sprite/AnimatedSprite2D.hpp"
 
@@ -82,8 +83,7 @@ int ClientGameEngine::init() {
     _ecs.systems.addSystem<AnimationSystem>();
     _ecs.systems.addSystem<RenderSystem>();
     _ecs.systems.addSystem<AudioSystem>();
-    //_ecs.systems.addSystem<InputSystem>(input_manager);
-
+    // _ecs.systems.addSystem<InputSystem>(input_manager);
     _ecs.systems.addSystem<PhysicsSystem>();
     // _ecs.systems.addSystem<BoxCollision>();
     // _ecs.systems.addSystem<ActionScriptSystem>();
@@ -141,7 +141,6 @@ int ClientGameEngine::init() {
     _env->addFunction("setGameStartedCallback",
                       std::function<void(std::function<void()>)>(
                           [this](std::function<void()> cb) { this->setGameStartedCallback(cb); }));
-
 
     if (!_physicsLogic) {
         _physicsLogic = [](Entity, Registry&, const InputSnapshot&, float) {};

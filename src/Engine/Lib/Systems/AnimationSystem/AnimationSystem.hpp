@@ -11,10 +11,10 @@
 #include "ISystem.hpp"
 
 class AnimationSystem : public ISystem {
-public:
+   public:
     AnimationSystem() = default;
     void update(Registry& registry, system_context context) override;
 
-private:
+   private:
     static void advanceFrame(AnimatedSprite2D& anim, const AnimationClip& clip);
 };

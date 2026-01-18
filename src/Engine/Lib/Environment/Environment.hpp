@@ -23,7 +23,6 @@ class NetworkEngine;
 }  // namespace engine
 
 class Environment {
-   public:
    private:
     ECS& _ecs;
     ResourceManager<TextureAsset>& _textures;
