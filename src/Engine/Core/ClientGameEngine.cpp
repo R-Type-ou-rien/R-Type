@@ -58,7 +58,7 @@ int ClientGameEngine::init() {
 
         if (!connected) {
             _window_manager.getWindow().setTitle("R-Type Client - CONNECTION FAILED");
-            std::cerr << "[CLIENT_ERROR] Failed to connect to server." << std::endl;
+            std::cerr << "[CLIENT_ERROR] Failede to connect to server." << std::endl;
         }
 
         _network->transmitEvent<int>(network::GameEvents::C_LOGIN_ANONYMOUS, 0, 0, 0);
