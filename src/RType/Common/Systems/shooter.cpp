@@ -350,18 +350,6 @@ void ShooterSystem::update(Registry& registry, system_context context) {
                 charged.is_charging = true;
                 charged.charge_time += context.dt;
 
-                // Play charging sound when reaching medium threshold (50%)
-                if (charged.charge_time >= charged.medium_charge && !registry.hasComponent<AudioSourceComponent>(id)) {
-                    AudioSourceComponent audio;
-                    audio.sound_name = "charg_start";
-                    audio.play_on_start = true;
-                    audio.loop = false;
-                    audio.next_sound_name = "charg_loop";
-                    audio.next_sound_loop = true;
-                    audio.destroy_entity_on_finish = false;
-                    registry.addComponent<AudioSourceComponent>(id, audio);
-                }
-
                 if (charged.charge_time > charged.max_charge_time) {
                     charged.charge_time = charged.max_charge_time;
                 }

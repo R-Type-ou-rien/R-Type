@@ -63,28 +63,12 @@ int ClientGameEngine::init() {
     registerNetworkComponent<Velocity2D>();
     registerNetworkComponent<BoxCollisionComponent>();
     registerNetworkComponent<TagComponent>();
-    registerNetworkComponent<HealthComponent>();
-    registerNetworkComponent<EnemySpawnComponent>();
-    registerNetworkComponent<ShooterComponent>();
-    registerNetworkComponent<ChargedShotComponent>();
     registerNetworkComponent<TextComponent>();
     registerNetworkComponent<ResourceComponent>();
     registerNetworkComponent<BackgroundComponent>();
-    registerNetworkComponent<PatternComponent>();
     registerNetworkComponent<ProjectileComponent>();
-    registerNetworkComponent<TeamComponent>();
-    registerNetworkComponent<DamageOnCollision>();
     registerNetworkComponent<NetworkIdentity>();
-    registerNetworkComponent<::GameTimerComponent>();
-    // AudioSourceComponent removed - audio is client-local and has std::string fields
-
-    // R-Type specific components
-    registerNetworkComponent<PodComponent>();
-    registerNetworkComponent<PlayerPodComponent>();
-    registerNetworkComponent<BehaviorComponent>();
-    registerNetworkComponent<BossComponent>();
-    registerNetworkComponent<BossSubEntityComponent>();
-    registerNetworkComponent<ScoreComponent>();
+    registerNetworkComponent<AudioSourceComponent>();
 
     _ecs.systems.addSystem<BackgroundSystem>();
     _ecs.systems.addSystem<BehaviorSystem>();
