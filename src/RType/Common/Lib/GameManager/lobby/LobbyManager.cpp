@@ -9,8 +9,6 @@
 #include "Voice/VoiceManager.hpp"
 #include "src/Engine/Core/ClientGameEngine.hpp"
 
-using namespace engine::voice;
-
 bool LobbyManager::isMouseOverButton(sf::RenderWindow* window, float btnX, float btnY, float btnWidth,
                                      float btnHeight) {
     sf::Vector2i mousePos = window ? sf::Mouse::getPosition(*window) : sf::Mouse::getPosition();

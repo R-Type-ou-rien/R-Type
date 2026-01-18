@@ -6,6 +6,8 @@
 #include <functional>
 #include <map>
 #include <vector>
+#include "Components/StandardComponents.hpp"
+#include <string>
 #include "../Components/boss_component.hpp"
 
 class BossSystem : public ISystem {

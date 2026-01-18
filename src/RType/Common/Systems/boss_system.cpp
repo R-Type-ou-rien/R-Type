@@ -9,6 +9,7 @@
 #include <vector>
 #include <algorithm>
 #include <iostream>
+#include <string>
 #include "../../../../Engine/Lib/Components/LobbyIdComponent.hpp"
 #include "../../../../Engine/Lib/Utils/LobbyUtils.hpp"
 

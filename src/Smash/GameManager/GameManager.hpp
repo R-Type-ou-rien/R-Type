@@ -8,6 +8,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 #include <SFML/System/Clock.hpp>
 #include "../Lib/EjectionSystem.hpp"
 #include "../Lib/ProjectileComponent.hpp"

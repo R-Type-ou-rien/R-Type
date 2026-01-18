@@ -97,7 +97,7 @@ int ServerGameEngine::init() {
                                   for (const auto& client : lobby.getClients()) {
                                       clientIds.push_back(client.id);
                                   }
-                                  callback(id, (int)lobby.getState(), clientIds);
+                                  callback(id, static_cast<int>(lobby.getState()), clientIds);
                               }
                           }));
 
@@ -107,7 +107,7 @@ int ServerGameEngine::init() {
             [this](uint32_t lobbyId, bool victory, const std::vector<std::tuple<uint32_t, int, bool>>& scores) {
                 network::GameOverPacket packet;
                 packet.victory = victory;
-                packet.player_count = std::min((size_t)8, scores.size());
+                packet.player_count = std::min(static_cast<size_t>(8), scores.size());
                 for (size_t i = 0; i < packet.player_count; ++i) {
                     packet.players[i].client_id = std::get<0>(scores[i]);
                     packet.players[i].score = std::get<1>(scores[i]);

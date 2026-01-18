@@ -75,7 +75,8 @@ struct AudioStreamContext {
 };
 
 // PortAudio input callback - called from audio thread
-static int inputCallback(const void* inputBuffer, void* /*outputBuffer*/, unsigned long framesPerBuffer,
+static int inputCallback(const void* inputBuffer, void* /*outputBuffer*/,
+                         unsigned long framesPerBuffer,  // NOLINT(runtime/int)
                          const PaStreamCallbackTimeInfo* /*timeInfo*/, PaStreamCallbackFlags /*statusFlags*/,
                          void* userData) {
     auto* ctx = static_cast<AudioStreamContext*>(userData);
@@ -92,7 +93,8 @@ static int inputCallback(const void* inputBuffer, void* /*outputBuffer*/, unsign
 }
 
 // PortAudio output callback - called from audio thread
-static int outputCallback(const void* /*inputBuffer*/, void* outputBuffer, unsigned long framesPerBuffer,
+static int outputCallback(const void* /*inputBuffer*/, void* outputBuffer,
+                          unsigned long framesPerBuffer,  // NOLINT(runtime/int)
                           const PaStreamCallbackTimeInfo* /*timeInfo*/, PaStreamCallbackFlags /*statusFlags*/,
                           void* userData) {
     auto* ctx = static_cast<AudioStreamContext*>(userData);

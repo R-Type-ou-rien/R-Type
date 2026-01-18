@@ -8,6 +8,10 @@
 #include "GameManager.hpp"
 
 #include "Components/GroundComponent.hpp"
+#include <memory>
+#include <utility>
+#include <vector>
+#include <string>
 #include "Components/StandardComponents.hpp"
 #include "Components/Sprite/Sprite2D.hpp"
 #include "../Lib/PercentageHealth.hpp"

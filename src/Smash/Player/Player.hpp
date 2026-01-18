@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <string>
+#include <utility>
 #include "../../../Engine/Core/ECS/ECS.hpp"
 #include "../../../Engine/Core/ECS/EcsType.hpp"
 

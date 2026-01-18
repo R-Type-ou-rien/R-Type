@@ -69,7 +69,7 @@ TEST_F(DamageTest, ProjectileIsDestroyedAfterHit) {
     registry.addComponent(victim, TeamComponent{TeamComponent::ALLY});
 
     registry.addComponent(attacker, TeamComponent{TeamComponent::ENEMY});
-    registry.addComponent(attacker, ProjectileComponent{});  // C'est un missile
+    registry.addComponent(attacker, ProjectileComponent{});
 
     auto& box = registry.getComponent<BoxCollisionComponent>(attacker);
     box.collision.tags.push_back(victim);

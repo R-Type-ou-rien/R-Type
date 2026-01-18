@@ -7,6 +7,8 @@
 
 #include "Player.hpp"
 #include "Components/StandardComponents.hpp"
+#include <utility>
+#include <string>
 #include "Components/Sprite/AnimatedSprite2D.hpp"
 #include "Components/GravityComponent.hpp"
 #include "../Lib/PercentageHealth.hpp"

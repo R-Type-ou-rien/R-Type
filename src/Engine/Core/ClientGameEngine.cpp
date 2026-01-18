@@ -430,7 +430,9 @@ void ClientGameEngine::processLobbyEvents(
     }
 
     // Handle game start failed
-    if (pending.count(network::GameEvents::S_GAME_START_KO)) {}
+    if (pending.count(network::GameEvents::S_GAME_START_KO)) {
+        // TODO(user): Handle game start failed
+    }
 
     // Handle team chat messages
     if (pending.count(network::GameEvents::S_TEAM_CHAT)) {
@@ -545,7 +547,8 @@ void ClientGameEngine::processLobbyEvents(
 // Lobby action methods
 void ClientGameEngine::sendReady() {
     if (_env->getGameState() != Environment::GameState::LOBBY) {
-        std::cout << "[ClientGameEngine] sendReady ignored - wrong state: " << (int)_env->getGameState() << std::endl;
+        std::cout << "[ClientGameEngine] sendReady ignored - wrong state: " << static_cast<int>(_env->getGameState())
+                  << std::endl;
         return;
     }
     std::cout << "[ClientGameEngine] Sending C_READY" << std::endl;
@@ -561,8 +564,8 @@ void ClientGameEngine::sendUnready() {
 
 void ClientGameEngine::sendStartGame() {
     if (_env->getGameState() != Environment::GameState::LOBBY) {
-        std::cout << "[ClientGameEngine] sendStartGame ignored - wrong state: " << (int)_env->getGameState()
-                  << std::endl;
+        std::cout << "[ClientGameEngine] sendStartGame ignored - wrong state: "
+                  << static_cast<int>(_env->getGameState()) << std::endl;
         return;
     }
     if (!_lobbyState.isLocalPlayerHost()) {
@@ -589,8 +592,8 @@ void ClientGameEngine::sendLeaveLobby(uint32_t lobbyId) {
 
 void ClientGameEngine::sendChatMessage(const std::string& message) {
     if (_env->getGameState() != Environment::GameState::LOBBY) {
-        std::cout << "[ClientGameEngine] sendChatMessage ignored - wrong state: " << (int)_env->getGameState()
-                  << std::endl;
+        std::cout << "[ClientGameEngine] sendChatMessage ignored - wrong state: "
+                  << static_cast<int>(_env->getGameState()) << std::endl;
         return;
     }
     std::cout << "[ClientGameEngine] Sending C_TEAM_CHAT: " << message << std::endl;
