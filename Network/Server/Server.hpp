@@ -31,7 +31,7 @@ class Server : public network::ServerInterface<GameEvents> {
     };
 
    public:
-    Server(uint16_t nPort = 4040, int timeout_seconds = 5)
+    Server(uint16_t nPort, int timeout_seconds)
         : network::ServerInterface<GameEvents>(nPort), _timeout_seconds(timeout_seconds){};
 
    protected:
@@ -53,19 +53,15 @@ class Server : public network::ServerInterface<GameEvents> {
     void OnClientLeaveLobby(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
     void OnClientNewLobby(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
     void onClientSendText(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
-    void onClientVoicePacket(std::shared_ptr<network::Connection<GameEvents>> client,
-                             network::message<GameEvents>& msg);
 
     // Pre-Game event handlers
     void onClientStartGame(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
     void onClientReadyUp(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
     void onClientUnready(std::shared_ptr<network::Connection<GameEvents>> client, network::message<GameEvents> msg);
 
-   public:
     coming_message ReadIncomingMessage();
-    void setTimeout(int timeout) { _timeout_seconds = timeout; };
-    void BroadcastLobbyList();
 
+   public:
     template <typename T>
     void AddMessageToPlayer(GameEvents event, uint32_t id, const T& data) {
         for (std::shared_ptr<network::Connection<GameEvents>>& client : _deqConnections) {
@@ -80,39 +76,12 @@ class Server : public network::ServerInterface<GameEvents> {
                 msg.header.id = event;
                 msg.header.size = msg.size();
 
-                if (event == GameEvents::S_PLAYER_JOINED) {
-                    std::cout << "[SERVER_DEBUG] Sending S_PLAYER_JOINED to " << id << " (Body: " << msg.size() << ")"
-                              << std::endl;
-                }
-
                 if (_networkManager.isUdpEvent(event)) {
                     MessageClientUDP(client, msg);
                 } else {
                     MessageClient(client, msg);
                 }
 
-                break;
-            }
-        }
-    }
-
-    void AddMessageToPlayer(GameEvents event, uint32_t id, network::message<GameEvents>& msg) {
-        for (std::shared_ptr<network::Connection<GameEvents>>& client : _deqConnections) {
-            if (client->GetID() == id) {
-                if (event == GameEvents::S_RETURN_TO_LOBBY) {
-                    _clientStates[client] = ClientState::IN_LOBBY;
-                    client->SetTimeout(0);
-                    return;
-                }
-
-                msg.header.id = event;
-                msg.header.size = msg.size();
-
-                if (_networkManager.isUdpEvent(event)) {
-                    MessageClientUDP(client, msg);
-                } else {
-                    MessageClient(client, msg);
-                }
                 break;
             }
         }
@@ -151,6 +120,5 @@ class Server : public network::ServerInterface<GameEvents> {
     Database _database{DATABASE_FILE};
 
     int _timeout_seconds = 30;
-    uint32_t nLobbyIDCounter = 1;
 };
 }  // namespace network

@@ -6,6 +6,7 @@
 #include "InputManagerBase.hpp"
 #include "InputState.hpp"
 #include "NetworkEngine/NetworkEngine.hpp"
+#include "Components/PredictionComponent.hpp"
 
 struct system_context;
 
@@ -14,6 +15,8 @@ class ClientInputManager : public InputManagerBase<ClientInputManager> {
     void update(engine::core::NetworkEngine& network, uint32_t tick,
                 system_context& ctx);                          // client only -> returns the packet ?
     void setWindowHasFocus(bool focus) { _hasFocus = focus; }  // client only
+
+    InputSnapshot getCurrentInputSnapshot() const;
 
    private:
     void createActionPacket(Action name, ActionState state, engine::core::NetworkEngine& network, system_context& ctx);

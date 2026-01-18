@@ -19,7 +19,7 @@ struct ClientInfo {
 };
 
 class Lobby {
-   public:
+      public:
     enum class State {
         WAITING,
         IN_GAME,
