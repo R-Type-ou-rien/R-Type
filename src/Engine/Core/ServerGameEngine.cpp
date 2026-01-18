@@ -50,12 +50,9 @@
 ServerGameEngine::ServerGameEngine(std::string ip)
     : _env(std::make_shared<Environment>(_ecs, _texture_manager, _sound_manager, _music_manager, EnvMode::SERVER)) {
     _network = std::make_shared<engine::core::NetworkEngine>(engine::core::NetworkEngine::NetworkRole::SERVER);
-    // No default lobby - wait for client requests (CREATE_LOBBY / JOIN_LOBBY)
 }
 
 int ServerGameEngine::init() {
-    // Systems are added in GameManager::initSystems()
-    // Only add server-specific systems here
     _ecs.systems.addSystem<ComponentSenderSystem>();
 
     registerNetworkComponent<Sprite2D>();
@@ -78,9 +75,7 @@ int ServerGameEngine::init() {
     registerNetworkComponent<DamageOnCollision>();
     registerNetworkComponent<NetworkIdentity>();
     registerNetworkComponent<::GameTimerComponent>();
-    // AudioSourceComponent removed - audio is client-local and has std::string fields
 
-    // R-Type specific components
     registerNetworkComponent<PodComponent>();
     registerNetworkComponent<PlayerPodComponent>();
     registerNetworkComponent<BehaviorComponent>();
@@ -88,7 +83,6 @@ int ServerGameEngine::init() {
     registerNetworkComponent<BossSubEntityComponent>();
     registerNetworkComponent<ScoreComponent>();
 
-    // Expose Server Engine services to Game Logic
     _env->addFunction("registerPlayer", std::function<void(uint32_t, std::shared_ptr<Player>)>(
                                             [this](uint32_t clientId, std::shared_ptr<Player> player) {
                                                 if (!player)
@@ -100,7 +94,6 @@ int ServerGameEngine::init() {
                                                           << " for client " << clientId << std::endl;
                                             }));
 
-    // Expose Lobby iteration for Game Manager
     _env->addFunction("forEachLobby",
                       std::function<void(std::function<void(uint32_t, int, const std::vector<uint32_t>&)>)>(
                           [this](std::function<void(uint32_t, int, const std::vector<uint32_t>&)> callback) {
@@ -113,7 +106,6 @@ int ServerGameEngine::init() {
                               }
                           }));
 
-    // Expose Broadcast Game Over
     _env->addFunction(
         "broadcastGameOver",
         std::function<void(uint32_t, bool, const std::vector<std::tuple<uint32_t, int, bool>>&)>(
@@ -141,12 +133,10 @@ int ServerGameEngine::init() {
                             server->AddMessageToPlayer(network::GameEvents::S_GAME_OVER, client.id, msg);
                         }
 
-                        // Destroy all entities belonging to this lobby
                         if (_env->hasFunction("getECS")) {
                             auto& ecs = _env->getECS();
                             std::unordered_set<Entity> entitiesToDestroy;
 
-                            // 1. Standard cleanup via LobbyIdComponent
                             auto& lobbyIds = ecs.registry.getEntities<LobbyIdComponent>();
                             for (auto entity : lobbyIds) {
                                 if (ecs.registry.hasComponent<LobbyIdComponent>(entity)) {
@@ -157,7 +147,6 @@ int ServerGameEngine::init() {
                                 }
                             }
 
-                            // 2. Aggressive cleanup via Tags (Clean up leaks/ghosts)
                             auto& taggedEntities = ecs.registry.getEntities<TagComponent>();
                             for (auto entity : taggedEntities) {
                                 if (!ecs.registry.hasComponent<TagComponent>(entity))
@@ -177,8 +166,6 @@ int ServerGameEngine::init() {
 
                                 if (isDynamicInfo) {
                                     uint32_t entLobby = engine::utils::getLobbyId(ecs.registry, entity);
-                                    // Destroy if it belongs to this lobby OR if it's orphaned (Lobby 0)
-                                    // We assume Lobby 0 shouldn't contain active gameplay projectiles/enemies
                                     if (entLobby == lobbyId || entLobby == 0) {
                                         entitiesToDestroy.insert(entity);
                                     }
@@ -186,36 +173,18 @@ int ServerGameEngine::init() {
                             }
 
                             for (auto entity : entitiesToDestroy) {
-                                if (ecs.registry.hasComponent<NetworkIdentity>(entity)) {
-                                    // Send destroy packet first?
-                                    // The DestructionSystem usually handles this, but we are manually destroying.
-                                    // Ideally we tag them for PendingDestruction, but we want immediate cleanup.
-                                    // Let's assume the client will clean up its own state or rely on S_SNAPSHOT updates
-                                    // effectively clearing them (if snapshot is differential, explicit destroy is
-                                    // better). Explicitly triggering destruction system logic might be complex here.
-                                    // Let's just destroy the entity. The ServerGameEngine update loop sends snapshots.
-                                    // If the entity is gone, it won't be in the snapshot.
-                                    // Does the client auto-destroy entities not in snapshot? Usually NOT.
-                                    // So we MUST send S_ENTITY_DESTROY.
-
-                                    // Actually, relying on the client-side "Return to Lobby" cleanup is safer for
-                                    // visuals. Server-side destruction prevents them from existing in the next game.
-                                }
                                 ecs.registry.destroyEntity(entity);
                             }
                             std::cout << "SERVER: Destroyed " << entitiesToDestroy.size() << " entities for lobby "
                                       << lobbyId << std::endl;
                         }
 
-                        // Reset lobby state to WAITING so players can restart or leave
                         lobbyOpt->get().setState(engine::core::Lobby::State::WAITING);
 
-                        // Reset all players to Unready
                         for (const auto& client : lobbyOpt->get().getClients()) {
                             lobbyOpt->get().setPlayerReady(client.id, false);
                         }
 
-                        // Broadcast the unready state to everyone so clients update their UI
                         for (const auto& client : lobbyOpt->get().getClients()) {
                             for (const auto& receiver : lobbyOpt->get().getClients()) {
                                 network::message<network::GameEvents> reply;
@@ -226,9 +195,6 @@ int ServerGameEngine::init() {
                             }
                         }
 
-                        // CRITICAL: Reset the Network Server's internal state for this lobby to IN_LOBBY
-                        // by sending S_RETURN_TO_LOBBY (which is trapped by Server.hpp to reset state)
-                        // This allows C_READY and C_TEAM_CHAT to pass validation again.
                         server->AddMessageToLobby(network::GameEvents::S_RETURN_TO_LOBBY, lobbyId, 0);
 
                         std::cout << "SERVER: Broadcasted Game Over for lobby " << lobbyId << std::endl;
@@ -243,17 +209,14 @@ void ServerGameEngine::processNetworkEvents() {
     _network->processIncomingPackets(_currentTick);
     auto pending = _network->getPendingEvents();
 
-    // Track which clients confirmed UDP this frame (may arrive before C_CONNECTION is processed)
     std::set<uint32_t> udpConfirmedThisFrame;
 
-    // Collect UDP confirmations first
     if (pending.count(network::GameEvents::C_CONFIRM_UDP)) {
         for (const auto& msg : pending.at(network::GameEvents::C_CONFIRM_UDP)) {
             udpConfirmedThisFrame.insert(msg.header.user_id);
         }
     }
 
-    // Handle new connections - only register client, do not auto-join or spawn
     if (pending.count(network::GameEvents::C_CONNECTION)) {
         for (const auto& msg : pending.at(network::GameEvents::C_CONNECTION)) {
             uint32_t newClientId = msg.header.user_id;
@@ -261,37 +224,28 @@ void ServerGameEngine::processNetworkEvents() {
             std::cout << "SERVER: Client " << newClientId << " connected. Waiting for lobby commands." << std::endl;
         }
     }
-
-    // Handle lobby creation/join - update lobby manager
     if (pending.count(network::GameEvents::S_ROOM_JOINED)) {
         for (auto msg : pending.at(network::GameEvents::S_ROOM_JOINED)) {
             network::lobby_in_info info;
             msg >> info;
             uint32_t clientId = msg.header.user_id;
 
-            // First ensure client is registered
             _lobbyManager.onClientConnected(clientId, "Player" + std::to_string(clientId));
 
-            // Check if lobby exists, if not create it
             auto lobbyOpt = _lobbyManager.getLobby(info.id);
             if (!lobbyOpt) {
-                // Create lobby using public API - the manager will give it a new ID,
-                // but we'll use joinLobby which updates client mapping
                 auto& newLobby = _lobbyManager.createLobby(info.name, 4);
                 newLobby.setHostId(info.hostId);
-                // Join client to the NEW lobby (using its assigned ID)
                 _lobbyManager.joinLobby(newLobby.getId(), clientId);
                 std::cout << "SERVER_ENGINE: Created lobby " << newLobby.getId() << " (" << info.name << "), client "
                           << clientId << " joined" << std::endl;
             } else {
-                // Join existing lobby
                 _lobbyManager.joinLobby(info.id, clientId);
                 std::cout << "SERVER_ENGINE: Client " << clientId << " joined existing lobby " << info.id << std::endl;
             }
         }
     }
 
-    // Handle C_READY
     if (pending.count(network::GameEvents::C_READY)) {
         for (const auto& msg : pending.at(network::GameEvents::C_READY)) {
             uint32_t clientId = msg.header.user_id;
@@ -330,20 +284,15 @@ void ServerGameEngine::processNetworkEvents() {
                 if (std::holds_alternative<std::shared_ptr<network::Server>>(network_instance)) {
                     auto server = std::get<std::shared_ptr<network::Server>>(network_instance);
 
-                    // IF GAME IS RUNNING -> Full Reset
                     if (lobby.getState() == engine::core::Lobby::State::IN_GAME) {
                         uint32_t lobbyId = lobby.getId();
                         std::cout << "SERVER: Client " << clientId << " Aborted Game (C_CANCEL_READY). Resetting Lobby "
                                   << lobbyId << std::endl;
-
-                        // 1. Reset Lobby State
                         lobby.setState(engine::core::Lobby::State::WAITING);
 
-                        // 2. Cleanup Entities (Aggressive)
                         auto& ecs = _env->getECS();
                         std::unordered_set<Entity> entitiesToDestroy;
 
-                        // Cleanup via LobbyId
                         auto& lobbyIds = ecs.registry.getEntities<LobbyIdComponent>();
                         for (auto entity : lobbyIds) {
                             if (ecs.registry.hasComponent<LobbyIdComponent>(entity)) {
@@ -353,7 +302,6 @@ void ServerGameEngine::processNetworkEvents() {
                             }
                         }
 
-                        // Cleanup via Tags (Ghosts, Including AI)
                         auto& taggedEntities = ecs.registry.getEntities<TagComponent>();
                         for (auto entity : taggedEntities) {
                             if (!ecs.registry.hasComponent<TagComponent>(entity))
@@ -376,7 +324,6 @@ void ServerGameEngine::processNetworkEvents() {
                             }
                         }
 
-                        // Cleanup Spawners (EnemySpawnComponent)
                         auto& spawners = ecs.registry.getEntities<EnemySpawnComponent>();
                         for (auto entity : spawners) {
                             if (ecs.registry.hasComponent<EnemySpawnComponent>(entity)) {
@@ -387,7 +334,6 @@ void ServerGameEngine::processNetworkEvents() {
                             }
                         }
 
-                        // Cleanup Game Timers (GameTimerComponent)
                         auto& timers = ecs.registry.getEntities<GameTimerComponent>();
                         for (auto entity : timers) {
                             uint32_t entLobby = engine::utils::getLobbyId(ecs.registry, entity);
@@ -431,10 +377,8 @@ void ServerGameEngine::processNetworkEvents() {
         }
     }
 
-    // Handle game start - spawn players when host starts the game
     if (pending.count(network::GameEvents::S_GAME_START)) {
         for (const auto& msg : pending.at(network::GameEvents::S_GAME_START)) {
-            // The clientId here is the host who started the game
             uint32_t hostClientId = msg.header.user_id;
             auto lobbyOpt = _lobbyManager.getLobbyForClient(hostClientId);
             if (!lobbyOpt) {
@@ -444,7 +388,6 @@ void ServerGameEngine::processNetworkEvents() {
             }
 
             auto& lobby = lobbyOpt->get();
-            // Verify host
             if (!lobby.isHost(hostClientId)) {
                 std::cout << "SERVER: Client " << hostClientId << " tried to start game but is not host" << std::endl;
                 continue;
@@ -454,22 +397,18 @@ void ServerGameEngine::processNetworkEvents() {
             std::cout << "SERVER: Game starting in lobby " << lobby.getId() << " (" << lobby.getName() << ")"
                       << std::endl;
 
-            // Broadcast S_GAME_START
             auto network_instance = _network->getNetworkInstance();
             if (std::holds_alternative<std::shared_ptr<network::Server>>(network_instance)) {
                 auto server = std::get<std::shared_ptr<network::Server>>(network_instance);
                 for (const auto& client : lobby.getClients()) {
                     network::message<network::GameEvents> reply;
                     reply.header.id = network::GameEvents::S_GAME_START;
-                    // Payload? Client implementation (Step 709) doesn't read payload for S_GAME_START.
-                    // Just sends header.
                     server->AddMessageToPlayer(network::GameEvents::S_GAME_START, client.id, reply);
                 }
             }
         }
     }
 
-    // Handle player leaving lobby (before full disconnect)
     if (pending.count(network::GameEvents::S_PLAYER_LEAVE)) {
         for (const auto& msg : pending.at(network::GameEvents::S_PLAYER_LEAVE)) {
             uint32_t clientId = msg.header.user_id;
@@ -478,18 +417,16 @@ void ServerGameEngine::processNetworkEvents() {
         }
     }
 
-    // Handle disconnections
     if (pending.count(network::GameEvents::C_DISCONNECT)) {
         for (const auto& msg : pending.at(network::GameEvents::C_DISCONNECT)) {
             uint32_t clientId = msg.header.user_id;
             _lobbyManager.onClientDisconnected(clientId);
-            _clientToEntityMap.erase(clientId);  // Clean up entity mapping
-            _players.erase(clientId);  // Remove player ownership, triggering destructor and entity destruction
+            _clientToEntityMap.erase(clientId);
+            _players.erase(clientId);
             std::cout << "SERVER: Client " << clientId << " disconnected." << std::endl;
         }
     }
 
-    // Handle inputs
     if (pending.count(network::GameEvents::C_INPUT)) {
         auto& input_messages = pending.at(network::GameEvents::C_INPUT);
         for (auto& msg : input_messages) {
@@ -499,7 +436,6 @@ void ServerGameEngine::processNetworkEvents() {
         }
     }
 
-    // Handle C_TEAM_CHAT
     if (pending.count(network::GameEvents::C_TEAM_CHAT)) {
         auto& msgs = pending.at(network::GameEvents::C_TEAM_CHAT);
         for (auto& msg : msgs) {
@@ -507,15 +443,12 @@ void ServerGameEngine::processNetworkEvents() {
             auto lobbyOpt = _lobbyManager.getLobbyForClient(clientId);
             if (lobbyOpt) {
                 network::chat_message chatMsg;
-                // Basic validation and extraction
-                if (msg.body.size() >= 256) {  // Expecting char[256]
+                if (msg.body.size() >= 256) {
                     char rawMsg[256];
                     std::memcpy(rawMsg, msg.body.data(), 256);
-                    // Create full chat message structured packet to broadcast
                     network::chat_message broadcastMsg;
                     broadcastMsg.sender_id = clientId;
                     std::string senderName = "Player " + std::to_string(clientId);
-                    // Try to get real name
                     for (const auto& client : lobbyOpt->get().getClients()) {
                         if (client.id == clientId) {
                             senderName = client.name;
@@ -534,7 +467,7 @@ void ServerGameEngine::processNetworkEvents() {
                         for (const auto& client : lobbyOpt->get().getClients()) {
                             network::message<network::GameEvents> reply;
                             reply.header.id = network::GameEvents::S_TEAM_CHAT;
-                            reply << broadcastMsg;  // Serializes struct
+                            reply << broadcastMsg;
                             server->AddMessageToPlayer(network::GameEvents::S_TEAM_CHAT, client.id, reply);
                         }
                     }
@@ -545,7 +478,6 @@ void ServerGameEngine::processNetworkEvents() {
         }
     }
 
-    // Handle Return to Lobby (Manual Reset)
     if (pending.count(network::GameEvents::S_RETURN_TO_LOBBY)) {
         for (const auto& msg : pending.at(network::GameEvents::S_RETURN_TO_LOBBY)) {
             uint32_t clientId = msg.header.user_id;
@@ -556,14 +488,11 @@ void ServerGameEngine::processNetworkEvents() {
                 std::cout << "SERVER: Client " << clientId << " requested Return to Lobby. Resetting Lobby " << lobbyId
                           << std::endl;
 
-                // 1. Reset Lobby State
                 lobby.setState(engine::core::Lobby::State::WAITING);
 
-                // 2. Cleanup Entities (Aggressive)
                 auto& ecs = _env->getECS();
                 std::unordered_set<Entity> entitiesToDestroy;
 
-                // Cleanup via LobbyId
                 auto& lobbyIds = ecs.registry.getEntities<LobbyIdComponent>();
                 for (auto entity : lobbyIds) {
                     if (ecs.registry.hasComponent<LobbyIdComponent>(entity)) {
@@ -595,7 +524,6 @@ void ServerGameEngine::processNetworkEvents() {
                     }
                 }
 
-                // Cleanup Spawners (EnemySpawnComponent)
                 auto& spawners = ecs.registry.getEntities<EnemySpawnComponent>();
                 for (auto entity : spawners) {
                     if (ecs.registry.hasComponent<EnemySpawnComponent>(entity)) {
@@ -606,23 +534,16 @@ void ServerGameEngine::processNetworkEvents() {
                     }
                 }
 
-                // Cleanup Game Timers (GameTimerComponent) - Check for LobbyIdComponent
                 auto& timers = ecs.registry.getEntities<GameTimerComponent>();
                 for (auto entity : timers) {
                     uint32_t entLobby = engine::utils::getLobbyId(ecs.registry, entity);
-                    if (entLobby == lobbyId) {  // Timers must strictly belong to the lobby
+                    if (entLobby == lobbyId) {
                         entitiesToDestroy.insert(entity);
                     }
                 }
 
-                // Cleanup Scores (ScoreComponent) - Check for LobbyIdComponent
-                // Note: Player entities have ScoreComponent, but are handled by "PLAYER" tag.
-                // This catches detached score entities if any.
                 auto& scores = ecs.registry.getEntities<ScoreComponent>();
                 for (auto entity : scores) {
-                    // Check if it's NOT a player (Players already handled)
-                    // If it has "PLAYER" tag, it's already in the set via Tag loop.
-                    // But set::insert handles duplicates anyway.
                     uint32_t entLobby = engine::utils::getLobbyId(ecs.registry, entity);
                     if (entLobby == lobbyId) {
                         entitiesToDestroy.insert(entity);
@@ -635,20 +556,14 @@ void ServerGameEngine::processNetworkEvents() {
                 std::cout << "SERVER: Destroyed " << entitiesToDestroy.size() << " entities for lobby " << lobbyId
                           << " (Manual Reset)" << std::endl;
 
-                // 3. Reset Players Ready
                 for (const auto& client : lobby.getClients()) {
                     lobby.setPlayerReady(client.id, false);
                 }
-
-                // 4. Broadcast S_RETURN_TO_LOBBY and Ready State Cancel
                 auto network_instance = _network->getNetworkInstance();
                 if (std::holds_alternative<std::shared_ptr<network::Server>>(network_instance)) {
                     auto server = std::get<std::shared_ptr<network::Server>>(network_instance);
-
-                    // Validate logic: Send to everyone so they all return
                     server->AddMessageToLobby(network::GameEvents::S_RETURN_TO_LOBBY, lobbyId, 0);
 
-                    // Also broadcast cancel ready
                     for (const auto& client : lobby.getClients()) {
                         for (const auto& receiver : lobby.getClients()) {
                             network::message<network::GameEvents> reply;
@@ -663,10 +578,7 @@ void ServerGameEngine::processNetworkEvents() {
         }
     }
 
-    // NOW send full game state to clients whose UDP has been confirmed
-    // This is done AFTER C_CONNECTION so that new players are created first
     for (uint32_t clientId : udpConfirmedThisFrame) {
-        // Check if client is in pending list (was added by C_CONNECTION handler)
         if (_pendingFullState.find(clientId) == _pendingFullState.end()) {
             std::cout << "SERVER: UDP confirmed for client " << clientId << " but not in pending list yet" << std::endl;
             continue;
@@ -680,8 +592,6 @@ void ServerGameEngine::processNetworkEvents() {
             continue;
         }
         auto server = std::get<std::shared_ptr<network::Server>>(network_instance);
-
-        // Get the lobby this client belongs to
         uint32_t clientLobbyId = 0;
         auto lobbyOpt = _lobbyManager.getLobbyForClient(clientId);
         if (lobbyOpt.has_value()) {
@@ -691,7 +601,6 @@ void ServerGameEngine::processNetworkEvents() {
         SerializationContext s_ctx = {_texture_manager};
         auto& pools = _ecs.registry.getComponentPools();
 
-        // Send full game state to this client (only entities in their lobby)
         int totalPacketsSent = 0;
         for (auto& [type, pool] : pools) {
             uint32_t typeHash = pool->getTypeHash();
@@ -705,10 +614,9 @@ void ServerGameEngine::processNetworkEvents() {
                     continue;
                 }
 
-                // Filter by lobby: only send entities from the same lobby or global entities (lobbyId=0)
                 uint32_t entityLobbyId = engine::utils::getLobbyId(_ecs.registry, entity);
                 if (entityLobbyId != 0 && entityLobbyId != clientLobbyId) {
-                    continue;  // Skip entities from other lobbies
+                    continue;
                 }
 
                 ComponentPacket packet = pool->createPacket(entity, s_ctx);
@@ -719,7 +627,6 @@ void ServerGameEngine::processNetworkEvents() {
             }
         }
 
-        // Tell the client which entity is their player
         auto playerIt = _players.find(clientId);
         if (playerIt != _players.end()) {
             network::AssignPlayerEntityPacket assignPacket;
@@ -758,7 +665,6 @@ int ServerGameEngine::run() {
             _loop_function(_env, input_manager);
         }
 
-        // Populate active clients for systems
         ctx.active_clients.clear();
         for (const auto& [lobbyId, lobby] : _lobbyManager.getAllLobbies()) {
             if (lobby.getState() == engine::core::Lobby::State::IN_GAME) {
@@ -770,7 +676,6 @@ int ServerGameEngine::run() {
 
         _ecs.update(ctx);
 
-        // Reset one-frame input flags (justPressed, justReleased) after processing
         input_manager.resetFrameFlags();
 
         _currentTick++;
