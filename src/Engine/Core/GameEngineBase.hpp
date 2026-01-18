@@ -28,12 +28,12 @@
 template <class Derived>
 class GameEngineBase {
    protected:
-    ECS _ecs;
-    SceneManager _scene_manager;
     InputManager input_manager;
     ResourceManager<TextureAsset> _texture_manager;
     ResourceManager<SoundAsset> _sound_manager;
     ResourceManager<MusicAsset> _music_manager;
+    ECS _ecs;
+    SceneManager _scene_manager;
     std::function<USER_FUNCTION_SIGNATURE> _loop_function;
     std::function<USER_FUNCTION_SIGNATURE> _init_function;
 
@@ -44,7 +44,7 @@ class GameEngineBase {
     uint32_t _currentTick = 0;
 
    public:
-    explicit GameEngineBase() : _network(nullptr), _scene_manager(_ecs.registry) {}
+    explicit GameEngineBase() : _ecs(_texture_manager, input_manager), _scene_manager(_ecs.registry), _network(nullptr) {}
     ~GameEngineBase() = default;
 
     SceneManager& getSceneManager() { return _scene_manager; }

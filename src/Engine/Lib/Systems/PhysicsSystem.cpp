@@ -7,6 +7,7 @@
 
 #include "PhysicsSystem.hpp"
 #include "Components/StandardComponents.hpp"
+#include "Components/GravityComponent.hpp"
 
 void PhysicsSystem::update(Registry& registry, system_context context) {
     auto& velocities = registry.getView<Velocity2D>();
@@ -19,6 +20,10 @@ void PhysicsSystem::update(Registry& registry, system_context context) {
         if (registry.hasComponent<transform_component_s>(entity)) {
             auto& pos = registry.getComponent<transform_component_s>(entity);
             auto& vel = velocities[i];
+            if (registry.hasComponent<GravityComponent>(entity)) {
+                auto& gravity = registry.getComponent<GravityComponent>(entity);
+                pos.y += gravity.vectorY;
+            }
             pos.x += vel.vx * context.dt;
             pos.y += vel.vy * context.dt;
         }

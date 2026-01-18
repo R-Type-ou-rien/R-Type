@@ -41,23 +41,29 @@ ClientGameEngine::ClientGameEngine(std::string ip, std::string window_name)
     _network = std::make_shared<engine::core::NetworkEngine>(engine::core::NetworkEngine::NetworkRole::CLIENT, ip);
 }
 
+ClientGameEngine::ClientGameEngine(int width, int height, std::string window_name)
+    : _window_manager(width, height, window_name),
+      _env(std::make_shared<Environment>(_ecs, _texture_manager, _sound_manager, _music_manager, EnvMode::CLIENT)) {
+}
+
 int ClientGameEngine::init() {
-    // Verify connection status
-    auto& instance = _network->getNetworkInstance();
-    bool connected = false;
-    if (std::holds_alternative<std::shared_ptr<network::Client>>(instance)) {
-        auto client = std::get<std::shared_ptr<network::Client>>(instance);
-        if (client && client->IsConnected()) {
-            connected = true;
+    if (_network) {
+        auto& instance = _network->getNetworkInstance();
+        bool connected = false;
+        if (std::holds_alternative<std::shared_ptr<network::Client>>(instance)) {
+            auto client = std::get<std::shared_ptr<network::Client>>(instance);
+            if (client && client->IsConnected()) {
+                connected = true;
+            }
         }
-    }
 
-    if (!connected) {
-        _window_manager.getWindow().setTitle("R-Type Client - CONNECTION FAILED");
-        std::cerr << "[CLIENT_ERROR] Failed to connect to server." << std::endl;
-    }
+        if (!connected) {
+            _window_manager.getWindow().setTitle("R-Type Client - CONNECTION FAILED");
+            std::cerr << "[CLIENT_ERROR] Failed to connect to server." << std::endl;
+        }
 
-    _network->transmitEvent<int>(network::GameEvents::C_LOGIN_ANONYMOUS, 0, 0, 0);
+        _network->transmitEvent<int>(network::GameEvents::C_LOGIN_ANONYMOUS, 0, 0, 0);
+    }
 
     registerNetworkComponent<Sprite2D>();
     registerNetworkComponent<AnimatedSprite2D>();
@@ -170,6 +176,9 @@ void ClientGameEngine::handleEvent() {
 }
 
 void ClientGameEngine::processNetworkEvents() {
+    if (!_network) {
+        return;
+    }
     _network->processIncomingPackets(_currentTick);
     auto pending = _network->getPendingEvents();
 
@@ -696,8 +705,14 @@ int ClientGameEngine::run() {
 
         handleEvent();
         processNetworkEvents();
-        _predictionSystem->updatePrediction(_ecs.registry, input_manager, _currentTick, context.dt);
-        input_manager.update(*_network, _currentTick, context);
+        static std::shared_ptr<engine::core::NetworkEngine> dummyNetwork = std::make_shared<engine::core::NetworkEngine>(engine::core::NetworkEngine::NetworkRole::CLIENT);
+
+        if (_network) {
+            _predictionSystem->updatePrediction(_ecs.registry, input_manager, _currentTick, context.dt);
+            input_manager.update(*_network, _currentTick, context);
+        } else {
+            input_manager.update(*dummyNetwork, _currentTick, context);
+        }
         _window_manager.clear();
 
         if (_loop_function)
