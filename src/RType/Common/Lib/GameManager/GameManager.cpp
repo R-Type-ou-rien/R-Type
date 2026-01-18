@@ -1,41 +1,25 @@
 #include "GameManager.hpp"
 #include "ClientGameEngine.hpp"
 #include "ECS.hpp"
-#include "GameEngineBase.hpp"
-#include "Lobby.hpp"
-#include "Network.hpp"
-#include "src/Engine/Core/ClientGameEngine.hpp"
 #include "src/Engine/Core/LobbyState.hpp"
 #include "InputState.hpp"
 #include "src/Engine/Core/Scene/SceneLoader.hpp"
-#include <cmath>
-#include <cstdint>
-#include <ctime>
 #include <algorithm>
 #include <iostream>
 #include <memory>
-#include <thread>
-#include <chrono>
+#include <vector>
+#include <string>
 #include <SFML/Window/Mouse.hpp>
 #include <SFML/Window/Keyboard.hpp>
-#include "../../Systems/score.hpp"
+
+#include "src/Engine/Lib/Components/LobbyIdComponent.hpp"
 #include "../../Components/spawn.hpp"
-#include "../../Systems/spawn.hpp"
-#include "../../Components/shooter_component.hpp"
-#include "../../Components/charged_shot.hpp"
-#include "../../Components/team_component.hpp"
-#include "../../Components/damage_component.hpp"
 #include "../../Components/game_timer.hpp"
-#include "../../Components/pod_component.hpp"
 #include "../../Components/scripted_spawn.hpp"
-#include "../../Systems/behavior.hpp"
-#include "src/Engine/Lib/Systems/PhysicsSystem.hpp"
-#include "src/Engine/Lib/Systems/CollisionSystem.hpp"
+#include "../../Components/pod_component.hpp"
+
 #include "src/Engine/Lib/Components/NetworkComponents.hpp"
 #include "src/RType/Common/Components/leaderboard_component.hpp"
-
-#include "src/RType/Common/Systems/spawn.hpp"
-#include <algorithm>
 #include <iostream>
 #include <vector>
 #include <string>
@@ -243,7 +227,6 @@ void GameManager::update(std::shared_ptr<Environment> env, InputManager& inputs)
     auto currentState = env->getGameState();
 
     if (currentState != _previousState) {
-        // Cleanup
         switch (_previousState) {
             case Environment::GameState::AUTHSCREEN:
                 _authManager->cleanup(env);
@@ -258,34 +241,23 @@ void GameManager::update(std::shared_ptr<Environment> env, InputManager& inputs)
                 _lobbyManager->cleanupLobby(env);
                 break;
             case Environment::GameState::IN_GAME: {
-                // Cleanup all in-game entities
                 auto& ecs = env->getECS();
                 std::vector<Entity> toDestroy;
-                // We want to destroy everything that is not the WindowManager or global systems.
-                // A safe bet is destroying everything with a TagComponent that is NOT "PERSISTENT" (if we had that).
-                // Or destroying everything with Sprite2DComponent, TextComponent, etc.
-
-                // Let's wipe entities with Sprite2DComponent
                 auto& sprites = ecs.registry.getEntities<sprite2D_component_s>();
                 for (auto e : sprites)
                     toDestroy.push_back(e);
 
-                // Wipe entities with TextComponent (Leaderboard, UI)
                 auto& texts = ecs.registry.getEntities<TextComponent>();
                 for (auto e : texts)
                     toDestroy.push_back(e);
-
-                // Wipe entities with AudioSourceComponent (Music)
                 auto& audios = ecs.registry.getEntities<AudioSourceComponent>();
                 for (auto e : audios)
                     toDestroy.push_back(e);
 
-                // Wipe entities with HealthComponent (Players, Enemies that might imply logic)
                 auto& healths = ecs.registry.getEntities<HealthComponent>();
                 for (auto e : healths)
                     toDestroy.push_back(e);
 
-                // Remove duplicates
                 std::sort(toDestroy.begin(), toDestroy.end());
                 toDestroy.erase(std::unique(toDestroy.begin(), toDestroy.end()), toDestroy.end());
 
@@ -298,7 +270,6 @@ void GameManager::update(std::shared_ptr<Environment> env, InputManager& inputs)
                 break;
         }
 
-        // Init
         switch (currentState) {
             case Environment::GameState::AUTHSCREEN:
                 _authManager->init(env);
@@ -355,7 +326,7 @@ void GameManager::update(std::shared_ptr<Environment> env, InputManager& inputs)
             onAuthSuccess();
             break;
         case Environment::GameState::END_GAME:
-            onGameEnd();
+            // onGameEnd(); // Removed to prevent log spam loop
             break;
         case Environment::GameState::SERVER:
             updateServer(env, inputs);
@@ -372,9 +343,12 @@ void GameManager::updateServer(std::shared_ptr<Environment> env, InputManager& i
         forEachLobby([this, &env](uint32_t lobbyId, int state, const std::vector<uint32_t>& clients) {
             if (state == static_cast<int>(Environment::State::IN_GAME) &&
                 _initializedLobbies.find(lobbyId) == _initializedLobbies.end()) {
-                std::cout << "GAME MANAGER: Lobby " << lobbyId << " started game. Initializing..." << std::endl;
                 onServerGameStart(env, clients, lobbyId);
                 _initializedLobbies.insert(lobbyId);
+            } else if (state != static_cast<int>(Environment::State::IN_GAME)) {
+                if (_initializedLobbies.find(lobbyId) != _initializedLobbies.end()) {
+                    _initializedLobbies.erase(lobbyId);
+                }
             }
         });
     }
@@ -426,6 +400,9 @@ void GameManager::onNewHost(uint32_t hostId) {
 void GameManager::onGameStarted() {
     std::cout << "[GameManager] onGameStarted called, setting pending game start flag" << std::endl;
     _pendingGameStart = true;
+    _gameOver = false;
+    _victory = false;
+    _leaderboardDisplayed = false;
 }
 
 void GameManager::onGameEnd() {
@@ -449,10 +426,37 @@ void GameManager::onServerGameStart(std::shared_ptr<Environment> env, const std:
                                     uint32_t lobbyId) {
     std::cout << "GAMEMANAGER: onServerGameStart called for lobby " << lobbyId << std::endl;
 
-    // Store the current lobby ID for entity tagging
     _currentLobbyId = lobbyId;
 
-    // Initialize the level configuration and spawners on the server
+    _gameOver = false;
+    _victory = false;
+    _leaderboardDisplayed = false;
+
+    auto& ecs = env->getECS();
+    std::unordered_set<Entity> entitiesToDestroy;
+
+    auto& lobbyIds = ecs.registry.getEntities<LobbyIdComponent>();
+    for (auto entity : lobbyIds) {
+        if (ecs.registry.hasComponent<LobbyIdComponent>(entity)) {
+            if (ecs.registry.getComponent<LobbyIdComponent>(entity).lobby_id == lobbyId) {
+                entitiesToDestroy.insert(entity);
+            }
+        }
+    }
+
+    auto& spawners = ecs.registry.getEntities<EnemySpawnComponent>();
+    for (auto entity : spawners) {
+        if (ecs.registry.hasComponent<EnemySpawnComponent>(entity)) {
+            if (ecs.registry.getComponent<EnemySpawnComponent>(entity).lobby_id == lobbyId) {
+                entitiesToDestroy.insert(entity);
+            }
+        }
+    }
+
+    for (auto entity : entitiesToDestroy) {
+        ecs.registry.destroyEntity(entity);
+    }
+
     LevelConfig level_config;
     try {
         level_config = SceneLoader::loadFromFile(_current_level_scene);
@@ -464,12 +468,9 @@ void GameManager::onServerGameStart(std::shared_ptr<Environment> env, const std:
     } catch (const std::exception& e) {
         std::cerr << "GAMEMANAGER: Error loading level config: " << e.what() << std::endl;
     }
-
-    // Initialize spawner entities on the server
     initSpawner(env, level_config);
     std::cout << "GAMEMANAGER: Server spawner entities initialized" << std::endl;
 
-    // Initialize scene (walls, turrets, etc.) on the server
     initScene(env, level_config);
     std::cout << "GAMEMANAGER: Server scene entities initialized" << std::endl;
 
