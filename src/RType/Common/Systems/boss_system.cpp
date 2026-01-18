@@ -75,22 +75,29 @@ void BossSystem::initializeHandlers() {
     _transition_handlers[BossComponent::DYING] = [](Registry&, Entity, BossComponent&) {};
 
     // Patterns
-    registerPatternHandler("LINEAR_ALTERNATE", [this](Registry& r, system_context c, Entity e) { patternLinearAlternate(r, c, e); });
-    registerPatternHandler("SLOW_MISSILES", [this](Registry& r, system_context c, Entity e) { patternSlowMissiles(r, c, e); });
-    registerPatternHandler("WALL_OF_PROJECTILES", [this](Registry& r, system_context c, Entity e) { patternWallOfProjectiles(r, c, e); });
-    registerPatternHandler("BOUNCING_SHOTS", [this](Registry& r, system_context c, Entity e) { patternBouncingShots(r, c, e); });
+    registerPatternHandler("LINEAR_ALTERNATE",
+                           [this](Registry& r, system_context c, Entity e) { patternLinearAlternate(r, c, e); });
+    registerPatternHandler("SLOW_MISSILES",
+                           [this](Registry& r, system_context c, Entity e) { patternSlowMissiles(r, c, e); });
+    registerPatternHandler("WALL_OF_PROJECTILES",
+                           [this](Registry& r, system_context c, Entity e) { patternWallOfProjectiles(r, c, e); });
+    registerPatternHandler("BOUNCING_SHOTS",
+                           [this](Registry& r, system_context c, Entity e) { patternBouncingShots(r, c, e); });
     registerPatternHandler("SPIRAL", [this](Registry& r, system_context c, Entity e) { patternSpiral(r, c, e); });
-    registerPatternHandler("DELAYED_SHOTS", [this](Registry& r, system_context c, Entity e) { patternDelayedShots(r, c, e); });
-    
+    registerPatternHandler("DELAYED_SHOTS",
+                           [this](Registry& r, system_context c, Entity e) { patternDelayedShots(r, c, e); });
+
     // Orbital Boss Patterns (Boss 2)
-    registerPatternHandler("ORBITAL_AIM", [this](Registry& r, system_context c, Entity e) { patternOrbitalAim(r, c, e); });
+    registerPatternHandler("ORBITAL_AIM",
+                           [this](Registry& r, system_context c, Entity e) { patternOrbitalAim(r, c, e); });
 }
 
 void BossSystem::registerPatternHandler(const std::string& name, PatternHandler handler) {
     _available_patterns[name] = handler;
 }
 
-void BossSystem::executePatterns(Registry& registry, system_context context, Entity boss_entity, BossComponent& boss, const std::vector<std::string>& pattern_names) {
+void BossSystem::executePatterns(Registry& registry, system_context context, Entity boss_entity, BossComponent& boss,
+                                 const std::vector<std::string>& pattern_names) {
     for (const auto& name : pattern_names) {
         if (_available_patterns.count(name)) {
             _available_patterns[name](registry, context, boss_entity);
@@ -444,29 +451,30 @@ void BossSystem::patternOrbitalAim(Registry& registry, system_context context, E
 
         auto& teams = registry.getEntities<TeamComponent>();
         for (auto entity : teams) {
-             if (!registry.hasComponent<TeamComponent>(entity)) continue;
-             const auto& team = registry.getConstComponent<TeamComponent>(entity);
-             if (team.team == TeamComponent::ALLY) {
-                 if (registry.hasComponent<transform_component_s>(entity)) {
-                     const auto& player_pos = registry.getConstComponent<transform_component_s>(entity);
-                     float dx = player_pos.x - transform.x;
-                     float dy = player_pos.y - transform.y;
-                     float dist = dx*dx + dy*dy;
-                     
-                     if (dist < min_dist) {
-                         min_dist = dist;
-                         target_player = entity;
-                         target_pos_x = player_pos.x;
-                         target_pos_y = player_pos.y;
-                     }
-                 }
-             }
+            if (!registry.hasComponent<TeamComponent>(entity))
+                continue;
+            const auto& team = registry.getConstComponent<TeamComponent>(entity);
+            if (team.team == TeamComponent::ALLY) {
+                if (registry.hasComponent<transform_component_s>(entity)) {
+                    const auto& player_pos = registry.getConstComponent<transform_component_s>(entity);
+                    float dx = player_pos.x - transform.x;
+                    float dy = player_pos.y - transform.y;
+                    float dist = dx * dx + dy * dy;
+
+                    if (dist < min_dist) {
+                        min_dist = dist;
+                        target_player = entity;
+                        target_pos_x = player_pos.x;
+                        target_pos_y = player_pos.y;
+                    }
+                }
+            }
         }
 
         if (target_player != -1) {
             float dx = target_pos_x - transform.x;
             float dy = target_pos_y - transform.y;
-            float len = std::sqrt(dx*dx + dy*dy);
+            float len = std::sqrt(dx * dx + dy * dy);
             if (len > 0) {
                 float speed = 400.0f;
                 float vx = (dx / len) * speed;

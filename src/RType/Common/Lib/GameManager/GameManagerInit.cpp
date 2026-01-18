@@ -186,11 +186,10 @@ void GameManager::initSpawner(std::shared_ptr<Environment> env, const LevelConfi
         ScriptedSpawnComponent scripted_spawn_comp;
         scripted_spawn_comp.script_path = config.spawn_script;
         ecs.registry.addComponent<ScriptedSpawnComponent>(scripted_spawner, scripted_spawn_comp);
-        
+
         EnemySpawnComponent scripted_base = spawn_comp;
         scripted_base.spawn_boss_via_timer = false;
-        ecs.registry.addComponent<EnemySpawnComponent>(scripted_spawner,
-                                                       scripted_base);
+        ecs.registry.addComponent<EnemySpawnComponent>(scripted_spawner, scripted_base);
         if (lobbyId != 0) {
             ecs.registry.addComponent<LobbyIdComponent>(scripted_spawner, {lobbyId});
         }

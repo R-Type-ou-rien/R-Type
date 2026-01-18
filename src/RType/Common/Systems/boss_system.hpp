@@ -25,7 +25,8 @@ class BossSystem : public ISystem {
 
     void initializeHandlers();
     void registerPatternHandler(const std::string& name, PatternHandler handler);
-    void executePatterns(Registry& registry, system_context context, Entity boss_entity, BossComponent& boss, const std::vector<std::string>& pattern_names);
+    void executePatterns(Registry& registry, system_context context, Entity boss_entity, BossComponent& boss,
+                         const std::vector<std::string>& pattern_names);
     void updateBossState(Registry& registry, system_context context, Entity boss_entity);
     void checkArrival(Registry& registry, Entity boss_entity, BossComponent& boss);
     BossComponent::BossState getNextState(const BossComponent& boss, float health_percent);

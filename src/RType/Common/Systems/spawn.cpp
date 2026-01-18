@@ -23,7 +23,7 @@ void EnemySpawnSystem::loadConfigs(const std::string& enemies, const std::string
     std::string enemies_path = enemies.empty() ? "src/RType/Common/content/config/enemies.cfg" : enemies;
     std::string boss_path = boss.empty() ? "src/RType/Common/content/config/boss.cfg" : boss;
     std::string game_path = game.empty() ? "src/RType/Common/content/config/game.cfg" : game;
-    
+
     if (!_configs_loaded) {
         _enemy_configs = ConfigLoader::loadEnemiesConfig(enemies_path, ConfigLoader::getRequiredEnemyFields());
         _game_config = ConfigLoader::loadGameConfig(game_path, ConfigLoader::getRequiredGameFields());
@@ -283,7 +283,7 @@ bool EnemySpawnSystem::handleBossSpawn(Registry& registry, system_context contex
     if (!registry.getEntities<BossComponent>().empty()) {
         spawn_comp.boss_spawned = true;
         spawn_comp.boss_arrived = true;
-        return true; 
+        return true;
     }
 
     // Vérifier si on a dépassé le temps de spawn du boss
