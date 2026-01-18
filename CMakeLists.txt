@@ -49,6 +49,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(BUILD_SERVER "Build for server instead of client" OFF)
+option(BUILD_SMASH "Build Smash game" OFF)
 
 add_subdirectory(src)
 

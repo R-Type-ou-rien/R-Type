@@ -7,11 +7,15 @@
 #include "./GameManager/GameManager.hpp"
 
 int main() {
-    ClientGameEngine engine(1000, 800);
+    ClientGameEngine engine(1000, 800, "Smash");
     GameManager gameManager;
 
-    engine.setInitFunction([&gameManager](ECS& ecs) { gameManager.init(ecs); });
-    engine.setUserFunction([&gameManager](ECS& ecs) { gameManager.update(ecs); });
+    engine.setInitFunction([&gameManager, &engine](std::shared_ptr<Environment> env, InputManager& inputs) {
+        gameManager.init(engine.getECS());
+    });
+    engine.setLoopFunction([&gameManager, &engine](std::shared_ptr<Environment> env, InputManager& inputs) {
+        gameManager.update(engine.getECS());
+    });
     engine.run();
     return 0;
 }

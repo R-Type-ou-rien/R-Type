@@ -57,6 +57,7 @@ class ClientGameEngine : public GameEngineBase<ClientGameEngine> {
     int init();
     int run();
     explicit ClientGameEngine(std::string ip = "127.0.0.1", std::string window_name = "R-Type Client");
+    ClientGameEngine(int width, int height, std::string window_name);
     ~ClientGameEngine() {}
     void setPredictionLogic(PhysicsSimulationCallback logic) { _physicsLogic = logic; }
 

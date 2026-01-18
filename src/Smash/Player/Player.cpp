@@ -6,24 +6,19 @@
 */
 
 #include "Player.hpp"
-#include "Components/TransformComponent.hpp"
+#include "Components/StandardComponents.hpp"
 #include "Components/Sprite/AnimatedSprite2D.hpp"
-#include "Components/Velocity2DComponent.hpp"
 #include "Components/GravityComponent.hpp"
-#include "Components/BoxCollisionComponent.hpp"
-#include "Components/TagComponent.hpp"
 #include "../Lib/PercentageHealth.hpp"
+#include "../Lib/EjectionSystem.hpp"
 
 
-Player::Player(ECS& ecs, std::pair<float, float> pos, int numberPlayer) : _ecs(ecs), _id(_ecs.registry.createEntity()), _numberPlayer(numberPlayer) {
+Player::Player(ECS& ecs, std::pair<float, float> pos, int numberPlayer) : _ecs(ecs), _id(_ecs.registry.createEntity()), _numberPlayer(numberPlayer), _isJumping(false) {
     ecs.registry.addComponent<transform_component_s>(_id, {});
     ecs.registry.addComponent<Velocity2D>(_id, {0, 0});
     ecs.registry.addComponent<GravityComponent>(_id, {});
     ecs.registry.addComponent<PercentageHealth>(_id, {2, 0, 150});
-    BoxCollisionComponent collision;
-    std::vector<std::string> tag_init;
-    ecs.registry.addComponent<BoxCollisionComponent>(_id, collision);
-    ecs.registry.addComponent<TagComponent>(_id, {tag_init});
+    ecs.registry.addComponent<EjectionComponent>(_id, {{0, 0}, 0, false});
     setPosition(pos);
 }
 
@@ -44,7 +39,7 @@ void Player::setSpriteAnimation(const std::string pathname) {
     if (_ecs._textureManager.is_loaded(pathname)) {
         clipIdle.handle = _ecs._textureManager.get_handle(pathname).value();
     } else {
-        clipIdle.handle = _ecs._textureManager.load_resource(pathname, sf::Texture(pathname));
+        clipIdle.handle = _ecs._textureManager.load(pathname, sf::Texture(pathname));
     }
     animation.animations.emplace("idle", clipIdle);
     //IDLE ANIMATION
@@ -58,7 +53,7 @@ void Player::setSpriteAnimation(const std::string pathname) {
     if (_ecs._textureManager.is_loaded(pathname)) {
         clipJump.handle = _ecs._textureManager.get_handle(pathname).value();
     } else {
-        clipJump.handle = _ecs._textureManager.load_resource(pathname, sf::Texture(pathname));
+        clipJump.handle = _ecs._textureManager.load(pathname, sf::Texture(pathname));
     }
     animation.animations.emplace("jump", clipJump);
     // JUMP ANIMATION
@@ -71,7 +66,7 @@ void Player::setSpriteAnimation(const std::string pathname) {
     if (_ecs._textureManager.is_loaded(pathname)) {
         clipFall.handle = _ecs._textureManager.get_handle(pathname).value();
     } else {
-        clipFall.handle = _ecs._textureManager.load_resource(pathname, sf::Texture(pathname));
+        clipFall.handle = _ecs._textureManager.load(pathname, sf::Texture(pathname));
     }
     animation.animations.emplace("fall", clipFall);
 
@@ -83,7 +78,7 @@ void Player::setSpriteAnimation(const std::string pathname) {
     if (_ecs._textureManager.is_loaded(pathname)) {
         clipRun.handle = _ecs._textureManager.get_handle(pathname).value();
     } else {
-        clipRun.handle = _ecs._textureManager.load_resource(pathname, sf::Texture(pathname));
+        clipRun.handle = _ecs._textureManager.load(pathname, sf::Texture(pathname));
     }
     animation.animations.emplace("run", clipRun);
     // RUN ANIMATION
@@ -99,7 +94,7 @@ void Player::setSpriteAnimation(const std::string pathname) {
     if (_ecs._textureManager.is_loaded(pathname)) {
         clipAttack.handle = _ecs._textureManager.get_handle(pathname).value();
     } else {
-        clipAttack.handle = _ecs._textureManager.load_resource(pathname, sf::Texture(pathname));
+        clipAttack.handle = _ecs._textureManager.load(pathname, sf::Texture(pathname));
     }
     animation.animations.emplace("attack", clipAttack);
     // ATTACK ANIMATION
@@ -115,7 +110,7 @@ void Player::setSpriteAnimation(const std::string pathname) {
     if (_ecs._textureManager.is_loaded(pathname)) {
         clipHeavyAttack.handle = _ecs._textureManager.get_handle(pathname).value();
     } else {
-        clipHeavyAttack.handle = _ecs._textureManager.load_resource(pathname, sf::Texture (pathname));
+        clipHeavyAttack.handle = _ecs._textureManager.load(pathname, sf::Texture (pathname));
     }
     animation.animations.emplace("attack_heavy", clipHeavyAttack);
     // HEAVY ATTACK ANIMATION
@@ -130,7 +125,7 @@ void Player::setSpriteAnimation(const std::string pathname) {
     if (_ecs._textureManager.is_loaded(pathname)) {
         clipSpecialAttack.handle = _ecs._textureManager.get_handle(pathname).value();
     } else {
-        clipSpecialAttack.handle = _ecs._textureManager.load_resource(pathname, sf::Texture (pathname));
+        clipSpecialAttack.handle = _ecs._textureManager.load(pathname, sf::Texture (pathname));
     }
     animation.animations.emplace("special_attack", clipSpecialAttack);
     // SPECIAL ATTACK ANIMATION
@@ -143,7 +138,7 @@ void Player::setSpriteAnimation(const std::string pathname) {
     if (_ecs._textureManager.is_loaded(pathname)) {
         clipBlock.handle = _ecs._textureManager.get_handle(pathname).value();
     } else {
-        clipBlock.handle = _ecs._textureManager.load_resource(pathname, sf::Texture (pathname));
+        clipBlock.handle = _ecs._textureManager.load(pathname, sf::Texture (pathname));
     }
     animation.animations.emplace("block", clipBlock);
     // BLOCK ANIMATION
@@ -156,7 +151,7 @@ void Player::setSpriteAnimation(const std::string pathname) {
     if (_ecs._textureManager.is_loaded(pathname)) {
         clipEjection.handle = _ecs._textureManager.get_handle(pathname).value();
     } else {
-        clipEjection.handle = _ecs._textureManager.load_resource(pathname, sf::Texture (pathname));
+        clipEjection.handle = _ecs._textureManager.load(pathname, sf::Texture (pathname));
     }
     animation.animations.emplace("ejection", clipEjection);
     // EJECTION ANIMATION
@@ -169,7 +164,7 @@ void Player::setSpriteAnimation(const std::string pathname) {
     if (_ecs._textureManager.is_loaded(pathname)) {
         clipTakeDamage.handle = _ecs._textureManager.get_handle(pathname).value();
     } else {    
-        clipTakeDamage.handle = _ecs._textureManager.load_resource(pathname, sf::Texture (pathname));
+        clipTakeDamage.handle = _ecs._textureManager.load(pathname, sf::Texture (pathname));
     }
     animation.animations.emplace("take_damage", clipTakeDamage);
     // TAKE DAMAGE ANIMATION
@@ -201,6 +196,11 @@ void Player::reset() {
     this->resetVelocity();
     this->resetGravity();
     this->resetAnimation();
+    
+    if (_ecs.registry.hasComponent<PercentageHealth>(_id)) {
+        auto& health = _ecs.registry.getComponent<PercentageHealth>(_id);
+        health.percent = 0;
+    }
     return;
 }
 
@@ -233,7 +233,15 @@ void Player::checkMove() {
     GravityComponent& grav = _ecs.registry.getComponent<GravityComponent>(_id);
     AnimatedSprite2D& sprite = _ecs.registry.getComponent<AnimatedSprite2D>(_id);
 
+    if (_ecs.registry.hasComponent<EjectionComponent>(_id)) {
+        if (_ecs.registry.getComponent<EjectionComponent>(_id).duration > 0) {
+            return;
+        }
+    }
+
     if (_numberPlayer == 1) {
+        if (grav.grounded) _isJumping = false;
+
         // Player 1 controls
         if (_ecs.input.isPressed("move_left") && _ecs.input.isPressed("move_right")) {
             vel.vx = 0;
@@ -246,12 +254,24 @@ void Player::checkMove() {
         } else {
             vel.vx = 0;
         }
-        if (_ecs.input.isPressed("jump") && grav.grounded) {
+        if (grav.grounded) {
+             _jumpCount = 0;
+        } else if (_jumpCount == 0) {
+             _jumpCount = 1;
+        }
+
+        if (_ecs.input.isJustPressed("jump") && (grav.grounded || _jumpCount < 2)) {
+            grav.vectorY = 0;
             vel.vy = -350.0f;
+            _isJumping = true;
+            grav.grounded = false;
+            _jumpCount++;
         } else if (grav.grounded) {
-            vel.vy = 0;
+             vel.vy = 0;
         }
     } else if (_numberPlayer == 2) {
+        if (grav.grounded) _isJumping = false;
+
         // Player 2 controls
         if (_ecs.input.isPressed("move_left2") && _ecs.input.isPressed("move_right2")) {
             vel.vx = 0;
@@ -264,8 +284,17 @@ void Player::checkMove() {
         } else {
             vel.vx = 0;
         }
-        if (_ecs.input.isPressed("jump2") && grav.grounded) {
+        if (grav.grounded) {
+             _jumpCount = 0;
+        } else if (_jumpCount == 0) {
+             _jumpCount = 1;
+        }
+        if (_ecs.input.isJustPressed("jump2") && (grav.grounded || _jumpCount < 2)) {
+            grav.vectorY = 0;
             vel.vy = -350.0f;
+            _isJumping = true;
+            grav.grounded = false;
+            _jumpCount++;
         } else if (grav.grounded) {
             vel.vy = 0;
         }
@@ -277,6 +306,13 @@ void Player::updateAnimation() {
     GravityComponent& grav = _ecs.registry.getComponent<GravityComponent>(_id);
     AnimatedSprite2D& sprite = _ecs.registry.getComponent<AnimatedSprite2D>(_id);
     
+    if (_ecs.registry.hasComponent<EjectionComponent>(_id)) {
+        if (_ecs.registry.getComponent<EjectionComponent>(_id).duration > 0) {
+            sprite.playIfNotPlaying("ejection");
+            return;
+        }
+    }
+    
     if (_numberPlayer == 1) {
         if (!grav.grounded) {
             _gravityAccumulate += grav.vectorY;
@@ -287,7 +323,6 @@ void Player::updateAnimation() {
             return;
         }
         if (_ecs.input.isPressed("attack_simple")) {
-            _ecs.registry.getComponent<PercentageHealth>(_id).percent += 5;
             sprite.playIfNotPlaying("attack");
             return;
         } 
@@ -299,11 +334,11 @@ void Player::updateAnimation() {
             sprite.playIfNotPlaying("special_attack");
             return;
         }
-        else if (_ecs.input.isPressed("block")) {
+        if (_ecs.input.isPressed("block")) {
             sprite.playIfNotPlaying("block");
             return;
         }
-        if (!grav.grounded && vel.vy < 0 && vel.vy * -1 / 2 > _gravityAccumulate) {
+        if (_isJumping && !grav.grounded && vel.vy < 0 && vel.vy * -1 / 2 > _gravityAccumulate) {
             sprite.playIfNotPlaying("jump");
         } else if (!grav.grounded) {
             sprite.playIfNotPlaying("fall");
@@ -339,7 +374,7 @@ void Player::updateAnimation() {
             sprite.playIfNotPlaying("block");
             return;
         }
-        if (!grav.grounded && vel.vy < 0 && vel.vy * -1 / 2 > _gravityAccumulate) {
+        if (_isJumping && !grav.grounded && vel.vy < 0 && vel.vy * -1 / 2 > _gravityAccumulate) {
             sprite.playIfNotPlaying("jump");
         } else if (!grav.grounded) {
             sprite.playIfNotPlaying("fall");
@@ -373,4 +408,18 @@ float Player::getCurrentHealthPercentage() {
 
 Entity Player::getId() const {
     return _id;
+}
+
+void Player::updateCooldown(float dt) {
+    if (_projectileCooldown > 0) {
+        _projectileCooldown -= dt;
+    }
+}
+
+bool Player::canShoot() {
+    return _projectileCooldown <= 0;
+}
+
+void Player::resetCooldown() {
+    _projectileCooldown = 0.4f;
 }

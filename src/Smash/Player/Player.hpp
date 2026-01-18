@@ -31,6 +31,10 @@ class Player {
 
         Entity getId() const;
         float getCurrentHealthPercentage();
+        void updateCooldown(float dt);
+        bool canShoot();
+        void resetCooldown();
+
     private:
         int _numberPlayer;
         std::pair<float, float> _startPos;
@@ -38,4 +42,7 @@ class Player {
         ECS& _ecs;
         Entity _id;
         bool _playable = true;
+        bool _isJumping = false;
+        int _jumpCount = 0;
+        float _projectileCooldown = 0.0f;
 };

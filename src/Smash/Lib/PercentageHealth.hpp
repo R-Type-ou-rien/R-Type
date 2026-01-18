@@ -11,6 +11,7 @@
 
 struct PercentageHealth
 {
+    static constexpr auto name = "PercentageHealth";
     std::size_t totalLifeRespawn;
     float percent = 0;
     float fatalLimite = 200;
