@@ -23,7 +23,7 @@ Velocity2D ShooterSystem::get_projectile_speed(ShooterComponent::ProjectileType 
     double speed = 0;
 
     if (team == TeamComponent::ENEMY) {
-        speed = 300;  // Slower enemy projectiles (player speed is 350)
+        speed = 300;
     } else {
         switch (type) {
             case ShooterComponent::NORMAL:
@@ -101,38 +101,11 @@ void ShooterSystem::create_projectile_with_pattern(Registry& registry, Entity ow
 
     registry.addComponent<DamageOnCollision>(id, {projectile_damage});
 
-    // sprite2D_component_s sprite_info;
-    // sprite_info.animation_speed = 0;
-    // sprite_info.current_animation_frame = 0;
-    // sprite_info.z_index = 5;  // Au-dessus des autres sprites
-
-    // if (team == TeamComponent::ENEMY) {
-    //     handle_t<TextureAsset> handle =
-    //         context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet30.gif",
-    //                                      TextureAsset("src/RType/Common/content/sprites/r-typesheet30.gif"));
-    //     sprite_info.handle = handle;
-    //     sprite_info.dimension = {200, 230, 12, 12};
-    // } else {
-    //     handle_t<TextureAsset> handle =
-    //         context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet1.gif",
-    //                                      TextureAsset("src/RType/Common/content/sprites/r-typesheet1.gif"));
-    //     sprite_info.handle = handle;
-
-    //     switch (type) {
-    //         case ShooterComponent::NORMAL:
-    //         default:
-    //             sprite_info.dimension = {232, 103, 32, 14};
-    //             break;
-    //     }
-    // }
-
-    // registry.addComponent<sprite2D_component_s>(id, sprite_info);
-
     AnimatedSprite2D animation;
     AnimationClip clip;
 
     clip.frameDuration = 0;
-    animation.layer = RenderLayer::Foreground;  // Au-dessus des autres sprites
+    animation.layer = RenderLayer::Foreground;
 
     if (team == TeamComponent::ENEMY) {
         handle_t<TextureAsset> handle =
@@ -141,7 +114,6 @@ void ShooterSystem::create_projectile_with_pattern(Registry& registry, Entity ow
         clip.handle = handle;
         clip.frames.emplace_back(200, 230, 12, 12);
     } else {
-        // Check if owner has ProjectileConfigComponent for custom sprite
         std::string sprite_path = "src/RType/Common/content/sprites/r-typesheet1.gif";
         float sprite_x = 232;
         float sprite_y = 103;
@@ -183,18 +155,9 @@ void ShooterSystem::create_projectile_with_pattern(Registry& registry, Entity ow
         collision.tagCollision.push_back("PLAYER");
     }
 
-    if (team == TeamComponent::ALLY) {
-        AudioSourceComponent audio;
-        audio.sound_name = "shoot";
-        audio.play_on_start = true;
-        audio.loop = false;
-        audio.destroy_entity_on_finish = false;
-        registry.addComponent<AudioSourceComponent>(id, audio);
-    }
 
     registry.addComponent<NetworkIdentity>(id, {static_cast<uint32_t>(id), 0});
 
-    // Inherit LobbyIdComponent from owner
     uint32_t owner_lobby_id = engine::utils::getLobbyId(registry, owner_entity);
     if (owner_lobby_id != 0) {
         registry.addComponent<LobbyIdComponent>(id, {owner_lobby_id});
@@ -245,7 +208,6 @@ void ShooterSystem::create_charged_projectile(Registry& registry, Entity owner_e
         registry.addComponent<PenetratingProjectile>(id, {3, 0});
     }
 
-    // Get charged projectile sprite from config or use defaults
     std::string sprite_path = "src/RType/Common/content/sprites/r-typesheet1.gif";
     float sprite_x = 263, sprite_y = 120;
     float base_w = 64, base_h = 56;
@@ -268,7 +230,6 @@ void ShooterSystem::create_charged_projectile(Registry& registry, Entity owner_e
     clip.frameDuration = 0.1f;
     clip.mode = AnimationMode::Loop;
 
-    // 4 animation frames for charged projectile
     if (charge_ratio >= 0.8f) {
         clip.frames.emplace_back(sprite_x, sprite_y, base_w, base_h);
         clip.frames.emplace_back(sprite_x + base_w, sprite_y, base_w, base_h);
@@ -302,19 +263,8 @@ void ShooterSystem::create_charged_projectile(Registry& registry, Entity owner_e
         collision.tagCollision.push_back("PLAYER");
     }
 
-    if (team == TeamComponent::ALLY) {
-        AudioSourceComponent audio;
-        audio.sound_name = "shoot";
-        audio.play_on_start = true;
-        audio.loop = false;
-        audio.destroy_entity_on_finish = false;
-        registry.addComponent<AudioSourceComponent>(id, audio);
-    }
-
-    // Add NetworkIdentity for network replication
     registry.addComponent<NetworkIdentity>(id, {static_cast<uint32_t>(id), 0});
 
-    // Inherit LobbyIdComponent from owner
     uint32_t owner_lobby_id = engine::utils::getLobbyId(registry, owner_entity);
     if (owner_lobby_id != 0) {
         registry.addComponent<LobbyIdComponent>(id, {owner_lobby_id});
@@ -383,18 +333,11 @@ void ShooterSystem::update(Registry& registry, system_context context) {
 
                 if (shooter.last_shot >= shooter.fire_rate) {
                     int proj_damage = shooter.projectile_damage;
-                    // 3 shot types based on charge level:
-                    // 1. Normal shot: charge < 50% (< 1.0s)
-                    // 2. Medium charged shot: charge >= 50% (>= 1.0s, yellow bar)
-                    // 3. Max charged shot: charge >= 100% (>= 2.0s, full red bar)
                     if (charged.charge_time >= charged.max_charge_time) {
-                        // Max charged shot (100%) - full power
                         create_charged_projectile(registry, id, team.team, pos, context, 1.0f);
                     } else if (charged.charge_time >= charged.medium_charge) {
-                        // Medium charged shot (50%) - half power
                         create_charged_projectile(registry, id, team.team, pos, context, 0.5f);
                     } else {
-                        // Normal shot - no charge
                         create_projectile(registry, id, shooter.type, team.team, pos, context, proj_damage,
                                           shooter.projectile_scale);
                     }
@@ -413,7 +356,6 @@ void ShooterSystem::update(Registry& registry, system_context context) {
         const transform_component_s& pos = registry.getConstComponent<transform_component_s>(id);
         const TeamComponent& team = registry.getConstComponent<TeamComponent>(id);
 
-        // Update pod laser cooldown
         if (shooter.use_pod_laser && team.team == TeamComponent::ALLY) {
             if (registry.hasComponent<PlayerPodComponent>(id)) {
                 auto& player_pod = registry.getComponent<PlayerPodComponent>(id);
@@ -429,7 +371,6 @@ void ShooterSystem::update(Registry& registry, system_context context) {
             if (shooter.use_pod_laser && team.team == TeamComponent::ALLY) {
                 if (registry.hasComponent<PlayerPodComponent>(id)) {
                     auto& player_pod = registry.getComponent<PlayerPodComponent>(id);
-                    // Only fire if pod laser cooldown has expired
                     if (player_pod.has_pod && player_pod.pod_attached && player_pod.pod_entity != -1 &&
                         player_pod.pod_laser_cooldown <= 0.0f) {
                         if (registry.hasComponent<transform_component_s>(player_pod.pod_entity)) {
@@ -515,7 +456,6 @@ void ShooterSystem::create_pod_circular_laser(Registry& registry, Entity owner_e
 
     registry.addComponent<NetworkIdentity>(laser_id, {static_cast<uint32_t>(laser_id), 0});
 
-    // Inherit LobbyIdComponent from owner
     uint32_t owner_lobby_id = engine::utils::getLobbyId(registry, owner_entity);
     if (owner_lobby_id != 0) {
         registry.addComponent<LobbyIdComponent>(laser_id, {owner_lobby_id});

@@ -103,7 +103,11 @@ void WallCollisionSystem::handlePlayerWallCollision(Registry& registry, Entity p
     }
 
     auto& health = registry.getComponent<HealthComponent>(player);
-    health.current_hp = 0;  // Instant kill
+
+    if (health.last_damage_time <= 0) {
+        health.current_hp -= 1;
+        health.last_damage_time = health.invincibility_duration;
+    }
 }
 
 void WallCollisionSystem::handleProjectileWallCollision(Registry& registry, Entity projectile, Entity wall) {
