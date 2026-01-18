@@ -115,5 +115,5 @@ TEST_F(DamageTest, MultipleHitsAccumulateDamage) {
     }
 
     auto& hp = registry.getComponent<HealthComponent>(victim);
-    EXPECT_EQ(hp.current_hp, 110) << "200 HP - (3 * 30 Damage) = 110 HP";
+    EXPECT_EQ(hp.current_hp, 110) << "2001 HP - (3 * 30 Damage) = 110 HP";
 }
