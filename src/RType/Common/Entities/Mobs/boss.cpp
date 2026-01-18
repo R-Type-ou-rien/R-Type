@@ -46,6 +46,11 @@ BossComponent createBossComponent(const EntityConfig& config, float target_x) {
     BossComponent boss_comp;
     boss_comp.has_arrived = false;
     boss_comp.target_x = target_x;
+    boss_comp.boss_type = config.boss_type.value_or("CLASSIC");
+    boss_comp.phase1_patterns = config.phase1_patterns;
+    boss_comp.phase2_patterns = config.phase2_patterns;
+    boss_comp.phase3_patterns = config.phase3_patterns;
+    boss_comp.enraged_patterns = config.enraged_patterns;
     boss_comp.max_phases = config.max_phases.value_or(3);
     boss_comp.attack_pattern_interval = config.attack_pattern_interval.value_or(3.0f);
     boss_comp.oscillation_amplitude = config.oscillation_amplitude.value_or(100.0f);
@@ -249,7 +254,7 @@ Entity BossSpawner::spawn(Registry& registry, system_context context, float x, f
     registry.addComponent<transform_component_s>(id, {dims.start_x, dims.start_y});
     registry.addComponent<Velocity2D>(id, {-config.speed.value(), 0.0f});
 
-    registry.addComponent<HealthComponent>(id, {config.hp.value(), config.hp.value(), 0.0f, 2.0f});
+    registry.addComponent<HealthComponent>(id, {config.hp.value(), config.hp.value(), 0.0f, 0.0f});
     registry.addComponent<TeamComponent>(id, {TeamComponent::ENEMY});
     registry.addComponent<DamageOnCollision>(id, {config.damage.value()});
     registry.addComponent<ScoreValueComponent>(id, {config.score_value.value()});
@@ -260,7 +265,6 @@ Entity BossSpawner::spawn(Registry& registry, system_context context, float x, f
     handle_t<TextureAsset> handle =
         context.texture_manager.load(config.sprite_path.value(), TextureAsset(config.sprite_path.value()));
 
-    // registry.addComponent<sprite2D_component_s>(id, createBossSprite(config, handle));
     registry.addComponent<AnimatedSprite2D>(id, createBossAnimatedSprite(config, handle));
 
     const int num_frames = config.animation_frames.value_or(1);

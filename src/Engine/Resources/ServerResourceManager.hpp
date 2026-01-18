@@ -49,7 +49,7 @@ class ServerResourceManager : public ResourceManagerBase<ServerResourceManager<R
         if constexpr (std::is_same<ResourceType, SoundAsset>::value) {
             packet.type = PacketResourceType::SOUND;
         }
-        
+
         if constexpr (std::is_same<ResourceType, MusicAsset>::value) {
             packet.type = PacketResourceType::MUSIC;
         }
