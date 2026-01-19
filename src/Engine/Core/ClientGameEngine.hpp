@@ -111,7 +111,7 @@ class ClientGameEngine : public GameEngineBase<ClientGameEngine> {
     void handleEvent();
     void processNetworkEvents();
     void applyLocalInputs(Entity playerEntity);
-    void reconcile(Entity playerEntity, const transform_component_s& serverState, uint32_t serverTick);
+    void reconcile(Entity playerEntity, const TransformComponent& serverState, uint32_t serverTick);
     void processLobbyEvents(std::map<engine::core::NetworkEngine::EventType,
                                      std::vector<network::message<engine::core::NetworkEngine::EventType>>>& pending);
 

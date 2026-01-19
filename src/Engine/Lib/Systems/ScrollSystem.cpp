@@ -14,12 +14,12 @@ void ScrollSystem::update(Registry& registry, system_context context) {
     for (size_t i = 0; i < entities.size(); ++i) {
         Entity entity = entities[i];
 
-        if (registry.hasComponent<transform_component_s>(entity)) {
+        if (registry.hasComponent<TransformComponent>(entity)) {
             auto& scroll = scrolls[i];
             if (scroll.is_paused)
                 continue;
 
-            auto& transform = registry.getComponent<transform_component_s>(entity);
+            auto& transform = registry.getComponent<TransformComponent>(entity);
             transform.x += scroll.scroll_speed_x * context.dt;
             transform.y += scroll.scroll_speed_y * context.dt;
         }

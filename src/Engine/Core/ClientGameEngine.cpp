@@ -66,8 +66,8 @@ int ClientGameEngine::init() {
 
     registerNetworkComponent<Sprite2D>();
     registerNetworkComponent<AnimatedSprite2D>();
-    registerNetworkComponent<sprite2D_component_s>();
-    registerNetworkComponent<transform_component_s>();
+    registerNetworkComponent<Sprite2DComponent>();
+    registerNetworkComponent<TransformComponent>();
     registerNetworkComponent<Velocity2D>();
     registerNetworkComponent<BoxCollisionComponent>();
     registerNetworkComponent<TagComponent>();
@@ -216,8 +216,8 @@ void ClientGameEngine::processNetworkEvents() {
             if (_localPlayerEntity.has_value() && packet.entity_guid == _localPlayerEntity.value()) {
                 Entity localId = getLocalPlayerEntity().value();
                 if (_ecs.registry.hasComponent<PredictionComponent>(localId) &&
-                    _ecs.registry.hasComponent<transform_component_s>(localId)) {
-                    auto serverPos = _ecs.registry.getComponent<transform_component_s>(localId);
+                    _ecs.registry.hasComponent<TransformComponent>(localId)) {
+                    auto serverPos = _ecs.registry.getComponent<TransformComponent>(localId);
                     _predictionSystem->onServerUpdate(_ecs.registry, localId, serverPos, msg.header.tick);
                 }
             }

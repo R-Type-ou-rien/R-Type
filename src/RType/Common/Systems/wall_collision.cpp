@@ -20,7 +20,7 @@ void WallCollisionSystem::update(Registry& registry, system_context context) {
     auto& players = registry.getEntities<TagComponent>();
 
     for (auto wall_entity : walls) {
-        if (!registry.hasComponent<transform_component_s>(wall_entity))
+        if (!registry.hasComponent<TransformComponent>(wall_entity))
             continue;
         if (!registry.hasComponent<AnimatedSprite2D>(wall_entity))
             continue;
@@ -28,7 +28,7 @@ void WallCollisionSystem::update(Registry& registry, system_context context) {
         uint32_t wall_lobby_id = engine::utils::getLobbyId(registry, wall_entity);
 
         const auto& wall = registry.getConstComponent<WallComponent>(wall_entity);
-        const auto& wall_transform = registry.getConstComponent<transform_component_s>(wall_entity);
+        const auto& wall_transform = registry.getConstComponent<TransformComponent>(wall_entity);
         const auto& wall_sprite = registry.getConstComponent<AnimatedSprite2D>(wall_entity);
 
         float wall_width = wall.width > 0 ? wall.width
@@ -52,7 +52,7 @@ void WallCollisionSystem::update(Registry& registry, system_context context) {
 
             if (entity == wall_entity)
                 continue;
-            if (!registry.hasComponent<transform_component_s>(entity))
+            if (!registry.hasComponent<TransformComponent>(entity))
                 continue;
             if (!registry.hasComponent<AnimatedSprite2D>(entity))
                 continue;
@@ -75,7 +75,7 @@ void WallCollisionSystem::update(Registry& registry, system_context context) {
             if (!is_player && !is_projectile)
                 continue;
 
-            auto& entity_transform = registry.getComponent<transform_component_s>(entity);
+            auto& entity_transform = registry.getComponent<TransformComponent>(entity);
             const auto& entity_sprite = registry.getConstComponent<AnimatedSprite2D>(entity);
 
             float entity_width = entity_sprite.animations.at(entity_sprite.currentAnimation)

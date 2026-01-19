@@ -16,10 +16,10 @@ void PatternSystem::update(Registry& registry, system_context context) {
     float tolerance = 5.0f;
 
     for (auto entity : entities) {
-        if (!registry.hasComponent<transform_component_s>(entity))
+        if (!registry.hasComponent<TransformComponent>(entity))
             continue;
 
-        auto& transform = registry.getComponent<transform_component_s>(entity);
+        auto& transform = registry.getComponent<TransformComponent>(entity);
         auto& path = registry.getComponent<PatternComponent>(entity);
 
         if (!path.is_active)

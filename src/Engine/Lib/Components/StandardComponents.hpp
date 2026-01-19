@@ -56,7 +56,7 @@ struct ResourceComponent {
     std::map<std::string, std::function<void()>> empty_effects;
 };
 
-struct transform_component_s {
+struct TransformComponent {
     static constexpr auto name = "TransformComponent";
     float x;
     float y;
@@ -85,7 +85,7 @@ struct BoxCollisionComponent {
     std::function<void(Registry& registry, system_context context, Entity current_entity)> callbackOnCollide;
 };
 
-struct sprite2D_component_s {
+struct Sprite2DComponent {
     static constexpr auto name = "Sprite2DComponent";
     handle_t<TextureAsset> handle;
     rect dimension = {0.0f, 0.0f, 0.0f, 0.0f};

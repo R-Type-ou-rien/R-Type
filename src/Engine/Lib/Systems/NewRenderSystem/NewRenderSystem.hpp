@@ -30,10 +30,10 @@ class NewRenderSystem : public ISystem {
         sf::Sprite sprite;
     };
 
-    void drawSpriteEntity(const transform_component_s& transform, const Sprite2D& spriteData,
+    void drawSpriteEntity(const TransformComponent& transform, const Sprite2D& spriteData,
                           const system_context& context, std::vector<DrawCmd>& out, std::uint64_t& order);
 
-    void drawAnimatedSpriteEntity(const transform_component_s& transform, const AnimatedSprite2D& spriteData,
+    void drawAnimatedSpriteEntity(const TransformComponent& transform, const AnimatedSprite2D& spriteData,
                                   const system_context& context, std::vector<DrawCmd>& out, std::uint64_t& order);
 
     void drawText(const TextComponent& textComp, const system_context& context);

@@ -34,7 +34,7 @@ void GravitySystem::update(Registry& registry, system_context context) {
 void GravitySystem::checkGrounded(Registry& registry, Entity entity, system_context context) {
     auto& gravity = registry.getComponent<GravityComponent>(entity);
     auto& velocity = registry.getComponent<Velocity2D>(entity);
-    auto& transform = registry.getComponent<transform_component_s>(entity);
+    auto& transform = registry.getComponent<TransformComponent>(entity);
     auto& ground = registry.getEntities<GroundComponent>();
 
     for (Entity groundEntity : ground) {

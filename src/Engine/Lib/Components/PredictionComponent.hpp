@@ -18,7 +18,7 @@ struct InputSnapshot {
 struct SimulationStep {
     uint32_t tick;
     InputSnapshot inputs;
-    transform_component_s state;
+    TransformComponent state;
     float dt;
 };
 

@@ -13,15 +13,15 @@
 #include "../../../RType/Common/Systems/health.hpp"
 
 void RenderSystem::update(Registry& registry, system_context context) {
-    auto& positions = registry.getView<transform_component_s>();
-    auto& sprites = registry.getView<sprite2D_component_s>();
-    const auto& entityIds = registry.getEntities<sprite2D_component_s>();
+    auto& positions = registry.getView<TransformComponent>();
+    auto& sprites = registry.getView<Sprite2DComponent>();
+    const auto& entityIds = registry.getEntities<Sprite2DComponent>();
     for (Entity entity : entityIds) {
-        if (registry.hasComponent<transform_component_s>(entity)) {
-            if (!registry.hasComponent<sprite2D_component_s>(entity))
+        if (registry.hasComponent<TransformComponent>(entity)) {
+            if (!registry.hasComponent<Sprite2DComponent>(entity))
                 continue;
-            const transform_component_s& transform = registry.getConstComponent<transform_component_s>(entity);
-            sprite2D_component_s& spriteData = registry.getComponent<sprite2D_component_s>(entity);
+            const TransformComponent& transform = registry.getConstComponent<TransformComponent>(entity);
+            Sprite2DComponent& spriteData = registry.getComponent<Sprite2DComponent>(entity);
             drawEntity(entity, transform, spriteData, registry, context);
         }
     }
@@ -55,7 +55,7 @@ void RenderSystem::drawText(const TextComponent& textComp, const system_context&
     context.window.draw(text);
 }
 
-void RenderSystem::drawEntity(Entity entity, const transform_component_s& transform, sprite2D_component_s& spriteData,
+void RenderSystem::drawEntity(Entity entity, const TransformComponent& transform, Sprite2DComponent& spriteData,
                               Registry& registry, const system_context& context) {
     if (!context.texture_manager.has(spriteData.handle)) {
         return;

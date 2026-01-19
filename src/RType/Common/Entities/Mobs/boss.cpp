@@ -112,8 +112,8 @@ AnimatedSprite2D createBossAnimatedSprite(const EntityConfig& config, handle_t<T
     return animation;
 }
 
-sprite2D_component_s createBossSprite(const EntityConfig& config, handle_t<TextureAsset> handle) {
-    sprite2D_component_s sprite;
+Sprite2DComponent createBossSprite(const EntityConfig& config, handle_t<TextureAsset> handle) {
+    Sprite2DComponent sprite;
     sprite.handle = handle;
     sprite.dimension = {static_cast<float>(config.sprite_x.value()), static_cast<float>(config.sprite_y.value()),
                         static_cast<float>(config.sprite_w.value()), static_cast<float>(config.sprite_h.value())};
@@ -165,8 +165,8 @@ AnimatedSprite2D createTailAnimatedSprite(handle_t<TextureAsset> handle, const B
     return animation;
 }
 
-sprite2D_component_s createTailSprite(handle_t<TextureAsset> handle, const BossTailConfig& tail_config) {
-    sprite2D_component_s sprite;
+Sprite2DComponent createTailSprite(handle_t<TextureAsset> handle, const BossTailConfig& tail_config) {
+    Sprite2DComponent sprite;
     sprite.handle = handle;
     sprite.dimension = {tail_config.sprite_x, tail_config.sprite_y, tail_config.sprite_width,
                         tail_config.sprite_height};
@@ -211,7 +211,7 @@ void spawnTailSegments(Registry& registry, system_context& context, Entity boss_
         const float segment_x = dims.start_x - (i + 1) * segment_spacing;
         const float segment_y = dims.start_y + (dims.height * tail_config.height_multiplier);
 
-        registry.addComponent<transform_component_s>(segment_id, {segment_x, segment_y});
+        registry.addComponent<TransformComponent>(segment_id, {segment_x, segment_y});
         registry.addComponent<Velocity2D>(segment_id, {-config.speed.value(), 0.0f});
 
         registry.addComponent<BossTailSegmentComponent>(
@@ -226,9 +226,9 @@ void spawnTailSegments(Registry& registry, system_context& context, Entity boss_
 
         registry.addComponent<BoxCollisionComponent>(segment_id, createBossCollision());
         registry.addComponent<Sprite2D>(segment_id, createTailStaticSprite(tail_handle, tail_config));
-        // registry.addComponent<sprite2D_component_s>(segment_id, createTailSprite(tail_handle, tail_config));
+        // registry.addComponent<Sprite2DComponent>(segment_id, createTailSprite(tail_handle, tail_config));
 
-        auto& segment_transform = registry.getComponent<transform_component_s>(segment_id);
+        auto& segment_transform = registry.getComponent<TransformComponent>(segment_id);
         segment_transform.scale_x = tail_scale;
         segment_transform.scale_y = tail_scale;
 
@@ -251,7 +251,7 @@ Entity BossSpawner::spawn(Registry& registry, system_context context, float x, f
     const BossDimensions dims = BossDimensions::calculate(config, 1920.0f, 1080.0f);
 #endif
 
-    registry.addComponent<transform_component_s>(id, {dims.start_x, dims.start_y});
+    registry.addComponent<TransformComponent>(id, {dims.start_x, dims.start_y});
     registry.addComponent<Velocity2D>(id, {-config.speed.value(), 0.0f});
 
     registry.addComponent<HealthComponent>(id, {config.hp.value(), config.hp.value(), 0.0f, 0.0f});
@@ -274,7 +274,7 @@ Entity BossSpawner::spawn(Registry& registry, system_context context, float x, f
     }
 
     if (config.scale.has_value()) {
-        auto& transform = registry.getComponent<transform_component_s>(id);
+        auto& transform = registry.getComponent<TransformComponent>(id);
         transform.scale_x = config.scale.value();
         transform.scale_y = config.scale.value();
     }

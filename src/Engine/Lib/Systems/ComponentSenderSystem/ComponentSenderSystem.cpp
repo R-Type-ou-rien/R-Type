@@ -4,7 +4,7 @@
 #include "Network.hpp"
 #include "registry.hpp"
 #include "Components/NetworkComponents.hpp"   // For NetworkIdentity and ComponentPacket
-#include "Components/StandardComponents.hpp"  // For sprite2D_component_s, transform_component_s
+#include "Components/StandardComponents.hpp"  // For Sprite2DComponent, TransformComponent
 #include "ServerGameEngine.hpp"               // For LobbyManager
 #include <iostream>
 #include <variant>

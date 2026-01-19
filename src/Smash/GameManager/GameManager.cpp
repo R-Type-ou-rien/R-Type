@@ -126,13 +126,13 @@ void GameManager::handleSpecialAttack(ECS& ecs, Player& attacker, const std::str
         attackerSprite.playIfNotPlaying("special_attack");
 
         Entity projectile = ecs.registry.createEntity();
-        auto& attackerPos = ecs.registry.getComponent<transform_component_s>(attacker.getId());
+        auto& attackerPos = ecs.registry.getComponent<TransformComponent>(attacker.getId());
 
         bool facingLeft = attackerSprite.flipX;
         float direction = facingLeft ? -1.0f : 1.0f;
         float offsetX = facingLeft ? -50.0f : 50.0f;
 
-        ecs.registry.addComponent<transform_component_s>(projectile, {attackerPos.x + offsetX, attackerPos.y});
+        ecs.registry.addComponent<TransformComponent>(projectile, {attackerPos.x + offsetX, attackerPos.y});
         ecs.registry.addComponent<Velocity2D>(projectile, {direction * 300.0f, 0});
         ecs.registry.addComponent<SmashProjectileComponent>(projectile,
                                                             {attacker.getId(), 3.0f, 2.0f});  // 3 dmg, 2s lifetime
@@ -163,11 +163,11 @@ void GameManager::updateProjectiles(ECS& ecs, float dt) {
     for (size_t i = 0; i < projectiles.size(); ++i) {
         Entity entityId = projectiles[i];
         if (!ecs.registry.hasComponent<SmashProjectileComponent>(entityId) ||
-            !ecs.registry.hasComponent<transform_component_s>(entityId))
+            !ecs.registry.hasComponent<TransformComponent>(entityId))
             continue;
 
         auto& proj = ecs.registry.getComponent<SmashProjectileComponent>(entityId);
-        auto& pos = ecs.registry.getComponent<transform_component_s>(entityId);
+        auto& pos = ecs.registry.getComponent<TransformComponent>(entityId);
 
         proj.lifetime -= dt;
         if (proj.lifetime <= 0) {
@@ -177,7 +177,7 @@ void GameManager::updateProjectiles(ECS& ecs, float dt) {
 
         Entity p1Id = _player1->getId();
         if (proj.ownerId != p1Id) {
-            auto& p1Pos = ecs.registry.getComponent<transform_component_s>(p1Id);
+            auto& p1Pos = ecs.registry.getComponent<TransformComponent>(p1Id);
             if (std::abs(pos.x - p1Pos.x) < 40 && std::abs(pos.y - p1Pos.y) < 40) {
                 bool isBlocking = false;
                 if (ecs.registry.hasComponent<AnimatedSprite2D>(p1Id)) {
@@ -211,7 +211,7 @@ void GameManager::updateProjectiles(ECS& ecs, float dt) {
 
         Entity p2Id = _player2->getId();
         if (proj.ownerId != p2Id) {
-            auto& p2Pos = ecs.registry.getComponent<transform_component_s>(p2Id);
+            auto& p2Pos = ecs.registry.getComponent<TransformComponent>(p2Id);
             if (std::abs(pos.x - p2Pos.x) < 40 && std::abs(pos.y - p2Pos.y) < 40) {
                 bool isBlocking = false;
                 if (ecs.registry.hasComponent<AnimatedSprite2D>(p2Id)) {
@@ -251,8 +251,8 @@ void GameManager::updateProjectiles(ECS& ecs, float dt) {
 void GameManager::handleCombat(ECS& ecs, Player& attacker, Player& victim, const std::string& attackInput,
                                const std::string& attackName, int damage, float forceBase, float forceScaling) {
     if (ecs.input.isJustPressed(attackInput)) {
-        auto& posAttacker = ecs.registry.getComponent<transform_component_s>(attacker.getId());
-        auto& posVictim = ecs.registry.getComponent<transform_component_s>(victim.getId());
+        auto& posAttacker = ecs.registry.getComponent<TransformComponent>(attacker.getId());
+        auto& posVictim = ecs.registry.getComponent<TransformComponent>(victim.getId());
 
         bool collision =
             (std::abs(posAttacker.x - posVictim.x) < 50.0f) && (std::abs(posAttacker.y - posVictim.y) < 50.0f);
@@ -309,7 +309,7 @@ void GameManager::setBackground(ECS& ecs) {
         sprite.handle = ecs._textureManager.load(pathname, sf::Texture(pathname));
     }
 
-    ecs.registry.addComponent<transform_component_s>(background, {500.f, 400.f});
+    ecs.registry.addComponent<TransformComponent>(background, {500.f, 400.f});
     ecs.registry.addComponent<Sprite2D>(background, sprite);
     return;
 }
@@ -327,7 +327,7 @@ void GameManager::setPlatform(ECS& ecs) {
         sprite.handle = ecs._textureManager.load(pathname, sf::Texture(pathname));
     }
 
-    ecs.registry.addComponent<transform_component_s>(platform, {500.f, 600.f});
+    ecs.registry.addComponent<TransformComponent>(platform, {500.f, 600.f});
     ecs.registry.addComponent<GroundComponent>(platform, {{250, 550, 500, 100}, true});
     ecs.registry.addComponent<Sprite2D>(platform, sprite);
     return;

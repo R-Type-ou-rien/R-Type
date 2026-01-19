@@ -16,7 +16,7 @@
 
 Player::Player(ECS& ecs, std::pair<float, float> pos, int numberPlayer)
     : _ecs(ecs), _id(_ecs.registry.createEntity()), _numberPlayer(numberPlayer), _isJumping(false) {
-    ecs.registry.addComponent<transform_component_s>(_id, {});
+    ecs.registry.addComponent<TransformComponent>(_id, {});
     ecs.registry.addComponent<Velocity2D>(_id, {0, 0});
     ecs.registry.addComponent<GravityComponent>(_id, {});
     ecs.registry.addComponent<PercentageHealth>(_id, {2, 0, 150});
@@ -185,7 +185,7 @@ void Player::flipXSprite(bool flip) {
 // SPRITE ANIMATION
 
 void Player::setPosition(std::pair<float, float> pos) {
-    transform_component_s& comp = _ecs.registry.getComponent<transform_component_s>(_id);
+    TransformComponent& comp = _ecs.registry.getComponent<TransformComponent>(_id);
 
     _startPos = pos;
     comp.x = pos.first;
@@ -389,7 +389,7 @@ void Player::updateAnimation() {
 }
 
 bool Player::OutOfMap(float xMin, float yMin, float xMax, float yMax) {
-    transform_component_s& comp = _ecs.registry.getComponent<transform_component_s>(_id);
+    TransformComponent& comp = _ecs.registry.getComponent<TransformComponent>(_id);
 
     if (comp.x < xMin || comp.x > xMax || comp.y < yMin || comp.y > yMax) {
         return true;

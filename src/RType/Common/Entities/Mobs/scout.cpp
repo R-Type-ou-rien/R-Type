@@ -14,7 +14,7 @@
 Entity ScoutSpawner::spawn(Registry& registry, system_context context, float x, float y, const EntityConfig& config) {
     Entity id = registry.createEntity();
 
-    registry.addComponent<transform_component_s>(id, {x, y});
+    registry.addComponent<TransformComponent>(id, {x, y});
     registry.addComponent<Velocity2D>(id, {-config.speed.value(), 0.0f});
     registry.addComponent<HealthComponent>(id, MobComponentFactory::createHealth(config));
     registry.addComponent<TeamComponent>(id, {TeamComponent::ENEMY});
@@ -23,7 +23,7 @@ Entity ScoutSpawner::spawn(Registry& registry, system_context context, float x, 
 
     handle_t<TextureAsset> handle =
         context.texture_manager.load(config.sprite_path.value(), TextureAsset(config.sprite_path.value()));
-    // registry.addComponent<sprite2D_component_s>(id, MobComponentFactory::createSprite(config, handle));
+    // registry.addComponent<Sprite2DComponent>(id, MobComponentFactory::createSprite(config, handle));
     registry.addComponent<AnimatedSprite2D>(id, MobComponentFactory::createAnimatedSprite(config, handle));
 
     auto [num_frames, anim_speed] = MobComponentFactory::getAnimationParams(config);

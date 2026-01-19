@@ -128,9 +128,9 @@ class MobComponentFactory {
         return animation;
     }
 
-    static sprite2D_component_s createSprite(const EntityConfig& config, handle_t<TextureAsset> handle,
-                                             int z_index = MobDefaults::Sprite::Z_INDEX) {
-        sprite2D_component_s sprite;
+    static Sprite2DComponent createSprite(const EntityConfig& config, handle_t<TextureAsset> handle,
+                                          int z_index = MobDefaults::Sprite::Z_INDEX) {
+        Sprite2DComponent sprite;
         sprite.handle = handle;
         sprite.dimension = {static_cast<float>(config.sprite_x.value()), static_cast<float>(config.sprite_y.value()),
                             static_cast<float>(config.sprite_w.value()), static_cast<float>(config.sprite_h.value())};
@@ -180,7 +180,7 @@ class MobComponentFactory {
 
     static void applyScale(Registry& registry, Entity entity, const EntityConfig& config) {
         if (config.scale.has_value()) {
-            auto& transform = registry.getComponent<transform_component_s>(entity);
+            auto& transform = registry.getComponent<TransformComponent>(entity);
             transform.scale_x = config.scale.value();
             transform.scale_y = config.scale.value();
         }

@@ -58,8 +58,8 @@ int ServerGameEngine::init() {
 
     registerNetworkComponent<Sprite2D>();
     registerNetworkComponent<AnimatedSprite2D>();
-    registerNetworkComponent<sprite2D_component_s>();
-    registerNetworkComponent<transform_component_s>();
+    registerNetworkComponent<Sprite2DComponent>();
+    registerNetworkComponent<TransformComponent>();
     registerNetworkComponent<Velocity2D>();
     registerNetworkComponent<BoxCollisionComponent>();
     registerNetworkComponent<TagComponent>();

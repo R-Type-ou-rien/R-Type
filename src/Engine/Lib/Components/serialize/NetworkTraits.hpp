@@ -49,9 +49,9 @@ struct ComponentTraits<ResourceComponent> {
 };
 
 template <>
-struct ComponentTraits<transform_component_s> {
-    static transform_component_s deserialize(const std::vector<uint8_t>& buffer, size_t& offset,
-                                             ResourceManager<TextureAsset>&) {
+struct ComponentTraits<TransformComponent> {
+    static TransformComponent deserialize(const std::vector<uint8_t>& buffer, size_t& offset,
+                                          ResourceManager<TextureAsset>&) {
         return deserialize_transform_component(buffer, offset);
     }
 };
@@ -105,9 +105,9 @@ struct ComponentTraits<Scroll> {
 // --- SPÉCIALISATIONS NÉCESSITANT LE RESOURCE MANAGER ---
 
 template <>
-struct ComponentTraits<sprite2D_component_s> {
-    static sprite2D_component_s deserialize(const std::vector<uint8_t>& buffer, size_t& offset,
-                                            ResourceManager<TextureAsset>& resourceManager) {
+struct ComponentTraits<Sprite2DComponent> {
+    static Sprite2DComponent deserialize(const std::vector<uint8_t>& buffer, size_t& offset,
+                                         ResourceManager<TextureAsset>& resourceManager) {
         return deserialize_sprite_2d_component(buffer, offset, resourceManager);
     }
 };

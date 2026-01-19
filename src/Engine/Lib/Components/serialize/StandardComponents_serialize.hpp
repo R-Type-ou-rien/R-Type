@@ -122,7 +122,7 @@ inline ResourceComponent deserialize_resource_component(const std::vector<uint8_
 }
 
 /** Transform Component */
-inline void serialize(std::vector<uint8_t>& buffer, const transform_component_s& component) {
+inline void serialize(std::vector<uint8_t>& buffer, const TransformComponent& component) {
     serialize(buffer, component.x);
     serialize(buffer, component.y);
     serialize(buffer, component.scale_x);
@@ -130,8 +130,8 @@ inline void serialize(std::vector<uint8_t>& buffer, const transform_component_s&
     serialize(buffer, component.rotation);
 }
 
-inline transform_component_s deserialize_transform_component(const std::vector<uint8_t>& buffer, size_t& offset) {
-    transform_component_s component;
+inline TransformComponent deserialize_transform_component(const std::vector<uint8_t>& buffer, size_t& offset) {
+    TransformComponent component;
     component.x = deserialize<float>(buffer, offset);
     component.y = deserialize<float>(buffer, offset);
     component.scale_x = deserialize<float>(buffer, offset);
@@ -181,7 +181,7 @@ inline rect deserialize_rect(const std::vector<uint8_t>& buffer, size_t& offset)
     return r;
 }
 
-inline void serialize(std::vector<uint8_t>& buffer, const sprite2D_component_s& component,
+inline void serialize(std::vector<uint8_t>& buffer, const Sprite2DComponent& component,
                       ResourceManager<TextureAsset>& resourceManager) {
     auto name = resourceManager.get_name(component.handle);
     if (name) {
@@ -201,9 +201,9 @@ inline void serialize(std::vector<uint8_t>& buffer, const sprite2D_component_s& 
     serialize(buffer, component.lastUpdateTime);
 }
 
-inline sprite2D_component_s deserialize_sprite_2d_component(const std::vector<uint8_t>& buffer, size_t& offset,
-                                                            ResourceManager<TextureAsset>& resourceManager) {
-    sprite2D_component_s component;
+inline Sprite2DComponent deserialize_sprite_2d_component(const std::vector<uint8_t>& buffer, size_t& offset,
+                                                         ResourceManager<TextureAsset>& resourceManager) {
+    Sprite2DComponent component;
     std::string name = deserialize<std::string>(buffer, offset);
     if (!name.empty()) {
         if (resourceManager.is_loaded(name)) {

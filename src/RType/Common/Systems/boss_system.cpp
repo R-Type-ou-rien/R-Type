@@ -182,10 +182,10 @@ void BossSystem::updateBossState(Registry& registry, system_context context, Ent
 }
 
 void BossSystem::checkArrival(Registry& registry, Entity boss_entity, BossComponent& boss) {
-    if (boss.has_arrived || !registry.hasComponent<transform_component_s>(boss_entity))
+    if (boss.has_arrived || !registry.hasComponent<TransformComponent>(boss_entity))
         return;
 
-    auto& transform = registry.getComponent<transform_component_s>(boss_entity);
+    auto& transform = registry.getComponent<TransformComponent>(boss_entity);
     if (transform.x <= boss.target_x) {
         transform.x = boss.target_x;
         boss.has_arrived = true;
@@ -248,7 +248,7 @@ void BossSystem::executePatternLogic(Registry& registry, system_context context,
 
 // Patterns spécifiques
 void BossSystem::patternLinearAlternate(Registry& registry, system_context context, Entity boss_entity) {
-    if (!registry.hasComponent<transform_component_s>(boss_entity))
+    if (!registry.hasComponent<TransformComponent>(boss_entity))
         return;
     // Trouver les tentacules actives
     auto& sub_entities = registry.getEntities<BossSubEntityComponent>();
@@ -268,8 +268,8 @@ void BossSystem::patternLinearAlternate(Registry& registry, system_context conte
             lobbyId = registry.getComponent<LobbyIdComponent>(boss_entity).lobby_id;
         }
         // Tir linéaire droit vers la gauche
-        if (registry.hasComponent<transform_component_s>(sub_entity)) {
-            auto& sub_transform = registry.getConstComponent<transform_component_s>(sub_entity);
+        if (registry.hasComponent<TransformComponent>(sub_entity)) {
+            auto& sub_transform = registry.getConstComponent<TransformComponent>(sub_entity);
             createBossProjectile(registry, context, sub_transform, boss.patterns.linear_speed, 0.0f,
                                  boss.patterns.linear_damage, lobbyId);
         }
@@ -277,10 +277,10 @@ void BossSystem::patternLinearAlternate(Registry& registry, system_context conte
 }
 
 void BossSystem::patternSlowMissiles(Registry& registry, system_context context, Entity boss_entity) {
-    if (!registry.hasComponent<transform_component_s>(boss_entity))
+    if (!registry.hasComponent<TransformComponent>(boss_entity))
         return;
 
-    auto& boss_transform = registry.getConstComponent<transform_component_s>(boss_entity);
+    auto& boss_transform = registry.getConstComponent<TransformComponent>(boss_entity);
     auto& boss = registry.getConstComponent<BossComponent>(boss_entity);
 
     // 2 missiles lents
@@ -295,10 +295,10 @@ void BossSystem::patternSlowMissiles(Registry& registry, system_context context,
 }
 
 void BossSystem::patternWallOfProjectiles(Registry& registry, system_context context, Entity boss_entity) {
-    if (!registry.hasComponent<transform_component_s>(boss_entity))
+    if (!registry.hasComponent<TransformComponent>(boss_entity))
         return;
 
-    auto& boss_transform = registry.getConstComponent<transform_component_s>(boss_entity);
+    auto& boss_transform = registry.getConstComponent<TransformComponent>(boss_entity);
     auto& boss = registry.getConstComponent<BossComponent>(boss_entity);
 
     // Éventail de 5 projectiles
@@ -315,10 +315,10 @@ void BossSystem::patternWallOfProjectiles(Registry& registry, system_context con
 }
 
 void BossSystem::patternBouncingShots(Registry& registry, system_context context, Entity boss_entity) {
-    if (!registry.hasComponent<transform_component_s>(boss_entity))
+    if (!registry.hasComponent<TransformComponent>(boss_entity))
         return;
 
-    auto& boss_transform = registry.getConstComponent<transform_component_s>(boss_entity);
+    auto& boss_transform = registry.getConstComponent<TransformComponent>(boss_entity);
     auto& boss = registry.getConstComponent<BossComponent>(boss_entity);
 
     uint32_t lobbyId = 0;
@@ -332,12 +332,12 @@ void BossSystem::patternBouncingShots(Registry& registry, system_context context
 }
 
 void BossSystem::patternSpiral(Registry& registry, system_context context, Entity boss_entity) {
-    if (!registry.hasComponent<transform_component_s>(boss_entity))
+    if (!registry.hasComponent<TransformComponent>(boss_entity))
         return;
     if (!registry.hasComponent<BossComponent>(boss_entity))
         return;
 
-    auto& boss_transform = registry.getConstComponent<transform_component_s>(boss_entity);
+    auto& boss_transform = registry.getConstComponent<TransformComponent>(boss_entity);
     auto& boss = registry.getConstComponent<BossComponent>(boss_entity);
 
     // Spirale basée sur le timer
@@ -358,10 +358,10 @@ void BossSystem::patternSpiral(Registry& registry, system_context context, Entit
 }
 
 void BossSystem::patternDelayedShots(Registry& registry, system_context context, Entity boss_entity) {
-    if (!registry.hasComponent<transform_component_s>(boss_entity))
+    if (!registry.hasComponent<TransformComponent>(boss_entity))
         return;
 
-    auto& boss_transform = registry.getConstComponent<transform_component_s>(boss_entity);
+    auto& boss_transform = registry.getConstComponent<TransformComponent>(boss_entity);
     auto& boss = registry.getConstComponent<BossComponent>(boss_entity);
     uint32_t lobbyId = 0;
     if (registry.hasComponent<LobbyIdComponent>(boss_entity)) {
@@ -373,7 +373,7 @@ void BossSystem::patternDelayedShots(Registry& registry, system_context context,
 
 // Création de projectiles du boss
 // Création de projectiles du boss
-void BossSystem::createBossProjectile(Registry& registry, system_context context, const transform_component_s& pos,
+void BossSystem::createBossProjectile(Registry& registry, system_context context, const TransformComponent& pos,
                                       float vx, float vy, int damage, uint32_t lobbyId) {
     Entity projectile = registry.createEntity();
 
@@ -389,7 +389,7 @@ void BossSystem::createBossProjectile(Registry& registry, system_context context
     registry.addComponent<ProjectileComponent>(projectile, {});
 
     // Position et vitesse
-    registry.addComponent<transform_component_s>(projectile, {pos.x + BossDefaults::Projectile::OFFSET_X, pos.y});
+    registry.addComponent<TransformComponent>(projectile, {pos.x + BossDefaults::Projectile::OFFSET_X, pos.y});
     registry.addComponent<Velocity2D>(projectile, {vx, vy});
 
     // Dégâts
@@ -399,14 +399,14 @@ void BossSystem::createBossProjectile(Registry& registry, system_context context
     handle_t<TextureAsset> handle = context.texture_manager.load(BossDefaults::Projectile::SPRITE_PATH,
                                                                  TextureAsset(BossDefaults::Projectile::SPRITE_PATH));
 
-    // sprite2D_component_s sprite_info;
+    // Sprite2DComponent sprite_info;
     // sprite_info.handle = handle;
     // sprite_info.animation_speed = 0.0f;
     // sprite_info.current_animation_frame = 0;
     // // Projectile ennemi (boule d'énergie rouge)
     // sprite_info.dimension = {BossDefaults::Projectile::SPRITE_X, BossDefaults::Projectile::SPRITE_Y,
     // BossDefaults::Projectile::SPRITE_W, BossDefaults::Projectile::SPRITE_H}; sprite_info.z_index =
-    // BossDefaults::Projectile::Z_INDEX; registry.addComponent<sprite2D_component_s>(projectile, sprite_info);
+    // BossDefaults::Projectile::Z_INDEX; registry.addComponent<Sprite2DComponent>(projectile, sprite_info);
 
     AnimatedSprite2D animation;
     AnimationClip clip;
@@ -421,7 +421,7 @@ void BossSystem::createBossProjectile(Registry& registry, system_context context
     registry.addComponent<AnimatedSprite2D>(projectile, animation);
 
     // Échelle pour rendre visible
-    auto& proj_transform = registry.getComponent<transform_component_s>(projectile);
+    auto& proj_transform = registry.getComponent<TransformComponent>(projectile);
     proj_transform.scale_x = BossDefaults::Projectile::SCALE;
     proj_transform.scale_y = BossDefaults::Projectile::SCALE;
 
@@ -439,11 +439,11 @@ void BossSystem::createBossProjectile(Registry& registry, system_context context
 
 // Sous-entités
 void BossSystem::patternOrbitalAim(Registry& registry, system_context context, Entity boss_entity) {
-    if (!registry.hasComponent<transform_component_s>(boss_entity) ||
+    if (!registry.hasComponent<TransformComponent>(boss_entity) ||
         !registry.hasComponent<BossComponent>(boss_entity))
         return;
 
-    auto& transform = registry.getComponent<transform_component_s>(boss_entity);
+    auto& transform = registry.getComponent<TransformComponent>(boss_entity);
     auto& boss = registry.getComponent<BossComponent>(boss_entity);
     float time = boss.state_timer;
     float radius_x = boss.oscillation_amplitude;
@@ -468,8 +468,8 @@ void BossSystem::patternOrbitalAim(Registry& registry, system_context context, E
                 continue;
             const auto& team = registry.getConstComponent<TeamComponent>(entity);
             if (team.team == TeamComponent::ALLY) {
-                if (registry.hasComponent<transform_component_s>(entity)) {
-                    const auto& player_pos = registry.getConstComponent<transform_component_s>(entity);
+                if (registry.hasComponent<TransformComponent>(entity)) {
+                    const auto& player_pos = registry.getConstComponent<TransformComponent>(entity);
                     float dx = player_pos.x - transform.x;
                     float dy = player_pos.y - transform.y;
                     float dist = dx * dx + dy * dy;
@@ -509,10 +509,10 @@ void BossSystem::updateSubEntities(Registry& registry, system_context context) {
             continue;
 
         // Mettre à jour la position relative au boss
-        if (registry.hasComponent<transform_component_s>(sub_entity) &&
-            registry.hasComponent<transform_component_s>(sub.boss_entity_id)) {
-            auto& boss_transform = registry.getConstComponent<transform_component_s>(sub.boss_entity_id);
-            auto& sub_transform = registry.getComponent<transform_component_s>(sub_entity);
+        if (registry.hasComponent<TransformComponent>(sub_entity) &&
+            registry.hasComponent<TransformComponent>(sub.boss_entity_id)) {
+            auto& boss_transform = registry.getConstComponent<TransformComponent>(sub.boss_entity_id);
+            auto& sub_transform = registry.getComponent<TransformComponent>(sub_entity);
 
             sub_transform.x = boss_transform.x + sub.offset_x;
             sub_transform.y = boss_transform.y + sub.offset_y;
@@ -531,8 +531,8 @@ void BossSystem::updateSubEntities(Registry& registry, system_context context) {
                     lobbyId = registry.getComponent<LobbyIdComponent>(sub.boss_entity_id).lobby_id;
                 }
 
-                if (registry.hasComponent<transform_component_s>(sub_entity)) {
-                    auto& sub_transform = registry.getConstComponent<transform_component_s>(sub_entity);
+                if (registry.hasComponent<TransformComponent>(sub_entity)) {
+                    auto& sub_transform = registry.getConstComponent<TransformComponent>(sub_entity);
                     createBossProjectile(registry, context, sub_transform, BossDefaults::SubEntities::PROJECTILE_SPEED,
                                          0.0f, BossDefaults::SubEntities::PROJECTILE_DAMAGE, lobbyId);
                 }
@@ -560,10 +560,9 @@ void BossSystem::spawnTentacle(Registry& registry, Entity boss_entity, int index
     registry.addComponent<DamageOnCollision>(tentacle, {BossDefaults::SubEntities::Tentacle::COLLISION_DAMAGE});
 
     // Position initiale
-    if (registry.hasComponent<transform_component_s>(boss_entity)) {
-        auto& boss_transform = registry.getConstComponent<transform_component_s>(boss_entity);
-        registry.addComponent<transform_component_s>(tentacle,
-                                                     {boss_transform.x + offset_x, boss_transform.y + offset_y});
+    if (registry.hasComponent<TransformComponent>(boss_entity)) {
+        auto& boss_transform = registry.getConstComponent<TransformComponent>(boss_entity);
+        registry.addComponent<TransformComponent>(tentacle, {boss_transform.x + offset_x, boss_transform.y + offset_y});
     }
 
     TagComponent tags;
@@ -597,10 +596,9 @@ void BossSystem::spawnCannon(Registry& registry, Entity boss_entity, int index, 
     registry.addComponent<DamageOnCollision>(cannon, {BossDefaults::SubEntities::Cannon::COLLISION_DAMAGE});
 
     // Position initiale
-    if (registry.hasComponent<transform_component_s>(boss_entity)) {
-        auto& boss_transform = registry.getConstComponent<transform_component_s>(boss_entity);
-        registry.addComponent<transform_component_s>(cannon,
-                                                     {boss_transform.x + offset_x, boss_transform.y + offset_y});
+    if (registry.hasComponent<TransformComponent>(boss_entity)) {
+        auto& boss_transform = registry.getConstComponent<TransformComponent>(boss_entity);
+        registry.addComponent<TransformComponent>(cannon, {boss_transform.x + offset_x, boss_transform.y + offset_y});
     }
 
     TagComponent tags;

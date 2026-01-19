@@ -44,12 +44,12 @@ void BehaviorSystem::update(Registry& registry, system_context context) {
 }
 
 void BehaviorSystem::updateFollowPlayer(Registry& registry, system_context context, Entity enemy, Entity player) {
-    if (!registry.hasComponent<transform_component_s>(enemy) || !registry.hasComponent<transform_component_s>(player)) {
+    if (!registry.hasComponent<TransformComponent>(enemy) || !registry.hasComponent<TransformComponent>(player)) {
         return;
     }
 
-    auto& enemy_transform = registry.getComponent<transform_component_s>(enemy);
-    auto& player_transform = registry.getConstComponent<transform_component_s>(player);
+    auto& enemy_transform = registry.getComponent<TransformComponent>(enemy);
+    auto& player_transform = registry.getConstComponent<TransformComponent>(player);
     auto& behavior = registry.getConstComponent<BehaviorComponent>(enemy);
 
     float dx = player_transform.x - enemy_transform.x;
@@ -107,16 +107,16 @@ void BoundsSystem::update(Registry& registry, system_context context) {
         if (!is_player)
             continue;
 
-        if (registry.hasComponent<transform_component_s>(entity)) {
-            auto& transform = registry.getComponent<transform_component_s>(entity);
+        if (registry.hasComponent<TransformComponent>(entity)) {
+            auto& transform = registry.getComponent<TransformComponent>(entity);
 
             float sprite_w = 33.0f;
             float sprite_h = 17.0f;
             float scale_x = transform.scale_x;
             float scale_y = transform.scale_y;
 
-            // if (registry.hasComponent<sprite2D_component_s>(entity)) {
-            //     auto& sprite = registry.getConstComponent<sprite2D_component_s>(entity);
+            // if (registry.hasComponent<Sprite2DComponent>(entity)) {
+            //     auto& sprite = registry.getConstComponent<Sprite2DComponent>(entity);
             //     if (sprite.is_animated && !sprite.frames.empty()) {
             //         const auto& frame = sprite.frames[sprite.current_animation_frame];
             //         sprite_w = frame.width;

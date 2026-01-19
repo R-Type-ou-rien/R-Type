@@ -35,10 +35,10 @@ void PlayerBoundsSystem::update(Registry& registry, system_context context) {
         if (!is_player)
             continue;
 
-        if (!registry.hasComponent<transform_component_s>(entity))
+        if (!registry.hasComponent<TransformComponent>(entity))
             continue;
 
-        auto& transform = registry.getComponent<transform_component_s>(entity);
+        auto& transform = registry.getComponent<TransformComponent>(entity);
 
         float sprite_w = 33.0f;
         float sprite_h = 17.0f;
@@ -58,8 +58,8 @@ void PlayerBoundsSystem::update(Registry& registry, system_context context) {
             sprite_w = sprite.rect.height;
         }
 
-        if (registry.hasComponent<sprite2D_component_s>(entity)) {
-            auto& sprite = registry.getConstComponent<sprite2D_component_s>(entity);
+        if (registry.hasComponent<Sprite2DComponent>(entity)) {
+            auto& sprite = registry.getConstComponent<Sprite2DComponent>(entity);
             if (sprite.is_animated && !sprite.frames.empty()) {
                 const auto& frame = sprite.frames[sprite.current_animation_frame];
                 sprite_w = frame.width;
