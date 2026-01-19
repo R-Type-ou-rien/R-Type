@@ -45,6 +45,6 @@ class BossSystem : public ISystem {
                        float fire_rate);
     void spawnCannon(Registry& registry, Entity boss_entity, int index, float offset_x, float offset_y,
                      float fire_rate);
-    void createBossProjectile(Registry& registry, system_context context, const transform_component_s& pos, float vx,
+    void createBossProjectile(Registry& registry, system_context context, const TransformComponent& pos, float vx,
                               float vy, int damage, uint32_t lobbyId = 0);
 };

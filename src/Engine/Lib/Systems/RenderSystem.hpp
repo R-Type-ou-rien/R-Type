@@ -21,7 +21,7 @@ class RenderSystem : public ISystem {
     void update(Registry& registry, system_context context) override;
 
    private:
-    void drawEntity(Entity entity, const transform_component_s& transform, sprite2D_component_s& spriteData,
+    void drawEntity(Entity entity, const TransformComponent& transform, Sprite2DComponent& spriteData,
                     Registry& registry, const system_context& context);
 
     void drawText(const TextComponent& textComp, const system_context& context);

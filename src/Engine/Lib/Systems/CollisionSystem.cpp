@@ -18,14 +18,14 @@ void BoxCollision::update(Registry& registry, system_context context) {
     }
 
     for (auto entity_a : entities) {
-        if (!registry.hasComponent<transform_component_s>(entity_a))
+        if (!registry.hasComponent<TransformComponent>(entity_a))
             continue;
         if (!registry.hasComponent<TagComponent>(entity_a))
             continue;
 
         uint32_t lobby_a = engine::utils::getLobbyId(registry, entity_a);
 
-        auto& transform_a = registry.getConstComponent<transform_component_s>(entity_a);
+        auto& transform_a = registry.getConstComponent<TransformComponent>(entity_a);
         auto& collision_comp = registry.getComponent<BoxCollisionComponent>(entity_a);
         for (auto entity_b : entities) {
             if (entity_a == entity_b)
@@ -40,11 +40,11 @@ void BoxCollision::update(Registry& registry, system_context context) {
                 continue;
             if (!hasTagToCollide(collision_comp, registry.getConstComponent<TagComponent>(entity_b)))
                 continue;
-            if (!registry.hasComponent<transform_component_s>(entity_b))
+            if (!registry.hasComponent<TransformComponent>(entity_b))
                 continue;
-            // if (!registry.hasComponent<sprite2D_component_s>(entity_a))
+            // if (!registry.hasComponent<Sprite2DComponent>(entity_a))
             //     continue;
-            // if (!registry.hasComponent<sprite2D_component_s>(entity_b))
+            // if (!registry.hasComponent<Sprite2DComponent>(entity_b))
             //     continue;
             float sprite_a_width;
             float sprite_a_height;
@@ -75,7 +75,7 @@ void BoxCollision::update(Registry& registry, system_context context) {
                 sprite_b_height = sprite_b.rect.height;
             } else
                 continue;
-            auto& transform_b = registry.getConstComponent<transform_component_s>(entity_b);
+            auto& transform_b = registry.getConstComponent<TransformComponent>(entity_b);
 
             Velocity2D vel_a = {0, 0};
             if (registry.hasComponent<Velocity2D>(entity_a))
@@ -100,7 +100,7 @@ void BoxCollision::update(Registry& registry, system_context context) {
     }
 }
 
-bool BoxCollision::checkSize(const transform_component_s a, const transform_component_s b,
+bool BoxCollision::checkSize(const TransformComponent a, const TransformComponent b,
                              std::pair<float, float> size_a, std::pair<float, float> size_b, Velocity2D vel_a,
                              Velocity2D vel_b, float dt) {
     double width_a = size_a.first * a.scale_x;

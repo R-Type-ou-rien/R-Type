@@ -108,7 +108,7 @@ void PowerUpSystem::applyPowerUp(Registry& registry, Entity player, PowerUpCompo
 void PowerUpSystem::spawnSpeedUp(Registry& registry, system_context context, float x, float y, uint32_t lobbyId) {
     Entity id = registry.createEntity();
 
-    registry.addComponent<transform_component_s>(id, {x, y});
+    registry.addComponent<TransformComponent>(id, {x, y});
     registry.addComponent<Velocity2D>(id, {-100.0f, 0.0f});
 
     PowerUpComponent powerup;
@@ -121,12 +121,12 @@ void PowerUpSystem::spawnSpeedUp(Registry& registry, system_context context, flo
         context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet3.gif",
                                      TextureAsset("src/RType/Common/content/sprites/r-typesheet3.gif"));
 
-    // sprite2D_component_s sprite_info;
+    // Sprite2DComponent sprite_info;
     // sprite_info.handle = handle;
     // sprite_info.dimension = {1, 99, 16, 16};  // Power-up sprite
     // sprite_info.z_index = 1;
     // sprite_info.is_animated = false;
-    // registry.addComponent<sprite2D_component_s>(id, sprite_info);
+    // registry.addComponent<Sprite2DComponent>(id, sprite_info);
 
     AnimatedSprite2D animation;
     AnimationClip clip;
@@ -137,7 +137,7 @@ void PowerUpSystem::spawnSpeedUp(Registry& registry, system_context context, flo
     animation.currentAnimation = "idle";
     registry.addComponent<AnimatedSprite2D>(id, animation);
 
-    auto& transform = registry.getComponent<transform_component_s>(id);
+    auto& transform = registry.getComponent<TransformComponent>(id);
     transform.scale_x = 2.5f;
     transform.scale_y = 2.5f;
 

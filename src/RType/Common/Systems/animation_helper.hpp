@@ -8,7 +8,7 @@ class AnimationHelper {
    public:
     static void setupHorizontalAnimation(Registry& registry, Entity entity, const EntityConfig& config,
                                          int num_frames = 5, float animation_speed = 0.1f) {
-        // if (!registry.hasComponent<sprite2D_component_s>(entity)) {
+        // if (!registry.hasComponent<Sprite2DComponent>(entity)) {
         //     return;
         // }
         if (!registry.hasComponent<AnimatedSprite2D>(entity)) {
@@ -33,11 +33,11 @@ class AnimationHelper {
     static void setupAnimation(Registry& registry, Entity entity, float start_x, float start_y, float width,
                                float height, int num_frames, float animation_speed = 0.1f, float padding_x = 0.0f,
                                AnimationMode mode = AnimationMode::Loop) {
-        // if (!registry.hasComponent<sprite2D_component_s>(entity)) {
+        // if (!registry.hasComponent<Sprite2DComponent>(entity)) {
         //     return;
         // }
 
-        // auto& sprite = registry.getComponent<sprite2D_component_s>(entity);
+        // auto& sprite = registry.getComponent<Sprite2DComponent>(entity);
         // sprite.is_animated = true;
         // sprite.loop_animation = true;
         // sprite.animation_speed = animation_speed;
@@ -65,11 +65,11 @@ class AnimationHelper {
     }
 
     static void setupStaticSprite(Registry& registry, Entity entity, const EntityConfig& config) {
-        // if (!registry.hasComponent<sprite2D_component_s>(entity)) {
+        // if (!registry.hasComponent<Sprite2DComponent>(entity)) {
         //     return;
         // }
 
-        // auto& sprite = registry.getComponent<sprite2D_component_s>(entity);
+        // auto& sprite = registry.getComponent<Sprite2DComponent>(entity);
         // sprite.is_animated = false;
         // sprite.dimension = {static_cast<float>(config.sprite_x.value()), static_cast<float>(config.sprite_y.value()),
         //                     static_cast<float>(config.sprite_w.value()),

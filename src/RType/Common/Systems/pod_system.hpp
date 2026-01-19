@@ -21,6 +21,6 @@ class PodSystem : public ISystem {
     void updateDetachedPodPosition(Registry& registry, const system_context& context);
     void handlePlayerDamage(Registry& registry);
     void createPodLaserProjectile(Registry& registry, system_context context, Entity owner_entity,
-                                  transform_component_s pos, float angle, int damage);
+                                  TransformComponent pos, float angle, int damage);
     bool allPlayersHavePods(Registry& registry);
 };

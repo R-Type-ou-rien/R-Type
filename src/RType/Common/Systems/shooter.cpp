@@ -46,7 +46,7 @@ Velocity2D ShooterSystem::get_projectile_speed(ShooterComponent::ProjectileType 
 }
 
 void ShooterSystem::create_projectile(Registry& registry, Entity owner_entity, ShooterComponent::ProjectileType type,
-                                      TeamComponent::Team team, transform_component_s pos, system_context context,
+                                      TeamComponent::Team team, TransformComponent pos, system_context context,
                                       int projectile_damage, float projectile_scale) {
     create_projectile_with_pattern(registry, owner_entity, type, team, pos, context, ShooterComponent::STRAIGHT, 0.0f,
                                    0.0f, projectile_damage, projectile_scale);
@@ -54,7 +54,7 @@ void ShooterSystem::create_projectile(Registry& registry, Entity owner_entity, S
 
 void ShooterSystem::create_projectile_with_pattern(Registry& registry, Entity owner_entity,
                                                    ShooterComponent::ProjectileType type, TeamComponent::Team team,
-                                                   transform_component_s pos, system_context context,
+                                                   TransformComponent pos, system_context context,
                                                    ShooterComponent::ShootPattern pattern, float target_x,
                                                    float target_y, int projectile_damage, float projectile_scale) {
     int id = registry.createEntity();
@@ -87,10 +87,10 @@ void ShooterSystem::create_projectile_with_pattern(Registry& registry, Entity ow
     registry.addComponent<TeamComponent>(id, {team});
 
     float offset_x = (team == TeamComponent::ALLY) ? 50.0f : -20.0f;
-    registry.addComponent<transform_component_s>(id, {(pos.x + offset_x), (pos.y + 20)});
+    registry.addComponent<TransformComponent>(id, {(pos.x + offset_x), (pos.y + 20)});
 
     if (projectile_scale > 1.0f) {
-        auto& proj_transform = registry.getComponent<transform_component_s>(id);
+        auto& proj_transform = registry.getComponent<TransformComponent>(id);
         proj_transform.scale_x = projectile_scale;
         proj_transform.scale_y = projectile_scale;
     }
@@ -101,7 +101,7 @@ void ShooterSystem::create_projectile_with_pattern(Registry& registry, Entity ow
 
     registry.addComponent<DamageOnCollision>(id, {projectile_damage});
 
-    // sprite2D_component_s sprite_info;
+    // Sprite2DComponent sprite_info;
     // sprite_info.animation_speed = 0;
     // sprite_info.current_animation_frame = 0;
     // sprite_info.z_index = 5;  // Au-dessus des autres sprites
@@ -126,7 +126,7 @@ void ShooterSystem::create_projectile_with_pattern(Registry& registry, Entity ow
     //     }
     // }
 
-    // registry.addComponent<sprite2D_component_s>(id, sprite_info);
+    // registry.addComponent<Sprite2DComponent>(id, sprite_info);
 
     AnimatedSprite2D animation;
     AnimationClip clip;
@@ -166,7 +166,7 @@ void ShooterSystem::create_projectile_with_pattern(Registry& registry, Entity ow
 
     registry.addComponent<AnimatedSprite2D>(id, animation);
 
-    auto& projectile_transform = registry.getComponent<transform_component_s>(id);
+    auto& projectile_transform = registry.getComponent<TransformComponent>(id);
     if (team == TeamComponent::ENEMY) {
         projectile_transform.scale_x = 4.0f;
         projectile_transform.scale_y = 4.0f;
@@ -204,7 +204,7 @@ void ShooterSystem::create_projectile_with_pattern(Registry& registry, Entity ow
 }
 
 void ShooterSystem::create_charged_projectile(Registry& registry, Entity owner_entity, TeamComponent::Team team,
-                                              transform_component_s pos, system_context context, float charge_ratio) {
+                                              TransformComponent pos, system_context context, float charge_ratio) {
     int id = registry.createEntity();
 
     Velocity2D speed = {700, 0};
@@ -221,8 +221,8 @@ void ShooterSystem::create_charged_projectile(Registry& registry, Entity owner_e
 
     registry.addComponent<ProjectileComponent>(id, {static_cast<int>(owner_entity)});
     registry.addComponent<TeamComponent>(id, {team});
-    registry.addComponent<transform_component_s>(id, {(pos.x + 50), (pos.y)});
-    auto& proj_transform = registry.getComponent<transform_component_s>(id);
+    registry.addComponent<TransformComponent>(id, {(pos.x + 50), (pos.y)});
+    auto& proj_transform = registry.getComponent<TransformComponent>(id);
     if (charge_ratio >= 1.0f) {
         proj_transform.scale_x = 2.0f;
         proj_transform.scale_y = 2.0f;
@@ -335,8 +335,8 @@ void ShooterSystem::update(Registry& registry, system_context context) {
                 for (const auto& tag : tags.tags) {
                     if (tag == "PLAYER") {
                         player_entity = entity;
-                        if (registry.hasComponent<transform_component_s>(entity)) {
-                            auto& player_pos = registry.getConstComponent<transform_component_s>(entity);
+                        if (registry.hasComponent<TransformComponent>(entity)) {
+                            auto& player_pos = registry.getConstComponent<TransformComponent>(entity);
                             player_x = player_pos.x;
                             player_y = player_pos.y;
                         }
@@ -350,7 +350,7 @@ void ShooterSystem::update(Registry& registry, system_context context) {
     }
 
     for (auto id : shootersIds) {
-        if (!registry.hasComponent<transform_component_s>(id)) {
+        if (!registry.hasComponent<TransformComponent>(id)) {
             continue;
         }
         if (!registry.hasComponent<TeamComponent>(id)) {
@@ -378,7 +378,7 @@ void ShooterSystem::update(Registry& registry, system_context context) {
                     audio.stop_requested = true;
                 }
 
-                const transform_component_s& pos = registry.getConstComponent<transform_component_s>(id);
+                const TransformComponent& pos = registry.getConstComponent<TransformComponent>(id);
                 const TeamComponent& team = registry.getConstComponent<TeamComponent>(id);
 
                 if (shooter.last_shot >= shooter.fire_rate) {
@@ -410,7 +410,7 @@ void ShooterSystem::update(Registry& registry, system_context context) {
 
         if (!shooter.is_shooting)
             continue;
-        const transform_component_s& pos = registry.getConstComponent<transform_component_s>(id);
+        const TransformComponent& pos = registry.getConstComponent<TransformComponent>(id);
         const TeamComponent& team = registry.getConstComponent<TeamComponent>(id);
 
         // Update pod laser cooldown
@@ -432,8 +432,8 @@ void ShooterSystem::update(Registry& registry, system_context context) {
                     // Only fire if pod laser cooldown has expired
                     if (player_pod.has_pod && player_pod.pod_attached && player_pod.pod_entity != -1 &&
                         player_pod.pod_laser_cooldown <= 0.0f) {
-                        if (registry.hasComponent<transform_component_s>(player_pod.pod_entity)) {
-                            auto& pod_pos = registry.getConstComponent<transform_component_s>(player_pod.pod_entity);
+                        if (registry.hasComponent<TransformComponent>(player_pod.pod_entity)) {
+                            auto& pod_pos = registry.getConstComponent<TransformComponent>(player_pod.pod_entity);
                             create_pod_circular_laser(registry, id, pod_pos, context, proj_damage);
                             player_pod.pod_laser_cooldown = player_pod.pod_laser_fire_rate;
                         }
@@ -443,13 +443,13 @@ void ShooterSystem::update(Registry& registry, system_context context) {
                 create_projectile_with_pattern(registry, id, shooter.type, team.team, pos, context,
                                                ShooterComponent::STRAIGHT, 0, 0, proj_damage, shooter.projectile_scale);
 
-                transform_component_s pos_up = pos;
+                TransformComponent pos_up = pos;
                 pos_up.y -= 20;
                 create_projectile_with_pattern(registry, id, shooter.type, team.team, pos_up, context,
                                                ShooterComponent::STRAIGHT, 0, -200, proj_damage,
                                                shooter.projectile_scale);
 
-                transform_component_s pos_down = pos;
+                TransformComponent pos_down = pos;
                 pos_down.y += 20;
                 create_projectile_with_pattern(registry, id, shooter.type, team.team, pos_down, context,
                                                ShooterComponent::STRAIGHT, 0, 200, proj_damage,
@@ -470,13 +470,13 @@ void ShooterSystem::update(Registry& registry, system_context context) {
     }
 }
 
-void ShooterSystem::create_pod_circular_laser(Registry& registry, Entity owner_entity, transform_component_s pos,
+void ShooterSystem::create_pod_circular_laser(Registry& registry, Entity owner_entity, TransformComponent pos,
                                               system_context context, int projectile_damage) {
     Entity laser_id = registry.createEntity();
 
     Velocity2D speed = {800.0f, 0.0f};
 
-    registry.addComponent<transform_component_s>(laser_id, {pos.x + 30.0f, pos.y - 10.0f, 4.0f, 4.0f});
+    registry.addComponent<TransformComponent>(laser_id, {pos.x + 30.0f, pos.y - 10.0f, 4.0f, 4.0f});
     registry.addComponent<Velocity2D>(laser_id, speed);
 
     TagComponent tags;

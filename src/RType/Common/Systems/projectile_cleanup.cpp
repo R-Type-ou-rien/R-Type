@@ -12,8 +12,8 @@ void ProjectileCleanupSystem::update(Registry& registry, system_context context)
     std::vector<Entity> to_destroy;
 
     for (auto entity : projectiles) {
-        if (registry.hasComponent<transform_component_s>(entity)) {
-            auto& pos = registry.getConstComponent<transform_component_s>(entity);
+        if (registry.hasComponent<TransformComponent>(entity)) {
+            auto& pos = registry.getConstComponent<TransformComponent>(entity);
 
             // Détruire les projectiles hors écran pour réduire le lag
             if (pos.x < -MARGIN || pos.x > WORLD_WIDTH + MARGIN || pos.y < -MARGIN || pos.y > WORLD_HEIGHT + MARGIN) {

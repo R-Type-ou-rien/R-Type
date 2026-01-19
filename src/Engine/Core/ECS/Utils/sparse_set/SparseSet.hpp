@@ -183,11 +183,11 @@ ComponentPacket SparseSet<data_type>::createPacket(uint32_t entity, Serializatio
     packet.component_type = Hash::fnv1a(data_type::name);
 
     // trouver un autre moyen de check (exemple: verifier s'il y a un handle)
-    // if constexpr (std::is_same_v<data_type, sprite2D_component_s> ||
+    // if constexpr (std::is_same_v<data_type, Sprite2DComponent> ||
     //     std::is_same_v<data_type, BackgroundComponent> ||
     //     std::is_same_v<data_type, Sprite2D> ||
     //     std::is_same_v<data_type, AnimatedSprite2D>
-    if constexpr (std::is_same_v<data_type, sprite2D_component_s> || std::is_same_v<data_type, BackgroundComponent> ||
+    if constexpr (std::is_same_v<data_type, Sprite2DComponent> || std::is_same_v<data_type, BackgroundComponent> ||
                   std::is_same_v<data_type, AnimatedSprite2D>) {
         serialize::serialize(packet.data, comp, context.textureManager);
     } else {

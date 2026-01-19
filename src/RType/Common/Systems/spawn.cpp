@@ -166,7 +166,7 @@ void EnemySpawnSystem::update(Registry& registry, system_context context) {
     }
 
     // Nettoyage des entités hors écran
-    auto& entities = registry.getEntities<transform_component_s>();
+    auto& entities = registry.getEntities<TransformComponent>();
     std::vector<Entity> to_cleanup;
     for (auto entity : entities) {
         if (!registry.hasComponent<TagComponent>(entity))
@@ -185,7 +185,7 @@ void EnemySpawnSystem::update(Registry& registry, system_context context) {
         if (!is_enemy || is_boss)
             continue;  // Ne pas détruire le boss
 
-        auto& transform = registry.getConstComponent<transform_component_s>(entity);
+        auto& transform = registry.getConstComponent<TransformComponent>(entity);
         // Détruire les entités hors écran (à gauche et à droite)
         if (transform.x < -300.0f || transform.x > windowWidth + 300.0f) {
             to_cleanup.push_back(entity);

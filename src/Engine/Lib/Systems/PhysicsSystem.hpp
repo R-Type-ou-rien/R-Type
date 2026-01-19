@@ -14,7 +14,7 @@ class PhysicsSystem : public ISystem {
    public:
     void update(Registry& registry, system_context context) override;
 
-    static void applyMovement(transform_component_s& pos, const Velocity2D& vel, float dt) {
+    static void applyMovement(TransformComponent& pos, const Velocity2D& vel, float dt) {
         pos.x += vel.vx * dt;
         pos.y += vel.vy * dt;
     }

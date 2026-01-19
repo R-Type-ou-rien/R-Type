@@ -19,11 +19,11 @@ class PredictionSystem {
         auto entities = registry.getEntities<PredictionComponent>();
 
         for (auto entity : entities) {
-            if (!registry.hasComponent<transform_component_s>(entity))
+            if (!registry.hasComponent<TransformComponent>(entity))
                 continue;
 
             auto& pred = registry.getComponent<PredictionComponent>(entity);
-            auto& transform = registry.getComponent<transform_component_s>(entity);
+            auto& transform = registry.getComponent<TransformComponent>(entity);
 
             InputSnapshot currentInputs = inputManager.getCurrentInputSnapshot();
 
@@ -37,13 +37,13 @@ class PredictionSystem {
         }
     }
 
-    void onServerUpdate(Registry& registry, Entity entity, const transform_component_s& serverState,
+    void onServerUpdate(Registry& registry, Entity entity, const TransformComponent& serverState,
                         uint32_t serverTick) {
         if (!registry.hasComponent<PredictionComponent>(entity))
             return;
 
         auto& pred = registry.getComponent<PredictionComponent>(entity);
-        auto& currentTransform = registry.getComponent<transform_component_s>(entity);
+        auto& currentTransform = registry.getComponent<TransformComponent>(entity);
 
         while (!pred.history.empty() && pred.history.front().tick < serverTick) {
             pred.history.pop_front();

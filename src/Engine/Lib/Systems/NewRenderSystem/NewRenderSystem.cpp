@@ -30,19 +30,19 @@ void NewRenderSystem::update(Registry& registry, system_context context) {
     std::uint64_t order = 0;
 
     for (Entity e : spriteEntities) {
-        if (!registry.hasComponent<transform_component_s>(e))
+        if (!registry.hasComponent<TransformComponent>(e))
             continue;
 
-        const auto& tr = registry.getComponent<transform_component_s>(e);
+        const auto& tr = registry.getComponent<TransformComponent>(e);
         const auto& sp = registry.getComponent<Sprite2D>(e);
         drawSpriteEntity(tr, sp, context, cmds, order);
     }
 
     for (Entity e : animEntities) {
-        if (!registry.hasComponent<transform_component_s>(e))
+        if (!registry.hasComponent<TransformComponent>(e))
             continue;
 
-        const auto& tr = registry.getComponent<transform_component_s>(e);
+        const auto& tr = registry.getComponent<TransformComponent>(e);
         const auto& sp = registry.getComponent<AnimatedSprite2D>(e);
         drawAnimatedSpriteEntity(tr, sp, context, cmds, order);
     }
@@ -62,7 +62,7 @@ void NewRenderSystem::update(Registry& registry, system_context context) {
     }
 }
 
-void NewRenderSystem::drawSpriteEntity(const transform_component_s& transform, const Sprite2D& spriteData,
+void NewRenderSystem::drawSpriteEntity(const TransformComponent& transform, const Sprite2D& spriteData,
                                        const system_context& context, std::vector<DrawCmd>& out, std::uint64_t& order) {
     if (!context.texture_manager.has(spriteData.handle))
         return;
@@ -81,7 +81,7 @@ void NewRenderSystem::drawSpriteEntity(const transform_component_s& transform, c
     out.push_back(DrawCmd{static_cast<int>(spriteData.layer), order++, std::move(spr)});
 }
 
-void NewRenderSystem::drawAnimatedSpriteEntity(const transform_component_s& transform,
+void NewRenderSystem::drawAnimatedSpriteEntity(const TransformComponent& transform,
                                                const AnimatedSprite2D& spriteData, const system_context& context,
                                                std::vector<DrawCmd>& out, std::uint64_t& order) {
     if (spriteData.currentAnimation.empty() ||

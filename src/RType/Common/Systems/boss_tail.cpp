@@ -28,24 +28,24 @@ void BossTailSystem::update(Registry& registry, system_context context) {
         }
 
         // Get segment transform
-        if (!registry.hasComponent<transform_component_s>(segment_entity))
+        if (!registry.hasComponent<TransformComponent>(segment_entity))
             continue;
 
-        auto& segment_transform = registry.getComponent<transform_component_s>(segment_entity);
+        auto& segment_transform = registry.getComponent<TransformComponent>(segment_entity);
 
         // Determine parent position
-        transform_component_s parent_transform;
+        TransformComponent parent_transform;
         bool parent_exists = false;
 
         if (tail_comp.segment_index == 0) {
             // First segment follows the boss directly
-            if (registry.hasComponent<transform_component_s>(tail_comp.boss_entity_id)) {
-                parent_transform = registry.getConstComponent<transform_component_s>(tail_comp.boss_entity_id);
+            if (registry.hasComponent<TransformComponent>(tail_comp.boss_entity_id)) {
+                parent_transform = registry.getConstComponent<TransformComponent>(tail_comp.boss_entity_id);
                 parent_exists = true;
 
                 // Attach point: middle-left of the boss sprite
-                // if (registry.hasComponent<sprite2D_component_s>(tail_comp.boss_entity_id)) {
-                //     auto& boss_sprite = registry.getConstComponent<sprite2D_component_s>(tail_comp.boss_entity_id);
+                // if (registry.hasComponent<Sprite2DComponent>(tail_comp.boss_entity_id)) {
+                //     auto& boss_sprite = registry.getConstComponent<Sprite2DComponent>(tail_comp.boss_entity_id);
 
                 //     const float boss_w = boss_sprite.dimension.width * parent_transform.scale_x;
                 //     const float boss_h = boss_sprite.dimension.height * parent_transform.scale_y;
@@ -55,8 +55,8 @@ void BossTailSystem::update(Registry& registry, system_context context) {
                 //     float anchor_y = parent_transform.y + (boss_h * 0.85f);
 
                 //     // Center the segment sprite on the anchor point (if available)
-                //     if (registry.hasComponent<sprite2D_component_s>(segment_entity)) {
-                //         auto& seg_sprite = registry.getConstComponent<sprite2D_component_s>(segment_entity);
+                //     if (registry.hasComponent<Sprite2DComponent>(segment_entity)) {
+                //         auto& seg_sprite = registry.getConstComponent<Sprite2DComponent>(segment_entity);
                 //         const float seg_w = seg_sprite.dimension.width * segment_transform.scale_x;
                 //         const float seg_h = seg_sprite.dimension.height * segment_transform.scale_y;
                 //         anchor_x -= seg_w * 0.50f;
@@ -91,8 +91,8 @@ void BossTailSystem::update(Registry& registry, system_context context) {
             }
         } else {
             // Other segments follow the previous segment
-            if (registry.hasComponent<transform_component_s>(tail_comp.parent_segment_id)) {
-                parent_transform = registry.getConstComponent<transform_component_s>(tail_comp.parent_segment_id);
+            if (registry.hasComponent<TransformComponent>(tail_comp.parent_segment_id)) {
+                parent_transform = registry.getConstComponent<TransformComponent>(tail_comp.parent_segment_id);
                 parent_exists = true;
             }
         }

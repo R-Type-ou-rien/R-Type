@@ -68,7 +68,7 @@ void PodSystem::spawnPod(Registry& registry, system_context context, uint32_t lo
     float spawn_x = world_w + 50.0f;
     float spawn_y = 100.0f + dis(gen) * ((world_h - 200.0f));
 
-    registry.addComponent<transform_component_s>(pod_id, {spawn_x, spawn_y, POD_SCALE, POD_SCALE});
+    registry.addComponent<TransformComponent>(pod_id, {spawn_x, spawn_y, POD_SCALE, POD_SCALE});
     registry.addComponent<Velocity2D>(pod_id, {-80.0f, 0.0f});
 
     TagComponent tags;
@@ -94,13 +94,13 @@ void PodSystem::spawnPod(Registry& registry, system_context context, uint32_t lo
         context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet3.gif",
                                      TextureAsset("src/RType/Common/content/sprites/r-typesheet3.gif"));
 
-    // sprite2D_component_s sprite_info;
+    // Sprite2DComponent sprite_info;
     // sprite_info.handle = handle;
     // sprite_info.z_index = 1;
 
     // sprite_info.dimension = {1, 0, POD_FRAME_WIDTH, POD_FRAME_HEIGHT};
 
-    // registry.addComponent<sprite2D_component_s>(pod_id, sprite_info);
+    // registry.addComponent<Sprite2DComponent>(pod_id, sprite_info);
 
     AnimatedSprite2D animation;
     AnimationClip clip;
@@ -133,9 +133,9 @@ void PodSystem::updateFloatingPodMovement(Registry& registry, const system_conte
         if (pod.state != PodState::FLOATING)
             continue;
 
-        if (!registry.hasComponent<transform_component_s>(pod_entity))
+        if (!registry.hasComponent<TransformComponent>(pod_entity))
             continue;
-        auto& pos = registry.getComponent<transform_component_s>(pod_entity);
+        auto& pos = registry.getComponent<TransformComponent>(pod_entity);
 
         pod.float_time += context.dt;
 
@@ -254,13 +254,13 @@ void PodSystem::updateAttachedPodPosition(Registry& registry) {
         if (pod.owner_id == -1)
             continue;
 
-        if (!registry.hasComponent<transform_component_s>(pod.owner_id))
+        if (!registry.hasComponent<TransformComponent>(pod.owner_id))
             continue;
-        if (!registry.hasComponent<transform_component_s>(pod_entity))
+        if (!registry.hasComponent<TransformComponent>(pod_entity))
             continue;
 
-        const auto& player_pos = registry.getConstComponent<transform_component_s>(pod.owner_id);
-        auto& pod_pos = registry.getComponent<transform_component_s>(pod_entity);
+        const auto& player_pos = registry.getConstComponent<TransformComponent>(pod.owner_id);
+        auto& pod_pos = registry.getComponent<TransformComponent>(pod_entity);
 
         pod_pos.x = player_pos.x + 60.0f;
         pod_pos.y = player_pos.y;
@@ -278,13 +278,13 @@ void PodSystem::updateDetachedPodPosition(Registry& registry, const system_conte
         if (pod.owner_id == -1)
             continue;
 
-        if (!registry.hasComponent<transform_component_s>(pod.owner_id))
+        if (!registry.hasComponent<TransformComponent>(pod.owner_id))
             continue;
-        if (!registry.hasComponent<transform_component_s>(pod_entity))
+        if (!registry.hasComponent<TransformComponent>(pod_entity))
             continue;
 
-        const auto& player_pos = registry.getConstComponent<transform_component_s>(pod.owner_id);
-        auto& pod_pos = registry.getComponent<transform_component_s>(pod_entity);
+        const auto& player_pos = registry.getConstComponent<TransformComponent>(pod.owner_id);
+        auto& pod_pos = registry.getComponent<TransformComponent>(pod_entity);
 
         float target_x = player_pos.x + 80.0f;
         float target_y = player_pos.y;
@@ -441,14 +441,14 @@ void PodSystem::handlePodToggle(Registry& registry) {
 }
 
 void PodSystem::createPodLaserProjectile(Registry& registry, system_context context, Entity owner_entity,
-                                         transform_component_s pos, float angle, int damage) {
+                                         TransformComponent pos, float angle, int damage) {
     Entity projectile_id = registry.createEntity();
 
     float speed = 600.0f;
     float vx = std::cos(angle) * speed;
     float vy = std::sin(angle) * speed;
 
-    registry.addComponent<transform_component_s>(projectile_id, {pos.x, pos.y, 1.5f, 1.5f});
+    registry.addComponent<TransformComponent>(projectile_id, {pos.x, pos.y, 1.5f, 1.5f});
     registry.addComponent<Velocity2D>(projectile_id, {vx, vy});
 
     TagComponent tags;
@@ -465,7 +465,7 @@ void PodSystem::createPodLaserProjectile(Registry& registry, system_context cont
         context.texture_manager.load("src/RType/Common/content/sprites/r-typesheet1.gif",
                                      TextureAsset("src/RType/Common/content/sprites/r-typesheet1.gif"));
 
-    // sprite2D_component_s sprite_info;
+    // Sprite2DComponent sprite_info;
     // sprite_info.handle = handle;
     // sprite_info.animation_speed = 0;
     // sprite_info.current_animation_frame = 0;
@@ -473,7 +473,7 @@ void PodSystem::createPodLaserProjectile(Registry& registry, system_context cont
     // sprite_info.dimension = {263, 120, 32, 28};
     // sprite_info.z_index = 3;
 
-    // registry.addComponent<sprite2D_component_s>(projectile_id, sprite_info);
+    // registry.addComponent<Sprite2DComponent>(projectile_id, sprite_info);
 
     AnimatedSprite2D animation;
     AnimationClip clip;
@@ -516,9 +516,9 @@ void PodSystem::handleDetachedPodShooting(Registry& registry, system_context con
         if (pod.last_shot_time >= pod.auto_fire_rate) {
             pod.last_shot_time = 0.0f;
 
-            if (!registry.hasComponent<transform_component_s>(pod_entity))
+            if (!registry.hasComponent<TransformComponent>(pod_entity))
                 continue;
-            const auto& pod_pos = registry.getConstComponent<transform_component_s>(pod_entity);
+            const auto& pod_pos = registry.getConstComponent<TransformComponent>(pod_entity);
 
             // Circular pattern: 8 projectiles in all directions
             for (int i = 0; i < 8; ++i) {
@@ -586,8 +586,8 @@ void PodSystem::update(Registry& registry, system_context context) {
     for (auto pod : pods) {
         const auto& pod_comp = registry.getConstComponent<PodComponent>(pod);
         if (pod_comp.state == PodState::FLOATING) {
-            if (registry.hasComponent<transform_component_s>(pod)) {
-                const auto& pos = registry.getConstComponent<transform_component_s>(pod);
+            if (registry.hasComponent<TransformComponent>(pod)) {
+                const auto& pos = registry.getConstComponent<TransformComponent>(pod);
                 if (pos.x < -100.0f) {
                     to_destroy.push_back(pod);
                 }

@@ -266,7 +266,7 @@ void GameManager::update(std::shared_ptr<Environment> env, InputManager& inputs)
                 // Or destroying everything with Sprite2DComponent, TextComponent, etc.
 
                 // Let's wipe entities with Sprite2DComponent
-                auto& sprites = ecs.registry.getEntities<sprite2D_component_s>();
+                auto& sprites = ecs.registry.getEntities<Sprite2DComponent>();
                 for (auto e : sprites)
                     toDestroy.push_back(e);
 
@@ -703,11 +703,11 @@ void GameManager::loadNextLevel(std::shared_ptr<Environment> env) {
 }
 
 void GameManager::predictionLogic(Entity e, Registry& r, const InputSnapshot& inputs, float dt) {
-    if (!r.hasComponent<Velocity2D>(e) || !r.hasComponent<transform_component_s>(e))
+    if (!r.hasComponent<Velocity2D>(e) || !r.hasComponent<TransformComponent>(e))
         return;
 
     auto& vel = r.getComponent<Velocity2D>(e);
-    auto& pos = r.getComponent<transform_component_s>(e);
+    auto& pos = r.getComponent<TransformComponent>(e);
 
     float speed = _player_config.speed.value();
 

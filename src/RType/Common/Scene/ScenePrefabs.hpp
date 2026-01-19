@@ -52,7 +52,7 @@ class ScenePrefabs {
                 if (props.count("hp"))
                     hp = std::any_cast<int>(props.at("hp"));
 
-                registry.addComponent<transform_component_s>(entity, {x, y});
+                registry.addComponent<TransformComponent>(entity, {x, y});
 
                 float scroll_speed = -100.0f;
                 if (props.count("scroll_speed"))
@@ -75,11 +75,11 @@ class ScenePrefabs {
 
                 handle_t<TextureAsset> handle = texture_manager.load(sprite_path, TextureAsset(sprite_path));
 
-                // sprite2D_component_s sprite;
+                // Sprite2DComponent sprite;
                 // sprite.handle = handle;
                 // sprite.dimension = {0, 0, 32, 32};
                 // sprite.z_index = 3;
-                // registry.addComponent<sprite2D_component_s>(entity, sprite);
+                // registry.addComponent<Sprite2DComponent>(entity, sprite);
 
                 AnimatedSprite2D animation;
                 AnimationClip clip;
@@ -91,7 +91,7 @@ class ScenePrefabs {
                 animation.currentAnimation = "idle";
                 registry.addComponent<AnimatedSprite2D>(entity, animation);
 
-                auto& transform = registry.getComponent<transform_component_s>(entity);
+                auto& transform = registry.getComponent<TransformComponent>(entity);
                 transform.scale_x = width / 32.0f;
                 transform.scale_y = height / 32.0f;
 
@@ -131,7 +131,7 @@ class ScenePrefabs {
                 if (props.count("sprite"))
                     sprite_path = std::any_cast<std::string>(props.at("sprite"));
 
-                registry.addComponent<transform_component_s>(entity, {x, y});
+                registry.addComponent<TransformComponent>(entity, {x, y});
 
                 float scroll_speed = 0.0f;
                 if (props.count("scroll_speed"))
@@ -172,7 +172,7 @@ class ScenePrefabs {
 
                 handle_t<TextureAsset> handle = texture_manager.load(sprite_path, TextureAsset(sprite_path));
 
-                // sprite2D_component_s sprite;
+                // Sprite2DComponent sprite;
                 // sprite.handle = handle;
                 // sprite.dimension = {0, 0, 32, 32};
                 // sprite.z_index = 2;
@@ -182,7 +182,7 @@ class ScenePrefabs {
                 // for (int i = 0; i < 4; i++) {
                 //     sprite.frames.push_back({static_cast<float>(i * 32), 0, 32, 32});
                 // }
-                // registry.addComponent<sprite2D_component_s>(entity, sprite);
+                // registry.addComponent<Sprite2DComponent>(entity, sprite);
 
                 AnimatedSprite2D animation;
                 AnimationClip clip;
@@ -197,7 +197,7 @@ class ScenePrefabs {
                 animation.currentAnimation = "idle";
                 registry.addComponent<AnimatedSprite2D>(entity, animation);
 
-                auto& transform = registry.getComponent<transform_component_s>(entity);
+                auto& transform = registry.getComponent<TransformComponent>(entity);
                 transform.scale_x = 2.5f;
                 transform.scale_y = 2.5f;
 
@@ -238,16 +238,16 @@ class ScenePrefabs {
                 if (props.count("scroll_speed_mult"))
                     scroll_speed_mult = std::any_cast<float>(props.at("scroll_speed_mult"));
 
-                registry.addComponent<transform_component_s>(entity, {x, y, scale, scale});
+                registry.addComponent<TransformComponent>(entity, {x, y, scale, scale});
                 registry.addComponent<Velocity2D>(entity, {-100.0f * scroll_speed_mult, 0.0f});
 
                 if (!sprite_path.empty()) {
                     handle_t<TextureAsset> handle = texture_manager.load(sprite_path, TextureAsset(sprite_path));
-                    // sprite2D_component_s sprite;
+                    // Sprite2DComponent sprite;
                     // sprite.handle = handle;
                     // sprite.z_index = z_index;
                     // sprite.dimension = {0, 0, 0, 0};
-                    // registry.addComponent<sprite2D_component_s>(entity, sprite);
+                    // registry.addComponent<Sprite2DComponent>(entity, sprite);
                     AnimatedSprite2D animation;
                     AnimationClip clip;
                     
