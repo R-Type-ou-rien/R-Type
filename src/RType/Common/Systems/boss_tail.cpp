@@ -69,18 +69,30 @@ void BossTailSystem::update(Registry& registry, system_context context) {
                 if (registry.hasComponent<AnimatedSprite2D>(tail_comp.boss_entity_id)) {
                     auto& boss_sprite = registry.getConstComponent<AnimatedSprite2D>(tail_comp.boss_entity_id);
 
-                    const float boss_w = boss_sprite.animations.at(boss_sprite.currentAnimation).frames.at(boss_sprite.currentFrameIndex).width * parent_transform.scale_x;
-                    const float boss_h = boss_sprite.animations.at(boss_sprite.currentAnimation).frames.at(boss_sprite.currentFrameIndex).height * parent_transform.scale_y;
+                    const float boss_w = boss_sprite.animations.at(boss_sprite.currentAnimation)
+                                             .frames.at(boss_sprite.currentFrameIndex)
+                                             .width *
+                                         parent_transform.scale_x;
+                    const float boss_h = boss_sprite.animations.at(boss_sprite.currentAnimation)
+                                             .frames.at(boss_sprite.currentFrameIndex)
+                                             .height *
+                                         parent_transform.scale_y;
 
                     // User tuning: move attachment more to the right and lower
-                    float anchor_x = parent_transform.x + (boss_w * 0.40f);
-                    float anchor_y = parent_transform.y + (boss_h * 0.85f);
+                    float anchor_x = parent_transform.x + (boss_w * -0.05f);
+                    float anchor_y = parent_transform.y + (boss_h * 0.40f);
 
                     // Center the segment sprite on the anchor point (if available)
                     if (registry.hasComponent<AnimatedSprite2D>(segment_entity)) {
                         auto& seg_sprite = registry.getConstComponent<AnimatedSprite2D>(segment_entity);
-                        const float seg_w = seg_sprite.animations.at(seg_sprite.currentAnimation).frames.at(seg_sprite.currentFrameIndex).width * segment_transform.scale_x;
-                        const float seg_h = seg_sprite.animations.at(seg_sprite.currentAnimation).frames.at(seg_sprite.currentFrameIndex).height * segment_transform.scale_y;
+                        const float seg_w = seg_sprite.animations.at(seg_sprite.currentAnimation)
+                                                .frames.at(seg_sprite.currentFrameIndex)
+                                                .width *
+                                            segment_transform.scale_x;
+                        const float seg_h = seg_sprite.animations.at(seg_sprite.currentAnimation)
+                                                .frames.at(seg_sprite.currentFrameIndex)
+                                                .height *
+                                            segment_transform.scale_y;
                         anchor_x -= seg_w * 0.50f;
                         anchor_y -= seg_h * 0.50f;
                     }

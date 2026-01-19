@@ -42,6 +42,10 @@ void Damage::update(Registry& registry, system_context context) {
 
             auto& health = registry.getComponent<HealthComponent>(hit_id);
 
+            if (health.last_damage_time > 0) {
+                continue;
+            }
+
             if (registry.hasComponent<TeamComponent>(attacker) && registry.hasComponent<TeamComponent>(hit_id)) {
                 auto& teamA = registry.getConstComponent<TeamComponent>(attacker);
                 auto& teamB = registry.getConstComponent<TeamComponent>(hit_id);
@@ -78,7 +82,7 @@ void Damage::update(Registry& registry, system_context context) {
                 const auto& tags = registry.getConstComponent<TagComponent>(attacker);
                 for (const auto& tag : tags.tags) {
                     if (tag == "OBSTACLE") {
-                        damage_value = 10;
+                        damage_value = 1;
                         break;
                     }
                 }
@@ -92,13 +96,14 @@ void Damage::update(Registry& registry, system_context context) {
                 health.current_hp -= damage_value;
             }
 
-            // health.last_damage_time = health.invincibility_duration;
+            health.last_damage_time = health.invincibility_duration;
 
             if (registry.hasComponent<TeamComponent>(attacker) && registry.hasComponent<TeamComponent>(hit_id)) {
                 auto& teamA = registry.getConstComponent<TeamComponent>(attacker);
                 auto& teamB = registry.getConstComponent<TeamComponent>(hit_id);
                 if (teamA.team == TeamComponent::ENEMY && teamB.team == TeamComponent::ALLY) {
-                    if (!registry.hasComponent<ProjectileComponent>(attacker)) {
+                    if (!registry.hasComponent<ProjectileComponent>(attacker) &&
+                        !registry.hasComponent<BossComponent>(attacker)) {
                         attackers_to_destroy.push_back(attacker);
                         break;
                     }

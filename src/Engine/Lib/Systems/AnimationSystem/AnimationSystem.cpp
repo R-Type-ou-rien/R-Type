@@ -8,8 +8,7 @@
 #include "AnimationSystem.hpp"
 #include <algorithm>
 
-void AnimationSystem::update(Registry& registry, system_context context)
-{
+void AnimationSystem::update(Registry& registry, system_context context) {
     const float dt = context.dt;
 
     const auto& animEntities = registry.getEntities<AnimatedSprite2D>();
@@ -41,8 +40,7 @@ void AnimationSystem::update(Registry& registry, system_context context)
     }
 }
 
-void AnimationSystem::advanceFrame(AnimatedSprite2D& anim, const AnimationClip& clip)
-{
+void AnimationSystem::advanceFrame(AnimatedSprite2D& anim, const AnimationClip& clip) {
     const std::size_t last = clip.frames.size() - 1;
 
     switch (clip.mode) {
@@ -68,14 +66,16 @@ void AnimationSystem::advanceFrame(AnimatedSprite2D& anim, const AnimationClip& 
             if (anim.loopDirection >= 0) {
                 if (anim.currentFrameIndex >= last) {
                     anim.loopDirection = -1;
-                    if (last > 0) anim.currentFrameIndex--;
+                    if (last > 0)
+                        anim.currentFrameIndex--;
                 } else {
                     anim.currentFrameIndex++;
                 }
             } else {
                 if (anim.currentFrameIndex == 0) {
                     anim.loopDirection = +1;
-                    if (last > 0) anim.currentFrameIndex++;
+                    if (last > 0)
+                        anim.currentFrameIndex++;
                 } else {
                     anim.currentFrameIndex--;
                 }

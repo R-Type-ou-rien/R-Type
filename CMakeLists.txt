@@ -10,6 +10,7 @@ set(VCPKG_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg")
 if(WIN32)
     set(VCPKG_EXEC "${VCPKG_ROOT}/vcpkg.exe")
     set(VCPKG_BOOTSTRAP "${VCPKG_ROOT}/bootstrap-vcpkg.bat")
+    add_compile_definitions(NOMINMAX)
 else()
     set(VCPKG_EXEC "${VCPKG_ROOT}/vcpkg")
     set(VCPKG_BOOTSTRAP "${VCPKG_ROOT}/bootstrap-vcpkg.sh")
@@ -49,6 +50,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(BUILD_SERVER "Build for server instead of client" OFF)
+option(BUILD_SMASH "Build Smash game" OFF)
 
 add_subdirectory(src)
 

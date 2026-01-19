@@ -37,8 +37,7 @@ class PredictionSystem {
         }
     }
 
-    void onServerUpdate(Registry& registry, Entity entity, const TransformComponent& serverState,
-                        uint32_t serverTick) {
+    void onServerUpdate(Registry& registry, Entity entity, const TransformComponent& serverState, uint32_t serverTick) {
         if (!registry.hasComponent<PredictionComponent>(entity))
             return;
 

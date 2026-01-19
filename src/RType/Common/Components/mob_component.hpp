@@ -129,7 +129,7 @@ class MobComponentFactory {
     }
 
     static Sprite2DComponent createSprite(const EntityConfig& config, handle_t<TextureAsset> handle,
-                                             int z_index = MobDefaults::Sprite::Z_INDEX) {
+                                          int z_index = MobDefaults::Sprite::Z_INDEX) {
         Sprite2DComponent sprite;
         sprite.handle = handle;
         sprite.dimension = {static_cast<float>(config.sprite_x.value()), static_cast<float>(config.sprite_y.value()),

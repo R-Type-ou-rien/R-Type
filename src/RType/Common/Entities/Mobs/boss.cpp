@@ -36,7 +36,7 @@ struct BossDimensions {
         dimensions.height = config.sprite_h.value() * scale;
         dimensions.target_x = world_width - dimensions.width - BossDefaults::Position::MARGIN_RIGHT;
         dimensions.start_x = world_width + BossDefaults::Position::SPAWN_OFFSET_X;
-        dimensions.start_y = (world_height / 2.0f) - (dimensions.height / 2.0f);
+        dimensions.start_y = (world_height / 2.0f) - (dimensions.height / 2.0f) + config.spawn_offset_y.value_or(0.0f);
 
         return dimensions;
     }
@@ -46,6 +46,11 @@ BossComponent createBossComponent(const EntityConfig& config, float target_x) {
     BossComponent boss_comp;
     boss_comp.has_arrived = false;
     boss_comp.target_x = target_x;
+    boss_comp.boss_type = config.boss_type.value_or("CLASSIC");
+    boss_comp.phase1_patterns = config.phase1_patterns;
+    boss_comp.phase2_patterns = config.phase2_patterns;
+    boss_comp.phase3_patterns = config.phase3_patterns;
+    boss_comp.enraged_patterns = config.enraged_patterns;
     boss_comp.max_phases = config.max_phases.value_or(3);
     boss_comp.attack_pattern_interval = config.attack_pattern_interval.value_or(3.0f);
     boss_comp.oscillation_amplitude = config.oscillation_amplitude.value_or(100.0f);
@@ -88,12 +93,7 @@ Sprite2D createBossStaticSprite(const EntityConfig& config, handle_t<TextureAsse
     Sprite2D sprite;
 
     sprite.handle = handle;
-    sprite.rect = {
-        config.sprite_x.value(),
-        config.sprite_y.value(),
-        config.sprite_w.value(),
-        config.sprite_h.value()
-    };
+    sprite.rect = {config.sprite_x.value(), config.sprite_y.value(), config.sprite_w.value(), config.sprite_h.value()};
     sprite.layer = static_cast<RenderLayer>(BossDefaults::Sprite::Z_INDEX);
     return sprite;
 }
@@ -104,12 +104,8 @@ AnimatedSprite2D createBossAnimatedSprite(const EntityConfig& config, handle_t<T
     AnimationClip clip;
 
     clip.handle = handle;
-    clip.frames.emplace_back(
-        config.sprite_x.value(),
-        config.sprite_y.value(),
-        config.sprite_w.value(),
-        config.sprite_h.value()
-    );
+    clip.frames.emplace_back(config.sprite_x.value(), config.sprite_y.value(), config.sprite_w.value(),
+                             config.sprite_h.value());
     animation.animations.emplace("idle", clip);
     animation.currentAnimation = "idle";
     animation.layer = static_cast<RenderLayer>(BossDefaults::Sprite::Z_INDEX);
@@ -150,12 +146,8 @@ Sprite2D createTailStaticSprite(handle_t<TextureAsset> handle, const BossTailCon
     Sprite2D sprite;
 
     sprite.handle = handle;
-    sprite.rect = {
-        static_cast<int>(tail_config.sprite_x),
-        static_cast<int>(tail_config.sprite_y),
-        static_cast<int>(tail_config.sprite_width),
-        static_cast<int>(tail_config.sprite_height)
-    };
+    sprite.rect = {static_cast<int>(tail_config.sprite_x), static_cast<int>(tail_config.sprite_y),
+                   static_cast<int>(tail_config.sprite_width), static_cast<int>(tail_config.sprite_height)};
     sprite.layer = static_cast<RenderLayer>(BossDefaults::Tail::Z_INDEX);
     return sprite;
 }
@@ -165,12 +157,8 @@ AnimatedSprite2D createTailAnimatedSprite(handle_t<TextureAsset> handle, const B
 
     AnimationClip clip;
     clip.handle = handle;
-    clip.frames.emplace_back(
-       static_cast<int>(tail_config.sprite_x),
-        static_cast<int>(tail_config.sprite_y),
-        static_cast<int>(tail_config.sprite_width),
-        static_cast<int>(tail_config.sprite_height) 
-    );
+    clip.frames.emplace_back(static_cast<int>(tail_config.sprite_x), static_cast<int>(tail_config.sprite_y),
+                             static_cast<int>(tail_config.sprite_width), static_cast<int>(tail_config.sprite_height));
     animation.layer = static_cast<RenderLayer>(BossDefaults::Tail::Z_INDEX);
     animation.animations.emplace("idle", clip);
     animation.currentAnimation = "idle";
@@ -266,7 +254,7 @@ Entity BossSpawner::spawn(Registry& registry, system_context context, float x, f
     registry.addComponent<TransformComponent>(id, {dims.start_x, dims.start_y});
     registry.addComponent<Velocity2D>(id, {-config.speed.value(), 0.0f});
 
-    registry.addComponent<HealthComponent>(id, {config.hp.value(), config.hp.value(), 0.0f, 2.0f});
+    registry.addComponent<HealthComponent>(id, {config.hp.value(), config.hp.value(), 0.0f, 0.0f});
     registry.addComponent<TeamComponent>(id, {TeamComponent::ENEMY});
     registry.addComponent<DamageOnCollision>(id, {config.damage.value()});
     registry.addComponent<ScoreValueComponent>(id, {config.score_value.value()});
@@ -277,7 +265,6 @@ Entity BossSpawner::spawn(Registry& registry, system_context context, float x, f
     handle_t<TextureAsset> handle =
         context.texture_manager.load(config.sprite_path.value(), TextureAsset(config.sprite_path.value()));
 
-    // registry.addComponent<Sprite2DComponent>(id, createBossSprite(config, handle));
     registry.addComponent<AnimatedSprite2D>(id, createBossAnimatedSprite(config, handle));
 
     const int num_frames = config.animation_frames.value_or(1);
@@ -296,7 +283,7 @@ Entity BossSpawner::spawn(Registry& registry, system_context context, float x, f
     registry.addComponent<TagComponent>(id, createBossTags());
     registry.addComponent<NetworkIdentity>(id, {static_cast<uint32_t>(id), 0});
 
-    BossTailConfig tail_config;
+    BossTailConfig tail_config = config.toBossTailConfig();
     spawnTailSegments(registry, context, id, dims, config, tail_config);
 
     return id;

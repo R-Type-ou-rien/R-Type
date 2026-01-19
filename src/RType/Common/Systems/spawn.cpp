@@ -16,39 +16,34 @@ const float WORLD_HEIGHT = 1080.0f;
 
 void EnemySpawnSystem::loadConfigs(const std::string& enemies, const std::string& boss, const std::string& boss_section,
                                    const std::string& game) {
-    if (_configs_loaded)
+    std::string section = boss_section.empty() ? "DEFAULT" : boss_section;
+    if (_configs_loaded && _current_boss_section == section)
         return;
 
     std::string enemies_path = enemies.empty() ? "src/RType/Common/content/config/enemies.cfg" : enemies;
     std::string boss_path = boss.empty() ? "src/RType/Common/content/config/boss.cfg" : boss;
     std::string game_path = game.empty() ? "src/RType/Common/content/config/game.cfg" : game;
-    std::string section = boss_section.empty() ? "DEFAULT" : boss_section;
 
-    _enemy_configs = ConfigLoader::loadEnemiesConfig(enemies_path, ConfigLoader::getRequiredEnemyFields());
-
-    // Load boss config from the specified section
+    if (!_configs_loaded) {
+        _enemy_configs = ConfigLoader::loadEnemiesConfig(enemies_path, ConfigLoader::getRequiredEnemyFields());
+        _game_config = ConfigLoader::loadGameConfig(game_path, ConfigLoader::getRequiredGameFields());
+        for (const auto& pair : _enemy_configs) {
+            _enemy_types.push_back(pair.first);
+        }
+        _spawners = MobSpawnerFactory::createSpawners();
+        _configs_loaded = true;
+    }
     auto boss_configs = ConfigLoader::loadMap<EntityConfig>(boss_path, ConfigLoader::getRequiredBossFields());
     if (boss_configs.find(section) != boss_configs.end()) {
         _boss_config = boss_configs[section];
-
     } else if (boss_configs.find("DEFAULT") != boss_configs.end()) {
         _boss_config = boss_configs["DEFAULT"];
-
     } else if (!boss_configs.empty()) {
         _boss_config = boss_configs.begin()->second;
-
     } else {
         std::cerr << "No boss configurations found in " << boss_path << std::endl;
     }
-
-    _game_config = ConfigLoader::loadGameConfig(game_path, ConfigLoader::getRequiredGameFields());
-
-    for (const auto& pair : _enemy_configs) {
-        _enemy_types.push_back(pair.first);
-    }
-
-    _spawners = MobSpawnerFactory::createSpawners();
-    _configs_loaded = true;
+    _current_boss_section = section;
 }
 
 int EnemySpawnSystem::getRandomInt(EnemySpawnComponent& comp, int min, int max) {
@@ -281,6 +276,16 @@ void EnemySpawnSystem::handleObstacles(Registry& registry, system_context contex
 }
 
 bool EnemySpawnSystem::handleBossSpawn(Registry& registry, system_context context, EnemySpawnComponent& spawn_comp) {
+    if (!spawn_comp.spawn_boss_via_timer)
+        return false;
+
+    // Vérifier si un boss est déjà présent (sécurité anti-doublon)
+    if (!registry.getEntities<BossComponent>().empty()) {
+        spawn_comp.boss_spawned = true;
+        spawn_comp.boss_arrived = true;
+        return true;
+    }
+
     // Vérifier si on a dépassé le temps de spawn du boss
     if (spawn_comp.total_time >= _game_config.boss_spawn_time.value() && !spawn_comp.boss_spawned) {
         // Arrêter immédiatement le spawn de nouvelles vagues

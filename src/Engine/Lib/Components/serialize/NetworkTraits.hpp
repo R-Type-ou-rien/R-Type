@@ -51,7 +51,7 @@ struct ComponentTraits<ResourceComponent> {
 template <>
 struct ComponentTraits<TransformComponent> {
     static TransformComponent deserialize(const std::vector<uint8_t>& buffer, size_t& offset,
-                                             ResourceManager<TextureAsset>&) {
+                                          ResourceManager<TextureAsset>&) {
         return deserialize_transform_component(buffer, offset);
     }
 };
@@ -107,7 +107,7 @@ struct ComponentTraits<Scroll> {
 template <>
 struct ComponentTraits<Sprite2DComponent> {
     static Sprite2DComponent deserialize(const std::vector<uint8_t>& buffer, size_t& offset,
-                                            ResourceManager<TextureAsset>& resourceManager) {
+                                         ResourceManager<TextureAsset>& resourceManager) {
         return deserialize_sprite_2d_component(buffer, offset, resourceManager);
     }
 };

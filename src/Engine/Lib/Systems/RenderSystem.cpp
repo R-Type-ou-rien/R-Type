@@ -8,6 +8,7 @@
 #include "RenderSystem.hpp"
 
 #include <SFML/Graphics/Texture.hpp>
+#include <iostream>
 
 #include "../../../RType/Common/Systems/health.hpp"
 

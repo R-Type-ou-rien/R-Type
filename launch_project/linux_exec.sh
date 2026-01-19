@@ -51,6 +51,16 @@ build_server() {
     cmake --build build-server -v
 }
 
+build_smash() {
+    echo "--- Building Smash ---"
+    cmake -B build-smash -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug -DBUILD_SERVER=OFF -DBUILD_SMASH=ON \
+        -DCMAKE_TOOLCHAIN_FILE="$PROJECT_ROOT/vcpkg/scripts/buildsystems/vcpkg.cmake" \
+        -DVCPKG_TARGET_TRIPLET=x64-linux \
+        -DCMAKE_PREFIX_PATH="$PROJECT_ROOT/vcpkg_installed/x64-linux" \
+        -DVCPKG_INSTALLED_DIR="$PROJECT_ROOT/vcpkg_installed"
+    cmake --build build-smash -v
+}
+
 if [ -z "$1" ]; then
     build_client
     echo ""
@@ -59,6 +69,8 @@ elif [ "$1" == "client" ]; then
     build_client
 elif [ "$1" == "server" ]; then
     build_server
+elif [ "$1" == "smash" ]; then
+    build_smash
 else
     echo "Unknown argument: $1"
     echo "Usage: $0 [client|server|clean]"

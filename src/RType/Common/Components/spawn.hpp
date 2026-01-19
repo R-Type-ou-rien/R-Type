@@ -14,6 +14,7 @@ struct EnemySpawnComponent {
     int wave_count = 0;
     bool is_active = true;
     bool use_scripted_spawns = true;
+    bool spawn_boss_via_timer = true;
 
     std::string enemies_config_path;
     std::string boss_config_path;

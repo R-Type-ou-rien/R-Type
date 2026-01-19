@@ -4,6 +4,11 @@
 #include <map>
 #include <chrono>
 #include <cstring>  // Keep cstring as memset is used
+#include <vector>
+#include <utility>
+#include <queue>
+#include <unordered_map>
+#include <memory>
 
 #ifdef RTYPE_USE_REAL_AUDIO
 #include <portaudio.h>
@@ -70,7 +75,8 @@ struct AudioStreamContext {
 };
 
 // PortAudio input callback - called from audio thread
-static int inputCallback(const void* inputBuffer, void* /*outputBuffer*/, unsigned long framesPerBuffer,
+static int inputCallback(const void* inputBuffer, void* /*outputBuffer*/,
+                         unsigned long framesPerBuffer,  // NOLINT(runtime/int)
                          const PaStreamCallbackTimeInfo* /*timeInfo*/, PaStreamCallbackFlags /*statusFlags*/,
                          void* userData) {
     auto* ctx = static_cast<AudioStreamContext*>(userData);
@@ -87,7 +93,8 @@ static int inputCallback(const void* inputBuffer, void* /*outputBuffer*/, unsign
 }
 
 // PortAudio output callback - called from audio thread
-static int outputCallback(const void* /*inputBuffer*/, void* outputBuffer, unsigned long framesPerBuffer,
+static int outputCallback(const void* /*inputBuffer*/, void* outputBuffer,
+                          unsigned long framesPerBuffer,  // NOLINT(runtime/int)
                           const PaStreamCallbackTimeInfo* /*timeInfo*/, PaStreamCallbackFlags /*statusFlags*/,
                           void* userData) {
     auto* ctx = static_cast<AudioStreamContext*>(userData);

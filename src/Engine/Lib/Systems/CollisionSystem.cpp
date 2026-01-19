@@ -60,8 +60,9 @@ void BoxCollision::update(Registry& registry, system_context context) {
                 auto& sprite_a = registry.getConstComponent<Sprite2D>(entity_a);
                 sprite_a_width = sprite_a.rect.width;
                 sprite_a_height = sprite_a.rect.height;
-            } else
+            } else {
                 continue;
+            }
 
             if (registry.hasComponent<AnimatedSprite2D>(entity_b)) {
                 auto& sprite_b = registry.getConstComponent<AnimatedSprite2D>(entity_b);
@@ -73,8 +74,9 @@ void BoxCollision::update(Registry& registry, system_context context) {
                 auto& sprite_b = registry.getConstComponent<Sprite2D>(entity_b);
                 sprite_b_width = sprite_b.rect.width;
                 sprite_b_height = sprite_b.rect.height;
-            } else
+            } else {
                 continue;
+            }
             auto& transform_b = registry.getConstComponent<TransformComponent>(entity_b);
 
             Velocity2D vel_a = {0, 0};
@@ -84,11 +86,6 @@ void BoxCollision::update(Registry& registry, system_context context) {
             Velocity2D vel_b = {0, 0};
             if (registry.hasComponent<Velocity2D>(entity_b))
                 vel_b = registry.getConstComponent<Velocity2D>(entity_b);
-
-            // if (checkSize(transform_a, transform_b, {sprite_a.dimension.width, sprite_a.dimension.height},
-            //               {sprite_b.dimension.width, sprite_b.dimension.height}, vel_a, vel_b, context.dt)) {
-            //     collision_comp.collision.tags.push_back(entity_b);
-            // }
 
             if (checkSize(transform_a, transform_b, {sprite_a_width, sprite_a_height},
                           {sprite_b_width, sprite_b_height}, vel_a, vel_b, context.dt)) {
@@ -100,21 +97,27 @@ void BoxCollision::update(Registry& registry, system_context context) {
     }
 }
 
-bool BoxCollision::checkSize(const TransformComponent a, const TransformComponent b,
-                             std::pair<float, float> size_a, std::pair<float, float> size_b, Velocity2D vel_a,
-                             Velocity2D vel_b, float dt) {
+bool BoxCollision::checkSize(const TransformComponent a, const TransformComponent b, std::pair<float, float> size_a,
+                             std::pair<float, float> size_b, Velocity2D vel_a, Velocity2D vel_b, float dt) {
     double width_a = size_a.first * a.scale_x;
     double height_a = size_a.second * a.scale_y;
     double width_b = size_b.first * b.scale_x;
     double height_b = size_b.second * b.scale_y;
-    double a_min_x = std::min(a.x, a.x + vel_a.vx * dt);
-    double a_max_x = std::max(a.x + width_a, a.x + width_a + vel_a.vx * dt);
-    double a_min_y = std::min(a.y, a.y + vel_a.vy * dt);
-    double a_max_y = std::max(a.y + height_a, a.y + height_a + vel_a.vy * dt);
-    double b_min_x = std::min(b.x, b.x + vel_b.vx * dt);
-    double b_max_x = std::max(b.x + width_b, b.x + width_b + vel_b.vx * dt);
-    double b_min_y = std::min(b.y, b.y + vel_b.vy * dt);
-    double b_max_y = std::max(b.y + height_b, b.y + height_b + vel_b.vy * dt);
+
+    // Offset pour centrer la hitbox (le rendu utilise origin au centre)
+    double offset_a_x = width_a * 0.5;
+    double offset_a_y = height_a * 0.5;
+    double offset_b_x = width_b * 0.5;
+    double offset_b_y = height_b * 0.5;
+
+    double a_min_x = std::min(a.x - offset_a_x, a.x - offset_a_x + vel_a.vx * dt);
+    double a_max_x = std::max(a.x - offset_a_x + width_a, a.x - offset_a_x + width_a + vel_a.vx * dt);
+    double a_min_y = std::min(a.y - offset_a_y, a.y - offset_a_y + vel_a.vy * dt);
+    double a_max_y = std::max(a.y - offset_a_y + height_a, a.y - offset_a_y + height_a + vel_a.vy * dt);
+    double b_min_x = std::min(b.x - offset_b_x, b.x - offset_b_x + vel_b.vx * dt);
+    double b_max_x = std::max(b.x - offset_b_x + width_b, b.x - offset_b_x + width_b + vel_b.vx * dt);
+    double b_min_y = std::min(b.y - offset_b_y, b.y - offset_b_y + vel_b.vy * dt);
+    double b_max_y = std::max(b.y - offset_b_y + height_b, b.y - offset_b_y + height_b + vel_b.vy * dt);
     bool collision_x = a_min_x < b_max_x && a_max_x > b_min_x;
     bool collision_y = a_min_y < b_max_y && a_max_y > b_min_y;
 

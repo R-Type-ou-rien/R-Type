@@ -32,7 +32,6 @@ Entity KamikazeSpawner::spawn(Registry& registry, system_context context, float 
     // registry.addComponent<Sprite2DComponent>(id, MobComponentFactory::createSprite(config, handle));
     registry.addComponent<AnimatedSprite2D>(id, MobComponentFactory::createAnimatedSprite(config, handle));
 
-
     auto [num_frames, anim_speed] = MobComponentFactory::getAnimationParams(config);
     if (num_frames > 1) {
         AnimationHelper::setupHorizontalAnimation(registry, id, config, num_frames, anim_speed);

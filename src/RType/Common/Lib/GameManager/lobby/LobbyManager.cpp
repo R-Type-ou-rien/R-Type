@@ -1,12 +1,13 @@
 #include "LobbyManager.hpp"
 #include <SFML/Window/Mouse.hpp>
 #include <SFML/Window/Keyboard.hpp>
+#include <string>
+#include <iostream>
+#include <vector>
 
 #include "../../../../../Engine/Lib/Components/StandardComponents.hpp"
 #include "Voice/VoiceManager.hpp"
 #include "src/Engine/Core/ClientGameEngine.hpp"
-
-using namespace engine::voice;
 
 bool LobbyManager::isMouseOverButton(sf::RenderWindow* window, float btnX, float btnY, float btnWidth,
                                      float btnHeight) {

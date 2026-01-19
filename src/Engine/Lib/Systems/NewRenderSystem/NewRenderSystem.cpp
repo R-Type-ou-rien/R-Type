@@ -81,9 +81,9 @@ void NewRenderSystem::drawSpriteEntity(const TransformComponent& transform, cons
     out.push_back(DrawCmd{static_cast<int>(spriteData.layer), order++, std::move(spr)});
 }
 
-void NewRenderSystem::drawAnimatedSpriteEntity(const TransformComponent& transform,
-                                               const AnimatedSprite2D& spriteData, const system_context& context,
-                                               std::vector<DrawCmd>& out, std::uint64_t& order) {
+void NewRenderSystem::drawAnimatedSpriteEntity(const TransformComponent& transform, const AnimatedSprite2D& spriteData,
+                                               const system_context& context, std::vector<DrawCmd>& out,
+                                               std::uint64_t& order) {
     if (spriteData.currentAnimation.empty() ||
         spriteData.animations.find(spriteData.currentAnimation) == spriteData.animations.end())
         return;

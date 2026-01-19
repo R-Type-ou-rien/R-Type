@@ -202,7 +202,7 @@ inline void serialize(std::vector<uint8_t>& buffer, const Sprite2DComponent& com
 }
 
 inline Sprite2DComponent deserialize_sprite_2d_component(const std::vector<uint8_t>& buffer, size_t& offset,
-                                                            ResourceManager<TextureAsset>& resourceManager) {
+                                                         ResourceManager<TextureAsset>& resourceManager) {
     Sprite2DComponent component;
     std::string name = deserialize<std::string>(buffer, offset);
     if (!name.empty()) {

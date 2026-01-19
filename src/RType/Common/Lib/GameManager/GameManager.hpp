@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include <set>
 #include <SFML/System/Clock.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include "../../Entities/Player/Player.hpp"

@@ -8,7 +8,7 @@
 #include "InputState.hpp"
 #include "../../../Network/Network.hpp"
 
-enum ResourceAction { LOAD, DELETE };
+enum ResourceAction { LOAD_RES, DELETE_RES };
 
 enum PacketResourceType {
     TEXTURE,
@@ -120,4 +120,4 @@ inline message<GameEvents>& operator>>(message<GameEvents>& msg, ActionPacket& p
     return msg;
 }
 
-}   // namespace network
+}  // namespace network

@@ -62,10 +62,20 @@ if (BUILD_SERVER)
 else()
     target_compile_definitions(Engine PUBLIC CLIENT_BUILD RTYPE_USE_REAL_AUDIO)
 
+    if(WIN32)
+        find_package(portaudio CONFIG REQUIRED)
+        find_package(Opus CONFIG REQUIRED)
+        set(AUDIO_LIBS portaudio Opus::opus)
+    else()
+        find_package(PkgConfig REQUIRED)
+        pkg_check_modules(PORTAUDIO REQUIRED portaudio-2.0)
+        pkg_check_modules(OPUS REQUIRED opus)
+        target_include_directories(Engine PUBLIC ${PORTAUDIO_INCLUDE_DIRS} ${OPUS_INCLUDE_DIRS})
+        target_link_directories(Engine PUBLIC ${PORTAUDIO_LIBRARY_DIRS} ${OPUS_LIBRARY_DIRS})
+        set(AUDIO_LIBS ${PORTAUDIO_LIBRARIES} ${OPUS_LIBRARIES})
+    endif()
     find_package(SFML REQUIRED COMPONENTS System)
-    find_package(portaudio CONFIG REQUIRED)
-    find_package(Opus CONFIG REQUIRED)
-    target_link_libraries(Engine PUBLIC SFML::System portaudio_static Opus::opus)
+    target_link_libraries(Engine PUBLIC SFML::System ${AUDIO_LIBS})
 
     file(GLOB_RECURSE CLIENT_SOURCES
         "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/ActionScriptSystem.cpp"
@@ -73,6 +83,7 @@ else()
         "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/RenderSystem.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/NewRenderSystem/NewRenderSystem.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/AnimationSystem/AnimationSystem.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/GravitySystem/GravitySystem.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/AudioSystem.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Lib/Systems/InputSystem.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Graphics/*.cpp"

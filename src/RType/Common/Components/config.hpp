@@ -45,11 +45,17 @@ struct EntityConfig {
     std::optional<bool> follow_player;
     std::optional<std::string> shoot_pattern;
     std::optional<std::string> pattern;
+    std::optional<std::string> boss_type;
     std::optional<std::string> sprite_path;
     std::vector<std::string> collision_tags;
+    std::vector<std::string> phase1_patterns;
+    std::vector<std::string> phase2_patterns;
+    std::vector<std::string> phase3_patterns;
+    std::vector<std::string> enraged_patterns;
     std::vector<BossSubEntityConfig> boss_sub_entities;
     std::optional<float> margin_right;
     std::optional<float> spawn_offset_x;
+    std::optional<float> spawn_offset_y;
     std::optional<int> z_index;
     std::optional<int> tail_segment_count;
     std::optional<float> tail_sprite_width;
@@ -228,7 +234,7 @@ class ConfigBinder {
 
     // pointe vers la variable a l'interieur de la structure 'T'
     template <typename MemberType>
-    void bind(const std::string& key, std::optional<MemberType> T::* member) {
+    void bind(const std::string& key, std::optional<MemberType> T::*member) {
         // register a function that will be executed later when loading
         bindings[key] = [member](T& obj, const std::string& value) {
             // convert text config to type and save in object
@@ -238,7 +244,7 @@ class ConfigBinder {
 
     // Cette fonction sert a lier un champ classique (qui n'est pas un optional).
     template <typename MemberType>
-    void bind(const std::string& key, MemberType T::* member) {
+    void bind(const std::string& key, MemberType T::*member) {
         bindings[key] = [member](T& obj, const std::string& v) {
             // On convertit et on affecte directement la valeur.
             obj.*member = ParsingUtils::parse<MemberType>(v);

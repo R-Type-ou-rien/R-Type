@@ -1,6 +1,7 @@
 #include <iostream>
 #include <ostream>
 #include <type_traits>
+#include <string>
 #include "ClientGameEngine.hpp"
 #include "GameEngineConfig.hpp"
 #include "Lib/GameManager/GameManager.hpp"
@@ -27,7 +28,7 @@ int main(int argc, char* argv[]) {
     gm.setWindow(&engine.getWindow());
     gm.setLocalPlayerId(engine.getClientId());
 #endif
-    
+
     setupPrediction(engine, gm);
     engine.registerNetworkComponent<DamageOnCollision>();
     engine.registerNetworkComponent<TeamComponent>();

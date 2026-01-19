@@ -6,6 +6,9 @@
 #include <ostream>
 #include <string>
 #include <memory>
+#include <map>
+#include <algorithm>
+#include <vector>
 
 #include "Components/NetworkComponents.hpp"
 #include "Components/StandardComponents.hpp"
@@ -24,12 +27,11 @@
 #include "../../../RType/Common/Components/charged_shot.hpp"
 #include "../../../RType/Common/Components/team_component.hpp"
 #include "../../../RType/Common/Components/damage_component.hpp"
+#include "../../../RType/Common/Components/status_display_components.hpp"
 #include "../../../RType/Common/Components/game_timer.hpp"
 #include "../../../RType/Common/Components/pod_component.hpp"
 #include "../../../RType/Common/Components/game_over_notification.hpp"
 #include "../../../RType/Common/Systems/behavior.hpp"
-#include "Components/StandardComponents.hpp"
-#include "Components/NetworkComponents.hpp"
 #include "Components/Sprite/Sprite2D.hpp"
 #include "Components/Sprite/AnimatedSprite2D.hpp"
 
@@ -39,23 +41,28 @@ ClientGameEngine::ClientGameEngine(std::string ip, std::string window_name)
     _network = std::make_shared<engine::core::NetworkEngine>(engine::core::NetworkEngine::NetworkRole::CLIENT, ip);
 }
 
+ClientGameEngine::ClientGameEngine(int width, int height, std::string window_name)
+    : _window_manager(width, height, window_name),
+      _env(std::make_shared<Environment>(_ecs, _texture_manager, _sound_manager, _music_manager, EnvMode::CLIENT)) {}
+
 int ClientGameEngine::init() {
-    // Verify connection status
-    auto& instance = _network->getNetworkInstance();
-    bool connected = false;
-    if (std::holds_alternative<std::shared_ptr<network::Client>>(instance)) {
-        auto client = std::get<std::shared_ptr<network::Client>>(instance);
-        if (client && client->IsConnected()) {
-            connected = true;
+    if (_network) {
+        auto& instance = _network->getNetworkInstance();
+        bool connected = false;
+        if (std::holds_alternative<std::shared_ptr<network::Client>>(instance)) {
+            auto client = std::get<std::shared_ptr<network::Client>>(instance);
+            if (client && client->IsConnected()) {
+                connected = true;
+            }
         }
-    }
 
-    if (!connected) {
-        _window_manager.getWindow().setTitle("R-Type Client - CONNECTION FAILED");
-        std::cerr << "[CLIENT_ERROR] Failed to connect to server." << std::endl;
-    }
+        if (!connected) {
+            _window_manager.getWindow().setTitle("R-Type Client - CONNECTION FAILED");
+            std::cerr << "[CLIENT_ERROR] Failede to connect to server." << std::endl;
+        }
 
-    _network->transmitEvent<int>(network::GameEvents::C_LOGIN_ANONYMOUS, 0, 0, 0);
+        _network->transmitEvent<int>(network::GameEvents::C_LOGIN_ANONYMOUS, 0, 0, 0);
+    }
 
     registerNetworkComponent<Sprite2D>();
     registerNetworkComponent<AnimatedSprite2D>();
@@ -81,8 +88,7 @@ int ClientGameEngine::init() {
     _ecs.systems.addSystem<AnimationSystem>();
     _ecs.systems.addSystem<RenderSystem>();
     _ecs.systems.addSystem<AudioSystem>();
-    //_ecs.systems.addSystem<InputSystem>(input_manager);
-
+    // _ecs.systems.addSystem<InputSystem>(input_manager);
     _ecs.systems.addSystem<PhysicsSystem>();
     // _ecs.systems.addSystem<BoxCollision>();
     // _ecs.systems.addSystem<ActionScriptSystem>();
@@ -141,7 +147,6 @@ int ClientGameEngine::init() {
                       std::function<void(std::function<void()>)>(
                           [this](std::function<void()> cb) { this->setGameStartedCallback(cb); }));
 
-
     if (!_physicsLogic) {
         _physicsLogic = [](Entity, Registry&, const InputSnapshot&, float) {};
     }
@@ -170,6 +175,9 @@ void ClientGameEngine::handleEvent() {
 }
 
 void ClientGameEngine::processNetworkEvents() {
+    if (!_network) {
+        return;
+    }
     _network->processIncomingPackets(_currentTick);
     auto pending = _network->getPendingEvents();
 
@@ -248,7 +256,6 @@ void ClientGameEngine::processNetworkEvents() {
             network::GameOverPacket packet;
             msg >> packet;
 
-            // CRITICAL: Validate packet data before use
             if (packet.player_count > 8) {
                 continue;
             }
@@ -259,31 +266,24 @@ void ClientGameEngine::processNetworkEvents() {
             notification.victory = packet.victory;
             _ecs.registry.addComponent<GameOverNotification>(gameOverEntity, notification);
 
-            // Créer des entités temporaires pour tous les joueurs avec leurs scores
-            // Le GameManager pourra les lire pour afficher le leaderboard complet
             for (uint32_t i = 0; i < packet.player_count; i++) {
                 Entity playerScoreEntity = _ecs.registry.createEntity();
 
-                // Tag comme joueur pour le leaderboard
                 TagComponent tags;
                 tags.tags.push_back("PLAYER");
                 tags.tags.push_back("LEADERBOARD_DATA");
                 _ecs.registry.addComponent<TagComponent>(playerScoreEntity, tags);
-
-                // Score du joueur
                 ScoreComponent score;
                 score.current_score = packet.players[i].score;
                 score.high_score = 0;
                 _ecs.registry.addComponent<ScoreComponent>(playerScoreEntity, score);
 
-                // État vivant/mort
                 HealthComponent health;
                 health.current_hp = packet.players[i].is_alive ? 1 : 0;
                 health.max_hp = 1;
                 health.last_damage_time = 0;
                 _ecs.registry.addComponent<HealthComponent>(playerScoreEntity, health);
 
-                // IMPORTANT: Stocker le client_id dans NetworkIdentity pour l'affichage
                 NetworkIdentity net_id;
                 net_id.guid = packet.players[i].client_id;
                 net_id.ownerId = packet.players[i].client_id;
@@ -300,6 +300,7 @@ void ClientGameEngine::processLobbyEvents(
     if (pending.count(network::GameEvents::S_READY_RETURN)) {
         auto& msgs = pending.at(network::GameEvents::S_READY_RETURN);
         for (auto& msg : msgs) {
+            std::cout << "[ClientGameEngine] Received S_READY_RETURN" << std::endl;
             try {
                 if (msg.body.size() < sizeof(uint32_t)) {
                     continue;
@@ -414,6 +415,7 @@ void ClientGameEngine::processLobbyEvents(
             }
             uint32_t clientId;
             msg >> clientId;
+            std::cout << "[ClientGameEngine] Received S_CANCEL_READY_BROADCAST for client " << clientId << std::endl;
             _lobbyState.setPlayerReady(clientId, false);
             if (_readyChangedCallback)
                 _readyChangedCallback(clientId, false);
@@ -428,7 +430,9 @@ void ClientGameEngine::processLobbyEvents(
     }
 
     // Handle game start failed
-    if (pending.count(network::GameEvents::S_GAME_START_KO)) {}
+    if (pending.count(network::GameEvents::S_GAME_START_KO)) {
+        // TODO(user): Handle game start failed
+    }
 
     // Handle team chat messages
     if (pending.count(network::GameEvents::S_TEAM_CHAT)) {
@@ -543,8 +547,11 @@ void ClientGameEngine::processLobbyEvents(
 // Lobby action methods
 void ClientGameEngine::sendReady() {
     if (_env->getGameState() != Environment::GameState::LOBBY) {
+        std::cout << "[ClientGameEngine] sendReady ignored - wrong state: " << static_cast<int>(_env->getGameState())
+                  << std::endl;
         return;
     }
+    std::cout << "[ClientGameEngine] Sending C_READY" << std::endl;
     _network->transmitEvent<uint32_t>(network::GameEvents::C_READY, _lobbyState.lobbyId, 0, 0);
 }
 
@@ -557,11 +564,15 @@ void ClientGameEngine::sendUnready() {
 
 void ClientGameEngine::sendStartGame() {
     if (_env->getGameState() != Environment::GameState::LOBBY) {
+        std::cout << "[ClientGameEngine] sendStartGame ignored - wrong state: "
+                  << static_cast<int>(_env->getGameState()) << std::endl;
         return;
     }
     if (!_lobbyState.isLocalPlayerHost()) {
+        std::cout << "[ClientGameEngine] sendStartGame ignored - not host" << std::endl;
         return;
     }
+    std::cout << "[ClientGameEngine] Sending C_GAME_START" << std::endl;
     _network->transmitEvent<uint32_t>(network::GameEvents::C_GAME_START, _lobbyState.lobbyId, 0, 0);
 }
 
@@ -581,8 +592,11 @@ void ClientGameEngine::sendLeaveLobby(uint32_t lobbyId) {
 
 void ClientGameEngine::sendChatMessage(const std::string& message) {
     if (_env->getGameState() != Environment::GameState::LOBBY) {
+        std::cout << "[ClientGameEngine] sendChatMessage ignored - wrong state: "
+                  << static_cast<int>(_env->getGameState()) << std::endl;
         return;
     }
+    std::cout << "[ClientGameEngine] Sending C_TEAM_CHAT: " << message << std::endl;
     char msgBuffer[256] = {0};
     std::strncpy(msgBuffer, message.c_str(), 255);
     _network->transmitEvent<char[256]>(network::GameEvents::C_TEAM_CHAT, msgBuffer, 0, 0);
@@ -640,7 +654,39 @@ int ClientGameEngine::run() {
                               _music_manager,
                               _window_manager.getWindow(),
                               input_manager,
-                              _clientId};
+                              _clientId,
+                              [this](const std::string& signal) {
+                                  if (signal == "RETURN_TO_LOBBY") {
+                                      std::cout << "[ClientGameEngine] Signal RETURN_TO_LOBBY received" << std::endl;
+                                      // Notify Server using C_CANCEL_READY (which implies abort if in game)
+                                      _network->transmitEvent<int>(network::GameEvents::C_CANCEL_READY, 0, 0, 0);
+
+                                      // Clean up all entities before returning to lobby
+                                      auto& registry = _ecs.registry;
+
+                                      // Destroy all tagged entities (roughly resets the scene)
+                                      auto all_tags = registry.getEntities<TagComponent>();
+                                      auto to_kill = std::vector<Entity>();
+                                      for (auto eid : all_tags)
+                                          to_kill.push_back(static_cast<Entity>(eid));
+                                      for (auto e : to_kill) {
+                                          registry.destroyEntity(e);
+                                      }
+
+                                      // Reset StatusDisplaySystem player entity tracking
+                                      auto statusEntities = registry.getEntities<StatusDisplayComponent>();
+                                      for (auto e : statusEntities) {
+                                          if (registry.hasComponent<StatusDisplayComponent>(e)) {
+                                              registry.getComponent<StatusDisplayComponent>(e).setPlayerEntity(-1);
+                                          }
+                                      }
+
+                                      // Also clear NetworkToLocal map if it exists
+                                      _networkToLocalEntity.clear();
+
+                                      _env->setGameState(Environment::GameState::LOBBY);
+                                  }
+                              }};
     auto last_time = std::chrono::high_resolution_clock::now();
 
     this->init();
@@ -649,6 +695,9 @@ int ClientGameEngine::run() {
         _init_function(_env, input_manager);
 
     while (_window_manager.isOpen()) {
+        if (_currentTick % 120 == 0) {
+            std::cout << "CLIENT HEARTBEAT: Tick " << _currentTick << std::endl;
+        }
         auto now = std::chrono::high_resolution_clock::now();
         context.dt = std::chrono::duration_cast<std::chrono::milliseconds>(now - last_time).count() / 1000.0f;
         last_time = now;
@@ -658,8 +707,15 @@ int ClientGameEngine::run() {
 
         handleEvent();
         processNetworkEvents();
-        _predictionSystem->updatePrediction(_ecs.registry, input_manager, _currentTick, context.dt);
-        input_manager.update(*_network, _currentTick, context);
+        static std::shared_ptr<engine::core::NetworkEngine> dummyNetwork =
+            std::make_shared<engine::core::NetworkEngine>(engine::core::NetworkEngine::NetworkRole::CLIENT);
+
+        if (_network) {
+            _predictionSystem->updatePrediction(_ecs.registry, input_manager, _currentTick, context.dt);
+            input_manager.update(*_network, _currentTick, context);
+        } else {
+            input_manager.update(*dummyNetwork, _currentTick, context);
+        }
         _window_manager.clear();
 
         if (_loop_function)

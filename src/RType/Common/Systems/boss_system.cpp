@@ -9,7 +9,9 @@
 #include <vector>
 #include <algorithm>
 #include <iostream>
+#include <string>
 #include "../../../../Engine/Lib/Components/LobbyIdComponent.hpp"
+#include "../../../../Engine/Lib/Utils/LobbyUtils.hpp"
 
 BossSystem::BossSystem() {
     initializeHandlers();
@@ -20,28 +22,28 @@ void BossSystem::initializeHandlers() {
 
     _state_handlers[BossComponent::PHASE_1] = [this](Registry& registry, system_context context, Entity entity,
                                                      BossComponent& boss) {
-        executePatternLogic(registry, context, entity, boss, _phase1_patterns);
+        executePatterns(registry, context, entity, boss, boss.phase1_patterns);
     };
 
     _state_handlers[BossComponent::PHASE_2] = [this](Registry& registry, system_context context, Entity entity,
                                                      BossComponent& boss) {
-        executePatternLogic(registry, context, entity, boss, _phase2_patterns);
+        executePatterns(registry, context, entity, boss, boss.phase2_patterns);
     };
 
     _state_handlers[BossComponent::PHASE_3] = [this](Registry& registry, system_context context, Entity entity,
                                                      BossComponent& boss) {
-        executePatternLogic(registry, context, entity, boss, _phase3_patterns);
+        executePatterns(registry, context, entity, boss, boss.phase3_patterns);
     };
 
     _state_handlers[BossComponent::ENRAGED] = [this](Registry& registry, system_context context, Entity entity,
                                                      BossComponent& boss) {
-        executePatternLogic(registry, context, entity, boss, _enraged_patterns);
+        executePatterns(registry, context, entity, boss, boss.enraged_patterns);
     };
 
     _state_handlers[BossComponent::DYING] = [](Registry& registry, system_context context, Entity entity,
                                                BossComponent& boss) {
         boss.death_timer += context.dt;
-        if (boss.death_timer > 3.0f) {
+        if (boss.death_timer > boss.death_duration) {
             boss.current_state = BossComponent::DEAD;
         }
     };
@@ -74,17 +76,46 @@ void BossSystem::initializeHandlers() {
     _transition_handlers[BossComponent::DYING] = [](Registry&, Entity, BossComponent&) {};
 
     // Patterns
-    _phase1_patterns.push_back([this](Registry& r, system_context c, Entity e) { patternLinearAlternate(r, c, e); });
-    _phase1_patterns.push_back([this](Registry& r, system_context c, Entity e) { patternSlowMissiles(r, c, e); });
+    registerPatternHandler("LINEAR_ALTERNATE",
+                           [this](Registry& r, system_context c, Entity e) { patternLinearAlternate(r, c, e); });
+    registerPatternHandler("SLOW_MISSILES",
+                           [this](Registry& r, system_context c, Entity e) { patternSlowMissiles(r, c, e); });
+    registerPatternHandler("WALL_OF_PROJECTILES",
+                           [this](Registry& r, system_context c, Entity e) { patternWallOfProjectiles(r, c, e); });
+    registerPatternHandler("BOUNCING_SHOTS",
+                           [this](Registry& r, system_context c, Entity e) { patternBouncingShots(r, c, e); });
+    registerPatternHandler("SPIRAL", [this](Registry& r, system_context c, Entity e) { patternSpiral(r, c, e); });
+    registerPatternHandler("DELAYED_SHOTS",
+                           [this](Registry& r, system_context c, Entity e) { patternDelayedShots(r, c, e); });
 
-    _phase2_patterns.push_back([this](Registry& r, system_context c, Entity e) { patternWallOfProjectiles(r, c, e); });
-    _phase2_patterns.push_back([this](Registry& r, system_context c, Entity e) { patternBouncingShots(r, c, e); });
+    // Orbital Boss Patterns (Boss 2)
+    registerPatternHandler("ORBITAL_AIM",
+                           [this](Registry& r, system_context c, Entity e) { patternOrbitalAim(r, c, e); });
+}
 
-    _phase3_patterns.push_back([this](Registry& r, system_context c, Entity e) { patternSpiral(r, c, e); });
-    _phase3_patterns.push_back([this](Registry& r, system_context c, Entity e) { patternDelayedShots(r, c, e); });
+void BossSystem::registerPatternHandler(const std::string& name, PatternHandler handler) {
+    _available_patterns[name] = handler;
+}
 
-    _enraged_patterns.push_back([this](Registry& r, system_context c, Entity e) { patternSpiral(r, c, e); });
-    _enraged_patterns.push_back([this](Registry& r, system_context c, Entity e) { patternWallOfProjectiles(r, c, e); });
+void BossSystem::executePatterns(Registry& registry, system_context context, Entity boss_entity, BossComponent& boss,
+                                 const std::vector<std::string>& pattern_names) {
+    bool attack_triggered = false;
+
+    boss.attack_pattern_timer += context.dt;
+    if (boss.attack_pattern_timer >= boss.attack_pattern_interval) {
+        boss.attack_pattern_timer = 0.0f;
+        attack_triggered = true;
+    }
+
+    for (const auto& name : pattern_names) {
+        if (_available_patterns.count(name)) {
+            if (name == "ORBITAL_AIM") {
+                _available_patterns[name](registry, context, boss_entity);
+            } else if (attack_triggered) {
+                _available_patterns[name](registry, context, boss_entity);
+            }
+        }
+    }
 }
 
 void BossSystem::update(Registry& registry, system_context context) {
@@ -407,6 +438,67 @@ void BossSystem::createBossProjectile(Registry& registry, system_context context
 }
 
 // Sous-entités
+void BossSystem::patternOrbitalAim(Registry& registry, system_context context, Entity boss_entity) {
+    if (!registry.hasComponent<TransformComponent>(boss_entity) ||
+        !registry.hasComponent<BossComponent>(boss_entity))
+        return;
+
+    auto& transform = registry.getComponent<TransformComponent>(boss_entity);
+    auto& boss = registry.getComponent<BossComponent>(boss_entity);
+    float time = boss.state_timer;
+    float radius_x = boss.oscillation_amplitude;
+    float radius_y = boss.oscillation_amplitude;
+    float speed = boss.oscillation_frequency;
+    float center_x = boss.target_x;
+    float center_y = 540.0f;
+
+    transform.x = center_x + std::cos(time * speed) * radius_x;
+    transform.y = center_y + std::sin(time * speed) * radius_y;
+    boss.time_since_last_attack += context.dt;
+    if (boss.time_since_last_attack >= boss.attack_pattern_interval) {
+        boss.time_since_last_attack = 0.0f;
+        Entity target_player = -1;
+        float min_dist = 1000000.0f;
+        float target_pos_x = 0;
+        float target_pos_y = 0;
+
+        auto& teams = registry.getEntities<TeamComponent>();
+        for (auto entity : teams) {
+            if (!registry.hasComponent<TeamComponent>(entity))
+                continue;
+            const auto& team = registry.getConstComponent<TeamComponent>(entity);
+            if (team.team == TeamComponent::ALLY) {
+                if (registry.hasComponent<TransformComponent>(entity)) {
+                    const auto& player_pos = registry.getConstComponent<TransformComponent>(entity);
+                    float dx = player_pos.x - transform.x;
+                    float dy = player_pos.y - transform.y;
+                    float dist = dx * dx + dy * dy;
+
+                    if (dist < min_dist) {
+                        min_dist = dist;
+                        target_player = entity;
+                        target_pos_x = player_pos.x;
+                        target_pos_y = player_pos.y;
+                    }
+                }
+            }
+        }
+
+        if (target_player != -1) {
+            float dx = target_pos_x - transform.x;
+            float dy = target_pos_y - transform.y;
+            float len = std::sqrt(dx * dx + dy * dy);
+            if (len > 0) {
+                float speed = 400.0f;
+                float vx = (dx / len) * speed;
+                float vy = (dy / len) * speed;
+                uint32_t lobbyId = engine::utils::getLobbyId(registry, boss_entity);
+                createBossProjectile(registry, context, transform, vx, vy, 20, lobbyId);
+            }
+        }
+    }
+}
+
 void BossSystem::updateSubEntities(Registry& registry, system_context context) {
     auto& sub_entities = registry.getEntities<BossSubEntityComponent>();
 
@@ -470,8 +562,7 @@ void BossSystem::spawnTentacle(Registry& registry, Entity boss_entity, int index
     // Position initiale
     if (registry.hasComponent<TransformComponent>(boss_entity)) {
         auto& boss_transform = registry.getConstComponent<TransformComponent>(boss_entity);
-        registry.addComponent<TransformComponent>(tentacle,
-                                                     {boss_transform.x + offset_x, boss_transform.y + offset_y});
+        registry.addComponent<TransformComponent>(tentacle, {boss_transform.x + offset_x, boss_transform.y + offset_y});
     }
 
     TagComponent tags;
@@ -507,8 +598,7 @@ void BossSystem::spawnCannon(Registry& registry, Entity boss_entity, int index, 
     // Position initiale
     if (registry.hasComponent<TransformComponent>(boss_entity)) {
         auto& boss_transform = registry.getConstComponent<TransformComponent>(boss_entity);
-        registry.addComponent<TransformComponent>(cannon,
-                                                     {boss_transform.x + offset_x, boss_transform.y + offset_y});
+        registry.addComponent<TransformComponent>(cannon, {boss_transform.x + offset_x, boss_transform.y + offset_y});
     }
 
     TagComponent tags;

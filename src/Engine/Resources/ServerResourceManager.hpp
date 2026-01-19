@@ -41,16 +41,18 @@ class ServerResourceManager : public ResourceManagerBase<ServerResourceManager<R
         for (auto source : _resources_to_load)
             packet.resources_source.push_back(source);
         _resources_to_load.clear();
-        packet.action = ResourceAction::LOAD;
+        packet.action = ResourceAction::LOAD_RES;
         if constexpr (std::is_same<ResourceType, TextureAsset>::value) {
             packet.type = PacketResourceType::TEXTURE;
         }
-        // if constexpr (std::is_same<ResourceType, >::value) {
-        //     packet.type = PacketResourceType::MUSIC;
-        // }
-        // if constexpr (std::is_same<ResourceType, >::value) {
-        //     packet.type = PacketResourceType::SOUND;
-        // }
+
+        if constexpr (std::is_same<ResourceType, SoundAsset>::value) {
+            packet.type = PacketResourceType::SOUND;
+        }
+
+        if constexpr (std::is_same<ResourceType, MusicAsset>::value) {
+            packet.type = PacketResourceType::MUSIC;
+        }
         return packet;
     }
 
@@ -60,7 +62,7 @@ class ServerResourceManager : public ResourceManagerBase<ServerResourceManager<R
         for (auto source : _resources_to_delete)
             packet.resources_source.push_back(source);
         _resources_to_delete.clear();
-        packet.action = ResourceAction::DELETE;
+        packet.action = ResourceAction::DELETE_RES;
         if constexpr (std::is_same<ResourceType, TextureAsset>::value) {
             packet.type = PacketResourceType::TEXTURE;
         }

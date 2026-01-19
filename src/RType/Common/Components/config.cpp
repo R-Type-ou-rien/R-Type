@@ -99,10 +99,16 @@ const ConfigBinder<EntityConfig>& ConfigLoader::getBinder<EntityConfig>() {
         binder.bind("sprite", &EntityConfig::sprite_path);
         binder.bind("shoot_pattern", &EntityConfig::shoot_pattern);
         binder.bind("pattern", &EntityConfig::pattern);
+        binder.bind("boss_type", &EntityConfig::boss_type);
         binder.bind("collision_tags", &EntityConfig::collision_tags);
+        binder.bind("phase1_patterns", &EntityConfig::phase1_patterns);
+        binder.bind("phase2_patterns", &EntityConfig::phase2_patterns);
+        binder.bind("phase3_patterns", &EntityConfig::phase3_patterns);
+        binder.bind("enraged_patterns", &EntityConfig::enraged_patterns);
 
         binder.bind("margin_right", &EntityConfig::margin_right);
         binder.bind("spawn_offset_x", &EntityConfig::spawn_offset_x);
+        binder.bind("spawn_offset_y", &EntityConfig::spawn_offset_y);
         binder.bind("z_index", &EntityConfig::z_index);
 
         binder.bind("tail_segment_count", &EntityConfig::tail_segment_count);
